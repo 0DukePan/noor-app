@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/design_system.dart';
-import '../../domain/entities/hadith_entities.dart';
+import '../../../../core/domain/entities/hadith.dart';
+import '../../../../core/services/hadith_user_data_service.dart';
 import '../providers/hadith_providers.dart';
 
 class HadithListPage extends ConsumerStatefulWidget {
@@ -111,12 +112,8 @@ class _HadithListPageState extends ConsumerState<HadithListPage> {
               final hadith = state.hadiths[index];
               return RepaintBoundary(
                 child: _HadithCard(
-                  hadithId: hadith.id,
-                  text: hadith.textArabic,
-                  narrator: hadith.narrator,
+                  hadith: hadith,
                   source: widget.title,
-                  number: hadith.hadithNumber ?? (index + 1),
-                  grade: hadith.grade,
                 ),
               );
             },
@@ -127,72 +124,25 @@ class _HadithListPageState extends ConsumerState<HadithListPage> {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// GRADE HELPERS
-// ═══════════════════════════════════════════════════════════════════════════
-
-Color _gradeColor(HadithGrade grade) {
-  switch (grade) {
-    case HadithGrade.sahih:
-    case HadithGrade.sahihLiGhairihi:
-      return NoorDesignSystem.gradeSahih;
-    case HadithGrade.hasan:
-    case HadithGrade.hasanLiGhairihi:
-      return NoorDesignSystem.gradeHasan;
-    case HadithGrade.daif:
-      return NoorDesignSystem.gradeDaif;
-    case HadithGrade.mawdu:
-      return NoorDesignSystem.gradeMawdu;
-    case HadithGrade.unknown:
-      return NoorDesignSystem.textSecondary;
-  }
-}
-
-String _gradeLabel(HadithGrade grade) {
-  switch (grade) {
-    case HadithGrade.sahih:
-      return 'صحيح';
-    case HadithGrade.sahihLiGhairihi:
-      return 'صحيح لغيره';
-    case HadithGrade.hasan:
-      return 'حسن';
-    case HadithGrade.hasanLiGhairihi:
-      return 'حسن لغيره';
-    case HadithGrade.daif:
-      return 'ضعيف';
-    case HadithGrade.mawdu:
-      return 'موضوع';
-    case HadithGrade.unknown:
-      return 'غير محدد';
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// HADITH CARD (with bookmark toggle)
-// ═══════════════════════════════════════════════════════════════════════════
-
-class _HadithCard extends ConsumerWidget {
-  final String hadithId;
-  final String text;
-  final String narrator;
+class _HadithCard extends ConsumerStatefulWidget {
+  final Hadith hadith;
   final String source;
-  final HadithGrade grade;
-  final int number;
 
   const _HadithCard({
-    required this.hadithId,
-    required this.text,
-    required this.narrator,
+    required this.hadith,
     required this.source,
-    required this.grade,
-    required this.number,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final cleanText = text.replaceAll(RegExp(r'<[^>]*>'), '');
-    final color = _gradeColor(grade);
-    final label = _gradeLabel(grade);
+  ConsumerState<_HadithCard> createState() => _HadithCardState();
+}
+
+class _HadithCardState extends ConsumerState<_HadithCard> {
+  @override
+  Widget build(BuildContext context) {
+    final hadith = widget.hadith;
+    final cleanText = hadith.arabic.replaceAll(RegExp(r'<[^>]*>'), '');
+    final number = hadith.idInBook;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -207,23 +157,6 @@ class _HadithCard extends ConsumerWidget {
           children: [
             Row(
               children: [
-                // Grade badge (Arabic label)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    label,
-                    style: GoogleFonts.cairo(
-                      color: color,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
                 Text(
                   '#$number',
                   style: GoogleFonts.robotoMono(
@@ -234,13 +167,13 @@ class _HadithCard extends ConsumerWidget {
                 ),
                 const Spacer(),
                 // ❤️ Bookmark toggle
-                _BookmarkButton(hadithId: hadithId),
+                _BookmarkButton(hadith: hadith),
               ],
             ),
             const SizedBox(height: 16),
             SelectableText(
               cleanText,
-              style: GoogleFonts.amiri(
+              style: GoogleFonts. amiri(
                 fontSize: 20,
                 height: 1.8,
                 color: NoorDesignSystem.textPrimary,
@@ -248,12 +181,12 @@ class _HadithCard extends ConsumerWidget {
               textAlign: TextAlign.justify,
               textDirection: TextDirection.rtl,
             ),
-            if (narrator.isNotEmpty) ...[
+            if (hadith.narratorEnglish.isNotEmpty) ...[
               const SizedBox(height: 16),
               const Divider(height: 1),
               const SizedBox(height: 12),
               Text(
-                narrator,
+                hadith.narratorEnglish,
                 style: NoorDesignSystem.textTheme.bodySmall?.copyWith(
                   color: NoorDesignSystem.textSecondary,
                   fontStyle: FontStyle.italic,
@@ -271,36 +204,41 @@ class _HadithCard extends ConsumerWidget {
 // BOOKMARK BUTTON (uses hadith_providers)
 // ═══════════════════════════════════════════════════════════════════════════
 
-class _BookmarkButton extends ConsumerWidget {
-  final String hadithId;
-  const _BookmarkButton({required this.hadithId});
+class _BookmarkButton extends StatefulWidget {
+  final Hadith hadith;
+  const _BookmarkButton({required this.hadith});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final bookmarkedAsync = ref.watch(bookmarkedHadithIdsProvider);
+  State<_BookmarkButton> createState() => _BookmarkButtonState();
+}
 
-    return bookmarkedAsync.when(
-      data: (bookmarkedIds) {
-        final isBookmarked = bookmarkedIds.contains(hadithId);
-        return GestureDetector(
-          onTap: () {
-            HapticFeedback.selectionClick();
-            ref.read(localHadithDataSourceProvider).toggleBookmark(hadithId);
-            ref.invalidate(bookmarkedHadithIdsProvider);
-          },
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: Icon(
-              isBookmarked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              key: ValueKey(isBookmarked),
-              color: isBookmarked ? Colors.red : NoorDesignSystem.textSecondary,
-              size: 22,
-            ),
-          ),
-        );
+class _BookmarkButtonState extends State<_BookmarkButton> {
+  late bool isBookmarked;
+
+  @override
+  void initState() {
+    super.initState();
+    isBookmarked = HadithUserDataService.isBookmarked(
+        widget.hadith.collectionId, widget.hadith.id);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        HapticFeedback.selectionClick();
+        final newVal = await HadithUserDataService.toggleBookmark(widget.hadith);
+        if (mounted) setState(() => isBookmarked = newVal);
       },
-      loading: () => const SizedBox(width: 22, height: 22),
-      error: (_, __) => const SizedBox(width: 22, height: 22),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: Icon(
+          isBookmarked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+          key: ValueKey(isBookmarked),
+          color: isBookmarked ? Colors.red : NoorDesignSystem.textSecondary,
+          size: 22,
+        ),
+      ),
     );
   }
 }
