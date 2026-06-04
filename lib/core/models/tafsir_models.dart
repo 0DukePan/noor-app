@@ -292,3 +292,115 @@ class TafsirReadingHistory {
     readCount: readCount + 1,
   );
 }
+
+/// ═══════════════════════════════════════════════════════════════════════════
+/// PHASE 6: HIGHLIGHTS & ANNOTATIONS (Tadabbur Integration)
+/// ═══════════════════════════════════════════════════════════════════════════
+
+/// لون التظليل
+enum HighlightColor {
+  yellow,
+  green,
+  blue,
+  pink,
+  orange,
+}
+
+/// تظليل نص في التفسير
+class TafsirHighlight {
+  final String id;
+  final int surah;
+  final int ayah;
+  final TafsirSourceId source;
+  final String highlightedText;
+  final HighlightColor color;
+  final DateTime createdAt;
+
+  const TafsirHighlight({
+    required this.id,
+    required this.surah,
+    required this.ayah,
+    required this.source,
+    required this.highlightedText,
+    this.color = HighlightColor.yellow,
+    required this.createdAt,
+  });
+
+  String get key => 'hl:${source.name}:$surah:$ayah:$id';
+
+  factory TafsirHighlight.fromJson(Map<String, dynamic> json) {
+    return TafsirHighlight(
+      id: json['id'] as String,
+      surah: json['surah'] as int,
+      ayah: json['ayah'] as int,
+      source: TafsirSourceId.values.firstWhere(
+        (e) => e.name == json['source'],
+        orElse: () => TafsirSourceId.muyassar,
+      ),
+      highlightedText: json['highlightedText'] as String,
+      color: HighlightColor.values.firstWhere(
+        (e) => e.name == json['color'],
+        orElse: () => HighlightColor.yellow,
+      ),
+      createdAt: DateTime.parse(json['createdAt']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'surah': surah,
+    'ayah': ayah,
+    'source': source.name,
+    'highlightedText': highlightedText,
+    'color': color.name,
+    'createdAt': createdAt.toIso8601String(),
+  };
+}
+
+/// ملاحظة تدبر مرتبطة بالتفسير
+class TafsirAnnotation {
+  final String id;
+  final int surah;
+  final int ayah;
+  final TafsirSourceId source;
+  final String noteText;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const TafsirAnnotation({
+    required this.id,
+    required this.surah,
+    required this.ayah,
+    required this.source,
+    required this.noteText,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  String get key => 'ann:${source.name}:$surah:$ayah:$id';
+
+  factory TafsirAnnotation.fromJson(Map<String, dynamic> json) {
+    return TafsirAnnotation(
+      id: json['id'] as String,
+      surah: json['surah'] as int,
+      ayah: json['ayah'] as int,
+      source: TafsirSourceId.values.firstWhere(
+        (e) => e.name == json['source'],
+        orElse: () => TafsirSourceId.muyassar,
+      ),
+      noteText: json['noteText'] as String,
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'surah': surah,
+    'ayah': ayah,
+    'source': source.name,
+    'noteText': noteText,
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+  };
+}

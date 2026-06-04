@@ -1,29 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/noor_theme.dart';
+import '../providers/khatmah_providers.dart';
 
 /// صفحة خطة الختمة - Khatmah Planner Page
-class KhatmahPlannerPage extends StatefulWidget {
+class KhatmahPlannerPage extends ConsumerStatefulWidget {
   const KhatmahPlannerPage({super.key});
 
   @override
-  State<KhatmahPlannerPage> createState() => _KhatmahPlannerPageState();
+  ConsumerState<KhatmahPlannerPage> createState() => _KhatmahPlannerPageState();
 }
 
-class _KhatmahPlannerPageState extends State<KhatmahPlannerPage> {
-  // Sample data - would come from repository
-  final _activeKhatmah = {
-    'name': 'ختمة رمضان',
-    'startDate': DateTime(2026, 3, 1),
-    'targetEndDate': DateTime(2026, 3, 30),
-    'currentSurah': 18,
-    'currentVerse': 45,
-    'currentPage': 299,
-    'progressPercentage': 0.48,
-  };
-
+class _KhatmahPlannerPageState extends ConsumerState<KhatmahPlannerPage> {
   @override
   Widget build(BuildContext context) {
+    final khatmah = ref.watch(khatmahProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('خطة الختمة'),
@@ -34,80 +29,112 @@ class _KhatmahPlannerPageState extends State<KhatmahPlannerPage> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(NoorTheme.spacingMd),
-        children: [
-          // Active Khatmah Card
-          _ActiveKhatmahCard(
-            name: _activeKhatmah['name'] as String,
-            startDate: _activeKhatmah['startDate'] as DateTime,
-            targetEndDate: _activeKhatmah['targetEndDate'] as DateTime?,
-            currentSurah: _activeKhatmah['currentSurah'] as int,
-            currentVerse: _activeKhatmah['currentVerse'] as int,
-            currentPage: _activeKhatmah['currentPage'] as int,
-            progressPercentage: _activeKhatmah['progressPercentage'] as double,
-            onResume: () {
-              // Navigate to current reading position
-            },
-          ),
+      body: khatmah == null
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.auto_stories_rounded, size: 64, color: NoorTheme.primary.withOpacity(0.3)),
+                  const SizedBox(height: 16),
+                  Text('لا توجد ختمة نشطة', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: _showCreateKhatmahDialog,
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text('بدء ختمة جديدة'),
+                  ),
+                ],
+              ),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(NoorTheme.spacingMd),
+              children: [
+                // Active Khatmah Card
+                _ActiveKhatmahCard(
+                  name: khatmah.name,
+                  startDate: khatmah.startDate,
+                  targetEndDate: khatmah.targetEndDate,
+                  currentSurah: khatmah.currentSurah,
+                  currentVerse: khatmah.currentVerse,
+                  currentPage: khatmah.currentPage,
+                  progressPercentage: khatmah.progressPercentage,
+                  onResume: () {
+                    HapticFeedback.lightImpact();
+                    context.push('/quran/surah/${khatmah.currentSurah}');
+                  },
+                ),
 
-          const SizedBox(height: NoorTheme.spacingLg),
+                const SizedBox(height: NoorTheme.spacingLg),
 
-          // Daily Reading Goal
-          _DailyGoalCard(
-            pagesPerDay: 20,
-            pagesReadToday: 12,
-          ),
+                // Daily Reading Goal — real data from provider
+                ref.watch(todayPagesReadProvider).when(
+                  data: (pagesRead) => _DailyGoalCard(
+                    pagesPerDay: khatmah.dailyPagesNeeded,
+                    pagesReadToday: pagesRead,
+                  ),
+                  loading: () => _DailyGoalCard(
+                    pagesPerDay: khatmah.dailyPagesNeeded,
+                    pagesReadToday: 0,
+                  ),
+                  error: (_, __) => _DailyGoalCard(
+                    pagesPerDay: khatmah.dailyPagesNeeded,
+                    pagesReadToday: 0,
+                  ),
+                ),
 
-          const SizedBox(height: NoorTheme.spacingLg),
+                const SizedBox(height: NoorTheme.spacingLg),
 
-          // Reading Schedule
-          Text(
-            'جدول القراءة',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: NoorTheme.spacingMd),
+                // Reading Schedule — algorithmically generated
+                Text(
+                  'جدول القراءة',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: NoorTheme.spacingMd),
 
-          _ScheduleCard(
-            day: 'اليوم',
-            surahs: 'الكهف - مريم - طه',
-            pages: '293 - 312',
-            isToday: true,
-          ),
-          _ScheduleCard(
-            day: 'غداً',
-            surahs: 'الأنبياء - الحج',
-            pages: '312 - 331',
-            isToday: false,
-          ),
-          _ScheduleCard(
-            day: 'بعد غد',
-            surahs: 'المؤمنون - النور',
-            pages: '331 - 350',
-            isToday: false,
-          ),
+                ...ref.watch(khatmahScheduleProvider).map((day) =>
+                  _ScheduleCard(
+                    day: day.dayLabel,
+                    surahs: day.surahRange,
+                    pages: day.pageRange,
+                    isToday: day.isToday,
+                  ),
+                ),
 
-          const SizedBox(height: NoorTheme.spacingLg),
+                const SizedBox(height: NoorTheme.spacingLg),
 
-          // Past Khatmahs
-          Text(
-            'ختماتك السابقة',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: NoorTheme.spacingMd),
+                // Past Khatmahs — from Hive history
+                Text(
+                  'ختماتك السابقة',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: NoorTheme.spacingMd),
 
-          _PastKhatmahCard(
-            name: 'ختمة شهر محرم',
-            completedDate: DateTime(2025, 8, 15),
-            durationDays: 30,
-          ),
-          _PastKhatmahCard(
-            name: 'ختمة شعبان',
-            completedDate: DateTime(2025, 3, 1),
-            durationDays: 20,
-          ),
-        ],
-      ),
+                ref.watch(completedKhatmahsProvider).when(
+                  data: (history) {
+                    if (history.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(NoorTheme.spacingLg),
+                          child: Text(
+                            'لم تُتمم أي ختمة بعد',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      );
+                    }
+                    return Column(
+                      children: history.map((k) => _PastKhatmahCard(
+                        name: k.name,
+                        completedDate: k.completedDate,
+                        durationDays: k.durationDays,
+                      )).toList(),
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
+              ],
+            ),
     );
   }
 
@@ -262,7 +289,7 @@ class _ActiveKhatmahCard extends StatelessWidget {
                             ),
                       ),
                       Text(
-                        'سورة الكهف - آية $currentVerse',
+                        'سورة ${surahName(currentSurah)} - آية $currentVerse',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               color: Colors.white,
                             ),
@@ -312,7 +339,9 @@ class _DailyGoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress = pagesReadToday / pagesPerDay;
+    // ✅ Guard against division by zero (happens when khatmah is complete)
+    final safePagesPerDay = pagesPerDay == 0 ? 1 : pagesPerDay;
+    final progress = pagesReadToday / safePagesPerDay;
     
     return Container(
       padding: const EdgeInsets.all(NoorTheme.spacingMd),
@@ -407,8 +436,8 @@ class _ScheduleCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 60,
+          SizedBox(
+            width: 70, // ✅ Wider to fit Arabic labels without overflow
             child: Text(
               day,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -497,14 +526,15 @@ class _PastKhatmahCard extends StatelessWidget {
   }
 }
 
-class _CreateKhatmahDialog extends StatefulWidget {
+class _CreateKhatmahDialog extends ConsumerStatefulWidget {
   @override
-  State<_CreateKhatmahDialog> createState() => _CreateKhatmahDialogState();
+  ConsumerState<_CreateKhatmahDialog> createState() => _CreateKhatmahDialogState();
 }
 
-class _CreateKhatmahDialogState extends State<_CreateKhatmahDialog> {
+class _CreateKhatmahDialogState extends ConsumerState<_CreateKhatmahDialog> {
   final _nameController = TextEditingController();
   int _durationDays = 30;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -555,15 +585,27 @@ class _CreateKhatmahDialogState extends State<_CreateKhatmahDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isLoading ? null : () => Navigator.pop(context),
           child: const Text('إلغاء'),
         ),
         ElevatedButton(
-          onPressed: () {
-            // Create khatmah
-            Navigator.pop(context);
-          },
-          child: const Text('ابدأ الختمة'),
+          onPressed: _isLoading
+              ? null
+              : () async {
+                  setState(() => _isLoading = true);
+                  await ref.read(khatmahProvider.notifier).startNew(
+                    name: _nameController.text,
+                    targetEndDate: DateTime.now().add(Duration(days: _durationDays)),
+                  );
+                  if (mounted) Navigator.pop(context);
+                },
+          child: _isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('ابدأ الختمة'),
         ),
       ],
     );

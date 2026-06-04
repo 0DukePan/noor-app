@@ -5,13 +5,16 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:hijri/hijri_calendar.dart';
 
 import 'core/theme/noor_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/services/services.dart';
+import 'core/services/hadith_user_data_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  HijriCalendar.setLocal('ar');
 
   // Set preferred orientations (Mobile only)
   if (!kIsWeb) {
@@ -25,19 +28,29 @@ Future<void> main() async {
   await _initializeServices();
 
   // Initialize Sentry for crash reporting (errors only, no user tracking)
-  await SentryFlutter.init(
-    (options) {
-      options.dsn = const String.fromEnvironment('SENTRY_DSN', defaultValue: '');
-      options.tracesSampleRate = 0.0; // No performance tracking
-      options.attachScreenshot = false; // Privacy: no screenshots
-      options.sendDefaultPii = false; // Privacy: no personal data
-    },
-    appRunner: () => runApp(
+  const sentryDsn = String.fromEnvironment('SENTRY_DSN', defaultValue: '');
+  if (sentryDsn.isNotEmpty) {
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = sentryDsn;
+        options.tracesSampleRate = 0.0; // No performance tracking
+        options.attachScreenshot = false; // Privacy: no screenshots
+        options.sendDefaultPii = false; // Privacy: no personal data
+      },
+      appRunner: () => runApp(
+        const ProviderScope(
+          child: NoorApp(),
+        ),
+      ),
+    );
+  } else {
+    // No Sentry DSN → run directly (avoids zone mismatch on web)
+    runApp(
       const ProviderScope(
         child: NoorApp(),
       ),
-    ),
-  );
+    );
+  }
 }
 
 /// Initialize all app services in correct order
@@ -45,6 +58,21 @@ Future<void> _initializeServices() async {
   // 1. Local storage first
   await Hive.initFlutter();
   await HiveService.initialize();
+  await HadithUserDataService.init();
+
+  // 1b. Statistics service (depends on Hive)
+  try {
+    await StatisticsService.init();
+  } catch (e) {
+    debugPrint('StatisticsService init failed: $e');
+  }
+
+  // 1c. Day state machine (depends on Hive)
+  try {
+    await DayStateMachine.init();
+  } catch (e) {
+    debugPrint('DayStateMachine init failed: $e');
+  }
 
   // 2. Offline data service (loads bundled assets)
   // On web, we might need to handle assets differently or they might be missing

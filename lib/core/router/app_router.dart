@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/quran/presentation/pages/quran_page.dart';
 import '../../features/quran/presentation/pages/surah_page.dart';
+import '../../features/quran/presentation/pages/quran_mushaf_page.dart';
 import '../../features/quran/presentation/pages/khatmah_page.dart';
 import '../../features/quran/presentation/pages/tadabbur_page.dart';
 import '../../features/hadith/presentation/pages/hadith_page.dart';
@@ -15,14 +16,21 @@ import '../../features/hadith/presentation/pages/hadith_search_page.dart';
 import '../../features/hadith/presentation/pages/learning_statistics_page.dart';
 import '../../features/hadith/presentation/pages/tags_management_page.dart';
 import '../../features/prayer/presentation/pages/prayer_page.dart';
+import '../../features/prayer/presentation/pages/prayer_settings_page.dart';
 import '../../features/prayer/presentation/pages/qada_page.dart';
 import '../../features/qibla/presentation/pages/qibla_page.dart';
 import '../../features/adhkar/presentation/pages/adhkar_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/settings/presentation/pages/notifications_settings_page.dart';
+import '../../features/settings/presentation/pages/storage_settings_page.dart';
+import '../../features/settings/presentation/pages/cloud_settings_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/audio/presentation/pages/audio_player_page.dart';
 import '../../features/tafsir/presentation/pages/tafsir_page.dart';
 import '../../features/search/presentation/pages/search_page.dart';
+import '../../features/tools/presentation/pages/tools_page.dart';
+import '../../features/tools/presentation/pages/tasbih_page.dart';
+import '../../features/profile/presentation/pages/profile_page.dart';
 import '../widgets/main_shell.dart';
 
 /// App Router Provider
@@ -103,6 +111,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   state,
                 ),
               ),
+              GoRoute(
+                path: 'mushaf',
+                name: 'mushaf',
+                pageBuilder: (context, state) {
+                  final page = int.tryParse(
+                    state.uri.queryParameters['page'] ?? '1',
+                  ) ?? 1;
+                  return _buildPage(
+                    QuranMushafPage(initialPage: page),
+                    state,
+                  );
+                },
+              ),
             ],
           ),
           GoRoute(
@@ -164,70 +185,106 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
           GoRoute(
-            path: '/prayer',
-            name: 'prayer',
+            path: '/tools',
+            name: 'tools',
             pageBuilder: (context, state) => _buildPage(
-              const PrayerPage(),
+              const ToolsPage(),
               state,
             ),
             routes: [
               GoRoute(
-                path: 'qada',
-                name: 'qada',
+                path: 'prayer',
+                name: 'prayer',
                 pageBuilder: (context, state) => _buildPage(
-                  const QadaTrackerPage(),
+                  const PrayerPage(),
+                  state,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'qada',
+                    name: 'qada',
+                    pageBuilder: (context, state) => _buildPage(
+                      const QadaTrackerPage(),
+                      state,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'settings',
+                    name: 'prayer-settings',
+                    pageBuilder: (context, state) => _buildPage(
+                      const PrayerSettingsPage(),
+                      state,
+                    ),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: 'qibla',
+                name: 'qibla',
+                pageBuilder: (context, state) => _buildPage(
+                  const QiblaPage(),
                   state,
                 ),
               ),
+              GoRoute(
+                path: 'tasbih',
+                name: 'tasbih',
+                pageBuilder: (context, state) => _buildPage(
+                  const TasbihPage(),
+                  state,
+                ),
+              ),
+              GoRoute(
+                path: 'search',
+                name: 'search',
+                pageBuilder: (context, state) => _buildPage(
+                  const SearchPage(),
+                  state,
+                ),
+              ),
+              GoRoute(
+                path: 'profile',
+                name: 'profile',
+                pageBuilder: (context, state) => _buildPage(
+                  const ProfilePage(),
+                  state,
+                ),
+              ),
+              GoRoute(
+                path: 'settings',
+                name: 'settings',
+                pageBuilder: (context, state) => _buildPage(
+                  const SettingsPage(),
+                  state,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'notifications',
+                    name: 'notifications-settings',
+                    pageBuilder: (context, state) => _buildPage(
+                      const NotificationsSettingsPage(),
+                      state,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'storage',
+                    name: 'storage-settings',
+                    pageBuilder: (context, state) => _buildPage(
+                      const StorageSettingsPage(),
+                      state,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'cloud',
+                    name: 'cloud-settings',
+                    pageBuilder: (context, state) => _buildPage(
+                      const CloudSettingsPage(),
+                      state,
+                    ),
+                  ),
+                ],
+              ),
             ],
-          ),
-          GoRoute(
-            path: '/qibla',
-            name: 'qibla',
-            pageBuilder: (context, state) => _buildPage(
-              const QiblaPage(),
-              state,
-            ),
-          ),
-          GoRoute(
-            path: '/adhkar',
-            name: 'adhkar',
-            pageBuilder: (context, state) => _buildPage(
-              const AdhkarPage(),
-              state,
-            ),
-          ),
-          GoRoute(
-            path: '/audio',
-            name: 'audio',
-            pageBuilder: (context, state) => _buildPage(
-              const AudioPlayerPage(),
-              state,
-            ),
-          ),
-          GoRoute(
-            path: '/tafsir',
-            name: 'tafsir',
-            pageBuilder: (context, state) => _buildPage(
-              const TafsirPage(),
-              state,
-            ),
-          ),
-          GoRoute(
-            path: '/search',
-            name: 'search',
-            pageBuilder: (context, state) => _buildPage(
-              const SearchPage(),
-              state,
-            ),
-          ),
-          GoRoute(
-            path: '/settings',
-            name: 'settings',
-            pageBuilder: (context, state) => _buildPage(
-              const SettingsPage(),
-              state,
-            ),
           ),
         ],
       ),

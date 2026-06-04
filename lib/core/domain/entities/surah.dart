@@ -49,6 +49,8 @@ class Verse extends Equatable {
   final int hizb;
   final int quarter;
   final bool sajdah;
+  final int surahNumber;
+  final String? surahName;
 
   const Verse({
     required this.number,
@@ -60,6 +62,8 @@ class Verse extends Equatable {
     this.hizb = 0,
     this.quarter = 0,
     this.sajdah = false,
+    this.surahNumber = 0,
+    this.surahName,
   });
 
   @override
@@ -72,6 +76,8 @@ class Verse extends Equatable {
         page, 
         hizb, 
         quarter, 
-        sajdah
+        sajdah,
+        surahNumber,
+        surahName,
       ];
 }

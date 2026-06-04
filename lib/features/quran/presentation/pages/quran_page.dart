@@ -9,35 +9,24 @@ import '../../../../core/theme/noor_theme.dart';
 import '../providers/quran_providers.dart';
 import '../../../../core/domain/entities/surah.dart';
 
-/// صفحة القرآن الديناميكية - Dynamic Quran Page
-class QuranPage extends ConsumerStatefulWidget {
+/// صفحة القرآن الديناميكية — Dynamic Quran Page
+/// Zero setState. All state via Riverpod providers.
+class QuranPage extends ConsumerWidget {
   const QuranPage({super.key});
 
   @override
-  ConsumerState<QuranPage> createState() => _QuranPageState();
-}
-
-class _QuranPageState extends ConsumerState<QuranPage> {
-  final _searchController = TextEditingController();
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final surahsAsync = ref.watch(surahsProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final filteredAsync = ref.watch(filteredSurahsProvider);
     final searchQuery = ref.watch(quranSearchQueryProvider);
     final lastReadAsync = ref.watch(lastReadPositionProvider);
+    final selectedFilter = ref.watch(surahFilterProvider);
 
     return Scaffold(
       backgroundColor: NoorDesignSystem.creamWhite,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // App Bar with Search
+          // ── App Bar with Search ──
           SliverAppBar(
             expandedHeight: 180,
             pinned: true,
@@ -76,7 +65,7 @@ class _QuranPageState extends ConsumerState<QuranPage> {
                             style: NoorDesignSystem.textTheme.displayMedium,
                           ),
                           const SizedBox(height: 8),
-                          surahsAsync.when(
+                          ref.watch(surahsProvider).when(
                             data: (surahs) => Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
@@ -92,7 +81,7 @@ class _QuranPageState extends ConsumerState<QuranPage> {
                               ),
                             ),
                             loading: () => const SizedBox.shrink(),
-                            error: (_,__) => const SizedBox.shrink(),
+                            error: (_, __) => const SizedBox.shrink(),
                           ),
                         ],
                       ),
@@ -106,7 +95,6 @@ class _QuranPageState extends ConsumerState<QuranPage> {
               child: Container(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                 child: _SearchBar(
-                  controller: _searchController,
                   onChanged: (query) {
                     ref.read(quranSearchQueryProvider.notifier).state = query;
                   },
@@ -115,72 +103,74 @@ class _QuranPageState extends ConsumerState<QuranPage> {
             ),
           ),
 
-          // Last Read Position (if available)
-          if (lastReadAsync.value != null && searchQuery.isEmpty)
-             SliverToBoxAdapter(
-               child: Padding(
-                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                 child: Material(
-                   color: NoorDesignSystem.emeraldGreen,
-                   borderRadius: BorderRadius.circular(16),
-                   elevation: 4,
-                   child: InkWell(
-                     borderRadius: BorderRadius.circular(16),
-                     onTap: () {
-                       final pos = lastReadAsync.value!;
-                       // Navigate to specific verse logic or just surah
-                       // For now just surah, ideally we scroll to verse
-                       if (context.mounted) {
-                          context.push('/quran/surah/${pos['surah']}');
-                       }
-                     },
-                     child: Padding(
-                       padding: const EdgeInsets.all(16),
-                       child: Row(
-                         children: [
-                           const Icon(Icons.bookmark, color: Colors.white),
-                           const SizedBox(width: 12),
-                           Column(
-                             crossAxisAlignment: CrossAxisAlignment.start,
-                             children: [
-                               Text(
-                                 'متابعة القراءة',
-                                 style: GoogleFonts.cairo(
-                                   color: Colors.white70, 
-                                   fontSize: 12,
-                                 ),
-                               ),
-                               Text(
-                                 'سورة رقم ${lastReadAsync.value!['surah']}',
-                                 style: GoogleFonts.amiri(
-                                   color: Colors.white,
-                                   fontWeight: FontWeight.bold,
-                                   fontSize: 16,
-                                 ),
-                               ),
-                             ],
-                           ),
-                           const Spacer(),
-                           const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
-                         ],
-                       ),
-                     ),
-                   ),
-                 ),
-               ),
-             ),
+          // ── Filter Chips ──
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _FilterBarDelegate(
+              selectedFilter: selectedFilter,
+              onFilterChanged: (filter) {
+                HapticFeedback.selectionClick();
+                ref.read(surahFilterProvider.notifier).state = filter;
+              },
+            ),
+          ),
 
-          // Surahs List
-          surahsAsync.when(
-            data: (allSurahs) {
-              final filteredSurahs = searchQuery.isEmpty 
-                  ? allSurahs 
-                  : allSurahs.where((horizontalSurah) => 
-                      horizontalSurah.nameArabic.contains(searchQuery) || 
-                      horizontalSurah.nameEnglish.toLowerCase().contains(searchQuery.toLowerCase()) ||
-                      horizontalSurah.number.toString() == searchQuery
-                    ).toList();
+          // ── Last Read Position (safe .when access) ──
+          ...lastReadAsync.when(
+            data: (pos) {
+              if (pos == null || searchQuery.isNotEmpty) return [const SliverToBoxAdapter(child: SizedBox.shrink())];
+              return [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    child: Material(
+                      color: NoorDesignSystem.emeraldGreen,
+                      borderRadius: BorderRadius.circular(16),
+                      elevation: 4,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () => context.push('/quran/surah/${pos['surah']}'),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.bookmark, color: Colors.white),
+                              const SizedBox(width: 12),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'متابعة القراءة',
+                                    style: GoogleFonts.cairo(color: Colors.white70, fontSize: 12),
+                                  ),
+                                  Text(
+                                    'سورة رقم ${pos['surah']}',
+                                    style: GoogleFonts.amiri(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Spacer(),
+                              const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ];
+            },
+            loading: () => [const SliverToBoxAdapter(child: SizedBox.shrink())],
+            error: (_, __) => [const SliverToBoxAdapter(child: SizedBox.shrink())],
+          ),
 
+          // ── Surahs List (from filteredSurahsProvider) ──
+          filteredAsync.when(
+            data: (filteredSurahs) {
               if (filteredSurahs.isEmpty) {
                 return SliverFillRemaining(
                   child: Center(
@@ -217,9 +207,9 @@ class _QuranPageState extends ConsumerState<QuranPage> {
                         nameEnglish: surah.nameEnglish,
                         versesCount: surah.versesCount,
                         revelationType: surah.revelationType,
+                        searchQuery: searchQuery,
                         onTap: () {
                           HapticFeedback.lightImpact();
-                          // Ensure we use the correct path format expected by router
                           context.push('/quran/surah/${surah.number}');
                         },
                       );
@@ -229,8 +219,14 @@ class _QuranPageState extends ConsumerState<QuranPage> {
                 ),
               );
             },
-            loading: () => const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator()),
+            loading: () => SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => const _ShimmerSurahTile(),
+                  childCount: 10,
+                ),
+              ),
             ),
             error: (e, s) => SliverFillRemaining(
               child: _ErrorWidget(
@@ -241,84 +237,101 @@ class _QuranPageState extends ConsumerState<QuranPage> {
           ),
 
           // Bottom Padding
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 100),
+          SliverToBoxAdapter(
+            child: SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
           ),
         ],
       ),
 
-      // Quick Access FAB
+      // Mushaf FAB
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showQuickJumpDialog(context),
+        onPressed: () => context.push('/quran/mushaf'),
         backgroundColor: NoorDesignSystem.emeraldGreen,
         foregroundColor: Colors.white,
         elevation: 4,
-        icon: const Icon(Icons.flash_on_rounded),
-        label: const Text('انتقال سريع'),
+        icon: const Icon(Icons.auto_stories_rounded),
+        label: const Text('المصحف'),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FILTER BAR
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _FilterBarDelegate extends SliverPersistentHeaderDelegate {
+  final String selectedFilter;
+  final ValueChanged<String> onFilterChanged;
+
+  _FilterBarDelegate({
+    required this.selectedFilter,
+    required this.onFilterChanged,
+  });
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: NoorDesignSystem.creamWhite,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Row(
+        children: [
+          _FilterChip(
+            label: 'الكل',
+            isSelected: selectedFilter == 'all',
+            onTap: () => onFilterChanged('all'),
+          ),
+          const SizedBox(width: 8),
+          _FilterChip(
+            label: 'مكية',
+            isSelected: selectedFilter == 'meccan',
+            onTap: () => onFilterChanged('meccan'),
+          ),
+          const SizedBox(width: 8),
+          _FilterChip(
+            label: 'مدنية',
+            isSelected: selectedFilter == 'medinan',
+            onTap: () => onFilterChanged('medinan'),
+          ),
+        ],
       ),
     );
   }
 
-  void _showQuickJumpDialog(BuildContext context) {
-    final jumpController = TextEditingController();
+  @override double get maxExtent => 50;
+  @override double get minExtent => 50;
+  @override bool shouldRebuild(covariant _FilterBarDelegate old) =>
+      selectedFilter != old.selectedFilter;
+}
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        decoration: const BoxDecoration(
-          color: NoorDesignSystem.creamWhite,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(NoorDesignSystem.radiusXLarge),
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _FilterChip({required this.label, required this.isSelected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? NoorDesignSystem.primaryGreen : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? NoorDesignSystem.primaryGreen : NoorDesignSystem.primaryGreen.withOpacity(0.2),
           ),
+          boxShadow: isSelected ? NoorDesignSystem.shadowSmall : null,
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(NoorDesignSystem.spacingL),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'انتقال سريع',
-                style: NoorDesignSystem.textTheme.titleLarge,
-              ),
-              const SizedBox(height: NoorDesignSystem.spacingM),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: jumpController,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      decoration: InputDecoration(
-                        hintText: 'رقم السورة (1-114)',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: NoorDesignSystem.spacingM),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    final number = int.tryParse(jumpController.text);
-                    if (number != null && number >= 1 && number <= 114) {
-                      Navigator.pop(context);
-                      context.push('/quran/surah/$number');
-                    }
-                  },
-                  child: const Text('انتقال'),
-                ),
-              ),
-              const SizedBox(height: NoorDesignSystem.spacingM),
-            ],
+        child: Text(
+          label,
+          style: GoogleFonts.cairo(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+            color: isSelected ? Colors.white : NoorDesignSystem.primaryGreen,
           ),
         ),
       ),
@@ -326,14 +339,27 @@ class _QuranPageState extends ConsumerState<QuranPage> {
   }
 }
 
-class _SearchBar extends StatelessWidget {
-  final TextEditingController controller;
+// ═══════════════════════════════════════════════════════════════════════════
+// SEARCH BAR (No TextEditingController — pure Riverpod)
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _SearchBar extends ConsumerStatefulWidget {
   final ValueChanged<String> onChanged;
 
-  const _SearchBar({
-    required this.controller,
-    required this.onChanged,
-  });
+  const _SearchBar({required this.onChanged});
+
+  @override
+  ConsumerState<_SearchBar> createState() => _SearchBarState();
+}
+
+class _SearchBarState extends ConsumerState<_SearchBar> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -344,8 +370,8 @@ class _SearchBar extends StatelessWidget {
         boxShadow: NoorDesignSystem.shadowSmall,
       ),
       child: TextField(
-        controller: controller,
-        onChanged: onChanged,
+        controller: _controller,
+        onChanged: widget.onChanged,
         textDirection: TextDirection.rtl,
         style: NoorDesignSystem.textTheme.bodyLarge,
         decoration: InputDecoration(
@@ -355,32 +381,30 @@ class _SearchBar extends StatelessWidget {
             color: NoorDesignSystem.textSecondary.withOpacity(0.5),
             fontSize: 16,
           ),
-          prefixIcon: const Icon(
-            Icons.search_rounded,
-            color: NoorDesignSystem.deepTeal,
-          ),
-          suffixIcon: controller.text.isNotEmpty
+          prefixIcon: const Icon(Icons.search_rounded, color: NoorDesignSystem.deepTeal),
+          suffixIcon: _controller.text.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear_rounded),
                   color: NoorDesignSystem.error,
                   onPressed: () {
-                    controller.clear();
-                    onChanged('');
+                    _controller.clear();
+                    widget.onChanged('');
                   },
                 )
               : null,
           border: InputBorder.none,
           focusedBorder: InputBorder.none,
           enabledBorder: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 16,
-          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         ),
       ),
     );
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SURAH LIST TILE (with search highlight)
+// ═══════════════════════════════════════════════════════════════════════════
 
 class _SurahListTile extends StatelessWidget {
   final int number;
@@ -388,6 +412,7 @@ class _SurahListTile extends StatelessWidget {
   final String nameEnglish;
   final int versesCount;
   final RevelationType revelationType;
+  final String searchQuery;
   final VoidCallback onTap;
 
   const _SurahListTile({
@@ -396,12 +421,14 @@ class _SurahListTile extends StatelessWidget {
     required this.nameEnglish,
     required this.versesCount,
     required this.revelationType,
+    required this.searchQuery,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final isMakki = revelationType == RevelationType.meccan;
+    final displayName = nameArabic.replaceAll('سورة ', '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -409,9 +436,7 @@ class _SurahListTile extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
         boxShadow: NoorDesignSystem.shadowSmall,
-        border: Border.all(
-          color: Colors.black.withOpacity(0.03),
-        ),
+        border: Border.all(color: Colors.black.withOpacity(0.03)),
       ),
       child: Material(
         color: Colors.transparent,
@@ -448,28 +473,13 @@ class _SurahListTile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(
-                        nameArabic.replaceAll('سورة ', ''),
-                        style: GoogleFonts.amiri(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          height: 1.2,
-                          color: NoorDesignSystem.textPrimary,
-                        ),
-                        textDirection: TextDirection.rtl,
-                      ),
+                      _buildHighlightedName(displayName),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Text(
-                            '$versesCount آية',
-                            style: NoorDesignSystem.textTheme.bodySmall,
-                          ),
+                          Text('$versesCount آية', style: NoorDesignSystem.textTheme.bodySmall),
                           const SizedBox(width: 4),
-                          Text(
-                            '•',
-                            style: NoorDesignSystem.textTheme.bodySmall,
-                          ),
+                          Text('•', style: NoorDesignSystem.textTheme.bodySmall),
                           const SizedBox(width: 4),
                           Text(
                             isMakki ? 'مكية' : 'مدنية',
@@ -484,11 +494,7 @@ class _SurahListTile extends StatelessWidget {
                 ),
 
                 const SizedBox(width: 16),
-                const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 16,
-                  color: NoorDesignSystem.textSecondary,
-                ),
+                const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: NoorDesignSystem.textSecondary),
               ],
             ),
           ),
@@ -496,16 +502,131 @@ class _SurahListTile extends StatelessWidget {
       ),
     );
   }
+
+  /// Highlight the matching portion of the surah name
+  Widget _buildHighlightedName(String name) {
+    if (searchQuery.isEmpty) {
+      return Text(
+        name,
+        style: GoogleFonts.amiri(
+          fontSize: 20, fontWeight: FontWeight.bold, height: 1.2,
+          color: NoorDesignSystem.textPrimary,
+        ),
+        textDirection: TextDirection.rtl,
+      );
+    }
+
+    final normalizedName = normalizeArabic(name);
+    final normalizedQuery = normalizeArabic(searchQuery);
+    final matchIndex = normalizedName.indexOf(normalizedQuery);
+
+    if (matchIndex < 0) {
+      return Text(
+        name,
+        style: GoogleFonts.amiri(
+          fontSize: 20, fontWeight: FontWeight.bold, height: 1.2,
+          color: NoorDesignSystem.textPrimary,
+        ),
+        textDirection: TextDirection.rtl,
+      );
+    }
+
+    // Build highlighted spans
+    final before = name.substring(0, matchIndex);
+    final match = name.substring(matchIndex, matchIndex + searchQuery.length);
+    final after = name.substring(matchIndex + searchQuery.length);
+
+    return RichText(
+      textDirection: TextDirection.rtl,
+      text: TextSpan(
+        style: GoogleFonts.amiri(
+          fontSize: 20, fontWeight: FontWeight.bold, height: 1.2,
+          color: NoorDesignSystem.textPrimary,
+        ),
+        children: [
+          TextSpan(text: before),
+          TextSpan(
+            text: match,
+            style: TextStyle(
+              backgroundColor: NoorDesignSystem.emeraldGreen.withOpacity(0.2),
+              color: NoorDesignSystem.emeraldGreen,
+            ),
+          ),
+          TextSpan(text: after),
+        ],
+      ),
+    );
+  }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SHIMMER LOADING SKELETON
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _ShimmerSurahTile extends StatelessWidget {
+  const _ShimmerSurahTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
+        boxShadow: NoorDesignSystem.shadowSmall,
+      ),
+      child: Row(
+        children: [
+          // Number circle
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: NoorDesignSystem.emeraldGreen.withOpacity(0.08),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  height: 16,
+                  width: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  height: 12,
+                  width: 80,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ERROR WIDGET
+// ═══════════════════════════════════════════════════════════════════════════
 
 class _ErrorWidget extends StatelessWidget {
   final String error;
   final VoidCallback onRetry;
 
-  const _ErrorWidget({
-    required this.error,
-    required this.onRetry,
-  });
+  const _ErrorWidget({required this.error, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -513,22 +634,11 @@ class _ErrorWidget extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.error_outline_rounded,
-            size: 64,
-            color: NoorTheme.hadithMawdu,
-          ),
+          Icon(Icons.error_outline_rounded, size: 64, color: NoorTheme.hadithMawdu),
           const SizedBox(height: 16),
-          Text(
-            'حدث خطأ',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text('حدث خطأ', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          Text(
-            error,
-            style: Theme.of(context).textTheme.bodySmall,
-            textAlign: TextAlign.center,
-          ),
+          Text(error, style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: onRetry,

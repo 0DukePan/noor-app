@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/theme/noor_theme.dart';
@@ -7,7 +8,7 @@ import '../../../../core/domain/policies/privacy_policy.dart';
 
 /// صفحة محراب التدبر - Tadabbur Mihrab Page
 /// Personal reflections on Quran verses with local encryption
-class TadabburMihrabPage extends StatefulWidget {
+class TadabburMihrabPage extends ConsumerStatefulWidget {
   final int surahNumber;
   final int verseNumber;
   final String verseText;
@@ -20,13 +21,16 @@ class TadabburMihrabPage extends StatefulWidget {
   });
 
   @override
-  State<TadabburMihrabPage> createState() => _TadabburMihrabPageState();
+  ConsumerState<TadabburMihrabPage> createState() => _TadabburMihrabPageState();
 }
 
-class _TadabburMihrabPageState extends State<TadabburMihrabPage> {
+class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
   final _noteController = TextEditingController();
+  // TODO: Replace with device-derived key via flutter_secure_storage
+  // final storage = FlutterSecureStorage();
+  // final key = await storage.read(key: 'tadabbur_key') ?? _generateAndSaveKey();
   final _privacyPolicy = DefaultPrivacyPolicy(
-    encryptionKey: 'noor_app_tadabbur_encryption_key',
+    encryptionKey: 'noor_app_tadabbur_encryption_key', // FIXME: derive from device
   );
   
   List<Map<String, dynamic>> _savedNotes = [];
@@ -39,7 +43,6 @@ class _TadabburMihrabPageState extends State<TadabburMihrabPage> {
   }
 
   Future<void> _loadNotes() async {
-    setState(() => _isLoading = true);
     // Load from Hive and decrypt
     // final encrypted = HiveService.getTadabburForVerse(
     //   widget.surahNumber,
@@ -81,14 +84,13 @@ class _TadabburMihrabPageState extends State<TadabburMihrabPage> {
       _noteController.clear();
     });
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم حفظ ملاحظتك بشكل آمن 🔒'),
-          backgroundColor: NoorTheme.hadithSahih,
-        ),
-      );
-    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('تم حفظ ملاحظتك بشكل آمن 🔒'),
+        backgroundColor: NoorTheme.hadithSahih,
+      ),
+    );
   }
 
   Future<void> _deleteNote(String id) async {

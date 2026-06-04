@@ -425,4 +425,95 @@ class TafsirDataSource {
 
   /// المصادر المتاحة
   static List<TafsirSource> get availableSources => TafsirSource.all;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PHASE 6: HIGHLIGHTS & ANNOTATIONS (Tadabbur Integration)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  static const String _highlightsBoxName = 'tafsir_highlights';
+  static const String _annotationsBoxName = 'tafsir_annotations';
+  static Box? _highlightsBox;
+  static Box? _annotationsBox;
+
+  /// تهيئة Phase 6 boxes (call from init)
+  static Future<void> initPhase6() async {
+    _highlightsBox = await Hive.openBox(_highlightsBoxName);
+    _annotationsBox = await Hive.openBox(_annotationsBoxName);
+  }
+
+  // ── Highlights ──
+
+  /// إضافة تظليل
+  static Future<void> addHighlight(TafsirHighlight highlight) async {
+    await _highlightsBox?.put(highlight.key, highlight.toJson());
+  }
+
+  /// حذف تظليل
+  static Future<void> removeHighlight(String highlightKey) async {
+    await _highlightsBox?.delete(highlightKey);
+  }
+
+  /// تظليلات آية معينة
+  static List<TafsirHighlight> getHighlightsForAyah({
+    required int surah,
+    required int ayah,
+    required TafsirSourceId source,
+  }) {
+    final prefix = 'hl:${source.name}:$surah:$ayah:';
+    final results = <TafsirHighlight>[];
+    _highlightsBox?.keys.where((k) => k.toString().startsWith(prefix)).forEach((key) {
+      final json = _highlightsBox?.get(key);
+      if (json != null) {
+        results.add(TafsirHighlight.fromJson(Map<String, dynamic>.from(json)));
+      }
+    });
+    return results;
+  }
+
+  // ── Annotations (Tadabbur Notes) ──
+
+  /// إضافة ملاحظة تدبر
+  static Future<void> addAnnotation(TafsirAnnotation annotation) async {
+    await _annotationsBox?.put(annotation.key, annotation.toJson());
+  }
+
+  /// تعديل ملاحظة
+  static Future<void> updateAnnotation(TafsirAnnotation annotation) async {
+    await _annotationsBox?.put(annotation.key, annotation.toJson());
+  }
+
+  /// حذف ملاحظة
+  static Future<void> removeAnnotation(String annotationKey) async {
+    await _annotationsBox?.delete(annotationKey);
+  }
+
+  /// ملاحظات آية معينة
+  static List<TafsirAnnotation> getAnnotationsForAyah({
+    required int surah,
+    required int ayah,
+    required TafsirSourceId source,
+  }) {
+    final prefix = 'ann:${source.name}:$surah:$ayah:';
+    final results = <TafsirAnnotation>[];
+    _annotationsBox?.keys.where((k) => k.toString().startsWith(prefix)).forEach((key) {
+      final json = _annotationsBox?.get(key);
+      if (json != null) {
+        results.add(TafsirAnnotation.fromJson(Map<String, dynamic>.from(json)));
+      }
+    });
+    return results..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+  }
+
+  /// كل الملاحظات
+  static List<TafsirAnnotation> getAllAnnotations({int limit = 50}) {
+    final all = <TafsirAnnotation>[];
+    _annotationsBox?.values.forEach((json) {
+      try {
+        all.add(TafsirAnnotation.fromJson(Map<String, dynamic>.from(json)));
+      } catch (_) {}
+    });
+    all.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    return all.take(limit).toList();
+  }
 }
+

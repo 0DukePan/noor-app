@@ -78,6 +78,7 @@ class Hadith extends Equatable {
   final String narratorEnglish;
   final int chapterId;
   final int? bookId;
+  final String? collectionId; // e.g. 'bukhari', 'muslim'
 
   const Hadith({
     required this.id,
@@ -87,6 +88,7 @@ class Hadith extends Equatable {
     required this.narratorEnglish,
     required this.chapterId,
     this.bookId,
+    this.collectionId,
   });
 
   @override

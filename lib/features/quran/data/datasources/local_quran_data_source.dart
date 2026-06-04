@@ -55,25 +55,35 @@ class LocalQuranDataSourceImpl implements QuranLocalDataSource {
     return surah;
   }
 
+  static Map<String, dynamic>? _pagesMap;
+
   @override
   Future<List<VerseModel>> getVersesByPage(int pageNumber) async {
-    if (_fullQuranMap == null) {
-      _fullQuranMap = await IsolateParser.parseInBackground(
-        assetPath: 'assets/quran/quran_uthmani.json',
+    if (_pagesMap == null) {
+      _pagesMap = await IsolateParser.parseInBackground(
+        assetPath: 'assets/quran/quran_pages.json',
         parser: (json) => jsonDecode(json) as Map<String, dynamic>,
       );
     }
-    
-    final List<VerseModel> results = [];
-    _fullQuranMap!.forEach((surahNum, verses) {
-      for (final v in (verses as List)) {
-        final verse = VerseModel.fromJson(v);
-        if (verse.page == pageNumber) {
-          results.add(verse);
-        }
-      }
-    });
-    return results;
+
+    final pageKey = pageNumber.toString();
+    final versesRaw = _pagesMap![pageKey] as List?;
+    if (versesRaw == null || versesRaw.isEmpty) return [];
+
+    return versesRaw.map((v) {
+      final map = v as Map<String, dynamic>;
+      return VerseModel(
+        number: 0,
+        numberInSurah: map['ayah'] as int,
+        textUthmani: map['text'] as String,
+        page: pageNumber,
+        juz: map['juz'] as int? ?? 0,
+        hizb: map['hizb'] as int? ?? 0,
+        quarter: 0,
+        surahNumber: map['surah'] as int? ?? 0,
+        surahName: map['surah_name'] as String?,
+      );
+    }).toList();
   }
 
   @override

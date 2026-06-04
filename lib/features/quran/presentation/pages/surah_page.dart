@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/noor_theme.dart';
+import '../../../../core/theme/design_system.dart';
 import '../../../../core/services/services.dart';
 import '../../../../core/domain/policies/khushu_policy.dart';
 import '../providers/quran_providers.dart';
@@ -76,71 +77,7 @@ class _SurahPageState extends ConsumerState<SurahPage>
     return Scaffold(
       backgroundColor: backgroundColor,
       extendBodyBehindAppBar: true,
-      appBar: settings.isKhushuMode
-          ? null
-          : AppBar(
-              title: Text(
-                surahAsync.value?.nameArabic ?? 'سورة ${widget.surahNumber}',
-                style: GoogleFonts.amiri(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
-                ),
-              ),
-              centerTitle: true,
-              backgroundColor: theme.scaffoldBackgroundColor.withOpacity(0.9),
-              elevation: 0,
-              leading: BackButton(color: theme.colorScheme.onSurface),
-              actions: [
-                // Khushu Mode Toggle
-                IconButton(
-                  icon: Icon(
-                    Icons.self_improvement_rounded,
-                    color: theme.colorScheme.primary,
-                  ),
-                  tooltip: 'وضع الخشوع',
-                  onPressed: _toggleKhushuMode,
-                ),
-                // Audio Player
-                IconButton(
-                  icon: Icon(
-                    Icons.graphic_eq_rounded,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  tooltip: 'استماع',
-                  onPressed: () => _showAudioPlayer(context),
-                ),
-                // More Options
-                PopupMenuButton(
-                  icon: Icon(Icons.more_vert_rounded, color: theme.colorScheme.onSurfaceVariant),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'tafsir',
-                      child: Row(
-                        children: [
-                          Icon(Icons.menu_book_rounded, size: 20),
-                          SizedBox(width: 12),
-                          Text('التفسير'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'settings',
-                      child: Row(
-                        children: [
-                          Icon(Icons.text_fields_rounded, size: 20),
-                          SizedBox(width: 12),
-                          Text('مظهر القراءة'),
-                        ],
-                      ),
-                    ),
-                  ],
-                  onSelected: (value) {
-                    // Handle menu actions
-                  },
-                ),
-              ],
-            ),
+      appBar: null,
       body: GestureDetector(
         onTap: settings.isKhushuMode ? _toggleKhushuMode : null,
         child: Stack(
@@ -183,8 +120,52 @@ class _SurahPageState extends ConsumerState<SurahPage>
                 controller: _scrollController,
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                   if (!settings.isKhushuMode)
-                    const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                  if (!settings.isKhushuMode)
+                    SliverAppBar(
+                      floating: true,
+                      snap: true,
+                      backgroundColor: theme.scaffoldBackgroundColor.withOpacity(0.9),
+                      surfaceTintColor: Colors.transparent,
+                      elevation: 0,
+                      centerTitle: true,
+                      title: Text(
+                        surahAsync.value?.nameArabic ?? 'سورة ${widget.surahNumber}',
+                        style: GoogleFonts.amiri(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                        ),
+                      ),
+                      leading: BackButton(color: theme.colorScheme.onSurface),
+                      actions: [
+                        IconButton(
+                          icon: Icon(Icons.self_improvement_rounded, color: theme.colorScheme.primary),
+                          tooltip: 'وضع الخشوع',
+                          onPressed: _toggleKhushuMode,
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.graphic_eq_rounded, color: theme.colorScheme.onSurfaceVariant),
+                          tooltip: 'استماع',
+                          onPressed: () => _showAudioPlayer(context),
+                        ),
+                        PopupMenuButton(
+                          icon: Icon(Icons.more_vert_rounded, color: theme.colorScheme.onSurfaceVariant),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'tafsir',
+                              child: Row(children: [Icon(Icons.menu_book_rounded, size: 20), SizedBox(width: 12), Text('التفسير')]),
+                            ),
+                            const PopupMenuItem(
+                              value: 'settings',
+                              child: Row(children: [Icon(Icons.text_fields_rounded, size: 20), SizedBox(width: 12), Text('مظهر القراءة')]),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                  if (!settings.isKhushuMode)
+                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
                   if (widget.surahNumber != 9)
                   SliverToBoxAdapter(
@@ -204,17 +185,19 @@ class _SurahPageState extends ConsumerState<SurahPage>
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
                           final verse = surahAsync.value!.verses[index];
-                          return _DynamicVerseCard(
-                            verse: verse,
-                            isKhushuMode: settings.isKhushuMode,
-                            isSelected: selectedVerseIndex == index,
-                            onTap: () {
-                              if (!settings.isKhushuMode) {
-                                HapticFeedback.selectionClick();
-                                ref.read(surahSelectedVerseProvider(widget.surahNumber).notifier).state = index;
-                              }
-                            },
-                            onLongPress: () => _showVerseOptions(context, verse),
+                          return RepaintBoundary(
+                            child: _DynamicVerseCard(
+                              verse: verse,
+                              isKhushuMode: settings.isKhushuMode,
+                              isSelected: selectedVerseIndex == index,
+                              onTap: () {
+                                if (!settings.isKhushuMode) {
+                                  HapticFeedback.selectionClick();
+                                  ref.read(surahSelectedVerseProvider(widget.surahNumber).notifier).state = index;
+                                }
+                              },
+                              onLongPress: () => _showVerseOptions(context, verse),
+                            ),
                           );
                         },
                         childCount: surahAsync.value!.verses.length,
@@ -240,6 +223,17 @@ class _SurahPageState extends ConsumerState<SurahPage>
                   onClose: () => ref.read(surahSelectedVerseProvider(widget.surahNumber).notifier).state = null,
                 ),
               ),
+
+            // Audio Mini Player
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: 24,
+              child: _MiniAudioPlayer(
+                surahNumber: widget.surahNumber,
+                isKhushuMode: settings.isKhushuMode,
+              ),
+            ),
 
             // Khushu Overlay
             if (settings.isKhushuMode)
@@ -300,26 +294,11 @@ class _SurahPageState extends ConsumerState<SurahPage>
               ),
             ),
             _OptionTile(
-              icon: Icons.copy_rounded,
-              title: 'نسخ الآية',
-              onTap: () {
-                Clipboard.setData(ClipboardData(text: verse.textUthmani));
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('تم نسخ الآية')),
-                );
-              },
-            ),
-            _OptionTile(
-              icon: Icons.share_rounded,
-              title: 'مشاركة',
+              icon: Icons.menu_book_rounded,
+              title: 'تفسير الآية',
               onTap: () {
                 Navigator.pop(context);
-                final shareText = '${verse.textUthmani}\n\n— القرآن الكريم';
-                Clipboard.setData(ClipboardData(text: shareText));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('تم نسخ الآية للمشاركة')),
-                );
+                ref.read(surahSelectedVerseProvider(widget.surahNumber).notifier).state = verse.numberInSurah - 1;
               },
             ),
             _OptionTile(
@@ -327,7 +306,6 @@ class _SurahPageState extends ConsumerState<SurahPage>
               title: 'إضافة علامة',
               onTap: () {
                 Navigator.pop(context);
-                // Save reading position as bookmark
                 ref.read(quranRepositoryProvider).saveReadingProgress(
                   surahNumber: widget.surahNumber,
                   verseNumber: verse.numberInSurah,
@@ -339,13 +317,33 @@ class _SurahPageState extends ConsumerState<SurahPage>
               },
             ),
             _OptionTile(
-              icon: Icons.edit_note_rounded,
-              title: 'تدبر وملاحظات',
+              icon: Icons.share_rounded,
+              title: 'مشاركة',
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Navigate to Tadabbur page when route is implemented
+                final shareText = '${verse.textUthmani}\n\n— القرآن الكريم (سورة ${widget.surahNumber}، آية ${verse.numberInSurah})';
+                Clipboard.setData(ClipboardData(text: shareText));
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('صفحة التدبر قيد التطوير')),
+                  const SnackBar(content: Text('تم نسخ الآية للمشاركة')),
+                );
+              },
+            ),
+            _OptionTile(
+              icon: Icons.play_arrow_rounded,
+              title: 'تشغيل الصوت',
+              onTap: () {
+                Navigator.pop(context);
+                QuranAudioService.playSurah(surahNumber: widget.surahNumber);
+              },
+            ),
+            _OptionTile(
+              icon: Icons.copy_rounded,
+              title: 'نسخ الآية',
+              onTap: () {
+                Navigator.pop(context);
+                Clipboard.setData(ClipboardData(text: verse.textUthmani));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('تم نسخ الآية')),
                 );
               },
             ),
@@ -459,24 +457,22 @@ class _DynamicVerseCard extends StatelessWidget {
               textAlign: TextAlign.center,
               textDirection: TextDirection.rtl,
             ),
-            if (!isKhushuMode) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '﴿${verse.numberInSurah}﴾',
-                  style: GoogleFonts.cairo(
-                    fontSize: 14,
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: isKhushuMode ? null : BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '﴿${verse.numberInSurah}﴾',
+                style: GoogleFonts.cairo(
+                  fontSize: isKhushuMode ? 18 : 14,
+                  color: isKhushuMode ? const Color(0xFFF3C623) : theme.colorScheme.primary, // Local gold accent
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ],
+            ),
           ],
         ),
       ),
@@ -608,7 +604,7 @@ class _DynamicTafsirPanel extends ConsumerWidget {
                       ),
                     )
                   else if (tafsirAsync.hasError)
-                     Center(child: Text('غير متوفر'))
+                     const Center(child: Text('غير متوفر'))
                   else if (tafsirAsync.value != null)
                      Text(
                       tafsirAsync.value!.text,
@@ -653,11 +649,6 @@ class _AudioPlayerSheetState extends State<_AudioPlayerSheet> {
     'MaherAlMuaiqly_128kbps': 'ماهر المعيقلي',
     'Husary_128kbps': 'محمود خليل الحصري',
   };
-
-  @override
-  void initState() {
-    super.initState();
-  }
   
   @override
   Widget build(BuildContext context) {
@@ -712,7 +703,7 @@ class _AudioPlayerSheetState extends State<_AudioPlayerSheet> {
                                setState(() => _selectedReciter = value);
                                // Restart play if playing
                                if (isPlaying && surahAsync.hasValue) {
-                                 _playSurah(surahAsync.value!.verses.length);
+                                 _playSurah();
                                }
                              }
                           },
@@ -765,7 +756,7 @@ class _AudioPlayerSheetState extends State<_AudioPlayerSheet> {
                                 QuranAudioService.pause();
                               } else {
                                 if (surahAsync.value != null) {
-                                  _playSurah(surahAsync.value!.verses.length);
+                                  _playSurah();
                                 }
                               }
                             },
@@ -783,7 +774,7 @@ class _AudioPlayerSheetState extends State<_AudioPlayerSheet> {
     );
   }
 
-  void _playSurah(int verseCount) {
+  void _playSurah() {
     QuranAudioService.setReciter(_selectedReciter);
     QuranAudioService.playSurah(surahNumber: widget.surahNumber);
   }
@@ -817,3 +808,97 @@ class _OptionTile extends StatelessWidget {
     );
   }
 }
+
+class _MiniAudioPlayer extends ConsumerWidget {
+  final int surahNumber;
+  final bool isKhushuMode;
+
+  const _MiniAudioPlayer({
+    required this.surahNumber,
+    required this.isKhushuMode,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return StreamBuilder<bool>(
+      stream: QuranAudioService.playingStream,
+      builder: (context, snapshot) {
+        final isPlaying = snapshot.data ?? false;
+        if (!isPlaying && isKhushuMode) return const SizedBox.shrink();
+
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          margin: EdgeInsets.only(bottom: isKhushuMode ? -100 : 0),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E2C33) : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: NoorDesignSystem.primaryGreen.withOpacity(0.1),
+            ),
+            boxShadow: NoorDesignSystem.shadowSmall,
+          ),
+          child: Row(
+            children: [
+              // Play/Pause button
+              GestureDetector(
+                onTap: () {
+                  if (isPlaying) {
+                    QuranAudioService.pause();
+                  } else {
+                    QuranAudioService.playSurah(surahNumber: surahNumber);
+                  }
+                },
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: NoorDesignSystem.primaryGreen.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                    color: NoorDesignSystem.primaryGreen,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'سورة $surahNumber',
+                      style: GoogleFonts.cairo(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      'تلاوة عذبة',
+                      style: GoogleFonts.cairo(
+                        fontSize: 12,
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close_rounded),
+                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                onPressed: () => QuranAudioService.stop(),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+

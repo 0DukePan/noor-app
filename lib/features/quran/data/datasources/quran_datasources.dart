@@ -56,6 +56,8 @@ class VerseModel extends Verse {
     required super.hizb,
     required super.quarter,
     super.sajdah,
+    super.surahNumber,
+    super.surahName,
   });
 
   factory VerseModel.fromJson(Map<String, dynamic> json) {
@@ -69,12 +71,14 @@ class VerseModel extends Verse {
       hizb: json['hizb'] as int? ?? 0,
       quarter: json['quarter'] as int? ?? 0,
       sajdah: json['sajdah'] as bool? ?? false,
+      surahNumber: json['chapter'] as int? ?? json['surah'] as int? ?? 0,
+      surahName: json['surah_name'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'surah_number': 0, // Placeholder
+      'surah_number': surahNumber,
       'verse_number': numberInSurah,
       'text_uthmani': textUthmani,
       'text_simple': textSimple,

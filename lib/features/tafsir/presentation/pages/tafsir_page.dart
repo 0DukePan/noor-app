@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/models/tafsir_models.dart';
 import '../../../../core/services/tafsir_data_source.dart';
+import '../../../../core/theme/tafsir_theme.dart';
 import '../widgets/tafsir_widgets.dart';
 
 /// 📖 TafsirPage - صفحة التفسير الرئيسية
@@ -131,71 +133,90 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
   }
 
   Widget _buildTafsirTab(ThemeData theme) {
-    return Column(
-      children: [
-        // Surah selector
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: DropdownButtonFormField<int>(
-                  value: _currentSurah,
-                  decoration: InputDecoration(
-                    labelText: 'السورة',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+    final brightness = theme.brightness;
+    return Container(
+      color: TafsirTheme.readingBackground(brightness),
+      child: Column(
+        children: [
+          // Surah selector — premium header
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: TafsirTheme.cardBackground(brightness),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<int>(
+                    value: _currentSurah,
+                    decoration: InputDecoration(
+                      labelText: 'السورة',
+                      labelStyle: TafsirTheme.sourceStyle(brightness: brightness),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: theme.colorScheme.outline.withOpacity(0.2)),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12,
+                      ),
+                      filled: true,
+                      fillColor: TafsirTheme.readingBackground(brightness),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
+                    items: List.generate(114, (i) => DropdownMenuItem(
+                      value: i + 1,
+                      child: Text('${i + 1}. ${_surahNames[i]}',
+                        style: GoogleFonts.cairo(fontSize: 14)),
+                    )),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => _currentSurah = value);
+                        _loadTafsir();
+                      }
+                    },
                   ),
-                  items: List.generate(114, (i) => DropdownMenuItem(
-                    value: i + 1,
-                    child: Text('${i + 1}. ${_surahNames[i]}'),
-                  )),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _currentSurah = value);
-                      _loadTafsir();
-                    }
-                  },
                 ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                TafsirSource.get(_currentSource).arabicName,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.primary,
+                const SizedBox(width: 12),
+                Text(
+                  TafsirSource.get(_currentSource).arabicName,
+                  style: TafsirTheme.sourceStyle(
+                    brightness: brightness,
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        
-        // Tafsir content
-        Expanded(
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _surahTafsir == null
-                  ? const Center(child: Text('لا يوجد تفسير لهذه السورة'))
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _surahTafsir!.length,
-                      itemBuilder: (context, index) {
-                        final entry = _surahTafsir!.entries[index];
-                        return _TafsirCard(
-                          entry: entry,
-                          onBookmark: () => setState(() {}),
-                        );
-                      },
-                    ),
-        ),
-      ],
+          
+          // Tafsir content — reading surface
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _surahTafsir == null
+                    ? Center(child: Text('لا يوجد تفسير لهذه السورة',
+                        style: TafsirTheme.sourceStyle(brightness: brightness)))
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(20),
+                        itemCount: _surahTafsir!.length,
+                        separatorBuilder: (_, __) => const ArabesqueDivider(),
+                        itemBuilder: (context, index) {
+                          final entry = _surahTafsir!.entries[index];
+                          return _TafsirCard(
+                            entry: entry,
+                            onBookmark: () => setState(() {}),
+                          );
+                        },
+                      ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -339,7 +360,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
   }
 }
 
-/// بطاقة التفسير
+/// بطاقة التفسير — Premium scholar-grade card
 class _TafsirCard extends StatelessWidget {
   final TafsirEntry entry;
   final VoidCallback onBookmark;
@@ -352,6 +373,7 @@ class _TafsirCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final brightness = theme.brightness;
     final settings = TafsirDataSource.getSettings();
     final isBookmarked = TafsirDataSource.isBookmarked(
       surah: entry.surah,
@@ -359,38 +381,51 @@ class _TafsirCard extends StatelessWidget {
       source: entry.source,
     );
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
+    return Container(
+      decoration: BoxDecoration(
+        color: TafsirTheme.cardBackground(brightness),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(brightness == Brightness.light ? 0.03 : 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header — ayah badge + bookmark
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+            child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(20),
+                    color: TafsirTheme.ayahColor(brightness).withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     'الآية ${entry.ayah}',
-                    style: TextStyle(
-                      color: theme.colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
+                    style: TafsirTheme.headerStyle(
+                      brightness: brightness,
+                      fontSize: 13,
+                      color: TafsirTheme.ayahColor(brightness),
                     ),
                   ),
                 ),
                 const Spacer(),
                 IconButton(
                   icon: Icon(
-                    isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                    color: isBookmarked ? theme.colorScheme.primary : null,
+                    isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                    color: isBookmarked
+                        ? TafsirTheme.ayahColor(brightness)
+                        : theme.colorScheme.outline.withOpacity(0.5),
+                    size: 22,
                   ),
                   onPressed: () async {
                     if (isBookmarked) {
@@ -408,44 +443,71 @@ class _TafsirCard extends StatelessWidget {
                     }
                     onBookmark();
                   },
+                  visualDensity: VisualDensity.compact,
                 ),
               ],
             ),
-            
-            const SizedBox(height: 12),
-            
-            // Tafsir text
-            SelectableText(
+          ),
+
+          // Tafsir text — premium reading typography
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+            child: SelectableText(
               entry.text,
-              style: TextStyle(
+              style: TafsirTheme.tafsirBodyStyle(
+                brightness: brightness,
                 fontSize: settings.fontSize,
-                height: 1.8,
-                fontFamily: 'Amiri',
               ),
+              textAlign: TextAlign.justify,
               textDirection: TextDirection.rtl,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// البحث في التفسير
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 5: THEMATIC TAFSIR & ADVANCED SEARCH ENGINE
+// ═══════════════════════════════════════════════════════════════════════════
+
 class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
   final TafsirSourceId source;
   
   _TafsirSearchDelegate(this.source) : super(
-    searchFieldLabel: 'ابحث في التفسير...',
+    searchFieldLabel: 'ابحث في التفسير (جذر، كلمة، أو موضوع)...',
     textInputAction: TextInputAction.search,
   );
+
+  // ── Thematic Topics (Mawdu'at) ──
+  final List<Map<String, String>> _topics = [
+    {'title': 'الصبر', 'icon': '🪴'},
+    {'title': 'يوم القيامة', 'icon': '⚖️'},
+    {'title': 'الجنة والنار', 'icon': '🔥'},
+    {'title': 'قصص الأنبياء', 'icon': '📜'},
+    {'title': 'الزكاة والصدقة', 'icon': '💰'},
+    {'title': 'بر الوالدين', 'icon': '🤝'},
+    {'title': 'الدعاء', 'icon': '🤲'},
+    {'title': 'التوبة', 'icon': '💧'},
+  ];
+
+  @override
+  ThemeData appBarTheme(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.copyWith(
+      inputDecorationTheme: const InputDecorationTheme(
+        border: InputBorder.none,
+      ),
+    );
+  }
 
   @override
   List<Widget> buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
         IconButton(
-          icon: const Icon(Icons.clear),
+          icon: const Icon(Icons.clear_rounded),
           onPressed: () => query = '',
         ),
     ];
@@ -454,45 +516,46 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
   @override
   Widget buildLeading(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.arrow_back),
+      icon: const Icon(Icons.arrow_back_rounded),
       onPressed: () => close(context, null),
     );
   }
 
   @override
   Widget buildResults(BuildContext context) {
-    if (query.length < 3) {
-      return const Center(
-        child: Text('أدخل 3 حروف على الأقل للبحث'),
-      );
+    if (query.trim().length < 3) {
+      return const Center(child: Text('أدخل 3 حروف على الأقل للبحث بدقة'));
     }
 
     return FutureBuilder<List<TafsirEntry>>(
-      future: TafsirDataSource.search(query: query, source: source),
+      future: TafsirDataSource.search(query: query.trim(), source: source, limit: 100),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         
         final results = snapshot.data ?? [];
-        
         if (results.isEmpty) {
-          return const Center(child: Text('لا توجد نتائج'));
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.search_off_rounded, size: 64, color: Theme.of(context).colorScheme.outline),
+                const SizedBox(height: 16),
+                const Text('لم نعثر على نتائج مطابقة في هذا التفسير'),
+              ],
+            ),
+          );
         }
         
         return ListView.builder(
+          padding: const EdgeInsets.all(16),
           itemCount: results.length,
           itemBuilder: (context, index) {
             final entry = results[index];
-            return ListTile(
-              title: Text('سورة ${entry.surah} - الآية ${entry.ayah}'),
-              subtitle: Text(
-                entry.text.length > 100
-                    ? '${entry.text.substring(0, 100)}...'
-                    : entry.text,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
+            return _SearchResultCard(
+              entry: entry,
+              query: query.trim(),
               onTap: () => close(context, entry),
             );
           },
@@ -503,6 +566,184 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return buildResults(context);
+    if (query.isNotEmpty) {
+      // Live quick search preview
+      return buildResults(context);
+    }
+    
+    // Show thematic topics when query is empty
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.category_rounded, size: 20, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                'الموضوعات والتصنيفات (Thematic Index)',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: _topics.map((topic) {
+              return ActionChip(
+                elevation: 0,
+                backgroundColor: Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.4),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                avatar: Text(topic['icon']!, style: const TextStyle(fontSize: 14)),
+                label: Text(topic['title']!, style: const TextStyle(fontWeight: FontWeight.w600)),
+                onPressed: () {
+                  query = topic['title']!;
+                  showResults(context);
+                },
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 32),
+          Text(
+            'نصائح للبحث:',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.outline),
+          ),
+          const SizedBox(height: 8),
+          _buildTip(context, 'يمكنك البحث عن جذر الكلمة للحصول على نتائج أشمل.'),
+          _buildTip(context, 'البحث يطابق النص ضمن التفسير المختار حالياً فقط.'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTip(BuildContext context, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.lightbulb_outline, size: 16, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 8),
+          Expanded(child: Text(text, style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.outline))),
+        ],
+      ),
+    );
   }
 }
+
+// ── Search Result Card with Highlighting ──
+class _SearchResultCard extends StatelessWidget {
+  final TafsirEntry entry;
+  final String query;
+  final VoidCallback onTap;
+
+  const _SearchResultCard({
+    required this.entry,
+    required this.query,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    // Find snippet around query
+    final lowerText = entry.text.toLowerCase();
+    final lowerQuery = query.toLowerCase();
+    final idx = lowerText.indexOf(lowerQuery);
+    
+    String snippet = entry.text;
+    if (idx != -1) {
+      final start = (idx - 60).clamp(0, entry.text.length);
+      final end = (idx + query.length + 80).clamp(0, entry.text.length);
+      snippet = (start > 0 ? '...' : '') + entry.text.substring(start, end) + (end < entry.text.length ? '...' : '');
+    } else {
+      snippet = entry.text.length > 150 ? '${entry.text.substring(0, 150)}...' : entry.text;
+    }
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.1)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'سورة ${entry.surah} • الآية ${entry.ayah}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              RichText(
+                textDirection: TextDirection.rtl,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                text: _buildHighlightedSpans(snippet, query, theme),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  TextSpan _buildHighlightedSpans(String text, String query, ThemeData theme) {
+    if (query.isEmpty) return TextSpan(text: text, style: _normStyle(theme));
+
+    final matches = query.toLowerCase().allMatches(text.toLowerCase());
+    if (matches.isEmpty) return TextSpan(text: text, style: _normStyle(theme));
+
+    final spans = <TextSpan>[];
+    int start = 0;
+    for (final match in matches) {
+      if (match.start > start) {
+        spans.add(TextSpan(text: text.substring(start, match.start), style: _normStyle(theme)));
+      }
+      spans.add(TextSpan(
+        text: text.substring(match.start, match.end),
+        style: _normStyle(theme).copyWith(
+          backgroundColor: theme.colorScheme.tertiary.withOpacity(0.2),
+          color: theme.colorScheme.tertiary,
+          fontWeight: FontWeight.bold,
+        ),
+      ));
+      start = match.end;
+    }
+    if (start < text.length) {
+      spans.add(TextSpan(text: text.substring(start), style: _normStyle(theme)));
+    }
+    return TextSpan(children: spans);
+  }
+
+  TextStyle _normStyle(ThemeData theme) => TextStyle(
+    fontFamily: 'Cairo', // or Amiri
+    fontSize: 14,
+    height: 1.6,
+    color: theme.colorScheme.onSurface,
+  );
+}
+

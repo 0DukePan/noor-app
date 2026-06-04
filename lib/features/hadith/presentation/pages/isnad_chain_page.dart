@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/noor_theme.dart';
+import '../../../../core/theme/design_system.dart';
+import '../../../../core/services/isnad_parser_service.dart';
+import '../../../../core/services/narrator_database_service.dart';
+import 'isnad_graph_page.dart';
 
-/// خريطة الإسناد التفاعلية - Interactive Isnad Chain Visualization
+/// 🔗 خريطة الإسناد التفاعلية - Interactive Isnad Chain Visualization
+///
+/// Professional timeline visualization with:
+/// - Real narrator parsing from hadith text
+/// - ListView.builder for performance
+/// - ValueNotifier for efficient rebuilds
+/// - Narrator biography from database lookup
+/// - Animated connectors with link-word labels
 class IsnadChainPage extends StatefulWidget {
   final String hadithId;
   final String hadithText;
@@ -18,306 +29,593 @@ class IsnadChainPage extends StatefulWidget {
   State<IsnadChainPage> createState() => _IsnadChainPageState();
 }
 
-class _IsnadChainPageState extends State<IsnadChainPage> {
-  String? _selectedNarratorId;
+class _IsnadChainPageState extends State<IsnadChainPage>
+    with SingleTickerProviderStateMixin {
+  // Parsed chain from real hadith text
+  List<NarratorInfo> _chain = [];
+  bool _isLoading = true;
 
-  // Sample isnad chain data
-  final List<NarratorNode> _chain = [
-    NarratorNode(
-      id: '1',
-      name: 'الإمام البخاري',
-      role: 'المؤلف',
-      birthYear: 194,
-      deathYear: 256,
-      rank: 'ثقة حافظ',
-      level: 0,
-    ),
-    NarratorNode(
-      id: '2',
-      name: 'عبد الله بن يوسف',
-      role: 'الراوي عن مالك',
-      birthYear: 0,
-      deathYear: 218,
-      rank: 'ثقة متقن',
-      level: 1,
-    ),
-    NarratorNode(
-      id: '3',
-      name: 'الإمام مالك بن أنس',
-      role: 'إمام دار الهجرة',
-      birthYear: 93,
-      deathYear: 179,
-      rank: 'إمام ثقة',
-      level: 2,
-    ),
-    NarratorNode(
-      id: '4',
-      name: 'يحيى بن سعيد الأنصاري',
-      role: 'تابعي',
-      birthYear: 0,
-      deathYear: 143,
-      rank: 'ثقة ثبت',
-      level: 3,
-    ),
-    NarratorNode(
-      id: '5',
-      name: 'محمد بن إبراهيم التيمي',
-      role: 'تابعي',
-      birthYear: 0,
-      deathYear: 120,
-      rank: 'ثقة',
-      level: 4,
-    ),
-    NarratorNode(
-      id: '6',
-      name: 'علقمة بن وقاص الليثي',
-      role: 'تابعي',
-      birthYear: 0,
-      deathYear: 80,
-      rank: 'ثقة ثبت',
-      level: 5,
-    ),
-    NarratorNode(
-      id: '7',
-      name: 'عمر بن الخطاب رضي الله عنه',
-      role: 'صحابي',
-      birthYear: 0,
-      deathYear: 23,
-      rank: 'صحابي جليل',
-      level: 6,
-      isCompanion: true,
-    ),
-    NarratorNode(
-      id: '8',
-      name: 'النبي ﷺ',
-      role: 'المصدر',
-      birthYear: 0,
-      deathYear: 11,
-      rank: '',
-      level: 7,
-      isProphet: true,
-    ),
-  ];
+  // Use ValueNotifier instead of setState for selection
+  final ValueNotifier<String?> _selectedNarrator = ValueNotifier(null);
+
+  late AnimationController _animController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeOut,
+    );
+    _loadChain();
+  }
+
+  Future<void> _loadChain() async {
+    // Ensure narrator database is initialized
+    await NarratorDatabaseService.init();
+
+    // Parse the isnad chain from the hadith text
+    final parsed = IsnadParserService.parseChain(widget.hadithText);
+
+    if (mounted) {
+      setState(() {
+        _chain = parsed;
+        _isLoading = false;
+      });
+      _animController.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _selectedNarrator.dispose();
+    _animController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? NoorDesignSystem.bgDark : const Color(0xFFFAF8F5);
+
     return Scaffold(
-      backgroundColor: NoorTheme.bgMushaf,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        title: const Text('سلسلة الإسناد'),
-        backgroundColor: NoorTheme.bgMushaf,
+        backgroundColor: bgColor,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        title: Text(
+          'سلسلة الإسناد',
+          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        actions: [
+          // Graph view toggle
+          IconButton(
+            icon: const Icon(Icons.account_tree_rounded, size: 22),
+            tooltip: 'عرض الرسم البياني',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => IsnadGraphPage(
+                    hadithText: widget.hadithText,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
-      body: Column(
+      body: _isLoading
+          ? _buildLoadingState()
+          : _chain.isEmpty
+              ? _buildEmptyState()
+              : _buildChainView(isDark),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Hadith preview
-          Container(
-            margin: const EdgeInsets.all(NoorTheme.spacingMd),
-            padding: const EdgeInsets.all(NoorTheme.spacingMd),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
-            ),
-            child: Text(
-              widget.hadithText,
-              style: const TextStyle(
-                fontFamily: 'AmiriQuran',
-                fontSize: 16,
-                height: 1.8,
-              ),
-              textDirection: TextDirection.rtl,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+          const CircularProgressIndicator(
+            color: NoorDesignSystem.primaryGreen,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'جاري تحليل سلسلة الإسناد...',
+            style: GoogleFonts.cairo(
+              color: NoorDesignSystem.textSecondary,
+              fontSize: 14,
             ),
           ),
-
-          // Chain visualization
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(NoorTheme.spacingMd),
-              child: Column(
-                children: [
-                  for (int i = 0; i < _chain.length; i++) ...[
-                    _buildNarratorCard(_chain[i]),
-                    if (i < _chain.length - 1) _buildConnector(),
-                  ],
-                ],
-              ),
-            ),
-          ),
-
-          // Selected narrator details
-          if (_selectedNarratorId != null)
-            _buildNarratorDetails(
-              _chain.firstWhere((n) => n.id == _selectedNarratorId),
-            ),
         ],
       ),
     );
   }
 
-  Widget _buildNarratorCard(NarratorNode narrator) {
-    final isSelected = _selectedNarratorId == narrator.id;
-    Color cardColor = Colors.white;
-    Color borderColor = NoorTheme.primary.withOpacity(0.2);
-
-    if (narrator.isProphet) {
-      cardColor = NoorTheme.accentGold.withOpacity(0.1);
-      borderColor = NoorTheme.accentGold;
-    } else if (narrator.isCompanion) {
-      cardColor = NoorTheme.hadithSahih.withOpacity(0.1);
-      borderColor = NoorTheme.hadithSahih;
-    }
-
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        setState(() {
-          _selectedNarratorId = isSelected ? null : narrator.id;
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: double.infinity,
-        padding: const EdgeInsets.all(NoorTheme.spacingMd),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
-          border: Border.all(
-            color: isSelected ? NoorTheme.primary : borderColor,
-            width: isSelected ? 2 : 1,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: NoorTheme.primary.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Level indicator
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: narrator.isProphet
-                      ? [NoorTheme.accentGold, NoorTheme.accentGold.withOpacity(0.7)]
-                      : narrator.isCompanion
-                          ? [NoorTheme.hadithSahih, NoorTheme.hadithHasan]
-                          : [NoorTheme.primary, NoorTheme.primaryDark],
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: narrator.isProphet
-                    ? const Text('ﷺ', style: TextStyle(color: Colors.white, fontSize: 16))
-                    : Text(
-                        '${_chain.length - narrator.level}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+            Icon(
+              Icons.link_off_rounded,
+              size: 64,
+              color: NoorDesignSystem.textSecondary.withOpacity(0.4),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'لم يتم العثور على إسناد',
+              style: GoogleFonts.cairo(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: NoorDesignSystem.textSecondary,
               ),
             ),
-            const SizedBox(width: NoorTheme.spacingMd),
-
-            // Name and role
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    narrator.name,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: narrator.isProphet ? 18 : 16,
-                      color: narrator.isProphet ? NoorTheme.accentGold : null,
-                    ),
-                    textDirection: TextDirection.rtl,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    narrator.role,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: NoorTheme.textSecondary,
-                    ),
-                    textDirection: TextDirection.rtl,
-                  ),
-                ],
+            const SizedBox(height: 8),
+            Text(
+              'لا يحتوي نص الحديث على سلسلة إسناد قابلة للتحليل',
+              style: GoogleFonts.cairo(
+                fontSize: 14,
+                color: NoorDesignSystem.textSecondary.withOpacity(0.7),
               ),
+              textAlign: TextAlign.center,
             ),
-
-            // Rank badge
-            if (narrator.rank.isNotEmpty && !narrator.isProphet)
-              Container(
-                margin: const EdgeInsets.only(right: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: NoorTheme.hadithSahih.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  narrator.rank,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: NoorTheme.hadithSahih,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildConnector() {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      child: Column(
-        children: [
-          Container(
-            width: 2,
-            height: 20,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  NoorTheme.primary.withOpacity(0.5),
-                  NoorTheme.primary.withOpacity(0.2),
-                ],
-              ),
+  Widget _buildChainView(bool isDark) {
+    return Column(
+      children: [
+        // Hadith preview
+        _buildHadithPreview(isDark),
+
+        // Chain count badge
+        _buildChainCountBadge(),
+
+        // Chain visualization — ListView.builder for performance
+        Expanded(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: ListView.builder(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              physics: const BouncingScrollPhysics(),
+              itemCount: _chain.length * 2 - 1, // narrators + connectors
+              itemBuilder: (context, index) {
+                if (index.isEven) {
+                  // Narrator card
+                  final narratorIdx = index ~/ 2;
+                  return _NarratorCard(
+                    narrator: _chain[narratorIdx],
+                    index: narratorIdx,
+                    total: _chain.length,
+                    selectedNotifier: _selectedNarrator,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      _selectedNarrator.value =
+                          _selectedNarrator.value == _chain[narratorIdx].normalizedName
+                              ? null
+                              : _chain[narratorIdx].normalizedName;
+                    },
+                  );
+                } else {
+                  // Connector between narrators
+                  final nextIdx = (index + 1) ~/ 2;
+                  return _IsnadConnector(
+                    linkWord: nextIdx < _chain.length
+                        ? _chain[nextIdx].linkWord
+                        : 'عن',
+                  );
+                }
+              },
             ),
           ),
-          Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: NoorTheme.primary.withOpacity(0.5),
-            size: 20,
+        ),
+
+        // Selected narrator detail panel
+        ValueListenableBuilder<String?>(
+          valueListenable: _selectedNarrator,
+          builder: (context, selectedName, _) {
+            if (selectedName == null) return const SizedBox.shrink();
+            final narrator = _chain.firstWhere(
+              (n) => n.normalizedName == selectedName,
+              orElse: () => _chain.first,
+            );
+            return _NarratorDetailPanel(
+              narrator: narrator,
+              onClose: () => _selectedNarrator.value = null,
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHadithPreview(bool isDark) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? NoorDesignSystem.surfaceDark : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: NoorDesignSystem.primaryGreen.withOpacity(0.1),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Text(
+        widget.hadithText,
+        style: GoogleFonts.amiri(
+          fontSize: 15,
+          height: 1.8,
+          color: isDark ? NoorDesignSystem.textPrimaryDark : NoorDesignSystem.textPrimary,
+        ),
+        textDirection: TextDirection.rtl,
+        maxLines: 3,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  Widget _buildChainCountBadge() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [NoorDesignSystem.primaryGreen, NoorDesignSystem.deepTeal],
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.link_rounded, size: 14, color: Colors.white),
+                const SizedBox(width: 6),
+                Text(
+                  '${_chain.length} رواة في السلسلة',
+                  style: GoogleFonts.cairo(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildNarratorDetails(NarratorNode narrator) {
+// ═══════════════════════════════════════════════════════════════════════════
+// NARRATOR CARD
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _NarratorCard extends StatelessWidget {
+  final NarratorInfo narrator;
+  final int index;
+  final int total;
+  final ValueNotifier<String?> selectedNotifier;
+  final VoidCallback onTap;
+
+  const _NarratorCard({
+    required this.narrator,
+    required this.index,
+    required this.total,
+    required this.selectedNotifier,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final profile = NarratorDatabaseService.lookupFromNarratorInfo(narrator);
+
+    return ValueListenableBuilder<String?>(
+      valueListenable: selectedNotifier,
+      builder: (context, selectedName, _) {
+        final isSelected = selectedName == narrator.normalizedName;
+
+        // Determine colors based on narrator type
+        Color accentColor;
+        Color bgColor;
+        IconData icon;
+
+        if (narrator.isProphet) {
+          accentColor = NoorDesignSystem.goldAccent;
+          bgColor = NoorDesignSystem.goldAccent.withOpacity(0.08);
+          icon = Icons.star_rounded;
+        } else if (narrator.isCompanion) {
+          accentColor = NoorDesignSystem.gradeSahih;
+          bgColor = NoorDesignSystem.gradeSahih.withOpacity(0.06);
+          icon = Icons.shield_rounded;
+        } else {
+          accentColor = NoorDesignSystem.primaryGreen;
+          bgColor = isDark
+              ? NoorDesignSystem.surfaceElevatedDark
+              : Colors.white;
+          icon = Icons.person_rounded;
+        }
+
+        return GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSelected
+                    ? accentColor
+                    : accentColor.withOpacity(0.15),
+                width: isSelected ? 2 : 1,
+              ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: accentColor.withOpacity(0.2),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+            ),
+            child: Row(
+              children: [
+                // Level indicator circle
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: narrator.isProphet
+                          ? [NoorDesignSystem.goldAccent, const Color(0xFFD4A537)]
+                          : narrator.isCompanion
+                              ? [NoorDesignSystem.gradeSahih, NoorDesignSystem.gradeHasan]
+                              : [NoorDesignSystem.primaryGreen, NoorDesignSystem.deepTeal],
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: accentColor.withOpacity(0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: narrator.isProphet
+                        ? Text('ﷺ', style: GoogleFonts.amiri(
+                            color: Colors.white, fontSize: 18))
+                        : Text(
+                            '${total - index}',
+                            style: GoogleFonts.cairo(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+
+                // Name and role
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        narrator.name,
+                        style: GoogleFonts.cairo(
+                          fontWeight: FontWeight.bold,
+                          fontSize: narrator.isProphet ? 18 : 16,
+                          color: narrator.isProphet
+                              ? NoorDesignSystem.goldAccent
+                              : isDark
+                                  ? NoorDesignSystem.textPrimaryDark
+                                  : NoorDesignSystem.textPrimary,
+                        ),
+                        textDirection: TextDirection.rtl,
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Icon(icon, size: 12, color: accentColor.withOpacity(0.7)),
+                          const SizedBox(width: 4),
+                          Text(
+                            narrator.role,
+                            style: GoogleFonts.cairo(
+                              fontSize: 12,
+                              color: NoorDesignSystem.textSecondary,
+                            ),
+                            textDirection: TextDirection.rtl,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Rank badge from database
+                if (profile != null && profile.rank.isNotEmpty && !narrator.isProphet)
+                  Container(
+                    margin: const EdgeInsets.only(right: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: NoorDesignSystem.gradeSahih.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: NoorDesignSystem.gradeSahih.withOpacity(0.15),
+                      ),
+                    ),
+                    child: Text(
+                      profile.rank.length > 15
+                          ? profile.rank.substring(0, 15)
+                          : profile.rank,
+                      style: GoogleFonts.cairo(
+                        fontSize: 10,
+                        color: NoorDesignSystem.gradeSahih,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ISNAD CONNECTOR
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _IsnadConnector extends StatelessWidget {
+  final String linkWord;
+
+  const _IsnadConnector({required this.linkWord});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(NoorTheme.spacingLg),
+      height: 48,
+      alignment: Alignment.center,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Left dotted line
+          Container(
+            width: 30,
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  NoorDesignSystem.primaryGreen.withOpacity(0.0),
+                  NoorDesignSystem.primaryGreen.withOpacity(0.3),
+                ],
+              ),
+            ),
+          ),
+
+          // Link word badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: NoorDesignSystem.primaryGreen.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: NoorDesignSystem.primaryGreen.withOpacity(0.15),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.arrow_downward_rounded,
+                  size: 12,
+                  color: NoorDesignSystem.primaryGreen.withOpacity(0.6),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  linkWord,
+                  style: GoogleFonts.cairo(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: NoorDesignSystem.primaryGreen,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Right dotted line
+          Container(
+            width: 30,
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  NoorDesignSystem.primaryGreen.withOpacity(0.3),
+                  NoorDesignSystem.primaryGreen.withOpacity(0.0),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NARRATOR DETAIL PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _NarratorDetailPanel extends StatelessWidget {
+  final NarratorInfo narrator;
+  final VoidCallback onClose;
+
+  const _NarratorDetailPanel({
+    required this.narrator,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final profile = NarratorDatabaseService.lookupFromNarratorInfo(narrator);
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        20, 20, 20,
+        MediaQuery.of(context).padding.bottom + 16,
+      ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? NoorDesignSystem.surfaceElevatedDark : Colors.white,
         borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(NoorTheme.radiusXl),
+          top: Radius.circular(24),
         ),
         boxShadow: [
           BoxShadow(
-            color: NoorTheme.primary.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -327,75 +625,117 @@ class _IsnadChainPageState extends State<IsnadChainPage> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          // Header
           Row(
             children: [
               IconButton(
                 icon: const Icon(Icons.close_rounded),
-                onPressed: () => setState(() => _selectedNarratorId = null),
+                onPressed: onClose,
               ),
               const Spacer(),
               Text(
                 'بطاقة الراوي',
-                style: Theme.of(context).textTheme.titleMedium,
+                style: GoogleFonts.cairo(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: NoorDesignSystem.primaryGreen,
+                ),
               ),
+              const SizedBox(width: 8),
+              Icon(Icons.person_rounded,
+                  color: NoorDesignSystem.primaryGreen, size: 20),
             ],
           ),
-          const Divider(),
-          _buildDetailRow('الاسم', narrator.name),
-          _buildDetailRow('الطبقة', narrator.role),
-          if (narrator.rank.isNotEmpty)
-            _buildDetailRow('المرتبة', narrator.rank),
-          if (narrator.deathYear > 0)
-            _buildDetailRow('سنة الوفاة', '${narrator.deathYear} هـ'),
-          const SizedBox(height: NoorTheme.spacingMd),
-        ],
-      ),
-    );
-  }
+          const Divider(height: 20),
 
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-              textDirection: TextDirection.rtl,
+          // Name
+          _DetailRow(label: 'الاسم', value: narrator.name),
+
+          // Role
+          _DetailRow(label: 'الطبقة', value: narrator.role),
+
+          // From database
+          if (profile != null) ...[
+            if (profile.rank.isNotEmpty)
+              _DetailRow(label: 'المرتبة', value: profile.rank),
+            if (profile.rankSource.isNotEmpty)
+              _DetailRow(label: 'المصدر', value: profile.rankSource),
+            if (profile.deathYear > 0)
+              _DetailRow(label: 'سنة الوفاة', value: profile.deathYearDisplay),
+            if (profile.birthYear > 0)
+              _DetailRow(label: 'سنة الولادة', value: profile.birthYearDisplay),
+
+            // Teachers
+            if (profile.teachers.isNotEmpty)
+              _DetailRow(
+                label: 'شيوخه',
+                value: profile.teachers.join(' ، '),
+              ),
+
+            // Students
+            if (profile.students.isNotEmpty)
+              _DetailRow(
+                label: 'تلاميذه',
+                value: profile.students.join(' ، '),
+              ),
+          ] else ...[
+            // Minimal info if not in database
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'لا تتوفر معلومات إضافية عن هذا الراوي في قاعدة البيانات',
+                style: GoogleFonts.cairo(
+                  fontSize: 12,
+                  color: NoorDesignSystem.textSecondary.withOpacity(0.6),
+                ),
+                textDirection: TextDirection.rtl,
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Text(
-            label,
-            style: TextStyle(color: NoorTheme.textSecondary),
-          ),
+          ],
         ],
       ),
     );
   }
 }
 
-class NarratorNode {
-  final String id;
-  final String name;
-  final String role;
-  final int birthYear;
-  final int deathYear;
-  final String rank;
-  final int level;
-  final bool isCompanion;
-  final bool isProphet;
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
 
-  NarratorNode({
-    required this.id,
-    required this.name,
-    required this.role,
-    required this.birthYear,
-    required this.deathYear,
-    required this.rank,
-    required this.level,
-    this.isCompanion = false,
-    this.isProphet = false,
-  });
+  const _DetailRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 3,
+            child: Text(
+              value,
+              style: GoogleFonts.cairo(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+              textDirection: TextDirection.rtl,
+            ),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: GoogleFonts.cairo(
+                color: NoorDesignSystem.textSecondary,
+                fontSize: 13,
+              ),
+              textAlign: TextAlign.end,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

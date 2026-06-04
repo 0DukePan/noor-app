@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../../../../core/theme/noor_theme.dart';
 import '../../../../core/services/quran_audio_service.dart';
+import '../providers/audio_player_providers.dart';
 
-/// مشغل صوت القرآن - Quran Audio Player Widget
-class QuranAudioPlayerWidget extends StatefulWidget {
+/// مشغل صوت القرآن - Quran Audio Player Widget (Riverpod)
+/// Zero setState. All state via AudioPlayerNotifier + StreamProviders.
+class QuranAudioPlayerWidget extends ConsumerStatefulWidget {
   final int surahNumber;
   final String surahName;
   final int? currentVerse;
@@ -21,15 +24,13 @@ class QuranAudioPlayerWidget extends StatefulWidget {
   });
 
   @override
-  State<QuranAudioPlayerWidget> createState() => _QuranAudioPlayerWidgetState();
+  ConsumerState<QuranAudioPlayerWidget> createState() =>
+      _QuranAudioPlayerWidgetState();
 }
 
-class _QuranAudioPlayerWidgetState extends State<QuranAudioPlayerWidget>
+class _QuranAudioPlayerWidgetState extends ConsumerState<QuranAudioPlayerWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _animController;
-  bool _isExpanded = false;
-  Reciter _selectedReciter = QuranAudioService.reciters.first;
-  double _playbackSpeed = 1.0;
 
   @override
   void initState() {
@@ -47,34 +48,17 @@ class _QuranAudioPlayerWidgetState extends State<QuranAudioPlayerWidget>
     super.dispose();
   }
 
-  void _toggleExpand() {
-    setState(() {
-      _isExpanded = !_isExpanded;
-      if (_isExpanded) {
-        _animController.forward();
-      } else {
-        _animController.reverse();
-      }
-    });
-  }
-
-  Future<void> _play() async {
-    HapticFeedback.lightImpact();
-    await QuranAudioService.playSurah(
-      surahNumber: widget.surahNumber,
-      startVerse: widget.currentVerse ?? 1,
-    );
-    setState(() {});
-  }
-
-  Future<void> _pause() async {
-    HapticFeedback.lightImpact();
-    await QuranAudioService.pause();
-    setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
+    final playerState = ref.watch(audioPlayerProvider);
+
+    // Sync animation controller with expand state
+    if (playerState.isExpanded && !_animController.isCompleted) {
+      _animController.forward();
+    } else if (!playerState.isExpanded && !_animController.isDismissed) {
+      _animController.reverse();
+    }
+
     return Container(
       margin: const EdgeInsets.all(NoorTheme.spacingMd),
       decoration: BoxDecoration(
@@ -91,214 +75,184 @@ class _QuranAudioPlayerWidgetState extends State<QuranAudioPlayerWidget>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Main Player
-          _buildMainPlayer(),
-
-          // Expanded Controls
+          _buildMainPlayer(playerState),
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
-            child: _isExpanded ? _buildExpandedControls() : const SizedBox.shrink(),
+            child: playerState.isExpanded
+                ? _buildExpandedControls(playerState)
+                : const SizedBox.shrink(),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMainPlayer() {
-    return StreamBuilder<bool>(
-      stream: QuranAudioService.playingStream,
-      builder: (context, snapshot) {
-        final isPlaying = snapshot.data ?? false;
+  Widget _buildMainPlayer(AudioPlayerState playerState) {
+    final isPlaying = ref.watch(audioPlayingProvider).valueOrNull ?? false;
+    final position = ref.watch(audioPositionProvider).valueOrNull ?? Duration.zero;
+    final duration = ref.watch(audioDurationProvider).valueOrNull ?? Duration.zero;
+    final progress = duration.inMilliseconds > 0
+        ? position.inMilliseconds / duration.inMilliseconds
+        : 0.0;
 
-        return Padding(
-          padding: const EdgeInsets.all(NoorTheme.spacingMd),
-          child: Column(
+    final notifier = ref.read(audioPlayerProvider.notifier);
+
+    return Padding(
+      padding: const EdgeInsets.all(NoorTheme.spacingMd),
+      child: Column(
+        children: [
+          // Title and expand button
+          Row(
             children: [
-              // Title and expand button
-              Row(
-                children: [
-                  IconButton(
-                    icon: AnimatedIcon(
-                      icon: AnimatedIcons.menu_close,
-                      progress: _animController,
-                    ),
-                    onPressed: _toggleExpand,
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          widget.surahName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          _selectedReciter.nameArabic,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: NoorTheme.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              IconButton(
+                icon: AnimatedIcon(
+                  icon: AnimatedIcons.menu_close,
+                  progress: _animController,
+                ),
+                onPressed: () => notifier.toggleExpanded(),
               ),
-
-              const SizedBox(height: NoorTheme.spacingSm),
-
-              // Progress Slider
-              StreamBuilder<Duration>(
-                stream: QuranAudioService.positionStream,
-                builder: (context, positionSnapshot) {
-                  final position = positionSnapshot.data ?? Duration.zero;
-
-                  return StreamBuilder<Duration?>(
-                    stream: QuranAudioService.durationStream,
-                    builder: (context, durationSnapshot) {
-                      final duration = durationSnapshot.data ?? Duration.zero;
-                      final progress = duration.inMilliseconds > 0
-                          ? position.inMilliseconds / duration.inMilliseconds
-                          : 0.0;
-
-                      return Column(
-                        children: [
-                          SliderTheme(
-                            data: SliderThemeData(
-                              activeTrackColor: NoorTheme.primary,
-                              inactiveTrackColor: NoorTheme.primary.withOpacity(0.2),
-                              thumbColor: NoorTheme.primary,
-                              trackHeight: 4,
-                              thumbShape: const RoundSliderThumbShape(
-                                enabledThumbRadius: 6,
-                              ),
-                            ),
-                            child: Slider(
-                              value: progress.clamp(0.0, 1.0),
-                              onChanged: (value) {
-                                if (duration.inMilliseconds > 0) {
-                                  QuranAudioService.seek(
-                                    Duration(
-                                      milliseconds:
-                                          (value * duration.inMilliseconds).toInt(),
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  _formatDuration(position),
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: NoorTheme.textSecondary,
-                                  ),
-                                ),
-                                Text(
-                                  _formatDuration(duration),
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: NoorTheme.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-              ),
-
-              const SizedBox(height: NoorTheme.spacingSm),
-
-              // Playback Controls
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Previous
-                  IconButton(
-                    icon: const Icon(Icons.skip_previous_rounded),
-                    iconSize: 32,
-                    onPressed: QuranAudioService.previousVerse,
-                  ),
-
-                  // Rewind 10s
-                  IconButton(
-                    icon: const Icon(Icons.replay_10_rounded),
-                    onPressed: () {
-                      final newPos = QuranAudioService.position -
-                          const Duration(seconds: 10);
-                      QuranAudioService.seek(
-                        newPos.isNegative ? Duration.zero : newPos,
-                      );
-                    },
-                  ),
-
-                  // Play/Pause
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [NoorTheme.primary, NoorTheme.primaryDark],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      widget.surahName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: NoorTheme.primary.withOpacity(0.4),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
                     ),
-                    child: IconButton(
-                      icon: Icon(
-                        isPlaying
-                            ? Icons.pause_rounded
-                            : Icons.play_arrow_rounded,
+                    Text(
+                      playerState.selectedReciter.nameArabic,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: NoorTheme.textSecondary,
                       ),
-                      iconSize: 32,
-                      color: Colors.white,
-                      onPressed: isPlaying ? _pause : _play,
                     ),
-                  ),
-
-                  // Forward 10s
-                  IconButton(
-                    icon: const Icon(Icons.forward_10_rounded),
-                    onPressed: () {
-                      final newPos = QuranAudioService.position +
-                          const Duration(seconds: 10);
-                      QuranAudioService.seek(newPos);
-                    },
-                  ),
-
-                  // Next
-                  IconButton(
-                    icon: const Icon(Icons.skip_next_rounded),
-                    iconSize: 32,
-                    onPressed: QuranAudioService.nextVerse,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
-        );
-      },
+
+          const SizedBox(height: NoorTheme.spacingSm),
+
+          // Progress Slider
+          Column(
+            children: [
+              SliderTheme(
+                data: SliderThemeData(
+                  activeTrackColor: NoorTheme.primary,
+                  inactiveTrackColor: NoorTheme.primary.withOpacity(0.2),
+                  thumbColor: NoorTheme.primary,
+                  trackHeight: 4,
+                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                ),
+                child: Slider(
+                  value: progress.clamp(0.0, 1.0),
+                  onChanged: (value) {
+                    if (duration.inMilliseconds > 0) {
+                      QuranAudioService.seek(
+                        Duration(milliseconds: (value * duration.inMilliseconds).toInt()),
+                      );
+                    }
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _formatDuration(position),
+                      style: TextStyle(fontSize: 11, color: NoorTheme.textSecondary),
+                    ),
+                    Text(
+                      _formatDuration(duration),
+                      style: TextStyle(fontSize: 11, color: NoorTheme.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: NoorTheme.spacingSm),
+
+          // Playback Controls
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.skip_previous_rounded),
+                iconSize: 32,
+                onPressed: QuranAudioService.previousVerse,
+              ),
+              IconButton(
+                icon: const Icon(Icons.replay_10_rounded),
+                onPressed: () {
+                  final newPos = QuranAudioService.position - const Duration(seconds: 10);
+                  QuranAudioService.seek(newPos.isNegative ? Duration.zero : newPos);
+                },
+              ),
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [NoorTheme.primary, NoorTheme.primaryDark],
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: NoorTheme.primary.withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  ),
+                  iconSize: 32,
+                  color: Colors.white,
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    if (isPlaying) {
+                      notifier.pause();
+                    } else {
+                      notifier.play(
+                        surahNumber: widget.surahNumber,
+                        startVerse: widget.currentVerse ?? 1,
+                      );
+                    }
+                  },
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.forward_10_rounded),
+                onPressed: () {
+                  final newPos = QuranAudioService.position + const Duration(seconds: 10);
+                  QuranAudioService.seek(newPos);
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.skip_next_rounded),
+                iconSize: 32,
+                onPressed: QuranAudioService.nextVerse,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildExpandedControls() {
+  Widget _buildExpandedControls(AudioPlayerState playerState) {
+    final notifier = ref.read(audioPlayerProvider.notifier);
+
     return Container(
       padding: const EdgeInsets.all(NoorTheme.spacingMd),
       decoration: BoxDecoration(
@@ -326,13 +280,12 @@ class _QuranAudioPlayerWidgetState extends State<QuranAudioPlayerWidget>
               itemCount: QuranAudioService.reciters.length,
               itemBuilder: (context, index) {
                 final reciter = QuranAudioService.reciters[index];
-                final isSelected = reciter.id == _selectedReciter.id;
+                final isSelected = reciter.id == playerState.selectedReciter.id;
 
                 return GestureDetector(
                   onTap: () {
                     HapticFeedback.selectionClick();
-                    setState(() => _selectedReciter = reciter);
-                    QuranAudioService.setReciter(reciter.id);
+                    notifier.setReciter(reciter);
                   },
                   child: Container(
                     width: 80,
@@ -343,9 +296,7 @@ class _QuranAudioPlayerWidgetState extends State<QuranAudioPlayerWidget>
                       borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
                       border: isSelected
                           ? null
-                          : Border.all(
-                              color: NoorTheme.primary.withOpacity(0.3),
-                            ),
+                          : Border.all(color: NoorTheme.primary.withOpacity(0.3)),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -382,15 +333,12 @@ class _QuranAudioPlayerWidgetState extends State<QuranAudioPlayerWidget>
                 child: Wrap(
                   spacing: 8,
                   children: [0.75, 1.0, 1.25, 1.5].map((speed) {
-                    final isSelected = _playbackSpeed == speed;
+                    final isSelected = playerState.playbackSpeed == speed;
                     return ChoiceChip(
                       label: Text('${speed}x'),
                       selected: isSelected,
                       onSelected: (selected) {
-                        if (selected) {
-                          setState(() => _playbackSpeed = speed);
-                          QuranAudioService.setSpeed(speed);
-                        }
+                        if (selected) notifier.setSpeed(speed);
                       },
                       selectedColor: NoorTheme.primary,
                       labelStyle: TextStyle(
@@ -456,71 +404,66 @@ class _QuranAudioPlayerWidgetState extends State<QuranAudioPlayerWidget>
   }
 }
 
-/// Mini player for bottom bar
-class QuranMiniPlayer extends StatelessWidget {
+/// Mini player for bottom bar (Riverpod)
+class QuranMiniPlayer extends ConsumerWidget {
   final VoidCallback onTap;
 
   const QuranMiniPlayer({super.key, required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<bool>(
-      stream: QuranAudioService.playingStream,
-      builder: (context, snapshot) {
-        final isPlaying = snapshot.data ?? false;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isPlaying = ref.watch(audioPlayingProvider).valueOrNull ?? false;
 
-        if (!isPlaying && QuranAudioService.currentSurah == 1) {
-          return const SizedBox.shrink();
-        }
+    if (!isPlaying && QuranAudioService.currentSurah == 1) {
+      return const SizedBox.shrink();
+    }
 
-        return GestureDetector(
-          onTap: onTap,
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: NoorTheme.spacingMd),
-            padding: const EdgeInsets.all(NoorTheme.spacingSm),
-            decoration: BoxDecoration(
-              color: NoorTheme.primary,
-              borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: NoorTheme.spacingMd),
+        padding: const EdgeInsets.all(NoorTheme.spacingSm),
+        decoration: BoxDecoration(
+          color: NoorTheme.primary,
+          borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
+        ),
+        child: Row(
+          children: [
+            IconButton(
+              icon: Icon(
+                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                color: Colors.white,
+              ),
+              onPressed: isPlaying
+                  ? QuranAudioService.pause
+                  : QuranAudioService.resume,
             ),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(
-                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                    color: Colors.white,
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'سورة ${QuranAudioService.currentSurah}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  onPressed: isPlaying
-                      ? QuranAudioService.pause
-                      : QuranAudioService.resume,
-                ),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'سورة ${QuranAudioService.currentSurah}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'آية ${QuranAudioService.currentVerse}',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    'آية ${QuranAudioService.currentVerse}',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 12,
+                    ),
                   ),
-                ),
-                const Icon(Icons.keyboard_arrow_up_rounded, color: Colors.white),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
+            const Icon(Icons.keyboard_arrow_up_rounded, color: Colors.white),
+          ],
+        ),
+      ),
     );
   }
 }

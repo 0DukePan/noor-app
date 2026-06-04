@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/models/adhkar_models.dart';
 import '../../../../core/services/adhkar_data_source.dart';
 import '../../../../core/theme/design_system.dart';
-import '../../../../core/widgets/category_card.dart';
 
 /// 📿 Adhkar Page - Modern & Premium Redesign
 class AdhkarPage extends StatefulWidget {
@@ -17,10 +16,39 @@ class AdhkarPage extends StatefulWidget {
 }
 
 class _AdhkarPageState extends State<AdhkarPage> {
+  // FIX 1: Cache counts from real data source instead of hardcoded values
+  final Map<AdhkarType, int> _adhkarCounts = {};
+  bool _isLoadingCounts = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCounts();
+  }
+
+  Future<void> _loadCounts() async {
+    final counts = <AdhkarType, int>{};
+    for (final type in AdhkarType.values) {
+      final collection = await AdhkarDataSource.getCollection(type);
+      counts[type] = collection?.count ?? 0;
+    }
+    if (mounted) {
+      setState(() {
+        _adhkarCounts.addAll(counts);
+        _isLoadingCounts = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final stats = AdhkarDataSource.getTodayStats();
     final streak = AdhkarDataSource.getStreak();
+
+    // Auto-highlight based on time
+    final hour = DateTime.now().hour;
+    final isMorning = hour >= 4 && hour < 12;
+    final isEvening = hour >= 12 && hour < 20;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -52,7 +80,8 @@ class _AdhkarPageState extends State<AdhkarPage> {
                 Padding(
                   padding: const EdgeInsets.only(right: 20, top: 12),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.orange.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -94,27 +123,40 @@ class _AdhkarPageState extends State<AdhkarPage> {
               crossAxisSpacing: 16,
               childAspectRatio: 1.15,
               children: [
+                // FIX 2: isHighlighted default changed to false — only morning/evening are highlighted by time
                 _ModernCategoryCard(
                   title: 'أذكار الصباح',
-                  subtitle: '${_getAdhkarCount(AdhkarType.morning)} ذكر',
+                  subtitle: _getCountLabel(AdhkarType.morning, 'ذكر'),
                   emoji: '🌅',
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFD54F), Color(0xFFFFB300)],
+                  gradient: LinearGradient(
+                    colors: isMorning
+                        ? [const Color(0xFFFFD54F), const Color(0xFFFFB300)]
+                        : [
+                            const Color(0xFFFFD54F).withOpacity(0.5),
+                            const Color(0xFFFFB300).withOpacity(0.5)
+                          ],
                   ),
+                  isHighlighted: isMorning,
                   onTap: () => _openAdhkar(context, AdhkarType.morning),
                 ),
                 _ModernCategoryCard(
                   title: 'أذكار المساء',
-                  subtitle: '${_getAdhkarCount(AdhkarType.evening)} ذكر',
+                  subtitle: _getCountLabel(AdhkarType.evening, 'ذكر'),
                   emoji: '🌇',
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF7043), Color(0xFFE64A19)],
+                  gradient: LinearGradient(
+                    colors: isEvening
+                        ? [const Color(0xFFFF7043), const Color(0xFFE64A19)]
+                        : [
+                            const Color(0xFFFF7043).withOpacity(0.5),
+                            const Color(0xFFE64A19).withOpacity(0.5)
+                          ],
                   ),
+                  isHighlighted: isEvening,
                   onTap: () => _openAdhkar(context, AdhkarType.evening),
                 ),
                 _ModernCategoryCard(
                   title: 'بعد الصلاة',
-                  subtitle: '${_getAdhkarCount(AdhkarType.afterPrayer)} ذكر',
+                  subtitle: _getCountLabel(AdhkarType.afterPrayer, 'ذكر'),
                   emoji: '🕌',
                   gradient: LinearGradient(
                     colors: [
@@ -122,11 +164,12 @@ class _AdhkarPageState extends State<AdhkarPage> {
                       NoorDesignSystem.deepTeal,
                     ],
                   ),
+                  // FIX 2: isHighlighted is false by default now
                   onTap: () => _openAdhkar(context, AdhkarType.afterPrayer),
                 ),
                 _ModernCategoryCard(
                   title: 'أذكار النوم',
-                  subtitle: '${_getAdhkarCount(AdhkarType.sleep)} ذكر',
+                  subtitle: _getCountLabel(AdhkarType.sleep, 'ذكر'),
                   emoji: '🌙',
                   gradient: const LinearGradient(
                     colors: [Color(0xFF5C6BC0), Color(0xFF3949AB)],
@@ -135,7 +178,7 @@ class _AdhkarPageState extends State<AdhkarPage> {
                 ),
                 _ModernCategoryCard(
                   title: 'الاستيقاظ',
-                  subtitle: '${_getAdhkarCount(AdhkarType.wakeUp)} ذكر',
+                  subtitle: _getCountLabel(AdhkarType.wakeUp, 'ذكر'),
                   emoji: '☀️',
                   gradient: const LinearGradient(
                     colors: [Color(0xFF29B6F6), Color(0xFF0288D1)],
@@ -144,7 +187,7 @@ class _AdhkarPageState extends State<AdhkarPage> {
                 ),
                 _ModernCategoryCard(
                   title: 'أدعية قرآنية',
-                  subtitle: '${_getAdhkarCount(AdhkarType.general)} دعاء',
+                  subtitle: _getCountLabel(AdhkarType.general, 'دعاء'),
                   emoji: '📖',
                   gradient: const LinearGradient(
                     colors: [Color(0xFF9C27B0), Color(0xFF7B1FA2)],
@@ -161,30 +204,21 @@ class _AdhkarPageState extends State<AdhkarPage> {
     );
   }
 
-  int _getAdhkarCount(AdhkarType type) {
-    // Placeholder - return estimate counts
-    switch (type) {
-      case AdhkarType.morning:
-        return 19;
-      case AdhkarType.evening:
-        return 17;
-      case AdhkarType.afterPrayer:
-       return 9;
-      case AdhkarType.sleep:
-        return 8;
-      case AdhkarType.wakeUp:
-        return 5;
-      case AdhkarType.general:
-        return 15;
-    }
+  // FIX 1: Count comes from real data, shows loading state
+  String _getCountLabel(AdhkarType type, String unit) {
+    if (_isLoadingCounts) return '...';
+    final count = _adhkarCounts[type] ?? 0;
+    return '$count $unit';
   }
 
   void _openAdhkar(BuildContext context, AdhkarType type) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => AdhkarCounterPage(type: type),
-      ),
-    ).then((_) => setState(() {}));
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (_) => AdhkarCounterPage(type: type),
+          ),
+        )
+        .then((_) => setState(() {}));
   }
 }
 
@@ -209,7 +243,9 @@ class _TodayProgressCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: (stats.isComplete ? Colors.green : NoorDesignSystem.emeraldGreen)
+            color: (stats.isComplete
+                    ? Colors.green
+                    : NoorDesignSystem.emeraldGreen)
                 .withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
@@ -241,7 +277,9 @@ class _TodayProgressCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      stats.isComplete ? 'أحسنت! أكملت ورد اليوم' : 'ورد اليوم',
+                      stats.isComplete
+                          ? 'أحسنت! أكملت ورد اليوم'
+                          : 'ورد اليوم',
                       style: GoogleFonts.cairo(
                         fontSize: 18,
                         color: Colors.white,
@@ -261,9 +299,9 @@ class _TodayProgressCard extends StatelessWidget {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 20),
-          
+
           // Progress Bar
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
@@ -274,9 +312,9 @@ class _TodayProgressCard extends StatelessWidget {
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Status chips
           Wrap(
             spacing: 8,
@@ -298,11 +336,11 @@ class _TodayProgressCard extends StatelessWidget {
 
   String _getProgressText() {
     if (stats.isComplete) return 'بارك الله فيك';
-    
+
     final remaining = <String>[];
     if (!stats.morningCompleted) remaining.add('الصباح');
     if (!stats.eveningCompleted) remaining.add('المساء');
-    
+
     if (remaining.isEmpty) return 'أكملت أذكار اليوم!';
     return 'تبقى: ${remaining.join(' و ')}';
   }
@@ -354,6 +392,9 @@ class _ModernCategoryCard extends StatelessWidget {
   final String subtitle;
   final String emoji;
   final Gradient gradient;
+
+  // FIX 2: Default changed from true → false so non-time-based cards are NOT highlighted
+  final bool isHighlighted;
   final VoidCallback onTap;
 
   const _ModernCategoryCard({
@@ -361,6 +402,7 @@ class _ModernCategoryCard extends StatelessWidget {
     required this.subtitle,
     required this.emoji,
     required this.gradient,
+    this.isHighlighted = false, // ✅ was: true (wrong)
     required this.onTap,
   });
 
@@ -375,13 +417,25 @@ class _ModernCategoryCard extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: gradient,
             borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            border: isHighlighted
+                ? Border.all(
+                    color: Colors.white.withOpacity(0.5), width: 2)
+                : null,
+            boxShadow: isHighlighted
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 15,
+                      offset: const Offset(0, 6),
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
           ),
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -425,10 +479,9 @@ class _ModernCategoryCard extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ADHKAR COUNTER PAGE (Keeping existing implementation)
-// ══════════════════════════════════════════════════════════════════════════
+// ADHKAR COUNTER PAGE
+// ═══════════════════════════════════════════════════════════════════════════
 
-/// 📿 Counter Page
 class AdhkarCounterPage extends StatefulWidget {
   final AdhkarType type;
 
@@ -443,10 +496,10 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
   AdhkarCollection? _collection;
   AdhkarProgress _progress = const AdhkarProgress(type: AdhkarType.morning);
   AdhkarDisplaySettings _settings = const AdhkarDisplaySettings();
-  
+
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
-  
+
   bool _isLoading = true;
 
   @override
@@ -463,10 +516,11 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
   }
 
   Future<void> _loadData() async {
+    // FIX 3: All data fetched consistently as async
     final collection = await AdhkarDataSource.getCollection(widget.type);
     final progress = AdhkarDataSource.getProgress(widget.type);
     final settings = AdhkarDataSource.getSettings();
-    
+
     if (mounted) {
       setState(() {
         _collection = collection;
@@ -482,8 +536,6 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
     if (_progress.currentIndex >= _collection!.count) return null;
     return _collection!.adhkar[_progress.currentIndex];
   }
-
-  int get _remaining => (_currentZekr?.repeat ?? 0) - _progress.currentCount;
 
   Future<void> _onTap() async {
     if (_collection == null || _progress.isCompleted) return;
@@ -563,18 +615,22 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
     }
 
     final currentZekr = _currentZekr;
-    final totalProgress = _progress.currentIndex / _collection!.count;
+    final totalProgress = _collection!.count == 0
+        ? 0.0
+        : _progress.currentIndex / _collection!.count;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.type.arabicName, style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+        title: Text(widget.type.arabicName,
+            style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
         centerTitle: true,
         actions: [
           Padding(
             padding: const EdgeInsets.only(left: 20),
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(20),
@@ -593,7 +649,8 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(6),
           child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(6)),
             child: LinearProgressIndicator(
               value: totalProgress,
               backgroundColor: theme.colorScheme.surfaceContainerHighest,
@@ -627,7 +684,7 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
             style: GoogleFonts.cairo(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onSurface,
+              color: theme.colorScheme.onSurface, // FIX 4: was onBackground (deprecated)
             ),
           ),
           const SizedBox(height: 8),
@@ -642,9 +699,11 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
           FilledButton.icon(
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.arrow_back_rounded),
-            label: Text('العودة للقائمة', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+            label: Text('العودة للقائمة',
+                style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
             style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             ),
           ),
         ],
@@ -683,7 +742,7 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
                           style: GoogleFonts.amiri(
                             fontSize: _settings.fontSize + 12,
                             height: 2.0,
-                            color: theme.colorScheme.onBackground,
+                            color: theme.colorScheme.onSurface, // FIX 4: was onBackground (deprecated)
                             fontWeight: FontWeight.bold,
                           ),
                           textDirection: TextDirection.rtl,
@@ -691,7 +750,7 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 32),
 
                   Expanded(
@@ -701,7 +760,11 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
                       children: [
                         Animate(
                           key: ValueKey(_progress.currentCount),
-                          effects: [ScaleEffect(duration: 200.ms, curve: Curves.easeOutBack)],
+                          effects: [
+                            ScaleEffect(
+                                duration: 200.ms,
+                                curve: Curves.easeOutBack)
+                          ],
                           child: Text(
                             '${_progress.currentCount}',
                             style: GoogleFonts.cairo(
@@ -712,7 +775,6 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
                             ),
                           ),
                         ),
-                        
                         Text(
                           'من ${currentZekr.repeat}',
                           style: GoogleFonts.cairo(
@@ -720,7 +782,6 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
-                        
                         const SizedBox(height: 16),
                         Text(
                           'اضغط في أي مكان للعد',
@@ -743,7 +804,8 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withOpacity(0.5),
+                  color:
+                      theme.colorScheme.primaryContainer.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: theme.colorScheme.primary.withOpacity(0.2),
@@ -751,9 +813,8 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.auto_awesome, 
-                      size: 16, 
-                      color: theme.colorScheme.primary),
+                    Icon(Icons.auto_awesome,
+                        size: 16, color: theme.colorScheme.primary),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(

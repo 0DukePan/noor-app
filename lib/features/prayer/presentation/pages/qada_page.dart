@@ -1,45 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/noor_theme.dart';
 import '../../domain/entities/prayer_entities.dart';
+import '../providers/prayer_providers.dart';
 
-/// صفحة متتبع القضاء - Qada Tracker Page
-/// For tracking missed prayers and fasting
-class QadaTrackerPage extends StatefulWidget {
+/// صفحة متتبع القضاء - Qada Tracker Page (Riverpod)
+/// For tracking missed prayers and fasting — persisted with Hive
+class QadaTrackerPage extends ConsumerStatefulWidget {
   const QadaTrackerPage({super.key});
 
   @override
-  State<QadaTrackerPage> createState() => _QadaTrackerPageState();
+  ConsumerState<QadaTrackerPage> createState() => _QadaTrackerPageState();
 }
 
-class _QadaTrackerPageState extends State<QadaTrackerPage>
+class _QadaTrackerPageState extends ConsumerState<QadaTrackerPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
-  // Sample data
-  final List<Map<String, dynamic>> _prayerRecords = [
-    {
-      'id': '1',
-      'type': 'prayer',
-      'name': 'صلوات فائتة',
-      'totalCount': 150,
-      'completedCount': 45,
-      'startDate': DateTime(2025, 6, 1),
-    },
-  ];
-
-  final List<Map<String, dynamic>> _fastingRecords = [
-    {
-      'id': '2',
-      'type': 'fasting',
-      'name': 'أيام رمضان',
-      'totalCount': 15,
-      'completedCount': 8,
-      'startDate': DateTime(2025, 4, 1),
-    },
-  ];
 
   @override
   void initState() {
@@ -55,6 +34,8 @@ class _QadaTrackerPageState extends State<QadaTrackerPage>
 
   @override
   Widget build(BuildContext context) {
+    final qada = ref.watch(qadaProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('متتبع القضاء', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
@@ -73,17 +54,17 @@ class _QadaTrackerPageState extends State<QadaTrackerPage>
         controller: _tabController,
         children: [
           _QadaList(
-            records: _prayerRecords,
+            records: qada.prayerRecords,
             type: QadaType.prayer,
-            onIncrement: _incrementRecord,
-            onDelete: _deleteRecord,
+            onIncrement: (id) => _incrementRecord(id),
+            onDelete: (id) => ref.read(qadaProvider.notifier).deleteRecord(id),
             onAdd: () => _showAddDialog(QadaType.prayer),
           ),
           _QadaList(
-            records: _fastingRecords,
+            records: qada.fastingRecords,
             type: QadaType.fasting,
-            onIncrement: _incrementRecord,
-            onDelete: _deleteRecord,
+            onIncrement: (id) => _incrementRecord(id),
+            onDelete: (id) => ref.read(qadaProvider.notifier).deleteRecord(id),
             onAdd: () => _showAddDialog(QadaType.fasting),
           ),
         ],
@@ -93,25 +74,11 @@ class _QadaTrackerPageState extends State<QadaTrackerPage>
 
   void _incrementRecord(String id) async {
     await HapticFeedback.lightImpact();
-    setState(() {
-      for (final record in [..._prayerRecords, ..._fastingRecords]) {
-        if (record['id'] == id) {
-          record['completedCount'] = (record['completedCount'] as int) + 1;
-          if (record['completedCount'] >= record['totalCount']) {
-            HapticFeedback.heavyImpact();
-            _showCompletionDialog(record['name'] as String);
-          }
-          break;
-        }
-      }
-    });
-  }
-
-  void _deleteRecord(String id) {
-    setState(() {
-      _prayerRecords.removeWhere((r) => r['id'] == id);
-      _fastingRecords.removeWhere((r) => r['id'] == id);
-    });
+    final isComplete = ref.read(qadaProvider.notifier).incrementRecord(id);
+    if (isComplete) {
+      HapticFeedback.heavyImpact();
+      _showCompletionDialog();
+    }
   }
 
   void _showAddDialog(QadaType type) {
@@ -120,37 +87,23 @@ class _QadaTrackerPageState extends State<QadaTrackerPage>
       builder: (context) => _AddQadaDialog(
         type: type,
         onAdd: (name, count, notes) {
-          final record = {
-            'id': DateTime.now().millisecondsSinceEpoch.toString(),
-            'type': type.name,
-            'name': name,
-            'totalCount': count,
-            'completedCount': 0,
-            'startDate': DateTime.now(),
-            'notes': notes,
-          };
-          setState(() {
-            if (type == QadaType.prayer) {
-              _prayerRecords.add(record);
-            } else {
-              _fastingRecords.add(record);
-            }
-          });
+          ref.read(qadaProvider.notifier).addRecord(type, name, count, notes);
         },
       ),
     );
   }
 
-  void _showCompletionDialog(String name) {
+  void _showCompletionDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('🎉 تهانينا!'),
-        content: Text('لقد أتممت قضاء "$name"'),
+        content: Text('لقد أتممت قضاء هذا السجل', style: GoogleFonts.cairo()),
         actions: [
-          TextButton(
+          FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('الحمد لله'),
+            child: Text('الحمد لله', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -159,7 +112,7 @@ class _QadaTrackerPageState extends State<QadaTrackerPage>
 }
 
 class _QadaList extends StatelessWidget {
-  final List<Map<String, dynamic>> records;
+  final List<QadaRecord> records;
   final QadaType type;
   final Function(String) onIncrement;
   final Function(String) onDelete;
@@ -226,8 +179,8 @@ class _QadaList extends StatelessWidget {
         return _QadaCard(
           record: record,
           type: type,
-          onIncrement: () => onIncrement(record['id'] as String),
-          onDelete: () => onDelete(record['id'] as String),
+          onIncrement: () => onIncrement(record.id),
+          onDelete: () => onDelete(record.id),
         );
       },
     );
@@ -235,7 +188,7 @@ class _QadaList extends StatelessWidget {
 }
 
 class _QadaCard extends StatelessWidget {
-  final Map<String, dynamic> record;
+  final QadaRecord record;
   final QadaType type;
   final VoidCallback onIncrement;
   final VoidCallback onDelete;
@@ -250,10 +203,8 @@ class _QadaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final totalCount = record['totalCount'] as int;
-    final completedCount = record['completedCount'] as int;
-    final remaining = totalCount - completedCount;
-    final progress = totalCount > 0 ? completedCount / totalCount : 0.0;
+    final remaining = record.remainingCount;
+    final progress = record.progressPercentage;
     final isComplete = remaining <= 0;
 
     return Container(
@@ -288,8 +239,8 @@ class _QadaCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: isComplete 
-                            ? Colors.green.withOpacity(0.1) 
+                        color: isComplete
+                            ? Colors.green.withOpacity(0.1)
                             : theme.colorScheme.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -302,16 +253,7 @@ class _QadaCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        record['name'] as String,
-                        style: GoogleFonts.cairo(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface,
-                        ),
-                      ),
-                    ),
+                    const Expanded(child: SizedBox()),
                     IconButton(
                       icon: const Icon(Icons.delete_outline_rounded, size: 20),
                       onPressed: onDelete,
@@ -343,7 +285,8 @@ class _QadaCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                           boxShadow: [
                             BoxShadow(
-                              color: (isComplete ? Colors.green : theme.colorScheme.primary).withOpacity(0.4),
+                              color: (isComplete ? Colors.green : theme.colorScheme.primary)
+                                  .withOpacity(0.4),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -359,7 +302,7 @@ class _QadaCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'تم: $completedCount من $totalCount',
+                      'تم: ${record.completedCount} من ${record.totalCount}',
                       style: GoogleFonts.cairo(
                         fontSize: 12,
                         color: theme.colorScheme.onSurfaceVariant,

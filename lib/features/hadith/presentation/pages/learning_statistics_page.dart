@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../../../core/services/hadith_user_data_service.dart';
 import '../../../../core/theme/noor_theme.dart';
 
 /// إحصائيات التعلم - Learning Statistics Page
+/// Loads real user data from Hive (bookmarks, notes, quiz scores, memorization).
 class LearningStatisticsPage extends StatefulWidget {
   const LearningStatisticsPage({super.key});
 
@@ -12,25 +15,102 @@ class LearningStatisticsPage extends StatefulWidget {
 }
 
 class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
-  // Sample statistics data
-  final LearningStats _stats = LearningStats(
-    totalHadithsRead: 523,
-    totalHadithsMemorized: 47,
-    currentStreak: 12,
-    longestStreak: 28,
-    totalReviewSessions: 156,
-    averageSessionMinutes: 15,
-    booksProgress: {
-      'صحيح البخاري': BookProgress(read: 234, total: 7563),
-      'صحيح مسلم': BookProgress(read: 156, total: 3032),
-      'سنن أبي داود': BookProgress(read: 89, total: 4590),
-      'جامع الترمذي': BookProgress(read: 44, total: 3956),
-    },
-    weeklyActivity: [3, 5, 2, 8, 4, 6, 7], // Last 7 days
-    topicsCompleted: 12,
-    quizzesTaken: 23,
-    quizAverageScore: 78,
-  );
+  bool _loading = true;
+  late _RealStats _stats;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+  }
+
+  Future<void> _loadStats() async {
+    // --- Bookmarks ---
+    final bookmarks = HadithUserDataService.getAllBookmarks();
+    final totalBookmarked = bookmarks.length;
+
+    // --- Notes ---
+    int totalNotes = 0;
+    try {
+      final notesBox = await Hive.openBox('hadith_notes');
+      totalNotes = notesBox.length;
+    } catch (_) {}
+
+    // --- Quiz history ---
+    int quizzesTaken = 0;
+    int quizTotalScore = 0;
+    int quizTotalQuestions = 0;
+    try {
+      final quizBox = await Hive.openBox('quiz_history');
+      for (final key in quizBox.keys) {
+        final entry = quizBox.get(key);
+        if (entry is Map) {
+          quizzesTaken++;
+          quizTotalScore += (entry['score'] as int?) ?? 0;
+          quizTotalQuestions += (entry['total'] as int?) ?? 0;
+        }
+      }
+    } catch (_) {}
+    final quizAverage = quizTotalQuestions > 0
+        ? ((quizTotalScore / quizTotalQuestions) * 100).round()
+        : 0;
+
+    // --- Memorization intervals ---
+    int totalMemorized = 0;
+    try {
+      final memBox = await Hive.openBox('memorization_intervals');
+      totalMemorized = memBox.length;
+    } catch (_) {}
+
+    // --- Reading streak (from progress box) ---
+    int currentStreak = 0;
+    int longestStreak = 0;
+    try {
+      final streakBox = await Hive.openBox('reading_streak');
+      currentStreak = streakBox.get('current', defaultValue: 0) as int;
+      longestStreak = streakBox.get('longest', defaultValue: 0) as int;
+    } catch (_) {}
+
+    // --- Weekly activity (last 7 days read counts) ---
+    List<int> weeklyActivity = List.filled(7, 0);
+    try {
+      final activityBox = await Hive.openBox('daily_activity');
+      final now = DateTime.now();
+      for (int i = 0; i < 7; i++) {
+        final day = now.subtract(Duration(days: 6 - i));
+        final key = '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+        weeklyActivity[i] = (activityBox.get(key, defaultValue: 0) as int);
+      }
+    } catch (_) {}
+
+    // --- Books progress (bookmarks per book) ---
+    final Map<String, _BookProg> booksProgress = {};
+    for (final bm in bookmarks) {
+      final coll = bm['collectionId'] as String? ?? '';
+      if (coll.isNotEmpty) {
+        booksProgress.putIfAbsent(coll, () => _BookProg(read: 0, total: 0));
+        booksProgress[coll] = _BookProg(
+          read: booksProgress[coll]!.read + 1,
+          total: booksProgress[coll]!.total,
+        );
+      }
+    }
+
+    setState(() {
+      _stats = _RealStats(
+        totalBookmarked: totalBookmarked,
+        totalNotes: totalNotes,
+        totalMemorized: totalMemorized,
+        currentStreak: currentStreak,
+        longestStreak: longestStreak,
+        quizzesTaken: quizzesTaken,
+        quizAverageScore: quizAverage,
+        weeklyActivity: weeklyActivity,
+        booksProgress: booksProgress,
+      );
+      _loading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,54 +121,54 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
         backgroundColor: NoorTheme.bgMushaf,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(NoorTheme.spacingMd),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            // Streak Card
-            _buildStreakCard(),
-            const SizedBox(height: NoorTheme.spacingMd),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(NoorTheme.spacingMd),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // Streak Card
+                  _buildStreakCard(),
+                  const SizedBox(height: NoorTheme.spacingMd),
 
-            // Main Stats Grid
-            Row(
-              children: [
-                Expanded(child: _buildStatCard('قرأت', '${_stats.totalHadithsRead}', 'حديث', Icons.menu_book_rounded, NoorTheme.primary)),
-                const SizedBox(width: NoorTheme.spacingSm),
-                Expanded(child: _buildStatCard('حفظت', '${_stats.totalHadithsMemorized}', 'حديث', Icons.psychology_rounded, NoorTheme.hadithSahih)),
-              ],
+                  // Main Stats Grid
+                  Row(
+                    children: [
+                      Expanded(child: _buildStatCard('محفوظات', '${_stats.totalBookmarked}', 'حديث', Icons.bookmark_rounded, NoorTheme.primary)),
+                      const SizedBox(width: NoorTheme.spacingSm),
+                      Expanded(child: _buildStatCard('ملاحظات', '${_stats.totalNotes}', 'ملاحظة', Icons.note_rounded, NoorTheme.hadithSahih)),
+                    ],
+                  ),
+                  const SizedBox(height: NoorTheme.spacingSm),
+                  Row(
+                    children: [
+                      Expanded(child: _buildStatCard('اختبارات', '${_stats.quizzesTaken}', '${_stats.quizAverageScore}% متوسط', Icons.quiz_rounded, NoorTheme.accentGold)),
+                      const SizedBox(width: NoorTheme.spacingSm),
+                      Expanded(child: _buildStatCard('حفظ', '${_stats.totalMemorized}', 'بطاقة', Icons.psychology_rounded, Colors.purple)),
+                    ],
+                  ),
+
+                  const SizedBox(height: NoorTheme.spacingLg),
+
+                  // Weekly Activity
+                  _buildSectionTitle('نشاط الأسبوع'),
+                  _buildWeeklyActivityChart(),
+
+                  const SizedBox(height: NoorTheme.spacingLg),
+
+                  // Books bookmarked
+                  if (_stats.booksProgress.isNotEmpty) ...[
+                    _buildSectionTitle('المحفوظات حسب الكتب'),
+                    ..._stats.booksProgress.entries.map(
+                      (e) => _buildBookProgress(_getBookName(e.key), e.value),
+                    ),
+                  ],
+
+                  const SizedBox(height: 100),
+                ],
+              ),
             ),
-            const SizedBox(height: NoorTheme.spacingSm),
-            Row(
-              children: [
-                Expanded(child: _buildStatCard('اختبارات', '${_stats.quizzesTaken}', '${_stats.quizAverageScore}% متوسط', Icons.quiz_rounded, NoorTheme.accentGold)),
-                const SizedBox(width: NoorTheme.spacingSm),
-                Expanded(child: _buildStatCard('جلسات', '${_stats.totalReviewSessions}', '${_stats.averageSessionMinutes} دقيقة', Icons.timer_rounded, Colors.purple)),
-              ],
-            ),
-
-            const SizedBox(height: NoorTheme.spacingLg),
-
-            // Weekly Activity
-            _buildSectionTitle('نشاط الأسبوع'),
-            _buildWeeklyActivityChart(),
-
-            const SizedBox(height: NoorTheme.spacingLg),
-
-            // Books Progress
-            _buildSectionTitle('تقدم الكتب'),
-            ..._stats.booksProgress.entries.map((e) => _buildBookProgress(e.key, e.value)),
-
-            const SizedBox(height: NoorTheme.spacingLg),
-
-            // Achievements
-            _buildSectionTitle('الإنجازات'),
-            _buildAchievementsGrid(),
-
-            const SizedBox(height: 100),
-          ],
-        ),
-      ),
     );
   }
 
@@ -110,10 +190,7 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
               children: [
                 const Text(
                   'سلسلة الأيام',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -133,10 +210,7 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
                 ),
                 Text(
                   'أطول سلسلة: ${_stats.longestStreak} يوم',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
             ),
@@ -170,28 +244,18 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
               ),
               Text(
                 title,
-                style: TextStyle(
-                  color: NoorTheme.textSecondary,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: NoorTheme.textSecondary, fontSize: 12),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: color),
           ),
           Text(
             subtitle,
-            style: TextStyle(
-              color: NoorTheme.textSecondary,
-              fontSize: 11,
-            ),
+            style: TextStyle(color: NoorTheme.textSecondary, fontSize: 11),
           ),
         ],
       ),
@@ -203,15 +267,13 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
       padding: const EdgeInsets.only(bottom: NoorTheme.spacingMd),
       child: Text(
         title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
       ),
     );
   }
 
   Widget _buildWeeklyActivityChart() {
-    final maxActivity = _stats.weeklyActivity.reduce((a, b) => a > b ? a : b);
+    final maxActivity = _stats.weeklyActivity.fold<int>(0, (a, b) => a > b ? a : b);
     final days = ['س', 'ج', 'خ', 'أ', 'ث', 'إ', 'ح'];
 
     return Container(
@@ -243,10 +305,7 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
                       end: Alignment.topCenter,
                       colors: isToday
                           ? [NoorTheme.primary, NoorTheme.primaryDark]
-                          : [
-                              NoorTheme.primary.withOpacity(0.3),
-                              NoorTheme.primary.withOpacity(0.5),
-                            ],
+                          : [NoorTheme.primary.withOpacity(0.3), NoorTheme.primary.withOpacity(0.5)],
                     ),
                     borderRadius: BorderRadius.circular(4),
                   ),
@@ -263,10 +322,7 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
               ),
               Text(
                 '$activity',
-                style: TextStyle(
-                  color: NoorTheme.textSecondary,
-                  fontSize: 10,
-                ),
+                style: TextStyle(color: NoorTheme.textSecondary, fontSize: 10),
               ),
             ],
           );
@@ -275,9 +331,7 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
     );
   }
 
-  Widget _buildBookProgress(String bookName, BookProgress progress) {
-    final percentage = progress.total > 0 ? (progress.read / progress.total) : 0.0;
-
+  Widget _buildBookProgress(String bookName, _BookProg progress) {
     return Container(
       margin: const EdgeInsets.only(bottom: NoorTheme.spacingSm),
       padding: const EdgeInsets.all(NoorTheme.spacingMd),
@@ -285,138 +339,87 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${(percentage * 100).toStringAsFixed(1)}%',
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: NoorTheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                '${progress.read}',
                 style: TextStyle(
-                  color: NoorTheme.primary,
                   fontWeight: FontWeight.bold,
+                  color: NoorTheme.primary,
                 ),
               ),
-              Text(
-                bookName,
-                style: const TextStyle(fontWeight: FontWeight.w500),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: percentage,
-              backgroundColor: NoorTheme.primary.withOpacity(0.1),
-              valueColor: AlwaysStoppedAnimation<Color>(NoorTheme.primary),
-              minHeight: 8,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              bookName,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+              textDirection: TextDirection.rtl,
+            ),
+          ),
           Text(
-            '${progress.read} من ${progress.total}',
-            style: TextStyle(
-              color: NoorTheme.textSecondary,
-              fontSize: 11,
-            ),
+            '${progress.read} محفوظ',
+            style: TextStyle(color: NoorTheme.textSecondary, fontSize: 12),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAchievementsGrid() {
-    final achievements = [
-      Achievement('🌱', 'البداية', 'قرأ أول حديث', true),
-      Achievement('📖', 'قارئ', 'قرأ 100 حديث', true),
-      Achievement('🔥', 'مثابر', 'سلسلة 7 أيام', true),
-      Achievement('💪', 'متفوق', 'اختبار 100%', true),
-      Achievement('📚', 'عالم', 'قرأ 500 حديث', true),
-      Achievement('🏆', 'حافظ', 'حفظ 50 حديث', false),
-      Achievement('💎', 'خبير', 'أتم كتاباً', false),
-      Achievement('👑', 'متميز', 'سلسلة 30 يوم', false),
-    ];
-
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: achievements.map((a) {
-        return Container(
-          width: (MediaQuery.of(context).size.width - 48) / 4,
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: a.unlocked ? Colors.white : Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
-          ),
-          child: Column(
-            children: [
-              Text(
-                a.emoji,
-                style: TextStyle(
-                  fontSize: 28,
-                  color: a.unlocked ? null : Colors.grey,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                a.title,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: a.unlocked ? null : Colors.grey,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
+  String _getBookName(String book) {
+    const names = {
+      'bukhari': 'صحيح البخاري',
+      'muslim': 'صحيح مسلم',
+      'tirmidhi': 'جامع الترمذي',
+      'abudawud': 'سنن أبي داود',
+      'nasai': 'سنن النسائي',
+      'ibnmajah': 'سنن ابن ماجه',
+      'malik': 'موطأ مالك',
+      'ahmad': 'مسند أحمد',
+      'darimi': 'سنن الدارمي',
+      'nawawi40': 'الأربعون النووية',
+      'qudsi40': 'الأحاديث القدسية',
+    };
+    return names[book] ?? book;
   }
 }
 
-class LearningStats {
-  final int totalHadithsRead;
-  final int totalHadithsMemorized;
+class _RealStats {
+  final int totalBookmarked;
+  final int totalNotes;
+  final int totalMemorized;
   final int currentStreak;
   final int longestStreak;
-  final int totalReviewSessions;
-  final int averageSessionMinutes;
-  final Map<String, BookProgress> booksProgress;
-  final List<int> weeklyActivity;
-  final int topicsCompleted;
   final int quizzesTaken;
   final int quizAverageScore;
+  final List<int> weeklyActivity;
+  final Map<String, _BookProg> booksProgress;
 
-  LearningStats({
-    required this.totalHadithsRead,
-    required this.totalHadithsMemorized,
+  const _RealStats({
+    required this.totalBookmarked,
+    required this.totalNotes,
+    required this.totalMemorized,
     required this.currentStreak,
     required this.longestStreak,
-    required this.totalReviewSessions,
-    required this.averageSessionMinutes,
-    required this.booksProgress,
-    required this.weeklyActivity,
-    required this.topicsCompleted,
     required this.quizzesTaken,
     required this.quizAverageScore,
+    required this.weeklyActivity,
+    required this.booksProgress,
   });
 }
 
-class BookProgress {
+class _BookProg {
   final int read;
   final int total;
 
-  BookProgress({required this.read, required this.total});
-}
-
-class Achievement {
-  final String emoji;
-  final String title;
-  final String description;
-  final bool unlocked;
-
-  Achievement(this.emoji, this.title, this.description, this.unlocked);
+  const _BookProg({required this.read, required this.total});
 }

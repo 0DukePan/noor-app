@@ -1,129 +1,151 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
+
 import '../../domain/entities/hadith.dart';
-import '../../utils/isolate_parser.dart';
+import 'hadith_database.dart';
 
+/// SQLite-backed Hadith Data Source
+/// Replaces the old JSON-in-memory approach with instant SQLite queries.
 class LocalHadithDataSource {
-  // In-memory cache for the currently active book to avoid re-parsing on every interaction
-  final Map<String, HadithBook> _bookCache = {};
+  /// Initialize the database (call on app startup)
+  Future<void> init() async {
+    await HadithDatabase.database; // Triggers creation if needed
+  }
 
-  /// Loads a specific book by ID (e.g., 'bukhari', 'muslim')
-  /// Uses [IsolateParser] to prevent UI jank.
+  /// Get all collections from the database
+  Future<List<HadithCollection>> getCollections() async {
+    final rows = await HadithDatabase.getCollections();
+    return rows.map((r) => HadithCollection(
+      id: r['id'] as String,
+      titleArabic: r['title_arabic'] as String,
+      titleEnglish: r['title_english'] as String? ?? '',
+      hadithsCount: r['hadith_count'] as int? ?? 0,
+      author: r['author_arabic'] as String? ?? '',
+    )).toList();
+  }
+
+  /// Load a "book" - now just fetches metadata + chapters + first batch
   Future<HadithBook> loadBook(String bookId) async {
-    // 1. Check cache
-    if (_bookCache.containsKey(bookId)) {
-      return _bookCache[bookId]!;
-    }
-
-    // 2. Parse in background
-    // Determine path based on bookId
-    String path;
-    if (bookId.contains('nawawi') || bookId.contains('qudsi') || bookId.contains('shah')) {
-      path = 'assets/hadith/by_book/forties/$bookId.json';
-    } else {
-      path = 'assets/hadith/by_book/the_9_books/$bookId.json';
-    }
-
-    try {
-      final book = await IsolateParser.parseInBackground(
-        assetPath: path,
-        parser: (jsonString) => _parseHadithBook(jsonString, bookId),
-      );
-
-      // 3. Update cache
-      // Strategy: Clear other books to keep memory usage low (active book only)
-      _bookCache.clear(); 
-      _bookCache[bookId] = book;
-
-      return book;
-    } catch (e) {
-      debugPrint('Error loading hadith book $bookId: $e');
-      // Fallback or rethrow? Rethrow to handle in Repository.
-      throw Exception('Failed to load book: $bookId');
-    }
-  }
-
-  /// Helper to get paginated hadiths from the *already loaded* book.
-  /// Should be called after [loadBook].
-  List<Hadith> getHadithsPage({
-    required String bookId,
-    required int page,
-    required int limit,
-  }) {
-    final book = _bookCache[bookId];
-    if (book == null) {
-      throw Exception('Book $bookId not loaded in cache. Call loadBook first.');
-    }
-
-    final start = (page - 1) * limit; // 1-based page
-    if (start >= book.hadiths.length) return [];
-
-    final end = start + limit;
-    final actualEnd = end > book.hadiths.length ? book.hadiths.length : end;
-
-    return book.hadiths.sublist(start, actualEnd);
-  }
-
-  /// Searches the *currently loaded* book.
-  /// Since we only cache one book, this is fast enough in-memory.
-  List<Hadith> searchInBook(String bookId, String query) {
-     final book = _bookCache[bookId];
-    if (book == null) return [];
-
-    final q = query.toLowerCase();
-    return book.hadiths.where((h) {
-      return h.arabic.contains(query) || 
-             h.englishText.toLowerCase().contains(q);
-    }).toList();
-  }
-
-  // --- Parser Logic (Run in Isolate) ---
-
-  static HadithBook _parseHadithBook(String jsonString, String bookId) {
-    final Map<String, dynamic> json = jsonDecode(jsonString);
-
-    // Map Metadata
-    final metaJson = json['metadata'] as Map<String, dynamic>;
-    final arabicMeta = metaJson['arabic'] as Map<String, dynamic>;
-    // English meta might differ, but we focus on Arabic title usually
-    
-    final metadata = BookMetadata(
-      title: arabicMeta['title'] ?? 'Unknown Book',
-      author: arabicMeta['author'] ?? '',
-      introduction: arabicMeta['introduction'] ?? '',
+    final chapters = await getChapters(bookId);
+    final collectionsRows = await HadithDatabase.getCollections();
+    final collRow = collectionsRows.firstWhere(
+      (r) => r['id'] == bookId,
+      orElse: () => {'title_arabic': bookId, 'author_arabic': '', 'introduction': ''},
     );
 
-    // Map Chapters
-    final chaptersList = (json['chapters'] as List).cast<Map<String, dynamic>>();
-    final chapters = chaptersList.map((c) => HadithChapter(
-      id: c['id'] is int ? c['id'] : int.tryParse(c['id'].toString()) ?? 0,
-      bookId: c['bookId'].toString(),
-      topicArabic: c['arabic'] ?? '',
-      topicEnglish: c['english'] ?? '',
+    // Get ALL hadiths for this book (for compatibility with existing reader)
+    final hadithRows = await HadithDatabase.getHadiths(
+      collectionId: bookId,
+      limit: 100000, // Effectively "all"
+    );
+
+    final hadiths = hadithRows.map((h) => Hadith(
+      id: h['id'] as int,
+      idInBook: h['id_in_book'] as int? ?? h['id'] as int,
+      arabic: h['arabic'] as String,
+      englishText: h['english_text'] as String? ?? '',
+      narratorEnglish: h['english_narrator'] as String? ?? '',
+      chapterId: h['chapter_id'] as int? ?? 0,
+      bookId: null,
+      collectionId: bookId,
     )).toList();
-
-    // Map Hadiths
-    final hadithsList = (json['hadiths'] as List).cast<Map<String, dynamic>>();
-    final hadiths = hadithsList.map((h) {
-      final textEng = (h['english'] as Map<String, dynamic>)['text'] ?? '';
-      final narratorEng = (h['english'] as Map<String, dynamic>)['narrator'] ?? '';
-
-      return Hadith(
-        id: h['id'] ?? 0,
-        idInBook: h['idInBook'] ?? 0,
-        arabic: h['arabic'] ?? '',
-        englishText: textEng,
-        narratorEnglish: narratorEng,
-        chapterId: h['chapterId'] ?? 0,
-        bookId: h['bookId'],
-      );
-    }).toList();
 
     return HadithBook(
       id: bookId,
-      metadata: metadata,
+      metadata: BookMetadata(
+        title: collRow['title_arabic'] as String? ?? bookId,
+        author: collRow['author_arabic'] as String? ?? '',
+        introduction: collRow['introduction'] as String? ?? '',
+      ),
       chapters: chapters,
       hadiths: hadiths,
     );
+  }
+
+  /// Get chapters for a collection
+  Future<List<HadithChapter>> getChapters(String bookId) async {
+    final rows = await HadithDatabase.getChapters(bookId);
+    return rows.map((c) => HadithChapter(
+      id: c['id'] as int,
+      bookId: bookId,
+      topicArabic: c['title_arabic'] as String,
+      topicEnglish: c['title_english'] as String? ?? '',
+    )).toList();
+  }
+
+  /// Paginated hadiths from SQLite
+  Future<List<Hadith>> getHadithsPage({
+    required String bookId,
+    required int page,
+    required int limit,
+    int? chapterId,
+  }) async {
+    final offset = (page - 1) * limit;
+    final rows = await HadithDatabase.getHadiths(
+      collectionId: bookId,
+      chapterId: chapterId,
+      limit: limit,
+      offset: offset,
+    );
+    return rows.map((h) => Hadith(
+      id: h['id'] as int,
+      idInBook: h['id_in_book'] as int? ?? h['id'] as int,
+      arabic: h['arabic'] as String,
+      englishText: h['english_text'] as String? ?? '',
+      narratorEnglish: h['english_narrator'] as String? ?? '',
+      chapterId: h['chapter_id'] as int? ?? 0,
+      bookId: null,
+      collectionId: bookId,
+    )).toList();
+  }
+
+  /// Search within a book or across all books
+  Future<List<Hadith>> searchHadiths(String query, {String? bookId}) async {
+    final rows = await HadithDatabase.search(query, collectionId: bookId);
+    return rows.map((h) => Hadith(
+      id: h['id'] as int,
+      idInBook: h['id_in_book'] as int? ?? h['id'] as int,
+      arabic: h['arabic'] as String,
+      englishText: h['english_text'] as String? ?? '',
+      narratorEnglish: h['english_narrator'] as String? ?? '',
+      chapterId: h['chapter_id'] as int? ?? 0,
+      bookId: null,
+      collectionId: h['collection_id'] as String? ?? bookId,
+    )).toList();
+  }
+
+  /// Search by narrator
+  Future<List<Hadith>> searchByNarrator(String narrator) async {
+    final rows = await HadithDatabase.searchByNarrator(narrator);
+    return rows.map((h) => Hadith(
+      id: h['id'] as int,
+      idInBook: h['id_in_book'] as int? ?? h['id'] as int,
+      arabic: h['arabic'] as String,
+      englishText: h['english_text'] as String? ?? '',
+      narratorEnglish: h['english_narrator'] as String? ?? '',
+      chapterId: h['chapter_id'] as int? ?? 0,
+      bookId: null,
+      collectionId: h['collection_id'] as String?,
+    )).toList();
+  }
+
+  /// Get a random hadith (Hadith of the Day)
+  Future<Hadith?> getRandomHadith() async {
+    final row = await HadithDatabase.getRandomHadith();
+    if (row == null) return null;
+    return Hadith(
+      id: row['id'] as int,
+      idInBook: row['id_in_book'] as int? ?? row['id'] as int,
+      arabic: row['arabic'] as String,
+      englishText: row['english_text'] as String? ?? '',
+      narratorEnglish: row['english_narrator'] as String? ?? '',
+      chapterId: row['chapter_id'] as int? ?? 0,
+      bookId: null,
+      collectionId: row['collection_id'] as String?,
+    );
+  }
+
+  /// Get chapter hadith counts
+  Future<Map<int, int>> getChapterHadithCounts(String bookId) async {
+    return HadithDatabase.getChapterHadithCounts(bookId);
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/design_system.dart';
@@ -162,6 +163,43 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   subtitle: 'حذف البيانات المؤقتة لتحرير المساحة',
                   icon: Icons.delete_outline_rounded,
                   onTap: () => _showClearCacheDialog(),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
+          // Advanced Settings Navigation
+          _buildSectionHeader('إعدادات متقدمة', Icons.widgets_rounded),
+          const SizedBox(height: 16),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(NoorDesignSystem.radiusLarge),
+              boxShadow: NoorDesignSystem.shadowSmall,
+            ),
+            child: Column(
+              children: [
+                _buildListTile(
+                  title: 'الإشعارات',
+                  subtitle: 'أذكار الصباح والمساء، تنبيهات الصلاة',
+                  icon: Icons.notifications_rounded,
+                  onTap: () => context.go('/tools/settings/notifications'),
+                ),
+                const Divider(height: 1),
+                _buildListTile(
+                  title: 'التخزين والأداء',
+                  subtitle: 'إدارة البيانات المحفوظة',
+                  icon: Icons.storage_rounded,
+                  onTap: () => context.go('/tools/settings/storage'),
+                ),
+                const Divider(height: 1),
+                _buildListTile(
+                  title: 'السحابة والموقع',
+                  subtitle: 'المزامنة ومحرك ثقة الموقع',
+                  icon: Icons.cloud_rounded,
+                  onTap: () => context.go('/tools/settings/cloud'),
                 ),
               ],
             ),

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../../core/services/hadith_search_engine.dart';
+import '../../../../core/services/isnad_parser_service.dart';
+import '../../../../core/services/narrator_database_service.dart';
 import '../../../../core/services/share_as_image_service.dart';
+import '../../../../core/theme/noor_theme.dart';
 
 /// 🎓 وضع طالب العلم - Scholar Mode for Hadith
 /// 
@@ -28,6 +31,10 @@ class _ScholarModePageState extends State<ScholarModePage> {
   String _note = '';
   List<HadithSearchResult> _similarHadiths = [];
   bool _loadingSimilar = true;
+
+  // Isnad analysis state
+  List<NarratorInfo> _isnadChain = [];
+  bool _loadingIsnad = true;
   
   // Highlight colors
   final Map<String, Color> _highlightColors = {
@@ -43,6 +50,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
     super.initState();
     _loadNote();
     _loadSimilarHadiths();
+    _loadIsnadChain();
   }
 
   Future<void> _loadNote() async {
@@ -60,9 +68,20 @@ class _ScholarModePageState extends State<ScholarModePage> {
 
   Future<void> _loadSimilarHadiths() async {
     final similar = await HadithSearchEngine.getSimilar(widget.hadith);
+    if (!mounted) return;
     setState(() {
       _similarHadiths = similar;
       _loadingSimilar = false;
+    });
+  }
+
+  Future<void> _loadIsnadChain() async {
+    await NarratorDatabaseService.init();
+    final chain = IsnadParserService.parseChain(widget.hadith.text);
+    if (!mounted) return;
+    setState(() {
+      _isnadChain = chain;
+      _loadingIsnad = false;
     });
   }
 
@@ -93,6 +112,11 @@ class _ScholarModePageState extends State<ScholarModePage> {
           children: [
             // Hadith Card
             _buildHadithCard(theme),
+            
+            const SizedBox(height: 16),
+
+            // Isnad Analysis Section
+            _buildIsnadSection(theme),
             
             const SizedBox(height: 16),
             
@@ -395,6 +419,324 @@ class _ScholarModePageState extends State<ScholarModePage> {
                 );
               },
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIsnadSection(ThemeData theme) {
+    if (_loadingIsnad) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    if (_isnadChain.isEmpty) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Icon(Icons.link_off_rounded, size: 32, color: Colors.grey.shade400),
+              const SizedBox(height: 8),
+              const Text('لم يتم العثور على إسناد في هذا الحديث'),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Count narrators by role
+    final prophetCount = _isnadChain.where((n) => n.isProphet).length;
+    final companionCount = _isnadChain.where((n) => n.isCompanion).length;
+    final narratorCount = _isnadChain.where((n) => !n.isProphet && !n.isCompanion).length;
+
+    return Card(
+      child: ExpansionTile(
+        initiallyExpanded: true,
+        leading: const Icon(Icons.link_rounded),
+        title: const Text('تحليل الإسناد'),
+        subtitle: Text('${_isnadChain.length} راوٍ في السلسلة'),
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // Chain stats row
+                Row(
+                  children: [
+                    _buildChainStat('الرواة', '$narratorCount', NoorTheme.primary),
+                    const SizedBox(width: 8),
+                    _buildChainStat('الصحابة', '$companionCount', NoorTheme.hadithSahih),
+                    const SizedBox(width: 8),
+                    if (prophetCount > 0)
+                      _buildChainStat('النبي ﷺ', '$prophetCount', NoorTheme.accentGold),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Chain connectivity
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _isnadChain.length >= 3
+                        ? NoorTheme.hadithSahih.withOpacity(0.08)
+                        : NoorTheme.hadithDaif.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _isnadChain.length >= 3
+                            ? Icons.check_circle_rounded
+                            : Icons.info_outline_rounded,
+                        size: 18,
+                        color: _isnadChain.length >= 3
+                            ? NoorTheme.hadithSahih
+                            : NoorTheme.hadithDaif,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _isnadChain.length >= 3
+                              ? 'سلسلة متصلة (${_isnadChain.length} حلقات)'
+                              : 'سلسلة قصيرة (${_isnadChain.length} حلقات)',
+                          style: TextStyle(
+                            color: _isnadChain.length >= 3
+                                ? NoorTheme.hadithSahih
+                                : NoorTheme.hadithDaif,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Narrator chips
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: _isnadChain.map((narrator) {
+                    final profile = NarratorDatabaseService.lookupFromNarratorInfo(narrator);
+                    final color = _getNarratorColor(narrator.role);
+
+                    return GestureDetector(
+                      onTap: () => _showNarratorDetail(narrator, profile),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: color.withOpacity(0.3)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (profile != null) ...[
+                              Icon(Icons.verified_rounded, size: 14, color: color),
+                              const SizedBox(width: 4),
+                            ],
+                            Text(
+                              narrator.name,
+                              style: TextStyle(
+                                color: color,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChainStat(String label, String value, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(fontSize: 10, color: color.withOpacity(0.8)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _getNarratorColor(String role) {
+    if (role.contains('النبي')) return NoorTheme.accentGold;
+    if (role.contains('صحابي')) return NoorTheme.hadithSahih;
+    return NoorTheme.primary;
+  }
+
+  void _showNarratorDetail(NarratorInfo narrator, NarratorProfile? profile) {
+    HapticFeedback.mediumImpact();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.6,
+        ),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+
+              // Name with role badge
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _getNarratorColor(narrator.role).withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      narrator.role,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: _getNarratorColor(narrator.role),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  Flexible(
+                    child: Text(
+                      narrator.name,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textDirection: TextDirection.rtl,
+                    ),
+                  ),
+                ],
+              ),
+
+              if (narrator.linkWord.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'صيغة التحمل: ${narrator.linkWord}',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                  textDirection: TextDirection.rtl,
+                ),
+              ],
+
+              // Profile details if available
+              if (profile != null) ...[
+                const Divider(height: 24),
+
+                if (profile.rank.isNotEmpty)
+                  _buildDetailRow('المرتبة', profile.rank),
+
+                if (profile.rankSource.isNotEmpty)
+                  _buildDetailRow('المصدر', profile.rankSource),
+
+                if (profile.deathYear > 0)
+                  _buildDetailRow('الوفاة', profile.deathYearDisplay),
+
+                if (profile.birthYear > 0)
+                  _buildDetailRow('الولادة', profile.birthYearDisplay),
+
+                if (profile.teachers.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  _buildDetailRow('شيوخه', profile.teachers.take(5).join('، ')),
+                ],
+
+                if (profile.students.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  _buildDetailRow('تلاميذه', profile.students.take(5).join('، ')),
+                ],
+              ] else ...[
+                const Divider(height: 24),
+                Text(
+                  'لا تتوفر معلومات إضافية عن هذا الراوي في قاعدة البيانات',
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                  textDirection: TextDirection.rtl,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 70,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 13),
+              textDirection: TextDirection.rtl,
+            ),
+          ),
         ],
       ),
     );

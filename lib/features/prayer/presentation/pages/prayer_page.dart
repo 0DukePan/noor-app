@@ -1,37 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:async';
 
-import '../../../../core/theme/noor_theme.dart';
+import '../../../../core/theme/design_system.dart';
+import '../providers/prayer_providers.dart';
 
-class PrayerPage extends StatefulWidget {
+/// 🕌 صفحة مواقيت الصلاة — Reactive Prayer Times Page
+/// Consumes PrayerTimeEngine via Riverpod. Zero setState. Zero Timer.periodic.
+class PrayerPage extends ConsumerWidget {
   const PrayerPage({super.key});
 
   @override
-  State<PrayerPage> createState() => _PrayerPageState();
-}
-
-class _PrayerPageState extends State<PrayerPage> {
-  // Timer for countdown update
-  Timer? _timer;
-  
-  @override
-  void initState() {
-    super.initState();
-    _timer = Timer.periodic(const Duration(minutes: 1), (timer) => setState(() {}));
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    
+    final isDark = theme.brightness == Brightness.dark;
+
+    final prayerAsync = ref.watch(prayerDataProvider);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -40,9 +28,9 @@ class _PrayerPageState extends State<PrayerPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-           IconButton(
+          IconButton(
             icon: const Icon(Icons.settings_rounded),
-            onPressed: () => _showPrayerSettings(context),
+            onPressed: () => context.go('/tools/prayer/settings'),
           ),
         ],
       ),
@@ -58,177 +46,244 @@ class _PrayerPageState extends State<PrayerPage> {
             stops: const [0.0, 0.3],
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Next Prayer Countdown
-              const SizedBox(height: 20),
-              _NextPrayerCountdown(),
-              const SizedBox(height: 30),
-              
-              // Timeline List
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 20,
-                        offset: const Offset(0, -5),
-                      ),
-                    ],
-                  ),
-                  child: ListView(
-                    padding: const EdgeInsets.all(24),
-                    physics: const BouncingScrollPhysics(),
-                    children: [
-                      _LocationCard(),
-                      const SizedBox(height: 32),
-                      
-                      _TimelinePrayerRow(
-                        name: 'الفجر',
-                        time: '٠٥:٣٠',
-                        meridiem: 'ص',
-                        icon: Icons.nights_stay_rounded,
-                        status: PrayerStatus.passed,
-                        isFirst: true,
-                      ),
-                      _TimelinePrayerRow(
-                        name: 'الشروق',
-                        time: '٠٦:٥٥',
-                        meridiem: 'ص',
-                        icon: Icons.wb_twilight_rounded,
-                        status: PrayerStatus.passed,
-                        isSunrise: true,
-                      ),
-                      _TimelinePrayerRow(
-                        name: 'الظهر',
-                        time: '١٢:١٥',
-                        meridiem: 'م',
-                        icon: Icons.wb_sunny_rounded,
-                        status: PrayerStatus.passed,
-                      ),
-                      _TimelinePrayerRow(
-                        name: 'العصر',
-                        time: '٠٣:٤٥',
-                        meridiem: 'م',
-                        icon: Icons.wb_sunny_outlined,
-                        status: PrayerStatus.next,
-                      ),
-                      _TimelinePrayerRow(
-                        name: 'المغرب',
-                        time: '٠٦:٢٠',
-                        meridiem: 'م',
-                        icon: Icons.wb_twilight_rounded,
-                        status: PrayerStatus.upcoming,
-                      ),
-                      _TimelinePrayerRow(
-                        name: 'العشاء',
-                        time: '٠٧:٥٠',
-                        meridiem: 'م',
-                        icon: Icons.dark_mode_rounded,
-                        status: PrayerStatus.upcoming,
-                        isLast: true,
-                      ),
-                      
-                      const SizedBox(height: 40),
-                      
-                      // Qibla Quick Access
-                      _QiblaQuickAccess(
-                        onTap: () => context.push('/qibla'),
-                      ),
-                    ],
-                  ),
+        child: prayerAsync.when(
+          loading: () => _buildLoading(isDark),
+          error: (error, _) => Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.error_outline_rounded, size: 48, color: Colors.red.withOpacity(0.6)),
+                const SizedBox(height: 16),
+                Text(
+                  'تعذر تحميل أوقات الصلاة',
+                  style: GoogleFonts.cairo(fontSize: 16, color: isDark ? Colors.white70 : NoorDesignSystem.textSecondary),
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  onPressed: () => ref.invalidate(prayerDataProvider),
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: Text('إعادة المحاولة', style: GoogleFonts.cairo()),
+                ),
+              ],
+            ),
           ),
+          data: (data) => _PrayerContent(data: data),
         ),
       ),
     );
   }
 
-  void _showPrayerSettings(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(ctx).colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40, height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(2),
-                ),
+  Widget _buildLoading(bool isDark) {
+    return SafeArea(
+      child: Column(
+        children: [
+          const SizedBox(height: 80),
+          Container(
+            height: 80,
+            margin: const EdgeInsets.symmetric(horizontal: 40),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white12 : Colors.black12,
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ).animate(onPlay: (c) => c.repeat()).shimmer(duration: 1500.ms),
+          const SizedBox(height: 40),
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white12 : Colors.black.withOpacity(0.05),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
               ),
-            ),
-            const SizedBox(height: 20),
-            Text('إعدادات الصلاة', style: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
-            Text('طريقة الحساب', style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: [
-                ChoiceChip(label: Text('أم القرى', style: GoogleFonts.cairo()), selected: true, onSelected: (_) {}),
-                ChoiceChip(label: Text('رابطة العالم الإسلامي', style: GoogleFonts.cairo()), selected: false, onSelected: (_) {}),
-                ChoiceChip(label: Text('ISNA', style: GoogleFonts.cairo()), selected: false, onSelected: (_) {}),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Text('الإشعارات', style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey)),
-            SwitchListTile(
-              title: Text('أذان قبل الصلاة', style: GoogleFonts.cairo()),
-              value: true, onChanged: (v) {}, contentPadding: EdgeInsets.zero,
-            ),
-            SwitchListTile(
-              title: Text('تذكير بعد الأذان', style: GoogleFonts.cairo()),
-              value: false, onChanged: (v) {}, contentPadding: EdgeInsets.zero,
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
+            ).animate(onPlay: (c) => c.repeat()).shimmer(duration: 1500.ms),
+          ),
+        ],
       ),
     );
   }
 }
 
+/// Inner content widget that uses real prayer data
+class _PrayerContent extends ConsumerWidget {
+  final PrayerPageData data;
+
+  const _PrayerContent({required this.data});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Watch the tick stream to reactively update countdown
+    final now = ref.watch(prayerTimeTickProvider).valueOrNull ?? DateTime.now();
+    final nextPrayer = _getNextPrayer(now);
+    final allPrayers = _buildPrayerList(now);
+
+    return SafeArea(
+      child: Column(
+        children: [
+          // Next Prayer Countdown
+          const SizedBox(height: 20),
+          _NextPrayerCountdown(
+            nextPrayer: nextPrayer,
+            now: now,
+          ).animate().fadeIn(duration: 500.ms),
+          const SizedBox(height: 30),
+
+          // Timeline List
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 20,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
+              ),
+              child: ListView(
+                padding: const EdgeInsets.all(24),
+                physics: const BouncingScrollPhysics(),
+                children: [
+                  _LocationCard(
+                    cityName: data.cityName,
+                    countryName: data.countryName,
+                  ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
+                  const SizedBox(height: 32),
+                  ...allPrayers.asMap().entries.map((entry) {
+                    final i = entry.key;
+                    final prayer = entry.value;
+                    return _TimelinePrayerRow(
+                      name: prayer['name'] as String,
+                      time: prayer['timeStr'] as String,
+                      meridiem: prayer['meridiem'] as String,
+                      icon: prayer['icon'] as IconData,
+                      status: prayer['status'] as PrayerStatus,
+                      isFirst: i == 0,
+                      isLast: i == allPrayers.length - 1,
+                      isSunrise: prayer['isSunrise'] as bool? ?? false,
+                    ).animate().fadeIn(
+                      delay: Duration(milliseconds: 150 + i * 80),
+                      duration: 400.ms,
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Map<String, dynamic>? _getNextPrayer(DateTime now) {
+    final prayers = _buildPrayerList(now);
+    for (final p in prayers) {
+      if (p['status'] == PrayerStatus.next) return p;
+    }
+    return null;
+  }
+
+  List<Map<String, dynamic>> _buildPrayerList(DateTime now) {
+    final pt = data.prayerTimes;
+    final prayers = <Map<String, dynamic>>[
+      {'name': 'الفجر', 'dt': pt.fajr, 'icon': Icons.nights_stay_rounded, 'isSunrise': false},
+      {'name': 'الشروق', 'dt': pt.sunrise, 'icon': Icons.wb_twilight_rounded, 'isSunrise': true},
+      {'name': 'الظهر', 'dt': pt.dhuhr, 'icon': Icons.wb_sunny_rounded, 'isSunrise': false},
+      {'name': 'العصر', 'dt': pt.asr, 'icon': Icons.wb_sunny_outlined, 'isSunrise': false},
+      {'name': 'المغرب', 'dt': pt.maghrib, 'icon': Icons.wb_twilight_rounded, 'isSunrise': false},
+      {'name': 'العشاء', 'dt': pt.isha, 'icon': Icons.dark_mode_rounded, 'isSunrise': false},
+    ];
+
+    bool foundNext = false;
+    return prayers.map((p) {
+      final dt = p['dt'] as DateTime;
+      PrayerStatus status;
+      if (!foundNext && dt.isAfter(now)) {
+        status = PrayerStatus.next;
+        foundNext = true;
+      } else if (dt.isBefore(now)) {
+        status = PrayerStatus.passed;
+      } else {
+        status = PrayerStatus.upcoming;
+      }
+
+      final hour = dt.hour;
+      final minute = dt.minute;
+      final isAM = hour < 12;
+      final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+
+      return {
+        ...p,
+        'status': status,
+        'timeStr': '${_toArabicNum(displayHour.toString().padLeft(2, '0'))}:${_toArabicNum(minute.toString().padLeft(2, '0'))}',
+        'meridiem': isAM ? 'ص' : 'م',
+      };
+    }).toList();
+  }
+
+  String _toArabicNum(String input) {
+    const en = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const ar = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    var result = input;
+    for (int i = 0; i < en.length; i++) {
+      result = result.replaceAll(en[i], ar[i]);
+    }
+    return result;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SUB-WIDGETS
+// ═══════════════════════════════════════════════════════════════════════════
+
 enum PrayerStatus { passed, next, upcoming }
 
 class _NextPrayerCountdown extends StatelessWidget {
+  final Map<String, dynamic>? nextPrayer;
+  final DateTime now;
+
+  const _NextPrayerCountdown({required this.nextPrayer, required this.now});
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
+    if (nextPrayer == null) {
+      return Text(
+        'انتهت صلوات اليوم',
+        style: GoogleFonts.cairo(fontSize: 16, color: NoorDesignSystem.primaryGreen, fontWeight: FontWeight.w600),
+      );
+    }
+
+    final dt = nextPrayer!['dt'] as DateTime;
+    final diff = dt.difference(now);
+    final hours = diff.inHours;
+    final minutes = diff.inMinutes % 60;
+    final seconds = diff.inSeconds % 60;
+
+    // Haptic when very close
+    if (hours == 0 && minutes == 0 && seconds < 10) {
+      HapticFeedback.lightImpact();
+    }
+
     return Column(
       children: [
         Text(
-          'الصلاة القادمة: العصر',
+          'الصلاة القادمة: ${nextPrayer!['name']}',
           style: GoogleFonts.cairo(
             fontSize: 16,
-            color: theme.colorScheme.primary,
+            color: NoorDesignSystem.primaryGreen,
             fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          '02:15:30',
+          '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
           style: GoogleFonts.outfit(
             fontSize: 48,
             fontWeight: FontWeight.bold,
-            color: theme.colorScheme.onSurface,
+            color: NoorDesignSystem.textPrimary,
             height: 1,
           ),
         ),
@@ -236,7 +291,7 @@ class _NextPrayerCountdown extends StatelessWidget {
           'متبقي حتى الأذان',
           style: GoogleFonts.cairo(
             fontSize: 12,
-            color: theme.colorScheme.secondary,
+            color: NoorDesignSystem.textSecondary,
           ),
         ),
       ],
@@ -270,7 +325,7 @@ class _TimelinePrayerRow extends StatelessWidget {
     final theme = Theme.of(context);
     final isNext = status == PrayerStatus.next;
     final isPassed = status == PrayerStatus.passed;
-    
+
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -287,8 +342,8 @@ class _TimelinePrayerRow extends StatelessWidget {
                   style: GoogleFonts.outfit(
                     fontSize: isNext ? 24 : 18,
                     fontWeight: isNext ? FontWeight.bold : FontWeight.w500,
-                    color: isNext 
-                        ? theme.colorScheme.primary 
+                    color: isNext
+                        ? NoorDesignSystem.primaryGreen
                         : theme.colorScheme.onSurface,
                   ),
                 ),
@@ -296,15 +351,15 @@ class _TimelinePrayerRow extends StatelessWidget {
                   meridiem,
                   style: GoogleFonts.cairo(
                     fontSize: 12,
-                    color: theme.colorScheme.secondary,
+                    color: NoorDesignSystem.textSecondary,
                   ),
                 ),
               ],
             ),
           ),
-          
+
           const SizedBox(width: 16),
-          
+
           // Timeline Line & Dot
           SizedBox(
             width: 24,
@@ -317,8 +372,8 @@ class _TimelinePrayerRow extends StatelessWidget {
                     bottom: -24,
                     width: 2,
                     child: Container(
-                      color: isPassed 
-                          ? theme.colorScheme.primary.withOpacity(0.3) 
+                      color: isPassed
+                          ? theme.colorScheme.primary.withOpacity(0.3)
                           : theme.colorScheme.outline.withOpacity(0.1),
                     ),
                   ),
@@ -326,35 +381,37 @@ class _TimelinePrayerRow extends StatelessWidget {
                   width: isNext ? 16 : 12,
                   height: isNext ? 16 : 12,
                   decoration: BoxDecoration(
-                    color: isNext 
-                        ? theme.colorScheme.primary 
-                        : isPassed 
-                            ? theme.colorScheme.primary.withOpacity(0.5)
+                    color: isNext
+                        ? NoorDesignSystem.goldAccent
+                        : isPassed
+                            ? NoorDesignSystem.primaryGreen.withOpacity(0.5)
                             : theme.colorScheme.surface,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isNext 
-                          ? theme.colorScheme.primary 
-                          : isPassed 
+                      color: isNext
+                          ? NoorDesignSystem.goldAccent
+                          : isPassed
                               ? Colors.transparent
                               : theme.colorScheme.outline.withOpacity(0.3),
                       width: 2,
                     ),
-                    boxShadow: isNext ? [
-                      BoxShadow(
-                        color: theme.colorScheme.primary.withOpacity(0.4),
-                        blurRadius: 8,
-                        spreadRadius: 2,
-                      ),
-                    ] : null,
+                    boxShadow: isNext
+                        ? [
+                            BoxShadow(
+                              color: NoorDesignSystem.goldAccent.withOpacity(0.4),
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            ),
+                          ]
+                        : null,
                   ),
                 ),
               ],
             ),
           ),
-          
+
           const SizedBox(width: 16),
-          
+
           // Content Card
           Expanded(
             child: Padding(
@@ -362,20 +419,20 @@ class _TimelinePrayerRow extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: isNext 
-                      ? theme.colorScheme.primaryContainer.withOpacity(0.4) 
+                  color: isNext
+                      ? theme.colorScheme.primaryContainer.withOpacity(0.4)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
-                  border: isNext 
-                      ? Border.all(color: theme.colorScheme.primary.withOpacity(0.2)) 
+                  border: isNext
+                      ? Border.all(color: theme.colorScheme.primary.withOpacity(0.2))
                       : null,
                 ),
                 child: Row(
                   children: [
                     Icon(
                       icon,
-                      color: isNext 
-                          ? theme.colorScheme.primary 
+                      color: isNext
+                          ? NoorDesignSystem.primaryGreen
                           : theme.colorScheme.onSurfaceVariant,
                       size: 20,
                     ),
@@ -385,8 +442,8 @@ class _TimelinePrayerRow extends StatelessWidget {
                       style: GoogleFonts.cairo(
                         fontSize: isNext ? 18 : 16,
                         fontWeight: isNext ? FontWeight.bold : FontWeight.w500,
-                        color: isNext 
-                            ? theme.colorScheme.primary 
+                        color: isNext
+                            ? NoorDesignSystem.primaryGreen
                             : theme.colorScheme.onSurface,
                       ),
                     ),
@@ -394,9 +451,11 @@ class _TimelinePrayerRow extends StatelessWidget {
                     if (!isSunrise)
                       IconButton(
                         icon: Icon(
-                          isPassed ? Icons.notifications_off_outlined : Icons.notifications_active_rounded,
+                          isPassed
+                              ? Icons.notifications_off_outlined
+                              : Icons.notifications_active_rounded,
                           size: 18,
-                          color: isPassed 
+                          color: isPassed
                               ? theme.colorScheme.outline
                               : theme.colorScheme.tertiary,
                         ),
@@ -416,10 +475,16 @@ class _TimelinePrayerRow extends StatelessWidget {
 }
 
 class _LocationCard extends StatelessWidget {
+  final String cityName;
+  final String countryName;
+
+  const _LocationCard({required this.cityName, required this.countryName});
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+    final displayText = countryName.isNotEmpty ? '$cityName، $countryName' : cityName;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -429,15 +494,15 @@ class _LocationCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
+          const Icon(
             Icons.location_on_rounded,
-            color: theme.colorScheme.secondary,
+            color: NoorDesignSystem.primaryGreen,
             size: 18,
           ),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              'الرياض، المملكة العربية السعودية',
+              displayText,
               style: GoogleFonts.cairo(
                 fontSize: 12,
                 color: theme.colorScheme.onSurfaceVariant,
@@ -446,105 +511,7 @@ class _LocationCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 8),
-          Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: theme.colorScheme.outline,
-            size: 18,
-          ),
         ],
-      ),
-    );
-  }
-}
-
-class _QiblaQuickAccess extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _QiblaQuickAccess({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 100,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          gradient: LinearGradient(
-            colors: [
-              theme.colorScheme.primary,
-              theme.colorScheme.primaryContainer,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.primary.withOpacity(0.3),
-              blurRadius: 15,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              left: -20,
-              bottom: -20,
-              child: Icon(
-                Icons.explore_rounded,
-                size: 100,
-                color: Colors.white.withOpacity(0.1),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'اتجاه القبلة',
-                          style: GoogleFonts.cairo(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'تحديد الاتجاه بدقة عالية',
-                          style: GoogleFonts.cairo(
-                            fontSize: 12,
-                            color: Colors.white.withOpacity(0.8),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_forward_rounded,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

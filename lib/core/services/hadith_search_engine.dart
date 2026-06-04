@@ -435,6 +435,17 @@ class HadithSearchEngine {
     return _topicIndex?.keys.toList() ?? [];
   }
 
+  /// عدد الأحاديث لكل موضوع
+  static Map<String, int> getTopicCounts() {
+    if (_topicIndex == null) return {};
+    return _topicIndex!.map((key, value) => MapEntry(key, value.length));
+  }
+
+  /// عدد الأحاديث المفهرسة
+  static int getSearchIndexCount() {
+    return _searchIndex?.length ?? 0;
+  }
+
   /// الأحاديث حسب الموضوع
   static Future<List<HadithSearchResult>> getByTopic(String topic) async {
     return search('', topic: topic);

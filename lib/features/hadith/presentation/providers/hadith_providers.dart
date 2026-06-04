@@ -229,25 +229,59 @@ class QuizNotifier extends StateNotifier<QuizState> {
     final selected = shuffled.take(questionCount).toList();
 
     final questions = selected.map((hadith) {
-      // Simple "Complete the Hadith" question
       final text = hadith.arabic;
       final words = text.split(' ');
+
+      // Gather distractor texts from other hadiths
+      final otherHadiths = List<Hadith>.from(hadiths)
+        ..remove(hadith)
+        ..shuffle();
+
       if (words.length < 5) {
+        // Simple "What is the hadith text?" question
+        final distractors = otherHadiths
+            .take(3)
+            .map((h) => h.arabic.length > 100
+                ? '${h.arabic.substring(0, 100)}...'
+                : h.arabic)
+            .toList();
+
         return QuizQuestion(
           question: 'ما هو نص الحديث؟',
-          options: [text, 'حديث آخر 1', 'حديث آخر 2', 'حديث آخر 3'],
+          options: ([text, ...distractors]..shuffle()),
           correctAnswer: text,
           hadith: hadith,
         );
       }
-      
+
       final half = words.length ~/ 2;
-      final partial = words.sublist(0, half).join(' ') + '...';
+      final partial = '${words.sublist(0, half).join(' ')}...';
       final completion = words.sublist(half).join(' ');
-      
+
+      // Build distractor completions from other hadiths
+      final distractorCompletions = <String>[];
+      for (final other in otherHadiths) {
+        if (distractorCompletions.length >= 3) break;
+        final otherWords = other.arabic.split(' ');
+        if (otherWords.length > half) {
+          distractorCompletions.add(otherWords.sublist(half).join(' '));
+        } else if (otherWords.length > 3) {
+          distractorCompletions.add(otherWords.sublist(otherWords.length ~/ 2).join(' '));
+        }
+      }
+
+      // Ensure we always have 3 distractors
+      while (distractorCompletions.length < 3) {
+        distractorCompletions.add(
+          otherHadiths.isNotEmpty
+              ? otherHadiths[distractorCompletions.length % otherHadiths.length].arabic
+              : 'لا يوجد',
+        );
+      }
+
       return QuizQuestion(
         question: partial,
-        options: [completion, 'خيار خاطئ 1', 'خيار خاطئ 2', 'خيار خاطئ 3']..shuffle(),
+        options: ([completion, ...distractorCompletions.take(3)]..shuffle()),
         correctAnswer: completion,
         hadith: hadith,
       );
