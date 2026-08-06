@@ -4,6 +4,7 @@ import 'package:adhan/adhan.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'location_service.dart';
+import 'location_trust_engine.dart';
 import 'prayer_calculation_service.dart';
 
 /// 🕌 خدمة جدولة الأذان الاحترافية - Professional Adhan Scheduler
@@ -57,6 +58,11 @@ class AdhanSchedulerService {
   }) async {
     date ??= DateTime.now();
     
+    // Prefer the last trusted location to avoid a GPS permission prompt
+    // on every cold start; only fall back to live GPS when no cache exists.
+    latitude ??= LocationTrustEngine.cachedLocation?.latitude;
+    longitude ??= LocationTrustEngine.cachedLocation?.longitude;
+
     // Get location
     final locationService = LocationService();
     final location = await locationService.getCurrentLocation();

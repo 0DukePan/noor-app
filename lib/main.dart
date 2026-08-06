@@ -11,6 +11,7 @@ import 'core/theme/noor_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/services/services.dart';
 import 'core/services/hadith_user_data_service.dart';
+import 'core/services/narrator_database_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,6 +75,74 @@ Future<void> _initializeServices() async {
     debugPrint('DayStateMachine init failed: $e');
   }
 
+  // 1d. Content data sources (Quran, Hadith, Narrators, Tafsir, Adhkar)
+  try {
+    await QuranDataSource.init();
+  } catch (e) {
+    debugPrint('QuranDataSource init failed: $e');
+  }
+  try {
+    await HadithDataSource.init();
+  } catch (e) {
+    debugPrint('HadithDataSource init failed: $e');
+  }
+  try {
+    await NarratorDatabaseService.init();
+  } catch (e) {
+    debugPrint('NarratorDatabaseService init failed: $e');
+  }
+  try {
+    await TafsirDataSource.init();
+    await TafsirDataSource.initPhase6();
+  } catch (e) {
+    debugPrint('TafsirDataSource init failed: $e');
+  }
+  try {
+    await AdhkarDataSource.init();
+  } catch (e) {
+    debugPrint('AdhkarDataSource init failed: $e');
+  }
+
+  // 1e. Prayer system (location trust, mosque mode, seasonal offsets,
+  //     weekly scheduler, adhan scheduler, health checks)
+  try {
+    await LocationTrustEngine.init();
+  } catch (e) {
+    debugPrint('LocationTrustEngine init failed: $e');
+  }
+  try {
+    await MosqueModeService.init();
+  } catch (e) {
+    debugPrint('MosqueModeService init failed: $e');
+  }
+  try {
+    await SeasonalOffsetsEngine.init();
+  } catch (e) {
+    debugPrint('SeasonalOffsetsEngine init failed: $e');
+  }
+  if (!kIsWeb) {
+    try {
+      await WeeklySchedulerService.init();
+    } catch (e) {
+      debugPrint('WeeklySchedulerService init failed: $e');
+    }
+    try {
+      await AdhanSchedulerService.init();
+    } catch (e) {
+      debugPrint('AdhanSchedulerService init failed: $e');
+    }
+    try {
+      await PrayerHealthCheck.init();
+    } catch (e) {
+      debugPrint('PrayerHealthCheck init failed: $e');
+    }
+  }
+  try {
+    await AdhkarTimerService.init();
+  } catch (e) {
+    debugPrint('AdhkarTimerService init failed: $e');
+  }
+
   // 2. Offline data service (loads bundled assets)
   // On web, we might need to handle assets differently or they might be missing
   try {
@@ -88,6 +157,13 @@ Future<void> _initializeServices() async {
   } catch (e) {
     debugPrint('QuranAudioService init failed: $e');
   }
+  if (!kIsWeb) {
+    try {
+      await QuranAudioEngine.init();
+    } catch (e) {
+      debugPrint('QuranAudioEngine init failed: $e');
+    }
+  }
 
   // 4. Smart notifications (Skip on web if not supported or causing issues)
   if (!kIsWeb) {
@@ -95,6 +171,11 @@ Future<void> _initializeServices() async {
       await SmartNotificationService.initialize();
     } catch (e) {
       debugPrint('SmartNotificationService init failed: $e');
+    }
+    try {
+      await SmartNotificationEngine.init();
+    } catch (e) {
+      debugPrint('SmartNotificationEngine init failed: $e');
     }
   }
 
@@ -139,6 +220,29 @@ class _NoorAppState extends ConsumerState<NoorApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       // Refresh prayer times when app comes to foreground
       WidgetService.updatePrayerWidget();
+      _refreshDayState();
+    }
+  }
+
+  /// Recompute today's prayer times and feed them to the day state machine so
+  /// the home dashboard reflects the real day period.
+  Future<void> _refreshDayState() async {
+    try {
+      final locationResult = await LocationTrustEngine.getTrustedLocation(
+        timeout: const Duration(seconds: 3),
+      );
+      final lat = locationResult.location?.latitude ?? 21.4225;
+      final lng = locationResult.location?.longitude ?? 39.8262;
+      final times = PrayerTimeEngine.calculate(
+        latitude: lat,
+        longitude: lng,
+        date: DateTime.now(),
+        method: CalculationMethod.ummAlQura,
+        utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
+      );
+      DayStateMachine.updateTodayTimes(times);
+    } catch (e) {
+      debugPrint('DayState refresh failed: $e');
     }
   }
 
