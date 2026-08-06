@@ -24,10 +24,14 @@ class IsnadParserService {
     final normalized = _stripDiacritics(arabicText);
     final narrators = <NarratorInfo>[];
 
-    // Split by narrator introduction keywords
+    // Transmission keywords. The leading `(?:^|\s)` requires each keyword to
+    // be a standalone word, so the short forms (ثنا/نا/انا/عن/قال) cannot
+    // match inside words like "منا" or "اثنا عشر".
+    const keywords =
+        r'حدثنا|حدثني|اخبرنا|اخبرني|انبانا|ثنا|نا|انا|عن|قال|سمعت';
     final regex = RegExp(
-      r'(?:حدثنا|اخبرنا|ثنا|انبانا|انا|عن|قال|سمعت|حدثني|اخبرني|نا)\s+'
-      r'([^،,\.]+?)(?=\s*(?:حدثنا|اخبرنا|ثنا|انبانا|انا|عن|قال|سمعت|حدثني|اخبرني|نا)\s|$)',
+      r'(?:^|\s)(?:$keywords)\s+'
+      r'([^،,\.:]+?)(?=\s*(?:$keywords)\s+|$)',
       unicode: true,
     );
 
@@ -58,6 +62,10 @@ class IsnadParserService {
         level: narrators.length,
         linkWord: _extractLinkWord(match.group(0) ?? '', cleanName),
       ));
+
+      // The chain is complete once we reach the Prophet or a Companion.
+      // Everything after is matn (the body), not more narrators.
+      if (isProphet || isCompanion) break;
     }
 
     // If regex found nothing, try simpler splitting
@@ -134,6 +142,7 @@ class IsnadParserService {
         .replaceAll(RegExp(r'صلى الله عليه وسلم'), '')
         .replaceAll(RegExp(r'عليه(ما)? السلام'), '')
         .replaceAll(RegExp(r'رحمه الله'), '')
+        .replaceAll('ﷺ', '') // U+FDFA, the "Sallallahu Alayhi Wasallam" ligature
         .replaceAll(RegExp(r'[،,:\.]'), '')
         .replaceAll(RegExp(r'^\s*(ان|انه|انها)\s+'), '')
         .trim();
@@ -153,36 +162,34 @@ class IsnadParserService {
 
   /// Try to find the original (with diacritics) name in the source text
   static String _restoreOriginalName(String normalizedName, String originalText) {
-    // Find position in stripped text
     final strippedOriginal = _stripDiacritics(originalText);
     final idx = strippedOriginal.indexOf(normalizedName);
     if (idx < 0) return normalizedName;
 
-    // Map back to original text position
-    int origIdx = 0;
-    int strippedIdx = 0;
-    final strippedChars = _stripDiacritics(originalText).runes.toList();
     final origChars = originalText.runes.toList();
 
-    // Find starting position in original
+    // Walk the original text rune-by-rune, counting how many "visible"
+    // (non-diacritic) characters we have consumed, until we reach the start
+    // of the name (visible index `idx`).
     int origStart = 0;
-    int stripped = 0;
-    for (int i = 0; i < origChars.length && stripped < idx; i++) {
+    int visibleCount = 0;
+    for (int i = 0; i < origChars.length; i++) {
       final ch = String.fromCharCode(origChars[i]);
-      final strippedCh = _stripDiacritics(ch);
-      if (strippedCh.isNotEmpty) {
-        stripped++;
+      if (_stripDiacritics(ch).isNotEmpty) {
+        if (visibleCount == idx) {
+          origStart = i;
+          break;
+        }
+        visibleCount++;
       }
-      origStart = i + 1;
     }
 
-    // Find ending position
+    // Walk forward the same way for the length of the (diacritic-free) name.
     int remaining = normalizedName.length;
     int origEnd = origStart;
     for (int i = origStart; i < origChars.length && remaining > 0; i++) {
       final ch = String.fromCharCode(origChars[i]);
-      final strippedCh = _stripDiacritics(ch);
-      if (strippedCh.isNotEmpty) {
+      if (_stripDiacritics(ch).isNotEmpty) {
         remaining--;
       }
       origEnd = i + 1;
@@ -223,14 +230,18 @@ class IsnadParserService {
     return 'راوي';
   }
 
-  /// Check if a name refers to the Prophet ﷺ
+  /// Check if a name refers to the Prophet ﷺ.
+  ///
+  /// Deliberately does NOT match the bare name "محمد": hundreds of narrators
+  /// (al-Bukhari, Muslim, Tirmidhi...) are named Muhammad and would otherwise
+  /// be misclassified as the Prophet, truncating the chain. Only unambiguous
+  /// designations are treated as the Prophet.
   static bool _isProphet(String name) {
-    final prophetNames = [
-      'النبي', 'الرسول', 'رسول الله', 'محمد',
-      'نبي', 'رسول',
+    final prophetMarkers = [
+      'النبي', 'الرسول', 'رسول الله', 'نبي الله', 'صلى الله عليه وسلم',
     ];
     final normalized = _stripDiacritics(name);
-    return prophetNames.any((p) => normalized.contains(p));
+    return prophetMarkers.any((p) => normalized.contains(p));
   }
 
   /// Check if narrator is a Companion (Sahabi)
