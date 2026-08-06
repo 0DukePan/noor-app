@@ -30,6 +30,91 @@ class DayStateMachine {
   static DayState get currentState => _currentState;
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // PRAYER COMPLETION TRACKING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Bumped whenever a prayer is marked/unmarked, so widgets can rebuild.
+  static final ValueNotifier<int> completionVersion = ValueNotifier(0);
+
+  static const _completedKeyPrefix = 'completed_';
+  static const _streakKey = 'streak';
+  static const _lastCompleteKey = 'last_complete_date';
+
+  static Set<PrayerType>? _todayCompleted;
+  static String _lastDate = '';
+
+  static String _todayKey() => _dateKey(DateTime.now());
+
+  static String _dateKey(DateTime time) {
+    return '${time.year}-'
+        '${time.month.toString().padLeft(2, '0')}-'
+        '${time.day.toString().padLeft(2, '0')}';
+  }
+
+  static Set<PrayerType> _loadCompleted() {
+    final key = '$_completedKeyPrefix${_todayKey()}';
+    final data = _stateBox?.get(key);
+    if (data == null) return {};
+    return (data as List).map((e) => PrayerType.values[e as int]).toSet();
+  }
+
+  /// Prayers already prayed today (Fajr, Dhuhr, Asr, Maghrib, Isha).
+  static Set<PrayerType> get completedPrayers =>
+      _todayCompleted ??= _loadCompleted();
+
+  static bool isPrayerCompleted(PrayerType prayer) =>
+      completedPrayers.contains(prayer);
+
+  static int get todayPrayersCompleted => completedPrayers.length;
+
+  /// True when all five daily prayers have been marked completed today.
+  static bool get isDayComplete {
+    const required = {
+      PrayerType.fajr,
+      PrayerType.dhuhr,
+      PrayerType.asr,
+      PrayerType.maghrib,
+      PrayerType.isha,
+    };
+    return completedPrayers.containsAll(required);
+  }
+
+  /// Consecutive days on which all five prayers were completed.
+  static int get streak => _stateBox?.get(_streakKey) ?? 0;
+
+  static Future<void> markPrayerCompleted(PrayerType prayer) async {
+    if (prayer == PrayerType.sunrise) return;
+    final set = {...completedPrayers}..add(prayer);
+    await _saveCompleted(set);
+    _todayCompleted = set;
+    completionVersion.value++;
+  }
+
+  static Future<void> unmarkPrayerCompleted(PrayerType prayer) async {
+    final set = {...completedPrayers}..remove(prayer);
+    await _saveCompleted(set);
+    _todayCompleted = set;
+    completionVersion.value++;
+  }
+
+  static Future<void> _saveCompleted(Set<PrayerType> set) async {
+    final key = '$_completedKeyPrefix${_todayKey()}';
+    await _stateBox?.put(key, set.map((p) => p.index).toList());
+
+    if (set.length == 5) {
+      final today = _todayKey();
+      if (_stateBox?.get('_counted_$today') != true) {
+        final yesterday = _dateKey(DateTime.now().subtract(const Duration(days: 1)));
+        final lastComplete = _stateBox?.get(_lastCompleteKey) as String?;
+        final newStreak = lastComplete == yesterday ? (streak + 1) : 1;
+        await _stateBox?.put(_streakKey, newStreak);
+        await _stateBox?.put(_lastCompleteKey, today);
+        await _stateBox?.put('_counted_$today', true);
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // INITIALIZATION
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -63,6 +148,14 @@ class DayStateMachine {
 
   /// تحديد الحالة الحالية
   static void _checkAndUpdateState() {
+    // Reset the day-scoped completion cache at midnight.
+    final today = _todayKey();
+    if (_lastDate != today) {
+      _lastDate = today;
+      _todayCompleted = null;
+      completionVersion.value++;
+    }
+
     if (_todayTimes == null) return;
     
     final now = DateTime.now();

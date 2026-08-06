@@ -10,9 +10,18 @@ class DayStateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<int>(
+      valueListenable: DayStateMachine.completionVersion,
+      builder: (context, _, __) => _buildCard(context),
+    );
+  }
+
+  Widget _buildCard(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final stateInfo = DayStateMachine.getCurrentStateInfo();
     final state = stateInfo.state;
+    final done = DayStateMachine.todayPrayersCompleted;
+    final streak = DayStateMachine.streak;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -62,6 +71,32 @@ class DayStateCard extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+                const SizedBox(height: 4),
+                // Prayer completion progress
+                Row(
+                  children: [
+                    Text(
+                      '$done/5 صلوات',
+                      style: GoogleFonts.cairo(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: NoorDesignSystem.goldAccent,
+                      ),
+                    ),
+                    if (streak > 0) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        '🔥 $streak يوم متتالي',
+                        style: GoogleFonts.cairo(
+                          fontSize: 11,
+                          color: isDark
+                              ? Colors.white54
+                              : NoorDesignSystem.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
           ),

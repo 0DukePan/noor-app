@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/design_system.dart';
+import '../../../../core/services/day_state_machine.dart';
+import '../../../../core/services/prayer_time_engine.dart';
 import '../providers/prayer_providers.dart';
 
 /// 🕌 صفحة مواقيت الصلاة — Reactive Prayer Times Page
@@ -142,33 +144,42 @@ class _PrayerContent extends ConsumerWidget {
                   ),
                 ],
               ),
-              child: ListView(
-                padding: const EdgeInsets.all(24),
-                physics: const BouncingScrollPhysics(),
-                children: [
-                  _LocationCard(
-                    cityName: data.cityName,
-                    countryName: data.countryName,
-                  ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
-                  const SizedBox(height: 32),
-                  ...allPrayers.asMap().entries.map((entry) {
-                    final i = entry.key;
-                    final prayer = entry.value;
-                    return _TimelinePrayerRow(
-                      name: prayer['name'] as String,
-                      time: prayer['timeStr'] as String,
-                      meridiem: prayer['meridiem'] as String,
-                      icon: prayer['icon'] as IconData,
-                      status: prayer['status'] as PrayerStatus,
-                      isFirst: i == 0,
-                      isLast: i == allPrayers.length - 1,
-                      isSunrise: prayer['isSunrise'] as bool? ?? false,
-                    ).animate().fadeIn(
-                      delay: Duration(milliseconds: 150 + i * 80),
-                      duration: 400.ms,
-                    );
-                  }),
-                ],
+              child: ValueListenableBuilder<int>(
+                valueListenable: DayStateMachine.completionVersion,
+                builder: (context, _, __) => ListView(
+                  padding: const EdgeInsets.all(24),
+                  physics: const BouncingScrollPhysics(),
+                  children: [
+                    _LocationCard(
+                      cityName: data.cityName,
+                      countryName: data.countryName,
+                    ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
+                    const SizedBox(height: 32),
+                    ...allPrayers.asMap().entries.map((entry) {
+                      final i = entry.key;
+                      final prayer = entry.value;
+                      final prayerType = _prayerTypeFor(prayer['name'] as String);
+                      return _TimelinePrayerRow(
+                        name: prayer['name'] as String,
+                        time: prayer['timeStr'] as String,
+                        meridiem: prayer['meridiem'] as String,
+                        icon: prayer['icon'] as IconData,
+                        status: prayer['status'] as PrayerStatus,
+                        isFirst: i == 0,
+                        isLast: i == allPrayers.length - 1,
+                        isSunrise: prayer['isSunrise'] as bool? ?? false,
+                        isCompleted: prayerType != null &&
+                            DayStateMachine.isPrayerCompleted(prayerType),
+                        onToggle: prayerType == null
+                            ? null
+                            : () => _togglePrayer(prayerType),
+                      ).animate().fadeIn(
+                        delay: Duration(milliseconds: 150 + i * 80),
+                        duration: 400.ms,
+                      );
+                    }),
+                  ],
+                ),
               ),
             ),
           ),
@@ -183,6 +194,25 @@ class _PrayerContent extends ConsumerWidget {
       if (p['status'] == PrayerStatus.next) return p;
     }
     return null;
+  }
+
+  PrayerType? _prayerTypeFor(String name) {
+    switch (name) {
+      case 'الفجر': return PrayerType.fajr;
+      case 'الظهر': return PrayerType.dhuhr;
+      case 'العصر': return PrayerType.asr;
+      case 'المغرب': return PrayerType.maghrib;
+      case 'العشاء': return PrayerType.isha;
+      default: return null; // الشروق has no completion
+    }
+  }
+
+  void _togglePrayer(PrayerType prayer) {
+    if (DayStateMachine.isPrayerCompleted(prayer)) {
+      DayStateMachine.unmarkPrayerCompleted(prayer);
+    } else {
+      DayStateMachine.markPrayerCompleted(prayer);
+    }
   }
 
   List<Map<String, dynamic>> _buildPrayerList(DateTime now) {
@@ -302,6 +332,8 @@ class _TimelinePrayerRow extends StatelessWidget {
   final bool isSunrise;
   final bool isFirst;
   final bool isLast;
+  final bool isCompleted;
+  final VoidCallback? onToggle;
 
   const _TimelinePrayerRow({
     required this.name,
@@ -312,6 +344,8 @@ class _TimelinePrayerRow extends StatelessWidget {
     this.isSunrise = false,
     this.isFirst = false,
     this.isLast = false,
+    this.isCompleted = false,
+    this.onToggle,
   });
 
   @override
@@ -321,7 +355,10 @@ class _TimelinePrayerRow extends StatelessWidget {
     final isPassed = status == PrayerStatus.passed;
 
     return IntrinsicHeight(
-      child: Row(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onToggle,
+        child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Time Column
@@ -442,6 +479,14 @@ class _TimelinePrayerRow extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
+                    if (isCompleted) ...[
+                      Icon(
+                        Icons.check_circle_rounded,
+                        color: NoorDesignSystem.primaryGreen,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                     if (!isSunrise)
                       IconButton(
                         icon: Icon(
@@ -463,6 +508,7 @@ class _TimelinePrayerRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }
