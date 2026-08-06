@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:encrypt/encrypt.dart';
 
 /// سياسة الخصوصية - Privacy Policy
@@ -43,27 +46,32 @@ enum DataCategory {
 /// Default implementation of Privacy Policy
 class DefaultPrivacyPolicy implements PrivacyPolicy {
   final Key _encryptionKey;
-  final IV _iv;
   late final Encrypter _encrypter;
 
   DefaultPrivacyPolicy({required String encryptionKey})
-      : _encryptionKey = Key.fromUtf8(encryptionKey.padRight(32).substring(0, 32)),
-        _iv = IV.fromLength(16) {
+      : _encryptionKey = Key.fromUtf8(encryptionKey.padRight(32).substring(0, 32)) {
     _encrypter = Encrypter(AES(_encryptionKey));
   }
 
+  /// A random IV is generated for every encryption and prepended to the
+  /// ciphertext, so the same plaintext never produces the same output.
   @override
   String encryptLocalData(String plainText) {
     if (plainText.isEmpty) return '';
-    final encrypted = _encrypter.encrypt(plainText, iv: _iv);
-    return encrypted.base64;
+    final ivBytes = List<int>.generate(16, (_) => Random.secure().nextInt(256));
+    final iv = IV(ivBytes);
+    final encrypted = _encrypter.encrypt(plainText, iv: iv);
+    return '${base64Encode(ivBytes)}:${encrypted.base64}';
   }
 
   @override
   String decryptLocalData(String encryptedText) {
     if (encryptedText.isEmpty) return '';
     try {
-      final decrypted = _encrypter.decrypt64(encryptedText, iv: _iv);
+      final parts = encryptedText.split(':');
+      if (parts.length != 2) return '';
+      final iv = IV(base64Decode(parts[0]));
+      final decrypted = _encrypter.decrypt64(parts[1], iv: iv);
       return decrypted;
     } catch (e) {
       // Return empty string if decryption fails (corrupted data)

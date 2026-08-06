@@ -14,7 +14,6 @@ dependencies:
   
   # State Management
   flutter_riverpod: ^2.4.0
-  riverpod_annotation: ^2.3.0
   
   # Navigation
   go_router: ^12.0.0
@@ -97,9 +96,6 @@ dev_dependencies:
 
 dependency_overrides:
   package_info_plus: ^8.2.0
-  riverpod_generator: ^2.3.0
-  build_runner: ^2.4.0
-  mockito: ^5.4.0
 
 flutter:
   uses-material-design: true
@@ -110,6 +106,7 @@ flutter:
     - assets/hadith/by_book/the_9_books/
     - assets/hadith/by_book/forties/
     - assets/hadith/by_book/other_books/
+    - assets/hadith/by_chapter/
     - assets/adhkar/
     - assets/fonts/
     - assets/images/

@@ -132,6 +132,7 @@ class SmartNotificationEngine {
       longitude: longitude,
       date: DateTime.now(),
       method: CalculationMethod.ummAlQura,
+      utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
     );
     
     // Schedule morning adhkar (30 min after Fajr)
@@ -199,6 +200,7 @@ class SmartNotificationEngine {
       longitude: longitude,
       date: DateTime.now(),
       method: CalculationMethod.ummAlQura,
+      utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
     );
     
     // Schedule each prayer

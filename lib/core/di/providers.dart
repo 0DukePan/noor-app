@@ -34,9 +34,9 @@ final khushuPolicyProvider = Provider<KhushuPolicy>((ref) {
 });
 
 /// Privacy Policy Provider
-final privacyPolicyProvider = Provider<PrivacyPolicy>((ref) {
-  // In production, use secure key management
-  return DefaultPrivacyPolicy(encryptionKey: 'noor_app_secure_key_32_chars__');
+final privacyPolicyProvider = FutureProvider<PrivacyPolicy>((ref) async {
+  final key = await SecureKeyService.getOrCreateKey('privacy_policy');
+  return DefaultPrivacyPolicy(encryptionKey: key);
 });
 
 /// Offline Policy Provider

@@ -75,6 +75,7 @@ final homeDataProvider = FutureProvider<HomeData>((ref) async {
     longitude: lng,
     date: DateTime.now(),
     method: CalculationMethod.ummAlQura,
+    utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
   );
 
   // 2. Hadith of the Day (Cached daily)

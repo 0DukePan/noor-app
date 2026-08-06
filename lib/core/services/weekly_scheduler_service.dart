@@ -114,6 +114,7 @@ class WeeklySchedulerService {
       highLatitudeRule: _highLatitudeRule,
       elevation: _elevation,
       adjustments: _adjustments,
+      utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
     );
     
     // Cancel all existing alarms
@@ -232,6 +233,7 @@ class WeeklySchedulerService {
         highLatitudeRule: _highLatitudeRule,
         elevation: _elevation,
         adjustments: _adjustments,
+        utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
       );
       
       // Get cached times
@@ -463,6 +465,7 @@ class WeeklySchedulerService {
       highLatitudeRule: _highLatitudeRule,
       elevation: _elevation,
       adjustments: _adjustments,
+      utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
     );
   }
 

@@ -117,6 +117,10 @@ class PrayerTimeEngine {
   // ═══════════════════════════════════════════════════════════════════════════
 
   /// Calculate prayer times for a specific date and location
+  ///
+  /// [utcOffset] is the UTC offset in hours (east positive) for the location's
+  /// civil time. The solar calculations produce UTC instants; this offset
+  /// converts them to the local wall-clock time shown to the user.
   static PrayerTimes calculate({
     required double latitude,
     required double longitude,
@@ -126,6 +130,7 @@ class PrayerTimeEngine {
     HighLatitudeRule highLatitudeRule = HighLatitudeRule.middleOfNight,
     double elevation = 0,
     PrayerAdjustments? adjustments,
+    double utcOffset = 0,
   }) {
     final params = methods[method]!;
     final jd = _julianDay(date);
@@ -138,7 +143,7 @@ class PrayerTimeEngine {
     final elevationAngle = elevation > 0 ? 0.0347 * sqrt(elevation) : 0;
     
     // Calculate each prayer time
-    final dhuhr = _calculateDhuhr(longitude, equationOfTime, date);
+    final dhuhr = _calculateDhuhr(longitude, equationOfTime, date, utcOffset);
     final sunrise = _calculateSunAngle(
       latitude, sunDeclination, -0.833 - elevationAngle, dhuhr, false,
     );
@@ -191,6 +196,7 @@ class PrayerTimeEngine {
     HighLatitudeRule highLatitudeRule = HighLatitudeRule.middleOfNight,
     double elevation = 0,
     PrayerAdjustments? adjustments,
+    double utcOffset = 0,
   }) {
     return List.generate(7, (i) {
       return calculate(
@@ -202,6 +208,7 @@ class PrayerTimeEngine {
         highLatitudeRule: highLatitudeRule,
         elevation: elevation,
         adjustments: adjustments,
+        utcOffset: utcOffset,
       );
     });
   }
@@ -271,8 +278,10 @@ class PrayerTimeEngine {
   // PRAYER TIME CALCULATIONS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static DateTime _calculateDhuhr(double longitude, double eqTime, DateTime date) {
-    final noon = 12 - longitude / 15 - eqTime / 60;
+  static DateTime _calculateDhuhr(double longitude, double eqTime, DateTime date, double utcOffset) {
+    // Solar noon in UTC is at 12:00 - longitude/15 - equationOfTime/60.
+    // Add the civil UTC offset to obtain the local wall-clock time.
+    final noon = 12 - longitude / 15 - eqTime / 60 + utcOffset;
     return _toDateTime(date, noon);
   }
 
@@ -329,7 +338,7 @@ class PrayerTimeEngine {
         asr: asr,
         maghrib: maghrib,
         isha: isha,
-        date: fajr,
+        date: dhuhr,
       );
     }
     
@@ -345,7 +354,7 @@ class PrayerTimeEngine {
           asr: asr,
           maghrib: maghrib,
           isha: maghrib.add(Duration(minutes: halfNight)),
-          date: fajr,
+          date: dhuhr,
         );
         
       case HighLatitudeRule.seventhOfNight:
@@ -357,7 +366,7 @@ class PrayerTimeEngine {
           asr: asr,
           maghrib: maghrib,
           isha: maghrib.add(Duration(minutes: seventh)),
-          date: fajr,
+          date: dhuhr,
         );
         
       case HighLatitudeRule.twilightAngle:
@@ -369,7 +378,7 @@ class PrayerTimeEngine {
           asr: asr,
           maghrib: maghrib,
           isha: isha,
-          date: fajr,
+          date: dhuhr,
         );
     }
   }
@@ -727,6 +736,7 @@ extension PrayerTimeEngineRegion on PrayerTimeEngine {
     Madhab? madhab,
     double elevation = 0,
     PrayerAdjustments? additionalAdjustments,
+    double utcOffset = 0,
   }) {
     final preset = RegionPresets.getPreset(region);
     
@@ -760,6 +770,7 @@ extension PrayerTimeEngineRegion on PrayerTimeEngine {
       highLatitudeRule: effectiveRule,
       elevation: elevation,
       adjustments: adjustments,
+      utcOffset: utcOffset,
     );
   }
   
@@ -769,6 +780,7 @@ extension PrayerTimeEngineRegion on PrayerTimeEngine {
     required double longitude,
     required DateTime date,
     double elevation = 0,
+    double utcOffset = 0,
   }) {
     final region = RegionPresets.guessRegion(latitude, longitude);
     return calculateWithRegion(
@@ -777,6 +789,7 @@ extension PrayerTimeEngineRegion on PrayerTimeEngine {
       date: date,
       region: region,
       elevation: elevation,
+      utcOffset: utcOffset,
     );
   }
   
@@ -788,6 +801,7 @@ extension PrayerTimeEngineRegion on PrayerTimeEngine {
     required String countryCode,
     double elevation = 0,
     PrayerAdjustments? additionalAdjustments,
+    double utcOffset = 0,
   }) {
     final preset = CountryPresets.getPreset(countryCode);
     
@@ -821,6 +835,7 @@ extension PrayerTimeEngineRegion on PrayerTimeEngine {
       highLatitudeRule: effectiveRule,
       elevation: elevation,
       adjustments: adjustments,
+      utcOffset: utcOffset,
     );
   }
 }

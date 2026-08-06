@@ -5,6 +5,8 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/theme/noor_theme.dart';
 import '../../../../core/domain/policies/privacy_policy.dart';
+import '../../../../core/services/hive_service.dart';
+import '../../../../core/services/secure_key_service.dart';
 
 /// صفحة محراب التدبر - Tadabbur Mihrab Page
 /// Personal reflections on Quran verses with local encryption
@@ -26,44 +28,48 @@ class TadabburMihrabPage extends ConsumerStatefulWidget {
 
 class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
   final _noteController = TextEditingController();
-  // TODO: Replace with device-derived key via flutter_secure_storage
-  // final storage = FlutterSecureStorage();
-  // final key = await storage.read(key: 'tadabbur_key') ?? _generateAndSaveKey();
-  final _privacyPolicy = DefaultPrivacyPolicy(
-    encryptionKey: 'noor_app_tadabbur_encryption_key', // FIXME: derive from device
-  );
-  
+  DefaultPrivacyPolicy? _privacyPolicy;
+
   List<Map<String, dynamic>> _savedNotes = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _initPolicy();
+  }
+
+  Future<void> _initPolicy() async {
+    final key = await SecureKeyService.getOrCreateKey('tadabbur');
+    if (!mounted) return;
+    setState(() => _privacyPolicy = DefaultPrivacyPolicy(encryptionKey: key));
     _loadNotes();
   }
 
   Future<void> _loadNotes() async {
     // Load from Hive and decrypt
-    // final encrypted = HiveService.getTadabburForVerse(
-    //   widget.surahNumber,
-    //   widget.verseNumber,
-    // );
-    // _savedNotes = encrypted.map((e) {
-    //   return {
-    //     ...e,
-    //     'decrypted_note': _privacyPolicy.decryptLocalData(e['encrypted_note']),
-    //   };
-    // }).toList();
+    final encrypted = HiveService.getTadabburForVerse(
+      widget.surahNumber,
+      widget.verseNumber,
+    );
+    _savedNotes = encrypted.map((e) {
+      return {
+        ...e,
+        'decrypted_note': _privacyPolicy?.decryptLocalData(e['encrypted_note'] ?? '') ?? '',
+      };
+    }).toList();
     setState(() => _isLoading = false);
   }
 
   Future<void> _saveNote() async {
     if (_noteController.text.trim().isEmpty) return;
+    final policy = _privacyPolicy;
+    if (policy == null) return;
 
     await HapticFeedback.lightImpact();
 
     // Encrypt before saving
-    final encryptedNote = _privacyPolicy.encryptLocalData(_noteController.text);
+    final encryptedNote = policy.encryptLocalData(_noteController.text);
     
     final note = {
       'id': const Uuid().v4(),
@@ -74,7 +80,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
     };
 
     // Save to Hive
-    // await HiveService.saveTadabbur(note);
+    await HiveService.saveTadabbur(note);
 
     setState(() {
       _savedNotes.add({
@@ -94,7 +100,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
   }
 
   Future<void> _deleteNote(String id) async {
-    // await HiveService.deleteTadabbur(id);
+    await HiveService.deleteTadabbur(id);
     setState(() {
       _savedNotes.removeWhere((n) => n['id'] == id);
     });

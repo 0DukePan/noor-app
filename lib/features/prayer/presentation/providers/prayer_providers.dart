@@ -62,6 +62,7 @@ final prayerDataProvider = FutureProvider<PrayerPageData>((ref) async {
     longitude: lng,
     date: DateTime.now(),
     method: CalculationMethod.ummAlQura,
+    utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
   );
 
   return PrayerPageData(
