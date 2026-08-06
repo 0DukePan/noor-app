@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/noor_theme.dart';
 import '../../../../core/algorithms/fsrs_algorithm.dart';
 import '../providers/hadith_providers.dart';
+import '../hadith_book_names.dart';
 
 /// صفحة الحفظ بالتكرار المتباعد - Spaced Repetition Memorization Page
 class MemorizationPage extends ConsumerStatefulWidget {
@@ -30,6 +31,19 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
     _flipAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _flipController, curve: Curves.easeInOut),
     );
+    _loadDeck();
+  }
+
+  /// Load the Nawawi 40 collection as the default memorization deck.
+  Future<void> _loadDeck() async {
+    try {
+      final hadiths = await ref
+          .read(localHadithDataSourceProvider)
+          .getHadithsPage(bookId: 'nawawi40', page: 1, limit: 42);
+      await ref.read(memorizationProvider.notifier).loadCards(hadiths);
+    } catch (e) {
+      debugPrint('Failed to load memorization deck: $e');
+    }
   }
 
   @override
@@ -116,9 +130,9 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
                                 ? Transform(
                                     alignment: Alignment.center,
                                     transform: Matrix4.identity()..rotateY(3.14159),
-                                    child: _buildCardBack(),
+                                    child: _buildCardBack(state),
                                   )
-                                : _buildCardFront(),
+                                : _buildCardFront(state),
                           );
                         },
                       ),
@@ -164,7 +178,12 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
     );
   }
 
-  Widget _buildCardFront() {
+  Widget _buildCardFront(MemorizationState state) {
+    final hadith = state.currentCard;
+    final hint = hadith == null
+        ? 'قال رسول الله ﷺ: "…'
+        : _truncate(hadith.arabic, 60);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(NoorTheme.spacingXl),
@@ -198,14 +217,16 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
           const SizedBox(height: NoorTheme.spacingXl),
           // Show partial hadith as hint
           Text(
-            'قال رسول الله ﷺ: "...',
+            hint,
             style: TextStyle(
-              fontFamily: 'AmiriQuran',
+              fontFamily: 'Amiri',
               fontSize: 22,
               color: NoorTheme.textArabic,
             ),
             textAlign: TextAlign.center,
             textDirection: TextDirection.rtl,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
           ),
           const Spacer(),
           Text(
@@ -220,7 +241,11 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
     );
   }
 
-  Widget _buildCardBack() {
+  Widget _buildCardBack(MemorizationState state) {
+    final hadith = state.currentCard;
+    final text = hadith?.arabic ?? 'قال رسول الله ﷺ: "…';
+    final source = hadithBookName(hadith?.collectionId ?? '');
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(NoorTheme.spacingLg),
@@ -248,9 +273,9 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
           children: [
             // Full hadith text
             Text(
-              'قال رسول الله ﷺ: "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى"',
+              text,
               style: const TextStyle(
-                fontFamily: 'AmiriQuran',
+                fontFamily: 'Amiri',
                 fontSize: 24,
                 height: 2.0,
                 color: NoorTheme.textArabic,
@@ -270,7 +295,7 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
                 borderRadius: BorderRadius.circular(NoorTheme.radiusSm),
               ),
               child: Text(
-                'صحيح البخاري - كتاب بدء الوحي',
+                source,
                 style: TextStyle(
                   color: NoorTheme.hadithSahih,
                   fontWeight: FontWeight.bold,
@@ -281,6 +306,17 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
         ),
       ),
     );
+  }
+
+  /// Truncate Arabic text at a word boundary near [maxChars] characters.
+  String _truncate(String text, int maxChars) {
+    if (text.length <= maxChars) return text;
+    var cut = text.substring(0, maxChars);
+    final lastSpace = cut.lastIndexOf(' ');
+    if (lastSpace > maxChars ~/ 2) {
+      cut = cut.substring(0, lastSpace);
+    }
+    return '$cut…';
   }
 
   Widget _buildRatingButtons(MemorizationState state) {

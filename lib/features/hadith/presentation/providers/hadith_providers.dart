@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:equatable/equatable.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../../core/data/data_sources/local_hadith_data_source.dart';
 import '../../../../core/data/repositories/hadith_repository_impl.dart';
@@ -334,105 +335,159 @@ final quizProvider = StateNotifierProvider.family<QuizNotifier, QuizState, List<
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// MEMORIZATION SYSTEM (Spaced Repetition)
+// MEMORIZATION SYSTEM (FSRS Spaced Repetition)
 // ═══════════════════════════════════════════════════════════════════════════
 
 class MemorizationState extends Equatable {
-  final List<Hadith> cards;
+  final List<Hadith> deck;
+  final Map<String, MemorizationCard> fsrsCards;
   final int currentIndex;
   final bool isComplete;
-  final Map<int, int> intervals; // hadith id -> days until next review
+  final StreakTracker streak;
 
   const MemorizationState({
-    this.cards = const [],
+    this.deck = const [],
+    this.fsrsCards = const {},
     this.currentIndex = 0,
     this.isComplete = false,
-    this.intervals = const {},
+    this.streak = const StreakTracker(),
   });
 
-  Hadith? get currentCard => 
-      cards.isNotEmpty && currentIndex < cards.length ? cards[currentIndex] : null;
+  Hadith? get currentCard =>
+      deck.isNotEmpty && currentIndex < deck.length ? deck[currentIndex] : null;
 
-  int get todayReviewed => currentIndex; // Simple approximation
-  int get totalMemorized => intervals.length;
-  List<Hadith> get dueCards => cards; // Simplified
-  StreakTracker get streak => StreakTracker(currentStreak: 0); // Simplified
+  MemorizationCard? get currentFsrsCard {
+    final card = currentCard;
+    if (card == null) return null;
+    return fsrsCards[card.id];
+  }
+
+  /// Hadiths due for review today (new cards are always due).
+  List<Hadith> get dueCards =>
+      deck.where((h) => fsrsCards[h.id]?.isDue ?? true).toList();
+
+  int get todayReviewed =>
+      fsrsCards.values.where((c) => c.repetitions > 0 && _isToday(c.lastReview)).length;
+
+  int get totalMemorized =>
+      fsrsCards.values.where((c) => c.repetitions > 0).length;
 
   MemorizationState copyWith({
-    List<Hadith>? cards,
+    List<Hadith>? deck,
+    Map<String, MemorizationCard>? fsrsCards,
     int? currentIndex,
     bool? isComplete,
-    Map<int, int>? intervals,
+    StreakTracker? streak,
   }) {
     return MemorizationState(
-      cards: cards ?? this.cards,
+      deck: deck ?? this.deck,
+      fsrsCards: fsrsCards ?? this.fsrsCards,
       currentIndex: currentIndex ?? this.currentIndex,
       isComplete: isComplete ?? this.isComplete,
-      intervals: intervals ?? this.intervals,
+      streak: streak ?? this.streak,
     );
   }
 
   @override
-  List<Object?> get props => [cards, currentIndex, isComplete, intervals];
+  List<Object?> get props => [deck, fsrsCards, currentIndex, isComplete, streak];
+
+  static bool _isToday(DateTime time) {
+    final now = DateTime.now();
+    return time.year == now.year &&
+        time.month == now.month &&
+        time.day == now.day;
+  }
 }
 
 class MemorizationNotifier extends StateNotifier<MemorizationState> {
   MemorizationNotifier() : super(const MemorizationState());
 
-  void loadCards(List<Hadith> hadiths) {
-    state = state.copyWith(cards: hadiths, currentIndex: 0, isComplete: false);
+  static const _boxName = 'memorization_cards';
+  Box? _box;
+
+  Future<void> _ensureBox() async {
+    _box ??= await Hive.openBox(_boxName);
   }
 
-  void reviewCard(int rating) {
-    // Simplified spaced repetition: rating 1-4 affects interval
-    final currentCard = state.currentCard;
-    if (currentCard == null) return;
-
-    final newIntervals = Map<int, int>.from(state.intervals);
-    final prevInterval = newIntervals[currentCard.id] ?? 1;
-    
-    // Rating: 1 = Again, 2 = Hard, 3 = Good, 4 = Easy
-    int newInterval;
-    switch (rating) {
-      case 1:
-        newInterval = 1;
-        break;
-      case 2:
-        newInterval = prevInterval;
-        break;
-      case 3:
-        newInterval = (prevInterval * 2).clamp(1, 30);
-        break;
-      case 4:
-        newInterval = (prevInterval * 3).clamp(1, 60);
-        break;
-      default:
-        newInterval = prevInterval;
+  /// Load the deck of hadiths to memorize, restoring persisted FSRS state.
+  Future<void> loadCards(List<Hadith> hadiths) async {
+    await _ensureBox();
+    final fsrsCards = <String, MemorizationCard>{};
+    for (final h in hadiths) {
+      final raw = _box!.get(h.id);
+      fsrsCards[h.id] = raw != null
+          ? MemorizationCard.fromJson(Map<String, dynamic>.from(raw))
+          : MemorizationCard(id: h.id, hadithId: h.id);
     }
-    newIntervals[currentCard.id] = newInterval;
+    StreakTracker streak = const StreakTracker();
+    final streakRaw = _box!.get('_streak');
+    if (streakRaw != null) {
+      streak = StreakTracker.fromJson(Map<String, dynamic>.from(streakRaw));
+    }
+    state = MemorizationState(
+      deck: hadiths,
+      fsrsCards: fsrsCards,
+      streak: streak,
+    );
+  }
+
+  /// Review the current card with a 1..4 rating (1 = again, 4 = easy).
+  Future<void> reviewCard(int rating) async {
+    final card = state.currentFsrsCard;
+    if (card == null) return;
+
+    await _ensureBox();
+    card.review(_ratingFromInt(rating));
+
+    final streak = state.streak..recordPractice();
+    await _box?.put(card.hadithId, card.toJson());
+    await _box?.put('_streak', streak.toJson());
 
     final nextIndex = state.currentIndex + 1;
-    final isComplete = nextIndex >= state.cards.length;
+    final isComplete = nextIndex >= state.deck.length;
 
     state = state.copyWith(
-      intervals: newIntervals,
+      fsrsCards: {...state.fsrsCards, card.hadithId: card},
+      streak: streak,
       currentIndex: isComplete ? state.currentIndex : nextIndex,
       isComplete: isComplete,
     );
   }
 
   Map<int, String> getIntervalPreviews() {
-    // Returns a map of rating -> human-readable interval
+    final card = state.currentFsrsCard;
+    if (card == null) {
+      return const {
+        1: '1 يوم',
+        2: 'نفس الفترة',
+        3: 'ضعف الفترة',
+        4: '3x الفترة',
+      };
+    }
+    final previews = card.previewIntervals();
     return {
-      1: '1 يوم',
-      2: 'نفس الفترة',
-      3: 'ضعف الفترة',
-      4: '3x الفترة',
+      for (final entry in previews.entries)
+        entry.key.index + 1: '${entry.value} يوم',
     };
   }
 
   void reset() {
     state = state.copyWith(currentIndex: 0, isComplete: false);
+  }
+
+  static Rating _ratingFromInt(int rating) {
+    switch (rating) {
+      case 1:
+        return Rating.again;
+      case 2:
+        return Rating.hard;
+      case 3:
+        return Rating.good;
+      case 4:
+        return Rating.easy;
+      default:
+        return Rating.good;
+    }
   }
 }
 

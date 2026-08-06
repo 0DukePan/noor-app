@@ -41,8 +41,11 @@ class FSRSAlgorithm {
   }
 
   /// Calculate initial difficulty
+  ///
+  /// Canonical FSRS: `D0(G) = w4 - (G - 3) * w5` with G in 1..4
+  /// (1 = again … 4 = easy). [Rating.index] is 0-based, so G = index + 1.
   static double initialDifficulty(Rating rating) {
-    return _w4 - (rating.index - 3) * _w5;
+    return _w4 - (rating.index - 2) * _w5;
   }
 
   /// Calculate retrievability (probability of recall)
@@ -86,11 +89,14 @@ class FSRSAlgorithm {
   }
 
   /// Update difficulty after review
+  ///
+  /// Canonical FSRS: `D' = D - w6 * (G - 3)` with G in 1..4; [Rating.index]
+  /// is 0-based, so G = index + 1.
   static double updateDifficulty({
     required double difficulty,
     required Rating rating,
   }) {
-    final delta = difficulty - _w6 * (rating.index - 3);
+    final delta = difficulty - _w6 * (rating.index - 2);
     return _clamp(
       _w7 * initialDifficulty(Rating.easy) + (1 - _w7) * delta,
       1.0,
