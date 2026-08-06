@@ -64,32 +64,6 @@ abstract class TadabburRepository {
   Future<Either<Failure, String>> exportTadabbur();
 }
 
-/// مستودع الختمة - Khatmah Repository Interface
-abstract class KhatmahRepository {
-  /// Create new Khatmah plan
-  Future<Either<Failure, Khatmah>> createKhatmah({
-    required String name,
-    DateTime? targetEndDate,
-  });
-
-  /// Get active Khatmah
-  Future<Either<Failure, Khatmah?>> getActiveKhatmah();
-
-  /// Update Khatmah progress
-  Future<Either<Failure, void>> updateKhatmahProgress({
-    required String khatmahId,
-    required int currentSurah,
-    required int currentVerse,
-    required int currentPage,
-  });
-
-  /// Get all Khatmahs
-  Future<Either<Failure, List<Khatmah>>> getAllKhatmahs();
-
-  /// Delete Khatmah
-  Future<Either<Failure, void>> deleteKhatmah(String id);
-}
-
 /// Failure class for error handling
 abstract class Failure {
   final String message;

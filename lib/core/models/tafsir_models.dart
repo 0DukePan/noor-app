@@ -59,9 +59,8 @@ class TafsirSource {
       arabicName: 'تفسير ابن كثير',
       englishName: 'Ibn Kathir',
       author: 'الإمام ابن كثير',
-      assetPath: 'assets/tafsir/ibn_kathir/full',
-      isFullyBundled: false, // يُحمّل من API إذا غير متوفر
-      apiEndpoint: 'https://quran.com/api/tafsir/ibn-kathir',
+      assetPath: 'assets/tafsir/ibn_kathir/full/ar-tafsir-ibn-kathir',
+      isFullyBundled: true,
     ),
   };
 

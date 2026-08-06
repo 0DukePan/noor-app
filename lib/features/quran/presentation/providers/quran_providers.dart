@@ -18,6 +18,7 @@ import '../../data/datasources/local_quran_data_source.dart'; // Impl
 import '../../data/datasources/remote_quran_data_source.dart'; // Stub
 import '../../data/datasources/quran_datasources.dart'; // Abstract Classes
 import '../../../../core/domain/policies/offline_policy.dart';
+import '../../../../core/utils/arabic_text.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // REPOSITORY & DATA SOURCES
@@ -173,20 +174,7 @@ final tafsirProvider = FutureProvider.family<TafsirVerse?, ({int surahId, int ve
 /// Filter type: 'all', 'meccan', 'medinan'
 final surahFilterProvider = StateProvider<String>((ref) => 'all');
 
-/// Normalize Arabic text for smart search
-/// Removes diacritics (tashkeel), normalizes hamza variants, etc.
-String normalizeArabic(String text) {
-  return text
-      // Remove Arabic diacritics (tashkeel)
-      .replaceAll(RegExp(r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]'), '')
-      // Normalize Alef variants (أ إ آ → ا)
-      .replaceAll(RegExp(r'[أإآ]'), 'ا')
-      // Normalize Taa Marbuta (ة → ه)
-      .replaceAll('ة', 'ه')
-      // Normalize Alef Maksura (ى → ي)
-      .replaceAll('ى', 'ي')
-      .trim();
-}
+/// Normalize Arabic text for smart search (see core/utils/arabic_text.dart).
 
 /// Reactive filtered surahs — recomputes only when surahs, query, or filter changes
 /// NOT on every UI rebuild

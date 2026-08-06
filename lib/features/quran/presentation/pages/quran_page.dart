@@ -8,6 +8,7 @@ import '../../../../core/theme/design_system.dart';
 import '../../../../core/theme/noor_theme.dart';
 import '../providers/quran_providers.dart';
 import '../../../../core/domain/entities/surah.dart';
+import '../../../../core/utils/arabic_text.dart';
 
 /// صفحة القرآن الديناميكية — Dynamic Quran Page
 /// Zero setState. All state via Riverpod providers.

@@ -64,32 +64,6 @@ enum CauseType {
   legislation,
 }
 
-/// ختمة - Khatmah (Quran Completion Plan)
-class Khatmah extends Equatable {
-  final String id;
-  final String name;
-  final DateTime startDate;
-  final DateTime? targetEndDate;
-  final int currentSurah;
-  final int currentVerse;
-  final int currentPage;
-  final double progressPercentage;
-
-  const Khatmah({
-    required this.id,
-    required this.name,
-    required this.startDate,
-    this.targetEndDate,
-    required this.currentSurah,
-    required this.currentVerse,
-    required this.currentPage,
-    required this.progressPercentage,
-  });
-
-  @override
-  List<Object?> get props => [id, name, progressPercentage];
-}
-
 /// تدبر - Tadabbur (Personal Reflection)
 class Tadabbur extends Equatable {
   final String id;

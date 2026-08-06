@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../../../../core/utils/isolate_parser.dart';
+import '../../../../core/utils/arabic_text.dart';
 import '../../domain/entities/quran_entities.dart'; // Surah entity
 import 'quran_datasources.dart'; // Abstract class and Models
 
@@ -110,13 +111,13 @@ class LocalQuranDataSourceImpl implements QuranLocalDataSource {
     }
     
     // Normalize query for Arabic search (remove diacritics)
-    final normalizedQuery = _normalizeArabic(query);
+    final normalizedQuery = normalizeArabic(query);
     final List<VerseModel> results = [];
     
     _fullQuranMap!.forEach((surahNum, verses) {
       for (final v in (verses as List)) {
         final text = v['text'] as String? ?? v['text_uthmani'] as String? ?? '';
-        final normalizedText = _normalizeArabic(text);
+        final normalizedText = normalizeArabic(text);
         if (normalizedText.contains(normalizedQuery)) {
           results.add(VerseModel.fromJson(v));
         }
@@ -124,17 +125,6 @@ class LocalQuranDataSourceImpl implements QuranLocalDataSource {
     });
     
     return results;
-  }
-  
-  /// Normalize Arabic text by removing diacritics for better search matching
-  static String _normalizeArabic(String text) {
-    return text
-        .replaceAll(RegExp(r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]'), '')
-        .replaceAll('أ', 'ا')
-        .replaceAll('إ', 'ا')
-        .replaceAll('آ', 'ا')
-        .replaceAll('ة', 'ه')
-        .replaceAll('ى', 'ي');
   }
 
   @override
