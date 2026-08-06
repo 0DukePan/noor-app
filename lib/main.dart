@@ -6,8 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:hijri/hijri_calendar.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'core/theme/noor_theme.dart';
+import 'core/theme/design_system.dart';
 import 'core/router/app_router.dart';
 import 'core/services/services.dart';
 import 'core/services/hadith_user_data_service.dart';
@@ -208,6 +210,14 @@ class NoorApp extends ConsumerStatefulWidget {
   ConsumerState<NoorApp> createState() => _NoorAppState();
 }
 
+/// Resolves once the hadith SQLite database is ready. On first launch this
+/// drives the import-progress screen; on later launches the database opens in
+/// milliseconds so the gate is skipped via [HadithDatabase.isDbCached].
+final hadithDbReadyProvider = FutureProvider<bool>((ref) async {
+  await HadithDatabase.database;
+  return true;
+});
+
 class _NoorAppState extends ConsumerState<NoorApp> with WidgetsBindingObserver {
   @override
   void initState() {
@@ -254,6 +264,24 @@ class _NoorAppState extends ConsumerState<NoorApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    // On later launches the database opens in milliseconds; go straight to
+    // the app. Only the one-time first-launch import shows the progress UI.
+    if (HadithDatabase.isDbCached) {
+      return _buildApp(context);
+    }
+
+    final dbReady = ref.watch(hadithDbReadyProvider);
+    return dbReady.when(
+      data: (_) => _buildApp(context),
+      loading: () => const _DatabaseImportScreen(),
+      error: (e, _) {
+        debugPrint('Hadith database gate failed: $e');
+        return _buildApp(context);
+      },
+    );
+  }
+
+  Widget _buildApp(BuildContext context) {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
@@ -287,6 +315,76 @@ class _NoorAppState extends ConsumerState<NoorApp> with WidgetsBindingObserver {
       
       // Navigation
       routerConfig: router,
+    );
+  }
+}
+
+/// Full-screen progress shown only during the one-time first-launch import of
+/// the 17 hadith books into SQLite.
+class _DatabaseImportScreen extends StatelessWidget {
+  const _DatabaseImportScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.auto_stories_rounded,
+                size: 72,
+                color: NoorDesignSystem.primaryGreen,
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'تحضير مكتبة الحديث الشريف...',
+                style: GoogleFonts.cairo(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: NoorDesignSystem.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'يتم تجهيز الكتب التسعة والأربعين نووية لأول مرة',
+                style: GoogleFonts.cairo(
+                  fontSize: 13,
+                  color: NoorDesignSystem.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 28),
+              ValueListenableBuilder<double>(
+                valueListenable: HadithDatabase.importProgress,
+                builder: (context, value, _) => Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: LinearProgressIndicator(
+                        value: value,
+                        minHeight: 8,
+                        backgroundColor: NoorDesignSystem.primaryGreen
+                            .withOpacity(0.1),
+                        color: NoorDesignSystem.primaryGreen,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      '${(value * 100).clamp(0, 100).toStringAsFixed(0)}%',
+                      style: GoogleFonts.cairo(
+                        fontSize: 14,
+                        color: NoorDesignSystem.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
@@ -54,6 +55,7 @@ class HadithDatabase {
   static Future<Database> _initDatabase() async {
     final dir = await getApplicationDocumentsDirectory();
     final dbPath = p.join(dir.path, _dbName);
+    _wasCached = await File(dbPath).exists();
 
     return openDatabase(
       dbPath,
@@ -134,16 +136,30 @@ class HadithDatabase {
   // IMPORT
   // ═══════════════════════════════════════════════════════════════════
 
+  /// Import progress for the one-time first-launch build (0.0 → 1.0).
+  static final ValueNotifier<double> importProgress = ValueNotifier(0.0);
+
+  /// Whether the database file already existed (import skipped on launch).
+  static bool _wasCached = false;
+  static bool get isDbCached => _wasCached;
+
   static Future<void> _importAllBooks(Database db) async {
+    final totalBooks = _nineBooks.length + _otherBooks.length;
+    var completed = 0;
+
     // Import the 9 major books
     for (final bookId in _nineBooks) {
       final path = 'assets/hadith/by_book/the_9_books/$bookId.json';
       await _importBook(db, bookId, path);
+      completed++;
+      importProgress.value = completed / totalBooks;
     }
     // Import forties and other books
     for (final book in _otherBooks) {
       final path = 'assets/hadith/by_book/${book['path']}';
       await _importBook(db, book['id']!, path);
+      completed++;
+      importProgress.value = completed / totalBooks;
     }
 
     // Rebuild the FTS5 index from the content table. External-content FTS
@@ -151,6 +167,7 @@ class HadithDatabase {
     // the rowids in the index do not match the content table and search
     // silently returns nothing.
     await _rebuildFts(db);
+    importProgress.value = 1.0;
   }
 
   /// Rebuilds the `hadiths_fts` external-content index so its rowids align
