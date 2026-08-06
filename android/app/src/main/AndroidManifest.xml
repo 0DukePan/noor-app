@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- BASIC PERMISSIONS -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- LOCATION (for Prayer Times & Qibla) -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- ADHAN EXACT ALARMS (Critical) -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- FOREGROUND SERVICE (for Adhan Audio) -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- DND OVERRIDE & NOTIFICATIONS -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- BATTERY OPTIMIZATION BYPASS -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- STORAGE (for Offline Data) -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="32"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="32"
+        tools:ignore="ScopedStorage"/>
+
+    <application
+        android:label="نور"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="true"
+        android:supportsRtl="true"
+        android:enableOnBackInvokedCallback="true"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="tiramisu">
+
+        <!-- Main Activity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+            <!-- Deep Links -->
+            <meta-data
+                android:name="flutter_deeplinking_enabled"
+                android:value="true"/>
+        </activity>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- ADHAN FOREGROUND SERVICE -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <service
+            android:name=".AdhanForegroundService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback"
+            android:stopWithTask="false"/>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- EXACT ALARM RECEIVER -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <receiver
+            android:name=".ExactAlarmReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.noor.app.ACTION_ADHAN"/>
+                <action android:name="com.noor.app.ACTION_PRE_REMINDER"/>
+                <action android:name="com.noor.app.ACTION_POST_REMINDER"/>
+                <action android:name="com.noor.app.ACTION_FALLBACK"/>
+            </intent-filter>
+        </receiver>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- BOOT RECEIVER (Re-schedule alarms after reboot) -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- MIDNIGHT VALIDATOR (Daily prayer time check) -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <receiver
+            android:name=".MidnightValidator"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.noor.app.ACTION_MIDNIGHT_VALIDATE"/>
+            </intent-filter>
+        </receiver>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- MOSQUE MODE RECEIVER (Auto-silent during prayer) -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <receiver
+            android:name=".MosqueModeReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.noor.app.ACTION_MOSQUE_MODE_ENABLE"/>
+                <action android:name="com.noor.app.ACTION_MOSQUE_MODE_DISABLE"/>
+            </intent-filter>
+        </receiver>
+
+        <!-- Flutter Metadata -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2"/>
+
+    </application>
+
+    <!-- Queries for share/external apps -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND"/>
+            <data android:mimeType="*/*"/>
+        </intent>
+    </queries>
+
+</manifest>
