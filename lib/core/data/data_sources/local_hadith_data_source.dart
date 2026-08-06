@@ -39,6 +39,31 @@ class LocalHadithDataSource {
     );
   }
 
+  /// Load metadata + chapters for a book WITHOUT loading any hadith rows.
+  ///
+  /// Use this for chapter lists and headers. Hadiths are fetched lazily and
+  /// paginated via [getHadithsPage] so huge books (e.g. Musnad Ahmad,
+  /// ~27k hadiths) are never fully loaded into memory.
+  Future<HadithBook> getBookSummary(String bookId) async {
+    final chapters = await getChapters(bookId);
+    final collectionsRows = await HadithDatabase.getCollections();
+    final collRow = collectionsRows.firstWhere(
+      (r) => r['id'] == bookId,
+      orElse: () => {'title_arabic': bookId, 'author_arabic': '', 'introduction': ''},
+    );
+
+    return HadithBook(
+      id: bookId,
+      metadata: BookMetadata(
+        title: collRow['title_arabic'] as String? ?? bookId,
+        author: collRow['author_arabic'] as String? ?? '',
+        introduction: collRow['introduction'] as String? ?? '',
+      ),
+      chapters: chapters,
+      hadiths: const [],
+    );
+  }
+
   /// Load a "book" - now just fetches metadata + chapters + first batch
   Future<HadithBook> loadBook(String bookId) async {
     final chapters = await getChapters(bookId);

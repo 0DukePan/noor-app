@@ -10,7 +10,10 @@ import '../providers/hadith_providers.dart';
 import 'hadith_reader_page.dart';
 
 /// صفحة أحاديث باب معين - Hadiths within a specific Chapter
-class HadithChapterHadithsPage extends ConsumerWidget {
+///
+/// Loads hadiths lazily in pages of [pageSize] instead of loading the whole
+/// book into memory (important for large collections).
+class HadithChapterHadithsPage extends ConsumerStatefulWidget {
   final String bookId;
   final String bookTitle;
   final int? chapterId; // null = show all
@@ -27,63 +30,122 @@ class HadithChapterHadithsPage extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final bookAsync = ref.watch(hadithBookProvider(bookId));
+  ConsumerState<HadithChapterHadithsPage> createState() =>
+      _HadithChapterHadithsPageState();
+}
 
+class _HadithChapterHadithsPageState
+    extends ConsumerState<HadithChapterHadithsPage> {
+  static const _pageSize = 50;
+
+  final _scrollController = ScrollController();
+  final List<Hadith> _hadiths = [];
+  int _page = 1;
+  bool _isLoading = false;
+  bool _hasMore = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPage();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.extentAfter < 300 && !_isLoading && _hasMore) {
+      _loadPage();
+    }
+  }
+
+  Future<void> _loadPage() async {
+    if (_isLoading || !_hasMore) return;
+    setState(() => _isLoading = true);
+    try {
+      final ds = ref.read(localHadithDataSourceProvider);
+      final results = await ds.getHadithsPage(
+        bookId: widget.bookId,
+        page: _page,
+        limit: _pageSize,
+        chapterId: widget.chapterId,
+      );
+      if (!mounted) return;
+      setState(() {
+        _hadiths.addAll(results);
+        _hasMore = results.length == _pageSize;
+        _page++;
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Failed to load hadith page: $e');
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: NoorDesignSystem.creamWhite,
       appBar: AppBar(
         title: Text(
-          chapterTitle,
+          widget.chapterTitle,
           style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         centerTitle: true,
         backgroundColor: NoorDesignSystem.creamWhite,
         surfaceTintColor: Colors.transparent,
       ),
-      body: bookAsync.when(
-        data: (book) {
-          final hadiths = chapterId != null
-              ? book.hadiths.where((h) => h.chapterId == chapterId).toList()
-              : book.hadiths;
-
-          if (hadiths.isEmpty) {
-            return const Center(child: Text('لا توجد أحاديث في هذا الباب'));
-          }
-
-          return ListView.builder(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-            itemCount: hadiths.length,
-            itemBuilder: (context, index) {
-              final hadith = hadiths[index];
-              return _HadithPreviewCard(
-                hadith: hadith,
-                index: index + 1,
-                bookColor: bookColor,
-                bookTitle: bookTitle,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => HadithReaderPage(
-                        hadith: hadith,
-                        bookTitle: bookTitle,
-                        chapterTitle: chapterTitle,
-                        bookColor: bookColor,
-                        allHadiths: hadiths,
-                        currentIndex: index,
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(child: Text('حدث خطأ: $e')),
-      ),
+      body: _isLoading && _hadiths.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : _hadiths.isEmpty
+              ? const Center(child: Text('لا توجد أحاديث في هذا الباب'))
+              : ListView.builder(
+                  controller: _scrollController,
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                  itemCount: _hadiths.length + (_hasMore ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index >= _hadiths.length) {
+                      return const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      );
+                    }
+                    final hadith = _hadiths[index];
+                    return _HadithPreviewCard(
+                      hadith: hadith,
+                      index: index + 1,
+                      bookColor: widget.bookColor,
+                      bookTitle: widget.bookTitle,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => HadithReaderPage(
+                              hadith: hadith,
+                              bookTitle: widget.bookTitle,
+                              chapterTitle: widget.chapterTitle,
+                              bookColor: widget.bookColor,
+                              allHadiths: _hadiths,
+                              currentIndex: index,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
     );
   }
 }

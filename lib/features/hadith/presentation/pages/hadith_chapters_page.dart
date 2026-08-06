@@ -23,12 +23,17 @@ class HadithChaptersPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bookAsync = ref.watch(hadithBookProvider(bookId));
+    final bookAsync = ref.watch(hadithBookSummaryProvider(bookId));
+    final countsAsync = ref.watch(hadithChapterCountsProvider(bookId));
 
     return Scaffold(
       backgroundColor: NoorDesignSystem.creamWhite,
       body: bookAsync.when(
-        data: (book) => _buildContent(context, book),
+        data: (book) => countsAsync.when(
+          data: (counts) => _buildContent(context, book, counts),
+          loading: () => _buildLoading(),
+          error: (e, s) => _buildError(e),
+        ),
         loading: () => _buildLoading(),
         error: (e, s) => _buildError(e),
       ),
@@ -75,13 +80,9 @@ class HadithChaptersPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, HadithBook book) {
+  Widget _buildContent(BuildContext context, HadithBook book, Map<int, int> chapterCounts) {
     final chapters = book.chapters;
-    // Count hadiths per chapter
-    final chapterCounts = <int, int>{};
-    for (final h in book.hadiths) {
-      chapterCounts[h.chapterId] = (chapterCounts[h.chapterId] ?? 0) + 1;
-    }
+    final totalHadiths = chapterCounts.values.fold<int>(0, (sum, v) => sum + v);
 
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
@@ -102,7 +103,7 @@ class HadithChaptersPage extends ConsumerWidget {
                 const SizedBox(width: 12),
                 _StatChip(
                   icon: Icons.format_quote_rounded,
-                  label: '${book.hadiths.length} حديث',
+                  label: '$totalHadiths حديث',
                   color: NoorDesignSystem.goldAccent,
                 ),
               ],

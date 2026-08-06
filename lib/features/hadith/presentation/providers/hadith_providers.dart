@@ -37,6 +37,18 @@ final hadithBookProvider = FutureProvider.family<HadithBook, String>((ref, bookI
   return repository.getBook(bookId);
 });
 
+/// Lightweight book summary (metadata + chapters, no hadith rows).
+final hadithBookSummaryProvider =
+    FutureProvider.family<HadithBook, String>((ref, bookId) async {
+  return ref.watch(localHadithDataSourceProvider).getBookSummary(bookId);
+});
+
+/// Per-chapter hadith counts (SQL GROUP BY — O(chapters), not O(hadiths)).
+final hadithChapterCountsProvider =
+    FutureProvider.family<Map<int, int>, String>((ref, bookId) async {
+  return ref.watch(localHadithDataSourceProvider).getChapterHadithCounts(bookId);
+});
+
 // ═══════════════════════════════════════════════════════════════════════════
 // PAGINATED HADITH LIST
 // ═══════════════════════════════════════════════════════════════════════════
