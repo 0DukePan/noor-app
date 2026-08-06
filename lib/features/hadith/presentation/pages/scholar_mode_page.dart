@@ -7,6 +7,7 @@ import '../../../../core/services/narrator_database_service.dart';
 import '../../../../core/services/share_as_image_service.dart';
 import '../../../../core/theme/noor_theme.dart';
 import '../hadith_book_names.dart';
+import '../widgets/narrator_profile_body.dart';
 
 /// 🎓 وضع طالب العلم - Scholar Mode for Hadith
 /// 
@@ -634,111 +635,15 @@ class _ScholarModePageState extends State<ScholarModePage> {
                 ),
               ),
 
-              // Name with role badge
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _getNarratorColor(narrator.role).withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      narrator.role,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: _getNarratorColor(narrator.role),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  Flexible(
-                    child: Text(
-                      narrator.name,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textDirection: TextDirection.rtl,
-                    ),
-                  ),
-                ],
+              // Profile details (shared widget)
+              NarratorProfileBody(
+                narrator: narrator,
+                profile: profile,
+                accentColor: _getNarratorColor(narrator.role),
               ),
-
-              if (narrator.linkWord.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  'صيغة التحمل: ${narrator.linkWord}',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-                  textDirection: TextDirection.rtl,
-                ),
-              ],
-
-              // Profile details if available
-              if (profile != null) ...[
-                const Divider(height: 24),
-
-                if (profile.rank.isNotEmpty)
-                  _buildDetailRow('المرتبة', profile.rank),
-
-                if (profile.rankSource.isNotEmpty)
-                  _buildDetailRow('المصدر', profile.rankSource),
-
-                if (profile.deathYear > 0)
-                  _buildDetailRow('الوفاة', profile.deathYearDisplay),
-
-                if (profile.birthYear > 0)
-                  _buildDetailRow('الولادة', profile.birthYearDisplay),
-
-                if (profile.teachers.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  _buildDetailRow('شيوخه', profile.teachers.take(5).join('، ')),
-                ],
-
-                if (profile.students.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  _buildDetailRow('تلاميذه', profile.students.take(5).join('، ')),
-                ],
-              ] else ...[
-                const Divider(height: 24),
-                Text(
-                  'لا تتوفر معلومات إضافية عن هذا الراوي في قاعدة البيانات',
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-                  textDirection: TextDirection.rtl,
-                ),
-              ],
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 70,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 13),
-              textDirection: TextDirection.rtl,
-            ),
-          ),
-        ],
       ),
     );
   }

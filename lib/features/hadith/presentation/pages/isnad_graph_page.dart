@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../../../core/services/isnad_parser_service.dart';
 import '../../../../core/services/narrator_database_service.dart';
 import '../../../../core/theme/noor_theme.dart';
+import '../widgets/narrator_profile_body.dart';
 
 /// 🔗 رسم بياني تفاعلي للإسناد - Interactive Isnad DAG Graph
 ///
@@ -286,71 +287,14 @@ class _IsnadGraphPageState extends State<IsnadGraphPage>
               ),
             ),
 
-            // Name + Role
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    node.narrator.role,
-                    style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600),
-                  ),
-                ),
-                const Spacer(),
-                Flexible(
-                  child: Text(
-                    node.narrator.name,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    textDirection: TextDirection.rtl,
-                  ),
-                ),
-              ],
+            // Name + Role + profile details
+            NarratorProfileBody(
+              narrator: node.narrator,
+              profile: node.profile,
+              accentColor: color,
             ),
-
-            if (node.narrator.linkWord.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                'صيغة التحمل: ${node.narrator.linkWord}',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-                textDirection: TextDirection.rtl,
-              ),
-            ],
-
-            if (node.profile != null) ...[
-              const Divider(height: 24),
-              if (node.profile!.rank.isNotEmpty)
-                _detailRow('المرتبة', node.profile!.rank),
-              if (node.profile!.deathYear > 0)
-                _detailRow('الوفاة', node.profile!.deathYearDisplay),
-              if (node.profile!.teachers.isNotEmpty)
-                _detailRow('شيوخه', node.profile!.teachers.take(4).join('، ')),
-              if (node.profile!.students.isNotEmpty)
-                _detailRow('تلاميذه', node.profile!.students.take(4).join('، ')),
-            ],
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _detailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 70,
-            child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-          ),
-          Expanded(
-            child: Text(value, style: const TextStyle(fontSize: 13), textDirection: TextDirection.rtl),
-          ),
-        ],
       ),
     );
   }

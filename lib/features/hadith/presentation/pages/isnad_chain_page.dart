@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/design_system.dart';
 import '../../../../core/services/isnad_parser_service.dart';
 import '../../../../core/services/narrator_database_service.dart';
+import '../widgets/narrator_profile_body.dart';
 import 'isnad_graph_page.dart';
 
 /// 🔗 خريطة الإسناد التفاعلية - Interactive Isnad Chain Visualization
@@ -648,94 +649,14 @@ class _NarratorDetailPanel extends StatelessWidget {
           ),
           const Divider(height: 20),
 
-          // Name
-          _DetailRow(label: 'الاسم', value: narrator.name),
-
-          // Role
-          _DetailRow(label: 'الطبقة', value: narrator.role),
-
-          // From database
-          if (profile != null) ...[
-            if (profile.rank.isNotEmpty)
-              _DetailRow(label: 'المرتبة', value: profile.rank),
-            if (profile.rankSource.isNotEmpty)
-              _DetailRow(label: 'المصدر', value: profile.rankSource),
-            if (profile.deathYear > 0)
-              _DetailRow(label: 'سنة الوفاة', value: profile.deathYearDisplay),
-            if (profile.birthYear > 0)
-              _DetailRow(label: 'سنة الولادة', value: profile.birthYearDisplay),
-
-            // Teachers
-            if (profile.teachers.isNotEmpty)
-              _DetailRow(
-                label: 'شيوخه',
-                value: profile.teachers.join(' ، '),
-              ),
-
-            // Students
-            if (profile.students.isNotEmpty)
-              _DetailRow(
-                label: 'تلاميذه',
-                value: profile.students.join(' ، '),
-              ),
-          ] else ...[
-            // Minimal info if not in database
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                'لا تتوفر معلومات إضافية عن هذا الراوي في قاعدة البيانات',
-                style: GoogleFonts.cairo(
-                  fontSize: 12,
-                  color: NoorDesignSystem.textSecondary.withOpacity(0.6),
-                ),
-                textDirection: TextDirection.rtl,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _DetailRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _DetailRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 3,
-            child: Text(
-              value,
-              style: GoogleFonts.cairo(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-              textDirection: TextDirection.rtl,
-            ),
-          ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 80,
-            child: Text(
-              label,
-              style: GoogleFonts.cairo(
-                color: NoorDesignSystem.textSecondary,
-                fontSize: 13,
-              ),
-              textAlign: TextAlign.end,
-            ),
+          NarratorProfileBody(
+            narrator: narrator,
+            profile: profile,
+            accentColor: NoorDesignSystem.primaryGreen,
           ),
         ],
       ),
     );
   }
 }
+
