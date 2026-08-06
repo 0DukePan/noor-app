@@ -12,6 +12,7 @@ import 'core/router/app_router.dart';
 import 'core/services/services.dart';
 import 'core/services/hadith_user_data_service.dart';
 import 'core/services/narrator_database_service.dart';
+import 'core/data/data_sources/hadith_database.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -86,6 +87,15 @@ Future<void> _initializeServices() async {
   } catch (e) {
     debugPrint('HadithDataSource init failed: $e');
   }
+  try {
+    // Build the hadith SQLite database (cached on subsequent launches).
+    await HadithDatabase.database;
+  } catch (e) {
+    debugPrint('HadithDatabase init failed: $e');
+  }
+  // Build the scientific search index in the background so the first frame
+  // is not blocked; the index is also cached in Hive after the first build.
+  _initSearchEngine();
   try {
     await NarratorDatabaseService.init();
   } catch (e) {
@@ -186,6 +196,15 @@ Future<void> _initializeServices() async {
 
   // 6. Sync data if connected (background)
   OfflineDataService.syncIfNeeded();
+}
+
+/// Build the hadith search index in the background (errors are non-fatal).
+Future<void> _initSearchEngine() async {
+  try {
+    await HadithSearchEngine.init();
+  } catch (e) {
+    debugPrint('HadithSearchEngine init failed: $e');
+  }
 }
 
 /// نور - التطبيق الإسلامي الشامل

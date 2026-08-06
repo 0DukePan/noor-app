@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../data/data_sources/hadith_database.dart';
 
 /// 🔍 محرك البحث العلمي للأحاديث - Scientific Hadith Search Engine
 /// 
@@ -44,89 +44,65 @@ class HadithSearchEngine {
   /// بناء فهرس البحث
   static Future<void> _buildSearchIndex() async {
     debugPrint('Building hadith search index...');
-    
+
     _searchIndex = [];
     _companionIndex = {};
     _topicIndex = {};
-    
-    // Load all hadith books
-    final books = [
-      'bukhari', 'muslim', 'tirmidhi', 'abudawud', 'nasai',
-      'ibnmajah', 'malik', 'ahmad', 'darimi'
-    ];
-    
-    for (final book in books) {
-      try {
-        // Load book structure
-        final structureJson = await rootBundle.loadString(
-          'assets/hadith/$book/structure.json'
-        );
-        final structure = jsonDecode(structureJson);
-        final chapters = structure['chapters'] as List? ?? [];
-        
-        for (int i = 0; i < chapters.length; i++) {
-          try {
-            // Load chapter hadiths
-            final chapterJson = await rootBundle.loadString(
-              'assets/hadith/$book/chapters/${i + 1}.json'
-            );
-            final chapterData = jsonDecode(chapterJson);
-            final hadiths = chapterData['hadiths'] as List? ?? [];
-            
-            for (final hadith in hadiths) {
-              // Extract and index
-              final entry = _createIndexEntry(hadith, book, i + 1);
-              _searchIndex!.add(entry);
-              
-              // Index by companion
-              if (entry.companion.isNotEmpty) {
-                _companionIndex![entry.companion] ??= [];
-                _companionIndex![entry.companion]!.add(entry.id);
-              }
-              
-              // Index by topic
-              for (final topic in entry.topics) {
-                _topicIndex![topic] ??= [];
-                _topicIndex![topic]!.add(entry.id);
-              }
-            }
-          } catch (e) {
-            // Skip missing chapters
-          }
-        }
-      } catch (e) {
-        debugPrint('Error indexing $book: $e');
+
+    // Build the index from the SQLite corpus (the same data the reader uses),
+    // rather than re-parsing the per-chapter JSON assets.
+    final db = await HadithDatabase.database;
+    final rows = await db.query('hadiths', columns: [
+      'rowid',
+      'collection_id',
+      'id_in_book',
+      'chapter_id',
+      'arabic',
+      'english_narrator',
+    ]);
+
+    for (final row in rows) {
+      final entry = _createIndexEntry(row);
+      _searchIndex!.add(entry);
+
+      // Index by companion
+      if (entry.companion.isNotEmpty) {
+        _companionIndex![entry.companion] ??= [];
+        _companionIndex![entry.companion]!.add(entry.id);
+      }
+
+      // Index by topic
+      for (final topic in entry.topics) {
+        _topicIndex![topic] ??= [];
+        _topicIndex![topic]!.add(entry.id);
       }
     }
-    
+
     // Cache the index
     await _cacheIndex();
-    
+
     debugPrint('Index built: ${_searchIndex!.length} hadiths');
   }
 
-  static HadithIndexEntry _createIndexEntry(
-    Map<String, dynamic> hadith,
-    String book,
-    int chapter,
-  ) {
-    final text = hadith['arabic'] ?? hadith['text'] ?? hadith['hadith_text'] ?? '';
-    final narrator = hadith['narrator'] ?? hadith['rawi'] ?? '';
-    final number = hadith['number'] ?? hadith['hadith_number'] ?? 0;
-    final grade = hadith['grade'] ?? hadith['status'] ?? '';
-    
-    // Extract companion name from narrator chain
-    final companion = _extractCompanion(narrator);
-    
+  static HadithIndexEntry _createIndexEntry(Map<String, dynamic> row) {
+    final book = row['collection_id'] as String? ?? '';
+    final chapter = row['chapter_id'] as int? ?? 0;
+    final text = row['arabic'] as String? ?? '';
+    final narrator = row['english_narrator'] as String? ?? '';
+    final number = row['id_in_book'] as int? ?? 0;
+
+    // Extract companion name from the Arabic sanad
+    final companion = _extractCompanion(text);
+
     // Normalize for search (remove diacritics)
     final normalizedText = _normalize(text);
     final normalizedNarrator = _normalize(narrator);
-    
+
     // Extract topics from text
     final topics = _extractTopics(text);
-    
+
     return HadithIndexEntry(
-      id: '${book}_${chapter}_$number',
+      id: '${book}_${row['rowid']}',
       book: book,
       chapter: chapter,
       number: number,
@@ -135,7 +111,7 @@ class HadithSearchEngine {
       narrator: narrator,
       normalizedNarrator: normalizedNarrator,
       companion: companion,
-      grade: grade,
+      grade: '',
       topics: topics,
     );
   }
