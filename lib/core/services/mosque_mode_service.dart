@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'prayer_time_engine.dart';
-import 'weekly_scheduler_service.dart';
 
 /// 🕌 وضع المسجد - Mosque Mode Service
 /// يحول الهاتف للصامت تلقائيًا عند دخول وقت الصلاة

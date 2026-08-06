@@ -129,11 +129,6 @@ Future<void> _initializeServices() async {
   }
   if (!kIsWeb) {
     try {
-      await WeeklySchedulerService.init();
-    } catch (e) {
-      debugPrint('WeeklySchedulerService init failed: $e');
-    }
-    try {
       await AdhanSchedulerService.init();
     } catch (e) {
       debugPrint('AdhanSchedulerService init failed: $e');

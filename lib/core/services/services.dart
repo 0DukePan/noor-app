@@ -13,7 +13,6 @@ export 'adhan_scheduler_service.dart';
 
 // Professional Adhan System (8-Layer Architecture)
 export 'prayer_time_engine.dart';
-export 'weekly_scheduler_service.dart';
 export 'adhkar_timer_service.dart';
 export 'mosque_mode_service.dart';
 export 'silent_ui_controller.dart';

@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'prayer_time_engine.dart';
-import 'weekly_scheduler_service.dart';
+import 'location_trust_engine.dart';
 
 /// 📿 خدمة الأذكار المرتبطة بالوقت - Adhkar Timer Service
 /// الأذكار تظهر في وقتها الحقيقي فقط
@@ -22,9 +22,20 @@ class AdhkarTimerService {
   /// Refresh prayer times
   static Future<void> _refreshPrayerTimes() async {
     try {
-      _todayPrayerTimes = await WeeklySchedulerService.getTodayPrayerTimes();
+      final locationResult = await LocationTrustEngine.getTrustedLocation(
+        timeout: const Duration(seconds: 5),
+      );
+      final lat = locationResult.location?.latitude ?? 21.4225;
+      final lng = locationResult.location?.longitude ?? 39.8262;
+      _todayPrayerTimes = PrayerTimeEngine.calculate(
+        latitude: lat,
+        longitude: lng,
+        date: DateTime.now(),
+        method: CalculationMethod.ummAlQura,
+        utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
+      );
     } catch (e) {
-      // Fallback to default times
+      debugPrint('AdhkarTimerService refresh failed: $e');
     }
   }
 
