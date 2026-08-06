@@ -9,6 +9,7 @@ import '../../features/quran/presentation/pages/quran_mushaf_page.dart';
 import '../../features/quran/presentation/pages/khatmah_page.dart';
 import '../../features/quran/presentation/pages/tadabbur_page.dart';
 import '../../features/hadith/presentation/pages/hadith_page.dart';
+import '../../features/hadith/presentation/pages/advanced_hadith_browser_page.dart';
 import '../../features/hadith/presentation/pages/memorization_page.dart';
 import '../../features/hadith/presentation/pages/quiz_page.dart';
 import '../../features/hadith/presentation/pages/topic_tree_page.dart';
@@ -22,6 +23,7 @@ import '../../features/qibla/presentation/pages/qibla_page.dart';
 import '../../features/adhkar/presentation/pages/adhkar_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/settings/presentation/pages/notifications_settings_page.dart';
+import '../../features/settings/presentation/pages/notification_settings_page.dart';
 import '../../features/settings/presentation/pages/storage_settings_page.dart';
 import '../../features/settings/presentation/pages/cloud_settings_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
@@ -32,6 +34,7 @@ import '../../features/tools/presentation/pages/tools_page.dart';
 import '../../features/tools/presentation/pages/tasbih_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../widgets/main_shell.dart';
+import '../../core/domain/entities/hadith.dart';
 
 /// App Router Provider
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -145,8 +148,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'quiz',
                 name: 'hadith-quiz',
+                pageBuilder: (context, state) {
+                  final hadiths =
+                      (state.extra as List?)?.cast<Hadith>() ?? const <Hadith>[];
+                  return _buildPage(
+                    QuizPage(hadiths: hadiths),
+                    state,
+                  );
+                },
+              ),
+              GoRoute(
+                path: 'advanced',
+                name: 'hadith-advanced',
                 pageBuilder: (context, state) => _buildPage(
-                  const QuizPage(hadiths: []),
+                  const AdvancedHadithBrowserPage(),
                   state,
                 ),
               ),
@@ -183,6 +198,46 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 ),
               ),
             ],
+          ),
+          GoRoute(
+            path: '/adhkar',
+            name: 'adhkar',
+            pageBuilder: (context, state) => _buildPage(
+              const AdhkarPage(),
+              state,
+            ),
+          ),
+          GoRoute(
+            path: '/tafsir',
+            name: 'tafsir',
+            pageBuilder: (context, state) {
+              final surah = int.tryParse(
+                state.uri.queryParameters['surah'] ?? '',
+              );
+              final ayah = int.tryParse(
+                state.uri.queryParameters['ayah'] ?? '',
+              );
+              return _buildPage(
+                TafsirPage(initialSurah: surah, initialAyah: ayah),
+                state,
+              );
+            },
+          ),
+          GoRoute(
+            path: '/audio-player',
+            name: 'audio-player',
+            pageBuilder: (context, state) {
+              final surah = int.tryParse(
+                state.uri.queryParameters['surah'] ?? '',
+              );
+              final ayah = int.tryParse(
+                state.uri.queryParameters['ayah'] ?? '',
+              );
+              return _buildPage(
+                AudioPlayerPage(initialSurah: surah, initialAyah: ayah),
+                state,
+              );
+            },
           ),
           GoRoute(
             path: '/tools',
@@ -263,6 +318,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'notifications-settings',
                     pageBuilder: (context, state) => _buildPage(
                       const NotificationsSettingsPage(),
+                      state,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'notifications-smart',
+                    name: 'smart-notifications-settings',
+                    pageBuilder: (context, state) => _buildPage(
+                      const NotificationSettingsPage(),
                       state,
                     ),
                   ),

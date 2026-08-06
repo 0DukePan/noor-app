@@ -159,12 +159,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                 IconButton(
                   icon: const Icon(Icons.search_rounded),
                   color: isDark ? Colors.white70 : NoorDesignSystem.textSecondary,
-                  onPressed: () => context.go('/search'),
+                  onPressed: () => context.go('/tools/search'),
                 ),
                 IconButton(
                   icon: const Icon(Icons.settings_outlined),
                   color: isDark ? Colors.white70 : NoorDesignSystem.textSecondary,
-                  onPressed: () => context.go('/settings'),
+                  onPressed: () => context.go('/tools/settings'),
                 ),
               ],
             ),
