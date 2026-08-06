@@ -283,7 +283,10 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                           summerMinutes: v.round(),
                           winterMinutes: v.round(),
                         );
-                        ref.invalidate(prayerSettingsProvider);
+                        // Local rebuild only — never invalidate the settings
+                        // notifier here or adhan/mosque-mode state is wiped on
+                        // every drag tick.
+                        setState(() {});
                       },
                     ),
                   ),
@@ -310,7 +313,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
             child: TextButton.icon(
               onPressed: () {
                 SeasonalOffsetsEngine.resetOffsets();
-                ref.invalidate(prayerSettingsProvider);
+                setState(() {});
               },
               icon: const Icon(Icons.replay_rounded, size: 16),
               label: Text('إعادة تعيين', style: GoogleFonts.cairo(fontSize: 12)),

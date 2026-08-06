@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -184,12 +183,6 @@ class NextPrayerCard extends ConsumerWidget {
         final diff = time.difference(now);
         final hours = diff.inHours;
         final minutes = diff.inMinutes % 60;
-        
-        // Micro-interaction: light haptic feedback when very close to prayer.
-        // Use flag logic loosely (if exactly 1 sec boundary)
-        if (hours == 0 && minutes == 0 && diff.inSeconds <= 1) {
-           HapticFeedback.lightImpact();
-        }
 
         return {
           'name': schedule[i]['name'] as String,

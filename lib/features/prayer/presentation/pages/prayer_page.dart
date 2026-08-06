@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -261,11 +260,6 @@ class _NextPrayerCountdown extends StatelessWidget {
     final hours = diff.inHours;
     final minutes = diff.inMinutes % 60;
     final seconds = diff.inSeconds % 60;
-
-    // Haptic when very close
-    if (hours == 0 && minutes == 0 && seconds < 10) {
-      HapticFeedback.lightImpact();
-    }
 
     return Column(
       children: [
