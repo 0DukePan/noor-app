@@ -87,14 +87,11 @@ Future<void> _initializeServices() async {
   } catch (e) {
     debugPrint('HadithDataSource init failed: $e');
   }
-  try {
-    // Build the hadith SQLite database (cached on subsequent launches).
-    await HadithDatabase.database;
-  } catch (e) {
-    debugPrint('HadithDatabase init failed: $e');
-  }
-  // Build the scientific search index in the background so the first frame
-  // is not blocked; the index is also cached in Hive after the first build.
+  // Build the hadith SQLite database in the background so the first frame is
+  // not blocked by the one-time 17-book import (cached on later launches).
+  HadithDatabase.warmUp();
+  // Build the scientific search index in the background too; it is cached in
+  // Hive after the first build.
   _initSearchEngine();
   try {
     await NarratorDatabaseService.init();

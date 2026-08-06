@@ -12,7 +12,6 @@ import '../../domain/entities/hadith.dart';
 /// Builds and caches an SQLite database from JSON assets on first launch.
 /// Subsequent launches use the pre-built database for instant queries.
 class HadithDatabase {
-  static Database? _db;
   static const int _dbVersion = 1;
   static const String _dbName = 'hadith_v1.db';
 
@@ -35,10 +34,21 @@ class HadithDatabase {
   ];
 
   /// Returns the singleton database instance, building it on first call.
-  static Future<Database> get database async {
-    if (_db != null) return _db!;
-    _db = await _initDatabase();
-    return _db!;
+  ///
+  /// Memoized on a future so concurrent callers (e.g. the search index build
+  /// racing the first hadith page visit) share a single initialization.
+  static Future<Database>? _dbFuture;
+
+  static Future<Database> get database => _dbFuture ??= _initDatabase();
+
+  /// Kick off database creation in the background so the first frame is not
+  /// blocked by the one-time 17-book import.
+  static Future<void> warmUp() async {
+    try {
+      await database;
+    } catch (e) {
+      debugPrint('HadithDatabase warmUp failed: $e');
+    }
   }
 
   static Future<Database> _initDatabase() async {
@@ -53,6 +63,10 @@ class HadithDatabase {
         await _createTables(db);
         await _importAllBooks(db);
         debugPrint('✅ Hadith database created successfully.');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        debugPrint('🗄️ Upgrading Hadith database $oldVersion → $newVersion');
+        // Add future migrations here as _dbVersion is bumped.
       },
     );
   }
@@ -385,7 +399,11 @@ class HadithDatabase {
 
   /// Close the database
   static Future<void> close() async {
-    await _db?.close();
-    _db = null;
+    final future = _dbFuture;
+    _dbFuture = null;
+    if (future != null) {
+      await future;
+      await (await future).close();
+    }
   }
 }
