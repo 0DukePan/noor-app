@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/design_system.dart';
 import '../../../../core/widgets/book_card.dart';
@@ -42,6 +43,22 @@ class _HadithPageState extends ConsumerState<HadithPage> {
     setState(() {
       _lastProgress = HadithUserDataService.getLastReadingProgress();
     });
+  }
+
+  /// Launch a quiz over a real hadith deck (the Nawawi 40 collection).
+  Future<void> _startQuiz() async {
+    try {
+      final ds = ref.read(localHadithDataSourceProvider);
+      final hadiths = await ds.getHadithsPage(
+        bookId: 'nawawi40',
+        page: 1,
+        limit: 20,
+      );
+      if (!mounted || hadiths.isEmpty) return;
+      context.go('/hadith/quiz', extra: hadiths);
+    } catch (e) {
+      debugPrint('Failed to load quiz deck: $e');
+    }
   }
 
   @override
@@ -114,6 +131,12 @@ class _HadithPageState extends ConsumerState<HadithPage> {
                     MaterialPageRoute(builder: (_) => const HadithSearchPage()),
                   );
                 },
+              ),
+              // Quiz
+              IconButton(
+                icon: const Icon(Icons.quiz_rounded),
+                tooltip: 'اختبار الحديث',
+                onPressed: _startQuiz,
               ),
             ],
           ),
