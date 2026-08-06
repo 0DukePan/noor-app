@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/models/tafsir_models.dart';
 import '../../../../core/services/tafsir_data_source.dart';
 import '../../../../core/theme/tafsir_theme.dart';
+import '../../../../core/domain/entities/surah_names.dart';
 import '../widgets/tafsir_widgets.dart';
 
 /// 📖 TafsirPage - صفحة التفسير الرئيسية
@@ -27,24 +28,6 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
   TafsirSourceId _currentSource = TafsirSourceId.muyassar;
   SurahTafsir? _surahTafsir;
   bool _isLoading = true;
-
-  final List<String> _surahNames = [
-    'الفاتحة', 'البقرة', 'آل عمران', 'النساء', 'المائدة', 'الأنعام', 'الأعراف', 'الأنفال',
-    'التوبة', 'يونس', 'هود', 'يوسف', 'الرعد', 'إبراهيم', 'الحجر', 'النحل',
-    'الإسراء', 'الكهف', 'مريم', 'طه', 'الأنبياء', 'الحج', 'المؤمنون', 'النور',
-    'الفرقان', 'الشعراء', 'النمل', 'القصص', 'العنكبوت', 'الروم', 'لقمان', 'السجدة',
-    'الأحزاب', 'سبأ', 'فاطر', 'يس', 'الصافات', 'ص', 'الزمر', 'غافر',
-    'فصلت', 'الشورى', 'الزخرف', 'الدخان', 'الجاثية', 'الأحقاف', 'محمد', 'الفتح',
-    'الحجرات', 'ق', 'الذاريات', 'الطور', 'النجم', 'القمر', 'الرحمن', 'الواقعة',
-    'الحديد', 'المجادلة', 'الحشر', 'الممتحنة', 'الصف', 'الجمعة', 'المنافقون', 'التغابن',
-    'الطلاق', 'التحريم', 'الملك', 'القلم', 'الحاقة', 'المعارج', 'نوح', 'الجن',
-    'المزمل', 'المدثر', 'القيامة', 'الإنسان', 'المرسلات', 'النبأ', 'النازعات', 'عبس',
-    'التكوير', 'الانفطار', 'المطففين', 'الانشقاق', 'البروج', 'الطارق', 'الأعلى', 'الغاشية',
-    'الفجر', 'البلد', 'الشمس', 'الليل', 'الضحى', 'الشرح', 'التين', 'العلق',
-    'القدر', 'البينة', 'الزلزلة', 'العاديات', 'القارعة', 'التكاثر', 'العصر', 'الهمزة',
-    'الفيل', 'قريش', 'الماعون', 'الكوثر', 'الكافرون', 'النصر', 'المسد', 'الإخلاص',
-    'الفلق', 'الناس',
-  ];
 
   @override
   void initState() {
@@ -172,7 +155,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
                     ),
                     items: List.generate(114, (i) => DropdownMenuItem(
                       value: i + 1,
-                      child: Text('${i + 1}. ${_surahNames[i]}',
+                      child: Text('${i + 1}. ${kSurahNames[i]}',
                         style: GoogleFonts.cairo(fontSize: 14)),
                     )),
                     onChanged: (value) {
@@ -255,7 +238,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
             leading: CircleAvatar(
               child: Text('${bookmark.ayah}'),
             ),
-            title: Text('سورة ${_surahNames[bookmark.surah - 1]} - الآية ${bookmark.ayah}'),
+            title: Text('سورة ${kSurahNames[bookmark.surah - 1]} - الآية ${bookmark.ayah}'),
             subtitle: Text(TafsirSource.get(bookmark.source).arabicName),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline),
@@ -317,7 +300,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
             leading: CircleAvatar(
               child: Text('${item.ayah}'),
             ),
-            title: Text('سورة ${_surahNames[item.surah - 1]} - الآية ${item.ayah}'),
+            title: Text('سورة ${kSurahNames[item.surah - 1]} - الآية ${item.ayah}'),
             subtitle: Text(
               '${TafsirSource.get(item.source).arabicName} • ${_formatDate(item.lastRead)}',
             ),
