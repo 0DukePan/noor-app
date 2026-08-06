@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/services/hadith_user_data_service.dart';
 import '../../../../core/theme/design_system.dart';
+import '../hadith_book_names.dart';
 import 'hadith_reader_page.dart';
 
 /// صفحة المحفوظات - Bookmarked Hadiths Page
@@ -17,20 +18,6 @@ class BookmarkedHadithsPage extends StatefulWidget {
 
 class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
   List<Map<String, dynamic>> _bookmarks = [];
-
-  static const Map<String, String> _collectionNames = {
-    'bukhari': 'صحيح البخاري',
-    'muslim': 'صحيح مسلم',
-    'abudawud': 'سنن أبي داود',
-    'tirmidhi': 'جامع الترمذي',
-    'nasai': 'سنن النسائي',
-    'ibnmajah': 'سنن ابن ماجه',
-    'malik': 'موطأ مالك',
-    'ahmed': 'مسند أحمد',
-    'darimi': 'سنن الدارمي',
-    'nawawi40': 'الأربعون النووية',
-    'qudsi40': 'الأحاديث القدسية',
-  };
 
   @override
   void initState() {
@@ -193,7 +180,7 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
                     MaterialPageRoute(
                       builder: (_) => HadithReaderPage(
                         hadith: hadith,
-                        bookTitle: _collectionNames[collectionId] ?? collectionId,
+                        bookTitle: hadithBookName(collectionId),
                         chapterTitle: '',
                         bookColor: NoorDesignSystem.emeraldGreen,
                         allHadiths: [hadith],
@@ -218,7 +205,7 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              _collectionNames[collectionId] ?? collectionId,
+                              hadithBookName(collectionId),
                               style: GoogleFonts.cairo(
                                 fontSize: 11,
                                 color: NoorDesignSystem.primaryGreen,

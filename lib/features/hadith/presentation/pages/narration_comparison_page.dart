@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../core/services/hadith_search_engine.dart';
 import '../../../../core/theme/noor_theme.dart';
+import '../hadith_book_names.dart';
 
 /// مقارنة الروايات المتعددة - Multi-Narration Comparison Page
 /// Uses HadithSearchEngine to find real narrations matching the keyword.
@@ -490,20 +491,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
   // HELPERS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  String _getBookName(String book) {
-    const names = {
-      'bukhari': 'صحيح البخاري',
-      'muslim': 'صحيح مسلم',
-      'tirmidhi': 'جامع الترمذي',
-      'abudawud': 'سنن أبي داود',
-      'nasai': 'سنن النسائي',
-      'ibnmajah': 'سنن ابن ماجه',
-      'malik': 'موطأ مالك',
-      'ahmad': 'مسند أحمد',
-      'darimi': 'سنن الدارمي',
-    };
-    return names[book] ?? book;
-  }
+  String _getBookName(String book) => hadithBookName(book);
 
   Color _getGradeColor(String grade) {
     if (grade.contains('صحيح')) return NoorTheme.hadithSahih;

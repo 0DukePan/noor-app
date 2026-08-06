@@ -9,6 +9,7 @@ import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/services/hadith_user_data_service.dart';
 import '../../../../core/data/data_sources/local_hadith_data_source.dart';
 import '../providers/hadith_providers.dart';
+import '../hadith_book_names.dart';
 import 'bookmarked_hadiths_page.dart';
 import 'hadith_chapters_page.dart';
 import 'hadith_reader_page.dart';
@@ -280,22 +281,13 @@ class _ContinueReadingCard extends StatelessWidget {
 
   const _ContinueReadingCard({required this.progress, required this.onTap});
 
-  static const Map<String, String> _collectionNames = {
-    'bukhari': 'صحيح البخاري',
-    'muslim': 'صحيح مسلم',
-    'abudawud': 'سنن أبي داود',
-    'tirmidhi': 'جامع الترمذي',
-    'nasai': 'سنن النسائي',
-    'ibnmajah': 'سنن ابن ماجه',
-    'malik': 'موطأ مالك',
-    'ahmed': 'مسند أحمد',
-    'darimi': 'سنن الدارمي',
-  };
-
   @override
   Widget build(BuildContext context) {
     final bookId = progress['bookId'] as String? ?? '';
-    final bookTitle = _collectionNames[bookId] ?? progress['bookTitle'] as String? ?? '';
+    final knownName = hadithBookName(bookId);
+    final bookTitle = knownName == bookId
+        ? (progress['bookTitle'] as String? ?? '')
+        : knownName;
     final hadithIndex = progress['hadithIndex'] as int? ?? 0;
     final totalHadiths = progress['totalHadiths'] as int? ?? 1;
     final colorValue = progress['colorValue'] as int? ?? NoorDesignSystem.emeraldGreen.value;

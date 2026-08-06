@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/hadith_search_engine.dart';
+import '../hadith_book_names.dart';
 import 'scholar_mode_page.dart';
 import 'layered_hadith_page.dart';
 
@@ -511,20 +512,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
   }
 
 
-  String _getBookName(String book) {
-    const names = {
-      'bukhari': 'صحيح البخاري',
-      'muslim': 'صحيح مسلم',
-      'tirmidhi': 'جامع الترمذي',
-      'abudawud': 'سنن أبي داود',
-      'nasai': 'سنن النسائي',
-      'ibnmajah': 'سنن ابن ماجه',
-      'malik': 'موطأ مالك',
-      'ahmad': 'مسند أحمد',
-      'darimi': 'سنن الدارمي',
-    };
-    return names[book] ?? book;
-  }
+  String _getBookName(String book) => hadithBookName(book);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

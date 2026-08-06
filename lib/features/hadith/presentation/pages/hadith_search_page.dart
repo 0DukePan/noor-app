@@ -8,6 +8,7 @@ import '../../../../core/data/data_sources/local_hadith_data_source.dart';
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/theme/noor_theme.dart';
 import '../providers/hadith_providers.dart';
+import '../hadith_book_names.dart';
 import 'hadith_reader_page.dart';
 
 /// صفحة البحث المتقدم - Advanced Hadith Search (SQLite FTS5)
@@ -26,19 +27,6 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
   bool _isSearching = false;
   bool _hasSearched = false;
   Timer? _debounceTimer;
-
-  // Map display name → bookId for the filter
-  static const Map<String, String> _collectionMap = {
-    'bukhari': 'صحيح البخاري',
-    'muslim': 'صحيح مسلم',
-    'abudawud': 'سنن أبي داود',
-    'tirmidhi': 'جامع الترمذي',
-    'nasai': 'سنن النسائي',
-    'ibnmajah': 'سنن ابن ماجه',
-    'malik': 'موطأ مالك',
-    'ahmed': 'مسند أحمد',
-    'darimi': 'سنن الدارمي',
-  };
 
   @override
   void dispose() {
@@ -216,7 +204,9 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
                           value: null,
                           child: Text('جميع الكتب', style: GoogleFonts.cairo()),
                         ),
-                        ..._collectionMap.entries.map((e) {
+                        ...kHadithBookNames.entries
+                            .where((e) => e.key != 'ahmad') // skip alias
+                            .map((e) {
                           return DropdownMenuItem<String?>(
                             value: e.key,
                             child: Text(e.value, style: GoogleFonts.cairo(fontSize: 14)),
@@ -337,14 +327,14 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
               final hadith = _results[index];
               return _SearchResultCard(
                 hadith: hadith,
-                collectionName: _collectionMap[hadith.collectionId] ?? hadith.collectionId ?? '',
+                collectionName: hadithBookName(hadith.collectionId ?? ''),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => HadithReaderPage(
                         hadith: hadith,
-                        bookTitle: _collectionMap[hadith.collectionId] ?? hadith.collectionId ?? '',
+                        bookTitle: hadithBookName(hadith.collectionId ?? ''),
                         chapterTitle: '',
                         bookColor: const Color(0xFF1B5E20),
                         allHadiths: _results,

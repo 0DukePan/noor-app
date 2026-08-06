@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../../core/services/hadith_user_data_service.dart';
 import '../../../../core/theme/noor_theme.dart';
+import '../hadith_book_names.dart';
 
 /// إحصائيات التعلم - Learning Statistics Page
 /// Loads real user data from Hive (bookmarks, notes, quiz scores, memorization).
@@ -375,22 +376,7 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
     );
   }
 
-  String _getBookName(String book) {
-    const names = {
-      'bukhari': 'صحيح البخاري',
-      'muslim': 'صحيح مسلم',
-      'tirmidhi': 'جامع الترمذي',
-      'abudawud': 'سنن أبي داود',
-      'nasai': 'سنن النسائي',
-      'ibnmajah': 'سنن ابن ماجه',
-      'malik': 'موطأ مالك',
-      'ahmad': 'مسند أحمد',
-      'darimi': 'سنن الدارمي',
-      'nawawi40': 'الأربعون النووية',
-      'qudsi40': 'الأحاديث القدسية',
-    };
-    return names[book] ?? book;
-  }
+  String _getBookName(String book) => hadithBookName(book);
 }
 
 class _RealStats {

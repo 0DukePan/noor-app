@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../../../core/theme/design_system.dart';
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/services/hadith_search_engine.dart';
+import '../hadith_book_names.dart';
 import '../pages/isnad_chain_page.dart';
 import '../pages/isnad_graph_page.dart';
 import '../pages/narration_comparison_page.dart';
@@ -492,18 +493,8 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
   }
 
   String _getCollectionFullName(String id) {
-    const names = {
-      'bukhari': 'صحيح البخاري',
-      'muslim': 'صحيح مسلم',
-      'tirmidhi': 'سنن الترمذي',
-      'abudawud': 'سنن أبي داود',
-      'nasai': 'سنن النسائي',
-      'ibnmajah': 'سنن ابن ماجه',
-      'malik': 'موطأ الإمام مالك',
-      'ahmad': 'مسند الإمام أحمد',
-      'darimi': 'سنن الدارمي',
-    };
-    return names[id] ?? widget.bookTitle;
+    final name = hadithBookName(id);
+    return name == id ? widget.bookTitle : name;
   }
 }
 

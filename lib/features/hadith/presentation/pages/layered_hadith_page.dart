@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/hadith_search_engine.dart';
 import '../../../../core/services/share_as_image_service.dart';
+import '../hadith_book_names.dart';
 import 'scholar_mode_page.dart';
 
 /// 📜 طبقات الحديث - Layered Hadith View
@@ -693,20 +694,7 @@ ${widget.hadith.text}
     // This would typically use a navigation callback
   }
 
-  String _getBookName(String book) {
-    const names = {
-      'bukhari': 'صحيح البخاري',
-      'muslim': 'صحيح مسلم',
-      'tirmidhi': 'جامع الترمذي',
-      'abudawud': 'سنن أبي داود',
-      'nasai': 'سنن النسائي',
-      'ibnmajah': 'سنن ابن ماجه',
-      'malik': 'موطأ مالك',
-      'ahmad': 'مسند أحمد',
-      'darimi': 'سنن الدارمي',
-    };
-    return names[book] ?? book;
-  }
+  String _getBookName(String book) => hadithBookName(book);
 
   Color _getGradeColor(String grade) {
     if (grade.contains('صحيح')) return Colors.green;

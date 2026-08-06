@@ -6,6 +6,7 @@ import '../../../../core/services/isnad_parser_service.dart';
 import '../../../../core/services/narrator_database_service.dart';
 import '../../../../core/services/share_as_image_service.dart';
 import '../../../../core/theme/noor_theme.dart';
+import '../hadith_book_names.dart';
 
 /// 🎓 وضع طالب العلم - Scholar Mode for Hadith
 /// 
@@ -818,18 +819,5 @@ ${widget.hadith.companion.isNotEmpty ? '👤 ${widget.hadith.companion}' : ''}
     return Colors.grey;
   }
 
-  String _getBookName(String book) {
-    const names = {
-      'bukhari': 'صحيح البخاري',
-      'muslim': 'صحيح مسلم',
-      'tirmidhi': 'جامع الترمذي',
-      'abudawud': 'سنن أبي داود',
-      'nasai': 'سنن النسائي',
-      'ibnmajah': 'سنن ابن ماجه',
-      'malik': 'موطأ مالك',
-      'ahmad': 'مسند أحمد',
-      'darimi': 'سنن الدارمي',
-    };
-    return names[book] ?? book;
-  }
+  String _getBookName(String book) => hadithBookName(book);
 }

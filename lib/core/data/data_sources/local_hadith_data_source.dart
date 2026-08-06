@@ -23,6 +23,22 @@ class LocalHadithDataSource {
     )).toList();
   }
 
+  /// Map a `hadiths` table row to a [Hadith] entity.
+  /// [defaultCollectionId] is used when the row lacks a `collection_id`
+  /// (e.g. queries scoped to a single book).
+  static Hadith _mapRowToHadith(Map<String, dynamic> row, {String? defaultCollectionId}) {
+    return Hadith(
+      id: row['id'] as int,
+      idInBook: row['id_in_book'] as int? ?? row['id'] as int,
+      arabic: row['arabic'] as String,
+      englishText: row['english_text'] as String? ?? '',
+      narratorEnglish: row['english_narrator'] as String? ?? '',
+      chapterId: row['chapter_id'] as int? ?? 0,
+      bookId: null,
+      collectionId: row['collection_id'] as String? ?? defaultCollectionId,
+    );
+  }
+
   /// Load a "book" - now just fetches metadata + chapters + first batch
   Future<HadithBook> loadBook(String bookId) async {
     final chapters = await getChapters(bookId);
@@ -38,16 +54,9 @@ class LocalHadithDataSource {
       limit: 100000, // Effectively "all"
     );
 
-    final hadiths = hadithRows.map((h) => Hadith(
-      id: h['id'] as int,
-      idInBook: h['id_in_book'] as int? ?? h['id'] as int,
-      arabic: h['arabic'] as String,
-      englishText: h['english_text'] as String? ?? '',
-      narratorEnglish: h['english_narrator'] as String? ?? '',
-      chapterId: h['chapter_id'] as int? ?? 0,
-      bookId: null,
-      collectionId: bookId,
-    )).toList();
+    final hadiths = hadithRows
+        .map((h) => _mapRowToHadith(h, defaultCollectionId: bookId))
+        .toList();
 
     return HadithBook(
       id: bookId,
@@ -86,62 +95,26 @@ class LocalHadithDataSource {
       limit: limit,
       offset: offset,
     );
-    return rows.map((h) => Hadith(
-      id: h['id'] as int,
-      idInBook: h['id_in_book'] as int? ?? h['id'] as int,
-      arabic: h['arabic'] as String,
-      englishText: h['english_text'] as String? ?? '',
-      narratorEnglish: h['english_narrator'] as String? ?? '',
-      chapterId: h['chapter_id'] as int? ?? 0,
-      bookId: null,
-      collectionId: bookId,
-    )).toList();
+    return rows.map((h) => _mapRowToHadith(h, defaultCollectionId: bookId)).toList();
   }
 
   /// Search within a book or across all books
   Future<List<Hadith>> searchHadiths(String query, {String? bookId}) async {
     final rows = await HadithDatabase.search(query, collectionId: bookId);
-    return rows.map((h) => Hadith(
-      id: h['id'] as int,
-      idInBook: h['id_in_book'] as int? ?? h['id'] as int,
-      arabic: h['arabic'] as String,
-      englishText: h['english_text'] as String? ?? '',
-      narratorEnglish: h['english_narrator'] as String? ?? '',
-      chapterId: h['chapter_id'] as int? ?? 0,
-      bookId: null,
-      collectionId: h['collection_id'] as String? ?? bookId,
-    )).toList();
+    return rows.map((h) => _mapRowToHadith(h, defaultCollectionId: bookId)).toList();
   }
 
   /// Search by narrator
   Future<List<Hadith>> searchByNarrator(String narrator) async {
     final rows = await HadithDatabase.searchByNarrator(narrator);
-    return rows.map((h) => Hadith(
-      id: h['id'] as int,
-      idInBook: h['id_in_book'] as int? ?? h['id'] as int,
-      arabic: h['arabic'] as String,
-      englishText: h['english_text'] as String? ?? '',
-      narratorEnglish: h['english_narrator'] as String? ?? '',
-      chapterId: h['chapter_id'] as int? ?? 0,
-      bookId: null,
-      collectionId: h['collection_id'] as String?,
-    )).toList();
+    return rows.map((h) => _mapRowToHadith(h)).toList();
   }
 
   /// Get a random hadith (Hadith of the Day)
   Future<Hadith?> getRandomHadith() async {
     final row = await HadithDatabase.getRandomHadith();
     if (row == null) return null;
-    return Hadith(
-      id: row['id'] as int,
-      idInBook: row['id_in_book'] as int? ?? row['id'] as int,
-      arabic: row['arabic'] as String,
-      englishText: row['english_text'] as String? ?? '',
-      narratorEnglish: row['english_narrator'] as String? ?? '',
-      chapterId: row['chapter_id'] as int? ?? 0,
-      bookId: null,
-      collectionId: row['collection_id'] as String?,
-    );
+    return _mapRowToHadith(row);
   }
 
   /// Get chapter hadith counts
