@@ -3,13 +3,13 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../../core/theme/design_system.dart';
 import '../../../../core/theme/tafsir_theme.dart';
 import '../../../../core/domain/entities/surah.dart';
 import '../../../../core/models/tafsir_models.dart';
 import '../../../../core/services/tafsir_data_source.dart';
+import '../../../../core/services/statistics_service.dart';
 import '../providers/quran_providers.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -203,9 +203,23 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
 
   void _saveReadingProgress(int page) async {
     try {
-      final box = Hive.box('quranProgress');
-      await box.put('lastPage', page);
-    } catch (_) {}
+      final verses = await ref.read(quranPageProvider(page).future);
+      if (verses.isEmpty) return;
+      final first = verses.first;
+      final surah = first.surahNumber ?? 1;
+      final ayah = first.numberInSurah;
+
+      // Statistics/home card reads the app_statistics box.
+      await StatisticsService.recordVerseRead(surah, ayah);
+      // Quran page "continue reading" reads the reading_progress box.
+      await ref.read(quranRepositoryProvider).saveReadingProgress(
+            surahNumber: surah,
+            verseNumber: ayah,
+            page: page,
+          );
+    } catch (_) {
+      // Progress is best-effort; never block paging on a write failure.
+    }
   }
 
   void _showThemeSelector(BuildContext context, WidgetRef ref) {
