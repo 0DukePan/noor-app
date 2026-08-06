@@ -1,11 +1,8 @@
 export 'location_service.dart';
-export 'compass_service.dart';
 export 'prayer_calculation_service.dart';
 export 'supabase_service.dart';
 export 'hive_service.dart';
 export 'api_fetcher_service.dart';
-export 'cache_manager.dart';
-export 'smart_notification_service.dart';
 export 'quran_audio_service.dart';
 export 'offline_data_service.dart';
 export 'widget_service.dart';
@@ -47,7 +44,6 @@ export 'prayer_health_check.dart';
 
 // Polish Features
 export 'share_as_image_service.dart';
-export 'home_widget_service.dart';
 
 // Advanced Hadith System (Better than Jami' Al-Kutub)
 export 'hadith_search_engine.dart';

@@ -168,11 +168,6 @@ Future<void> _initializeServices() async {
   // 4. Smart notifications (Skip on web if not supported or causing issues)
   if (!kIsWeb) {
     try {
-      await SmartNotificationService.initialize();
-    } catch (e) {
-      debugPrint('SmartNotificationService init failed: $e');
-    }
-    try {
       await SmartNotificationEngine.init();
     } catch (e) {
       debugPrint('SmartNotificationEngine init failed: $e');

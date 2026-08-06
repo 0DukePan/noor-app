@@ -23,7 +23,6 @@ import '../../features/qibla/presentation/pages/qibla_page.dart';
 import '../../features/adhkar/presentation/pages/adhkar_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/settings/presentation/pages/notifications_settings_page.dart';
-import '../../features/settings/presentation/pages/notification_settings_page.dart';
 import '../../features/settings/presentation/pages/storage_settings_page.dart';
 import '../../features/settings/presentation/pages/cloud_settings_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
@@ -318,14 +317,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'notifications-settings',
                     pageBuilder: (context, state) => _buildPage(
                       const NotificationsSettingsPage(),
-                      state,
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'notifications-smart',
-                    name: 'smart-notifications-settings',
-                    pageBuilder: (context, state) => _buildPage(
-                      const NotificationSettingsPage(),
                       state,
                     ),
                   ),
