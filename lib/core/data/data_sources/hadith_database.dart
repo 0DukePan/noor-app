@@ -131,6 +131,23 @@ class HadithDatabase {
       final path = 'assets/hadith/by_book/${book['path']}';
       await _importBook(db, book['id']!, path);
     }
+
+    // Rebuild the FTS5 index from the content table. External-content FTS
+    // tables must be rebuilt after the content rows are inserted, otherwise
+    // the rowids in the index do not match the content table and search
+    // silently returns nothing.
+    await _rebuildFts(db);
+  }
+
+  /// Rebuilds the `hadiths_fts` external-content index so its rowids align
+  /// with the `hadiths` content table.
+  static Future<void> _rebuildFts(Database db) async {
+    try {
+      await db.execute("INSERT INTO hadiths_fts(hadiths_fts) VALUES('rebuild')");
+      debugPrint('✅ FTS index rebuilt.');
+    } catch (e) {
+      debugPrint('❌ FTS rebuild failed: $e');
+    }
   }
 
   static Future<void> _importBook(Database db, String bookId, String assetPath) async {
@@ -174,7 +191,6 @@ class HadithDatabase {
       for (int i = 0; i < hadithsList.length; i += batchSize) {
         final end = (i + batchSize > hadithsList.length) ? hadithsList.length : i + batchSize;
         final batch = db.batch();
-        final ftsBatch = db.batch();
 
         for (int j = i; j < end; j++) {
           final h = hadithsList[j] as Map<String, dynamic>;
@@ -189,33 +205,15 @@ class HadithDatabase {
             'english_narrator': engMap['narrator'] ?? '',
             'english_text': engMap['text'] ?? '',
           }, conflictAlgorithm: ConflictAlgorithm.replace);
-
-          // Also insert into FTS table
-          ftsBatch.insert('hadiths_fts', {
-            'rowid': _generateRowId(bookId, h['id'] ?? j),
-            'arabic': h['arabic'] ?? '',
-            'english_text': engMap['text'] ?? '',
-            'english_narrator': engMap['narrator'] ?? '',
-          });
         }
 
         await batch.commit(noResult: true);
-        try {
-          await ftsBatch.commit(noResult: true);
-        } catch (_) {
-          // FTS insert may fail for duplicates; safe to ignore
-        }
       }
 
       debugPrint('  ✅ $bookId: ${hadithsList.length} hadiths imported.');
     } catch (e) {
       debugPrint('  ❌ Error importing $bookId: $e');
     }
-  }
-
-  /// Generate a stable rowid from bookId and hadith id
-  static int _generateRowId(String bookId, dynamic hadithId) {
-    return bookId.hashCode.abs() * 100000 + (hadithId is int ? hadithId : 0);
   }
 
   // ═══════════════════════════════════════════════════════════════════
@@ -316,19 +314,45 @@ class HadithDatabase {
         args = ['"$query"', limit];
       }
 
-      return db.rawQuery(sql, args);
+      final results = await db.rawQuery(sql, args);
+      if (results.isNotEmpty) return results;
+
+      // FTS found nothing (e.g. an unusual tokenization) → fall through to LIKE.
     } catch (_) {
-      // Fallback to LIKE search if FTS fails
-      String where = '(arabic LIKE ? OR english_text LIKE ?)';
-      List<dynamic> args = ['%$query%', '%$query%'];
-
-      if (collectionId != null) {
-        where += ' AND collection_id = ?';
-        args.add(collectionId);
-      }
-
-      return db.query('hadiths', where: where, whereArgs: args, limit: limit);
+      // Invalid FTS syntax (special characters) → fall through to LIKE.
     }
+
+    // Fallback: normalized LIKE search across Arabic and English text.
+    final normalizedQuery = normalizeForSearch(query);
+    String where = '(arabic LIKE ? OR english_text LIKE ? OR english_narrator LIKE ?)';
+    List<dynamic> args = ['%$normalizedQuery%', '%$normalizedQuery%', '%$normalizedQuery%'];
+
+    if (collectionId != null) {
+      where += ' AND collection_id = ?';
+      args.add(collectionId);
+    }
+
+    return db.query('hadiths', where: where, whereArgs: args, limit: limit);
+  }
+
+  /// Strips characters that are useless for LIKE matching (diacritics, hamza
+  /// variants, tatweel) and collapses whitespace, so searches still hit even
+  /// when the user omits diacritics.
+  static String normalizeForSearch(String input) {
+    const diacritics =
+        '\u064B\u064C\u064D\u064E\u064F\u0650\u0651\u0652\u0653\u0654\u0655\u0656';
+    final buffer = StringBuffer();
+    for (final rune in input.runes) {
+      final ch = String.fromCharCode(rune);
+      if (diacritics.contains(ch)) continue;
+      if (ch == ' ') {
+        if (buffer.isEmpty || buffer.toString().endsWith(' ')) continue;
+        buffer.write(' ');
+        continue;
+      }
+      buffer.write(ch);
+    }
+    return buffer.toString().trim();
   }
 
   /// Search by narrator name
