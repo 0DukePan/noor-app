@@ -39,6 +39,9 @@ class NarratorDatabaseService {
           role: m['role'] as String? ?? '',
           teachers: List<String>.from(m['teachers'] ?? []),
           students: List<String>.from(m['students'] ?? []),
+          tadlis: m['tadlis'] as String? ?? '',
+          ikhtilat: m['ikhtilat'] as String? ?? '',
+          verdictSource: m['verdictSource'] as String? ?? '',
         );
       }).toList();
 
@@ -122,6 +125,12 @@ class NarratorDatabaseService {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// ملف الراوي الشامل - Complete Narrator Profile
+///
+/// The database is intentionally scoped: it currently contains ~63 well-known
+/// narrators with basic biographical metadata. The Ilm al-Rijal fields below
+/// ([tadlis], [ikhtilat], [verdictSource]) exist in the schema so the app can
+/// grow into them, but are left unpopulated rather than fabricating scholarly
+/// verdicts.
 class NarratorProfile {
   final String name;
   final List<String> aliases;
@@ -133,6 +142,15 @@ class NarratorProfile {
   final List<String> teachers;
   final List<String> students;
 
+  /// Whether the narrator is documented as a mudallis (practitioner of tadlis).
+  final String tadlis;
+
+  /// Documented disagreements about the narrator (Ikhtilat).
+  final String ikhtilat;
+
+  /// Source of the reliability verdict (e.g. Ibn Hajar, al-Dhahabi).
+  final String verdictSource;
+
   const NarratorProfile({
     required this.name,
     required this.aliases,
@@ -143,6 +161,9 @@ class NarratorProfile {
     required this.role,
     required this.teachers,
     required this.students,
+    this.tadlis = '',
+    this.ikhtilat = '',
+    this.verdictSource = '',
   });
 
   /// Display-friendly death year

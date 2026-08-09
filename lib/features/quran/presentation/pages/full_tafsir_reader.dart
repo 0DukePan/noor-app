@@ -619,11 +619,38 @@ class _WordAnalysisSheetState extends State<_WordAnalysisSheet> {
   @override
   void initState() {
     super.initState();
-    _words = _getWordMappings(widget.surah, widget.ayah);
+    _words = _getFatihaMappings(widget.surah, widget.ayah) ?? const [];
+    if (widget.surah != 1) {
+      _loadRealWords();
+    }
   }
 
-  List<_WordData> _getWordMappings(int surah, int ayah) {
-    // Al-Fatiha: full morphological data for demonstration
+  /// Loads the REAL words of the ayah for non-Fatiha surahs. Morphological
+  /// details (root/meaning/i'rab) are only curated for Al-Fatiha; for other
+  /// surahs the sheet shows the actual vocabulary instead of fabricating data.
+  Future<void> _loadRealWords() async {
+    try {
+      final verse = await QuranDataSource.getVerse(widget.surah, widget.ayah);
+      if (!mounted) return;
+      final text = verse?['text'] as String? ?? '';
+      final words = text
+          .split(RegExp(r'\s+'))
+          .where((w) => w.trim().isNotEmpty)
+          .toList();
+      setState(() {
+        _words = words
+            .map((w) => _WordData(w.trim(), '', '', '', '', ''))
+            .toList();
+      });
+    } catch (e) {
+      debugPrint('Failed to load verse words: $e');
+    }
+  }
+
+  /// Al-Fatiha has hand-curated morphological data; other surahs return null
+  /// so the real words are loaded from the Quran text instead.
+  List<_WordData>? _getFatihaMappings(int surah, int ayah) {
+    // Al-Fatiha: full morphological data
     if (surah == 1) {
       if (ayah == 1) {
         return const [
@@ -678,14 +705,8 @@ class _WordAnalysisSheetState extends State<_WordAnalysisSheet> {
       }
     }
 
-    // Generic fallback for other surahs
-    return List.generate(
-      (ayah % 4) + 3,
-      (i) => _WordData(
-        'كلمة ${i + 1}', '---', 'Word ${i + 1}',
-        'تحليل صرفي', 'kalima ${i + 1}', 'Morphological form',
-      ),
-    );
+    // Not Al-Fatiha: real words are loaded from the Quran text.
+    return null;
   }
 
   @override
@@ -856,8 +877,14 @@ class _DetailRow extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(value,
-              style: GoogleFonts.cairo(fontSize: 14, color: theme.colorScheme.onSurface),
+            child: Text(
+              value.trim().isEmpty ? 'غير متوفر' : value,
+              style: GoogleFonts.cairo(
+                fontSize: 14,
+                color: value.trim().isEmpty
+                    ? theme.colorScheme.outline
+                    : theme.colorScheme.onSurface,
+              ),
               textDirection: TextDirection.rtl),
           ),
         ],

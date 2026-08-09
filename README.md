@@ -57,7 +57,7 @@
 - **Scholar Mode** — Deep analysis view with Isnad chain statistics, narrator biographies, and connectivity indicators
 - **Isnad Chain Visualizer** — Interactive timeline showing narrator-by-narrator chain of transmission
 - **Isnad DAG Graph** — Custom-painted directed acyclic graph with zoom/pan, color-coded narrator types, and arrowhead edges
-- **Narrator Database** — Normalized, scholarly-grade database with *Ilm al-Rijal* metadata (Tadlis, Ikhtilat, reliability grades)
+- **Narrator Database** — Normalized database of ~63 well-known narrators with biographical metadata (death year, teachers, students, reliability rank). The schema includes *Ilm al-Rijal* fields (Tadlis, Ikhtilat, verdict source) so it can grow into them, but they are currently unpopulated rather than fabricated. Full scholarly expansion is a content roadmap item.
 - **Narration Comparison** — Side-by-side comparison of parallel narrations across collections
 - **Topic Tree** — Dynamically generated thematic categorization of hadiths
 - **Spaced Repetition** — FSRS-based memorization system with customizable intervals
@@ -763,7 +763,7 @@ The largest service in the app. Implements multi-method prayer time calculation 
 Regex-based Arabic NLP pipeline that extracts narrator chains from raw hadith text. Identifies narrators using transmission keywords (`حدثنا`, `أخبرنا`, `عن`, etc.) and classifies them as Prophet, Companion, Tabi'i, or later narrators.
 
 ### Narrator Database Service (`narrator_database_service.dart`)
-Loads and indexes the normalized `narrators.json` database. Provides fuzzy lookup for narrator biographies, reliability grades, and *Ilm al-Rijal* metadata including Tadlis classifications and Ikhtilat documentation.
+Loads and indexes the normalized `narrators.json` database (currently ~63 well-known narrators). Provides fuzzy lookup for narrator biographies and reliability ranks. The schema carries Tadlis/Ikhtilat/verdict-source fields, but they are intentionally unpopulated until scholarly data is curated — the app does not fabricate *Ilm al-Rijal* verdicts.
 
 ### Hadith Search Engine (`hadith_search_engine.dart`)
 Full-text search with Arabic text normalization (diacritic removal, Hamza normalization, Ta Marbuta handling). Supports multi-target search (text, narrator, companion, topic, grade) with relevance scoring.

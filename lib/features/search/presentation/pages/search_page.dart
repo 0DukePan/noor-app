@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/design_system.dart';
+import '../../../../core/domain/entities/hadith.dart';
+import '../../../../core/data/data_sources/hadith_database.dart';
+import '../../hadith/presentation/hadith_book_names.dart';
+import '../../hadith/presentation/pages/hadith_reader_page.dart';
 import '../providers/search_provider.dart';
 
 class SearchPage extends ConsumerStatefulWidget {
@@ -91,7 +96,26 @@ class _SearchResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isQuran = result.source == 'quran';
+    final isHadith = result.source == 'hadith';
     final metadata = result.metadata;
+
+    final badgeColor = isQuran
+        ? NoorDesignSystem.emeraldGreen
+        : isHadith
+            ? NoorDesignSystem.goldAccent
+            : NoorDesignSystem.deepTeal;
+    final badgeLabel = isQuran
+        ? 'القرآن الكريم'
+        : isHadith
+            ? 'الحديث الشريف'
+            : 'الأذكار';
+
+    String? reference;
+    if (isQuran) {
+      reference = 'سورة ${metadata['surah']} : آية ${metadata['verse']}';
+    } else if (isHadith) {
+      reference = hadithBookName(metadata['book']?.toString() ?? '');
+    }
 
     return Card(
       elevation: 0,
@@ -101,13 +125,7 @@ class _SearchResultCard extends StatelessWidget {
         side: BorderSide(color: Colors.black.withOpacity(0.05)),
       ),
       child: InkWell(
-        onTap: () {
-          if (isQuran) {
-            // Navigate to Surah
-            context.push('/quran/surah/${metadata['surah']}'); 
-            // Ideally scroll to verse, but that requires more complex navigation state
-          }
-        },
+        onTap: () => _openResult(context),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -116,33 +134,33 @@ class _SearchResultCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                   Container(
-                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                     decoration: BoxDecoration(
-                       color: isQuran ? NoorDesignSystem.emeraldGreen.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
-                       borderRadius: BorderRadius.circular(6),
-                     ),
-                     child: Text(
-                       isQuran ? 'القرآن الكريم' : 'الحديث الشريف',
-                       style: TextStyle(
-                         color: isQuran ? NoorDesignSystem.emeraldGreen : Colors.blue,
-                         fontSize: 10,
-                         fontWeight: FontWeight.bold,
-                       ),
-                     ),
-                   ),
-                   const Spacer(),
-                   if (isQuran)
-                     Text(
-                       'سورة ${metadata['surah']} : آية ${metadata['verse']}',
-                       style: const TextStyle(color: Colors.grey, fontSize: 12),
-                     ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: badgeColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      badgeLabel,
+                      style: TextStyle(
+                        color: badgeColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  if (reference != null)
+                    Text(
+                      reference,
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
                 ],
               ),
               const SizedBox(height: 12),
               Text(
                 result.text,
-                maxLines: 2,
+                maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.amiri(
                   fontSize: 18,
@@ -155,5 +173,55 @@ class _SearchResultCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _openResult(BuildContext context) async {
+    final metadata = result.metadata as Map<String, dynamic>;
+
+    if (result.source == 'quran') {
+      context.push('/quran/surah/${metadata['surah']}');
+      return;
+    }
+
+    if (result.source == 'hadith') {
+      final book = metadata['book']?.toString();
+      final id = (metadata['id'] as num?)?.toInt();
+      if (book == null || id == null) return;
+      try {
+        final row = await HadithDatabase.getHadithById(book, id);
+        if (row == null || !context.mounted) return;
+        final hadith = Hadith(
+          id: row['id'] as int,
+          idInBook: row['id_in_book'] as int? ?? row['id'] as int,
+          arabic: row['arabic'] as String,
+          englishText: row['english_text'] as String? ?? '',
+          narratorEnglish: row['english_narrator'] as String? ?? '',
+          chapterId: row['chapter_id'] as int? ?? 0,
+          bookId: null,
+          collectionId: book,
+        );
+        context.push(MaterialPageRoute(
+          builder: (_) => HadithReaderPage(
+            hadith: hadith,
+            bookTitle: hadithBookName(book),
+            chapterTitle: '',
+            bookColor: NoorDesignSystem.emeraldGreen,
+            allHadiths: [hadith],
+            currentIndex: 0,
+          ),
+        ));
+      } catch (e) {
+        debugPrint('Failed to open hadith result: $e');
+      }
+      return;
+    }
+
+    // Adhkar: copy the text.
+    await Clipboard.setData(ClipboardData(text: result.text));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم نسخ النص')),
+      );
+    }
   }
 }

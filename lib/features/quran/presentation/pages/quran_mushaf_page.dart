@@ -9,6 +9,7 @@ import '../../../../core/theme/tafsir_theme.dart';
 import '../../../../core/domain/entities/surah.dart';
 import '../../../../core/models/tafsir_models.dart';
 import '../../../../core/services/tafsir_data_source.dart';
+import '../../../../core/services/quran_data_source.dart';
 import '../../../../core/services/statistics_service.dart';
 import '../providers/quran_providers.dart';
 

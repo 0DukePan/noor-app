@@ -10,7 +10,7 @@ class SearchRepositoryImpl implements SearchRepository {
 
   @override
   Future<void> initializeIndex() async {
-    // For now we only index Quran. Hadith can be added later as it's large.
+    // Indexes Quran, hadith, and adhkar once; persisted in noor_search.db.
     await _dataSource.ensureIndexed([], []);
   }
 

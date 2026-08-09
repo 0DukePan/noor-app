@@ -69,6 +69,10 @@ class NarratorProfileBody extends StatelessWidget {
           if (profile!.rankSource.isNotEmpty) _row('المصدر', profile!.rankSource),
           if (profile!.deathYear > 0) _row('الوفاة', profile!.deathYearDisplay),
           if (profile!.birthYear > 0) _row('الولادة', profile!.birthYearDisplay),
+          if (profile!.tadlis.isNotEmpty) _row('التدليس', profile!.tadlis),
+          if (profile!.ikhtilat.isNotEmpty) _row('الاختلاط', profile!.ikhtilat),
+          if (profile!.verdictSource.isNotEmpty)
+            _row('مصدر الحكم', profile!.verdictSource),
           if (profile!.teachers.isNotEmpty)
             _row('شيوخه', profile!.teachers.take(5).join('، ')),
           if (profile!.students.isNotEmpty)

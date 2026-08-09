@@ -4,6 +4,9 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
 import 'package:flutter/foundation.dart'; // for compute
 
+import '../../../../core/utils/arabic_text.dart';
+import '../../../../core/data/data_sources/hadith_database.dart';
+
 class SearchLocalDataSource {
   static const String _dbName = 'noor_search.db';
   Database? _db;
@@ -18,7 +21,7 @@ class SearchLocalDataSource {
       onCreate: (db, version) async {
         // Create FTS5 virtual table
         // content: text to search
-        // source: 'quran' or 'hadith'
+        // source: 'quran' or 'hadith' or 'adhkar'
         // reference: JSON string (e.g. {surah: 1, verse: 1} or {book: 'bukhari', id: 1})
         await db.execute('''
           CREATE VIRTUAL TABLE search_index USING fts5(
@@ -40,7 +43,8 @@ class SearchLocalDataSource {
 
     // Indexing needed
     await _indexQuran(quranPaths);
-    // await _indexHadith(hadithPaths); // Todo: Implement hadith indexing later to save time for now
+    await _indexHadith();
+    await _indexAdhkar();
   }
 
   Future<void> _indexQuran(List<String> paths) async {
@@ -51,11 +55,77 @@ class SearchLocalDataSource {
     // Process in Isolate
     final records = await compute(_parseQuranForIndex, quranJson);
     
-    final batch = _db!.batch();
-    for (final record in records) {
-      batch.insert('search_index', record);
+    await _insertRecords(records);
+  }
+
+  /// Index all hadiths from the SQLite hadith corpus (same data the reader
+  /// uses), so the unified search finds hadith too.
+  Future<void> _indexHadith() async {
+    final db = await HadithDatabase.database;
+    final rows = await db.query('hadiths', columns: [
+      'id',
+      'collection_id',
+      'arabic',
+    ]);
+
+    final records = <Map<String, dynamic>>[];
+    for (final row in rows) {
+      final text = row['arabic'] as String? ?? '';
+      if (text.trim().isEmpty) continue;
+      records.add({
+        'text': normalizeArabic(text),
+        'source': 'hadith',
+        'reference': jsonEncode({
+          'book': row['collection_id'],
+          'id': row['id'],
+        }),
+      });
     }
-    await batch.commit(noResult: true);
+
+    await _insertRecords(records);
+  }
+
+  /// Index the bundled adhkar collections.
+  Future<void> _indexAdhkar() async {
+    const files = [
+      'assets/adhkar/morning.json',
+      'assets/adhkar/evening.json',
+      'assets/adhkar/after_prayer.json',
+    ];
+
+    final records = <Map<String, dynamic>>[];
+    for (final path in files) {
+      try {
+        final json = jsonDecode(await rootBundle.loadString(path))
+            as Map<String, dynamic>;
+        final content = json['content'] as List? ?? [];
+        for (final item in content) {
+          final text = (item as Map)['zekr'] as String? ?? '';
+          if (text.trim().isEmpty) continue;
+          records.add({
+            'text': normalizeArabic(text),
+            'source': 'adhkar',
+            'reference': jsonEncode({'file': path}),
+          });
+        }
+      } catch (e) {
+        debugPrint('Adhkar indexing failed for $path: $e');
+      }
+    }
+
+    await _insertRecords(records);
+  }
+
+  Future<void> _insertRecords(List<Map<String, dynamic>> records) async {
+    const batchSize = 500;
+    for (int i = 0; i < records.length; i += batchSize) {
+      final end = (i + batchSize > records.length) ? records.length : i + batchSize;
+      final batch = _db!.batch();
+      for (int j = i; j < end; j++) {
+        batch.insert('search_index', records[j]);
+      }
+      await batch.commit(noResult: true);
+    }
   }
   
   static List<Map<String, dynamic>> _parseQuranForIndex(String jsonStr) {
@@ -68,7 +138,7 @@ class SearchLocalDataSource {
       for (final v in (verses as List)) {
          final verseId = v['verse'] as int;
          final text = v['text'] as String;
-         final simpleText = _simplifyArabic(text); // Remove diacritics for better search
+         final simpleText = normalizeArabic(text); // Remove diacritics for better search
          
          records.add({
            'text': simpleText,
@@ -79,31 +149,29 @@ class SearchLocalDataSource {
     });
     return records;
   }
-  
-  static String _simplifyArabic(String text) {
-     // Basic normalization
-     return text
-         .replaceAll(RegExp(r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]'), '') // Tashkeel
-         .replaceAll('أ', 'ا')
-         .replaceAll('إ', 'ا')
-         .replaceAll('آ', 'ا')
-         .replaceAll('ة', 'ه')
-         .replaceAll('ى', 'ي');
-  }
 
   Future<List<Map<String, dynamic>>> search(String query) async {
     if (_db == null) await init();
     
     // Normalize query
-    final simplified = _simplifyArabic(query);
-    
-    // Match query
-    // We use NEAR() or just match
-    return await _db!.rawQuery('''
-      SELECT * FROM search_index 
-      WHERE text MATCH ? 
-      ORDER BY rank 
-      LIMIT 50
-    ''', [simplified]);
+    final simplified = normalizeArabic(query);
+
+    try {
+      // Quote the phrase so FTS special characters cannot break MATCH.
+      final safeQuery = simplified.replaceAll('"', ' ');
+      return await _db!.rawQuery('''
+        SELECT * FROM search_index 
+        WHERE text MATCH ? 
+        ORDER BY rank 
+        LIMIT 50
+      ''', ['"$safeQuery"']);
+    } catch (e) {
+      // Fallback: substring search (robust against odd tokenization).
+      return _db!.rawQuery('''
+        SELECT * FROM search_index 
+        WHERE text LIKE ? 
+        LIMIT 50
+      ''', ['%$simplified%']);
+    }
   }
 }
