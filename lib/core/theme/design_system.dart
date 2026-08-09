@@ -197,7 +197,7 @@ class NoorDesignSystem {
 
   static List<BoxShadow> get shadowSmall => [
     BoxShadow(
-      color: Colors.black.withOpacity(0.04),
+      color: Colors.black.withValues(alpha: 0.04),
       blurRadius: 4,
       offset: const Offset(0, 2),
     ),
@@ -205,7 +205,7 @@ class NoorDesignSystem {
 
   static List<BoxShadow> get shadowMedium => [
     BoxShadow(
-      color: Colors.black.withOpacity(0.06),
+      color: Colors.black.withValues(alpha: 0.06),
       blurRadius: 12,
       offset: const Offset(0, 4),
     ),
@@ -214,7 +214,7 @@ class NoorDesignSystem {
   /// Only for floating audio player
   static List<BoxShadow> get shadowLarge => [
     BoxShadow(
-      color: primaryGreen.withOpacity(0.12),
+      color: primaryGreen.withValues(alpha: 0.12),
       blurRadius: 24,
       offset: const Offset(0, 8),
     ),

@@ -138,7 +138,7 @@ class _QadaList extends StatelessWidget {
                   ? Icons.mosque_rounded
                   : Icons.nights_stay_rounded,
               size: 64,
-              color: NoorTheme.textSecondary.withOpacity(0.3),
+              color: NoorTheme.textSecondary.withValues(alpha: 0.3),
             ),
             const SizedBox(height: NoorTheme.spacingMd),
             Text(
@@ -211,17 +211,17 @@ class _QadaCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: isComplete
-            ? Colors.green.withOpacity(0.1)
+            ? Colors.green.withValues(alpha: 0.1)
             : theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isComplete
-              ? Colors.green.withOpacity(0.5)
-              : theme.colorScheme.outline.withOpacity(0.1),
+              ? Colors.green.withValues(alpha: 0.5)
+              : theme.colorScheme.outline.withValues(alpha: 0.1),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -240,8 +240,8 @@ class _QadaCard extends StatelessWidget {
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: isComplete
-                            ? Colors.green.withOpacity(0.1)
-                            : theme.colorScheme.primary.withOpacity(0.1),
+                            ? Colors.green.withValues(alpha: 0.1)
+                            : theme.colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
@@ -259,7 +259,7 @@ class _QadaCard extends StatelessWidget {
                       onPressed: onDelete,
                       color: theme.colorScheme.error,
                       style: IconButton.styleFrom(
-                        backgroundColor: theme.colorScheme.error.withOpacity(0.1),
+                        backgroundColor: theme.colorScheme.error.withValues(alpha: 0.1),
                       ),
                     ),
                   ],
@@ -286,7 +286,7 @@ class _QadaCard extends StatelessWidget {
                           boxShadow: [
                             BoxShadow(
                               color: (isComplete ? Colors.green : theme.colorScheme.primary)
-                                  .withOpacity(0.4),
+                                  .withValues(alpha: 0.4),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -333,7 +333,7 @@ class _QadaCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.08),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
                   borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
                 ),
                 child: Row(

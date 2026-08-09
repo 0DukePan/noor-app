@@ -80,7 +80,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
                   Expanded(child: Text(s.arabicName)),
                 ],
               ),
-            )).toList(),
+            ),).toList(),
           ),
           
           // Search
@@ -127,7 +127,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
               color: TafsirTheme.cardBackground(brightness),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: Colors.black.withValues(alpha: 0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -137,14 +137,14 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
               children: [
                 Expanded(
                   child: DropdownButtonFormField<int>(
-                    value: _currentSurah,
+                    initialValue: _currentSurah,
                     decoration: InputDecoration(
                       labelText: 'السورة',
                       labelStyle: TafsirTheme.sourceStyle(brightness: brightness),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: theme.colorScheme.outline.withOpacity(0.2)),
+                          color: theme.colorScheme.outline.withValues(alpha: 0.2),),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12,
@@ -155,8 +155,8 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
                     items: List.generate(114, (i) => DropdownMenuItem(
                       value: i + 1,
                       child: Text('${i + 1}. ${kSurahNames[i]}',
-                        style: GoogleFonts.cairo(fontSize: 14)),
-                    )),
+                        style: GoogleFonts.cairo(fontSize: 14),),
+                    ),),
                     onChanged: (value) {
                       if (value != null) {
                         setState(() => _currentSurah = value);
@@ -183,7 +183,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
                 ? const Center(child: CircularProgressIndicator())
                 : _surahTafsir == null
                     ? Center(child: Text('لا يوجد تفسير لهذه السورة',
-                        style: TafsirTheme.sourceStyle(brightness: brightness)))
+                        style: TafsirTheme.sourceStyle(brightness: brightness),),)
                     : ListView.separated(
                         padding: const EdgeInsets.all(20),
                         itemCount: _surahTafsir!.length,
@@ -368,10 +368,10 @@ class _TafsirCard extends StatelessWidget {
         color: TafsirTheme.cardBackground(brightness),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.08)),
+          color: theme.colorScheme.outline.withValues(alpha: 0.08),),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(brightness == Brightness.light ? 0.03 : 0.1),
+            color: Colors.black.withValues(alpha: brightness == Brightness.light ? 0.03 : 0.1),
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
@@ -388,7 +388,7 @@ class _TafsirCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                   decoration: BoxDecoration(
-                    color: TafsirTheme.ayahColor(brightness).withOpacity(0.12),
+                    color: TafsirTheme.ayahColor(brightness).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -406,7 +406,7 @@ class _TafsirCard extends StatelessWidget {
                     isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
                     color: isBookmarked
                         ? TafsirTheme.ayahColor(brightness)
-                        : theme.colorScheme.outline.withOpacity(0.5),
+                        : theme.colorScheme.outline.withValues(alpha: 0.5),
                     size: 22,
                   ),
                   onPressed: () async {
@@ -580,7 +580,7 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
             children: _topics.map((topic) {
               return ActionChip(
                 elevation: 0,
-                backgroundColor: Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.4),
+                backgroundColor: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.4),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 avatar: Text(topic['icon']!, style: const TextStyle(fontSize: 14)),
                 label: Text(topic['title']!, style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -654,7 +654,7 @@ class _SearchResultCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.1)),
+        side: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.1)),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -667,7 +667,7 @@ class _SearchResultCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withOpacity(0.4),
+                  color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -708,11 +708,11 @@ class _SearchResultCard extends StatelessWidget {
       spans.add(TextSpan(
         text: text.substring(match.start, match.end),
         style: _normStyle(theme).copyWith(
-          backgroundColor: theme.colorScheme.tertiary.withOpacity(0.2),
+          backgroundColor: theme.colorScheme.tertiary.withValues(alpha: 0.2),
           color: theme.colorScheme.tertiary,
           fontWeight: FontWeight.bold,
         ),
-      ));
+      ),);
       start = match.end;
     }
     if (start < text.length) {

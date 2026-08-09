@@ -41,7 +41,7 @@ class QuranPage extends ConsumerWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      NoorDesignSystem.emeraldGreen.withOpacity(0.1),
+                      NoorDesignSystem.emeraldGreen.withValues(alpha: 0.1),
                       NoorDesignSystem.creamWhite,
                     ],
                   ),
@@ -55,7 +55,7 @@ class QuranPage extends ConsumerWidget {
                         child: Icon(
                           Icons.menu_book_rounded,
                           size: 180,
-                          color: NoorDesignSystem.emeraldGreen.withOpacity(0.05),
+                          color: NoorDesignSystem.emeraldGreen.withValues(alpha: 0.05),
                         ),
                       ),
                       Column(
@@ -181,7 +181,7 @@ class QuranPage extends ConsumerWidget {
                         Icon(
                           Icons.search_off_rounded,
                           size: 80,
-                          color: NoorDesignSystem.textSecondary.withOpacity(0.5),
+                          color: NoorDesignSystem.textSecondary.withValues(alpha: 0.5),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -323,7 +323,7 @@ class _FilterChip extends StatelessWidget {
           color: isSelected ? NoorDesignSystem.primaryGreen : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? NoorDesignSystem.primaryGreen : NoorDesignSystem.primaryGreen.withOpacity(0.2),
+            color: isSelected ? NoorDesignSystem.primaryGreen : NoorDesignSystem.primaryGreen.withValues(alpha: 0.2),
           ),
           boxShadow: isSelected ? NoorDesignSystem.shadowSmall : null,
         ),
@@ -379,7 +379,7 @@ class _SearchBarState extends ConsumerState<_SearchBar> {
           hintText: 'ابحث عن سورة...',
           hintTextDirection: TextDirection.rtl,
           hintStyle: TextStyle(
-            color: NoorDesignSystem.textSecondary.withOpacity(0.5),
+            color: NoorDesignSystem.textSecondary.withValues(alpha: 0.5),
             fontSize: 16,
           ),
           prefixIcon: const Icon(Icons.search_rounded, color: NoorDesignSystem.deepTeal),
@@ -437,7 +437,7 @@ class _SurahListTile extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
         boxShadow: NoorDesignSystem.shadowSmall,
-        border: Border.all(color: Colors.black.withOpacity(0.03)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.03)),
       ),
       child: Material(
         color: Colors.transparent,
@@ -453,7 +453,7 @@ class _SurahListTile extends StatelessWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: NoorDesignSystem.emeraldGreen.withOpacity(0.1),
+                    color: NoorDesignSystem.emeraldGreen.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -549,7 +549,7 @@ class _SurahListTile extends StatelessWidget {
           TextSpan(
             text: match,
             style: TextStyle(
-              backgroundColor: NoorDesignSystem.emeraldGreen.withOpacity(0.2),
+              backgroundColor: NoorDesignSystem.emeraldGreen.withValues(alpha: 0.2),
               color: NoorDesignSystem.emeraldGreen,
             ),
           ),
@@ -584,7 +584,7 @@ class _ShimmerSurahTile extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: NoorDesignSystem.emeraldGreen.withOpacity(0.08),
+              color: NoorDesignSystem.emeraldGreen.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
           ),
@@ -635,7 +635,7 @@ class _ErrorWidget extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.error_outline_rounded, size: 64, color: NoorTheme.hadithMawdu),
+          const Icon(Icons.error_outline_rounded, size: 64, color: NoorTheme.hadithMawdu),
           const SizedBox(height: 16),
           Text('حدث خطأ', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),

@@ -98,7 +98,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               backgroundColor: NoorDesignSystem.primaryGreen,
               foregroundColor: Colors.white,
             ),
-          )
+          ),
         ],
       ),
     );
@@ -135,7 +135,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: NoorDesignSystem.emeraldGreen.withOpacity(0.3),
+                          color: NoorDesignSystem.emeraldGreen.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 3),
                         ),
@@ -188,7 +188,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     Row(
                       children: [
                         Icon(Icons.location_on_rounded, size: 14, 
-                          color: NoorDesignSystem.emeraldGreen.withOpacity(0.7)),
+                          color: NoorDesignSystem.emeraldGreen.withValues(alpha: 0.7),),
                         const SizedBox(width: 4),
                         Text(
                           data.cityName,
@@ -220,14 +220,14 @@ class _HomePageState extends ConsumerState<HomePage> {
             SliverList.list(
               children: [
                 // Day State Card (contains smart suggestion internally or optionally here)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const DayStateCard(),
-                      const SizedBox(height: 12),
-                      const SmartSuggestionBox(),
+                      DayStateCard(),
+                      SizedBox(height: 12),
+                      SmartSuggestionBox(),
                     ],
                   ),
                 ).animate().fadeIn(delay: 250.ms, duration: 500.ms),
@@ -298,9 +298,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    SizedBox(
+                    const SizedBox(
                       height: 110,
-                      child: const FavoritesSection(),
+                      child: FavoritesSection(),
                     ).animate().fadeIn(delay: 500.ms, duration: 500.ms),
                   ],
                 ),

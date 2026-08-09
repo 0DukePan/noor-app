@@ -10,19 +10,16 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('Test IsolateParser with Closure', () async {
-    int id = 1;
-    String id2 = 'muyassar';
+    const int id = 1;
+    const String id2 = 'muyassar';
     try {
       final result = await IsolateParser.parseInBackground(
         assetPath: 'assets/tafsir/muyassar/ar-tafsir-muyassar/1.json',
         parser: (json) => _myParser(json, id, id2),
       );
       expect(result, isNotNull);
-      print('IsolateParser with closure succeeded');
     } catch (e, stack) {
-      print('Isolate closure error: \$e');
-      print(stack);
-      fail('Failed with closure');
+      fail('Failed with closure: $e\n$stack');
     }
   });
 }

@@ -69,7 +69,7 @@ class IsnadParserService {
         isCompanion: isCompanion,
         level: narrators.length,
         linkWord: _extractLinkWord(match.group(0) ?? '', cleanName),
-      ));
+      ),);
 
       // The chain is complete once we reach the Prophet or a Companion.
       // Everything after is matn (the body), not more narrators.
@@ -122,7 +122,7 @@ class IsnadParserService {
         isCompanion: _isCompanion(name, arabicText),
         level: narrators.length,
         linkWord: 'عن',
-      ));
+      ),);
 
       // Stop at the Prophet/Companion — everything after is matn.
       final last = narrators.last;

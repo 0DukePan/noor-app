@@ -28,7 +28,7 @@ class ScholarModePage extends StatefulWidget {
 
 class _ScholarModePageState extends State<ScholarModePage> {
   // State
-  bool _showTakhrij = true;
+  final bool _showTakhrij = true;
   bool _highlightKeywords = true;
   String _note = '';
   List<HadithSearchResult> _similarHadiths = [];
@@ -40,11 +40,11 @@ class _ScholarModePageState extends State<ScholarModePage> {
   
   // Highlight colors
   final Map<String, Color> _highlightColors = {
-    'قال': Colors.blue.withOpacity(0.3),
-    'النبي': Colors.green.withOpacity(0.3),
-    'صلى الله عليه وسلم': Colors.amber.withOpacity(0.3),
-    'رضي الله عنه': Colors.purple.withOpacity(0.3),
-    'عن': Colors.orange.withOpacity(0.3),
+    'قال': Colors.blue.withValues(alpha: 0.3),
+    'النبي': Colors.green.withValues(alpha: 0.3),
+    'صلى الله عليه وسلم': Colors.amber.withValues(alpha: 0.3),
+    'رضي الله عنه': Colors.purple.withValues(alpha: 0.3),
+    'عن': Colors.orange.withValues(alpha: 0.3),
   };
 
   @override
@@ -156,7 +156,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: _getGradeColor(widget.hadith.grade).withOpacity(0.2),
+                color: _getGradeColor(widget.hadith.grade).withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -248,7 +248,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
               fontFamily: 'Amiri',
               backgroundColor: _highlightColors[keyword],
             ),
-          ));
+          ),);
           currentIndex += keyword.length;
           found = true;
           break;
@@ -272,7 +272,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
             height: 2.0,
             fontFamily: 'Amiri',
           ),
-        ));
+        ),);
         currentIndex = nextKeywordIndex;
       }
     }
@@ -487,8 +487,8 @@ class _ScholarModePageState extends State<ScholarModePage> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: _isnadChain.length >= 3
-                        ? NoorTheme.hadithSahih.withOpacity(0.08)
-                        : NoorTheme.hadithDaif.withOpacity(0.08),
+                        ? NoorTheme.hadithSahih.withValues(alpha: 0.08)
+                        : NoorTheme.hadithDaif.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -535,9 +535,9 @@ class _ScholarModePageState extends State<ScholarModePage> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.12),
+                          color: color.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: color.withOpacity(0.3)),
+                          border: Border.all(color: color.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -573,7 +573,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -588,7 +588,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
             ),
             Text(
               label,
-              style: TextStyle(fontSize: 10, color: color.withOpacity(0.8)),
+              style: TextStyle(fontSize: 10, color: color.withValues(alpha: 0.8)),
             ),
           ],
         ),
@@ -711,7 +711,7 @@ ${widget.hadith.companion.isNotEmpty ? '👤 ${widget.hadith.companion}' : ''}
       list.add(widget.hadith.id);
       await box.put('review_list', list);
     }
-    
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('تمت الإضافة للمراجعة ✓')),
     );

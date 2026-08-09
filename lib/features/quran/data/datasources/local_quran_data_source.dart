@@ -38,18 +38,16 @@ class LocalQuranDataSourceImpl implements QuranLocalDataSource {
       await _loadMetadata();
     }
 
-    if (_fullQuranMap == null) {
-      _fullQuranMap = await IsolateParser.parseInBackground(
+    _fullQuranMap ??= await IsolateParser.parseInBackground(
         assetPath: 'assets/quran/quran_uthmani.json',
         parser: (json) => jsonDecode(json) as Map<String, dynamic>,
       );
-    }
 
     final surah = await compute(_buildSurahObject, _BuildSurahArgs(
       surahNumber: surahNumber,
       fullText: _fullQuranMap!,
       metadata: _surahMetadata!,
-    ));
+    ),);
 
     _surahCache[surahNumber] = surah;
     return surah;
@@ -59,12 +57,10 @@ class LocalQuranDataSourceImpl implements QuranLocalDataSource {
 
   @override
   Future<List<VerseModel>> getVersesByPage(int pageNumber) async {
-    if (_pagesMap == null) {
-      _pagesMap = await IsolateParser.parseInBackground(
+    _pagesMap ??= await IsolateParser.parseInBackground(
         assetPath: 'assets/quran/quran_pages.json',
         parser: (json) => jsonDecode(json) as Map<String, dynamic>,
       );
-    }
 
     final pageKey = pageNumber.toString();
     final versesRaw = _pagesMap![pageKey] as List?;
@@ -102,12 +98,10 @@ class LocalQuranDataSourceImpl implements QuranLocalDataSource {
   Future<List<VerseModel>> searchQuran(String query) async {
     if (query.trim().isEmpty) return [];
     
-    if (_fullQuranMap == null) {
-      _fullQuranMap = await IsolateParser.parseInBackground(
+    _fullQuranMap ??= await IsolateParser.parseInBackground(
         assetPath: 'assets/quran/quran_uthmani.json',
         parser: (json) => jsonDecode(json) as Map<String, dynamic>,
       );
-    }
     
     // Normalize query for Arabic search (remove diacritics)
     final normalizedQuery = normalizeArabic(query);

@@ -109,7 +109,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                 borderRadius: BorderRadius.circular(25),
                 boxShadow: [
                   BoxShadow(
-                    color: theme.colorScheme.primary.withOpacity(0.3),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -157,7 +157,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: TextField(
@@ -166,7 +166,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                   decoration: InputDecoration(
                     hintText: 'اكتب نصاً للبحث...',
                     hintStyle: TextStyle(
-                      color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                       fontSize: 16,
                     ),
                     prefixIcon: Icon(Icons.search_rounded, color: theme.colorScheme.primary),
@@ -244,7 +244,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                       side: BorderSide(
-                        color: theme.colorScheme.outline.withOpacity(0.1),
+                        color: theme.colorScheme.outline.withValues(alpha: 0.1),
                       ),
                     ),
                   ),
@@ -285,7 +285,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                           Icon(
                             Icons.manage_search_rounded,
                             size: 80,
-                            color: theme.colorScheme.primary.withOpacity(0.2),
+                            color: theme.colorScheme.primary.withValues(alpha: 0.2),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -486,7 +486,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
             },
           ),
           ...['bukhari', 'muslim', 'tirmidhi', 'abudawud', 'nasai', 
-              'ibnmajah', 'malik', 'ahmad', 'darimi'].map((book) =>
+              'ibnmajah', 'malik', 'ahmad', 'darimi',].map((book) =>
             ListTile(
               title: Text(_getBookName(book)),
               onTap: () {
@@ -539,7 +539,7 @@ class _HadithResultCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: isDark ? [] : [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -676,7 +676,7 @@ class _FilterChip extends StatelessWidget {
           border: Border.all(
             color: isSelected 
                 ? theme.colorScheme.primary 
-                : theme.colorScheme.outline.withOpacity(0.3),
+                : theme.colorScheme.outline.withValues(alpha: 0.3),
           ),
         ),
         child: Text(
@@ -703,9 +703,9 @@ class _TagChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Text(
         label,

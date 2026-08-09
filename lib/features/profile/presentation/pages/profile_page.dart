@@ -62,7 +62,7 @@ class ProfilePage extends ConsumerWidget {
                         child: Icon(
                           Icons.auto_stories_rounded,
                           size: 160,
-                          color: Colors.white.withOpacity(0.07),
+                          color: Colors.white.withValues(alpha: 0.07),
                         ),
                       ),
                       Positioned(
@@ -71,7 +71,7 @@ class ProfilePage extends ConsumerWidget {
                         child: Icon(
                           Icons.mosque_rounded,
                           size: 120,
-                          color: Colors.white.withOpacity(0.05),
+                          color: Colors.white.withValues(alpha: 0.05),
                         ),
                       ),
                     ],
@@ -104,7 +104,7 @@ class ProfilePage extends ConsumerWidget {
                     title: 'آيات مقروءة',
                     value: '${stats.todayReading.versesRead}',
                     subtitle: 'اليوم',
-                    gradient: [NoorDesignSystem.primaryGreen, NoorDesignSystem.primaryLight],
+                    gradient: const [NoorDesignSystem.primaryGreen, NoorDesignSystem.primaryLight],
                     isDark: isDark,
                   ),
                   _StatCard(
@@ -112,7 +112,7 @@ class ProfilePage extends ConsumerWidget {
                     title: 'وقت القراءة',
                     value: stats.todayReading.formattedTime,
                     subtitle: 'اليوم',
-                    gradient: [const Color(0xFF1565C0), const Color(0xFF42A5F5)],
+                    gradient: const [Color(0xFF1565C0), Color(0xFF42A5F5)],
                     isDark: isDark,
                   ),
                   _StatCard(
@@ -120,7 +120,7 @@ class ProfilePage extends ConsumerWidget {
                     title: 'الاستماع',
                     value: '${stats.listening.todayVerses}',
                     subtitle: 'آيات اليوم',
-                    gradient: [const Color(0xFF6A1B9A), const Color(0xFF9C27B0)],
+                    gradient: const [Color(0xFF6A1B9A), Color(0xFF9C27B0)],
                     isDark: isDark,
                   ),
                   _StatCard(
@@ -128,7 +128,7 @@ class ProfilePage extends ConsumerWidget {
                     title: 'سلسلة الأذكار',
                     value: '${stats.adhkarStreak}',
                     subtitle: stats.adhkarStreak == 1 ? 'يوم' : 'أيام',
-                    gradient: [const Color(0xFFE65100), const Color(0xFFFF9800)],
+                    gradient: const [Color(0xFFE65100), Color(0xFFFF9800)],
                     isDark: isDark,
                   ),
                 ]),
@@ -245,7 +245,7 @@ class ProfilePage extends ConsumerWidget {
                               value: stats.khatmah.percentage / 100,
                               strokeWidth: 8,
                               backgroundColor: isDark
-                                  ? Colors.white.withOpacity(0.1)
+                                  ? Colors.white.withValues(alpha: 0.1)
                                   : NoorDesignSystem.primaryContainer,
                               valueColor: const AlwaysStoppedAnimation(
                                 NoorDesignSystem.primaryGreen,
@@ -297,7 +297,7 @@ class ProfilePage extends ConsumerWidget {
                                 },
                                 icon: const Icon(Icons.refresh_rounded, size: 16),
                                 label: Text('بدء ختمة جديدة',
-                                  style: GoogleFonts.cairo(fontSize: 13)),
+                                  style: GoogleFonts.cairo(fontSize: 13),),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: NoorDesignSystem.primaryGreen,
                                   side: const BorderSide(
@@ -403,15 +403,15 @@ class ProfilePage extends ConsumerWidget {
                       colors: isDark
                           ? [const Color(0xFF1A3A2A), const Color(0xFF1A2A35)]
                           : [
-                              NoorDesignSystem.primaryGreen.withOpacity(0.08),
-                              const Color(0xFF1565C0).withOpacity(0.08),
+                              NoorDesignSystem.primaryGreen.withValues(alpha: 0.08),
+                              const Color(0xFF1565C0).withValues(alpha: 0.08),
                             ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: NoorDesignSystem.primaryGreen.withOpacity(0.15),
+                      color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.15),
                     ),
                   ),
                   padding: const EdgeInsets.all(20),
@@ -566,7 +566,7 @@ class _AdhkarCheckItem extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: isComplete ? color.withOpacity(0.15) : Colors.grey.withOpacity(0.1),
+            color: isComplete ? color.withValues(alpha: 0.15) : Colors.grey.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(
@@ -658,7 +658,7 @@ class _TotalStatBubble extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
+            color: color.withValues(alpha: 0.15),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: color, size: 24),

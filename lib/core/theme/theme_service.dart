@@ -145,7 +145,6 @@ class ThemeService {
         primary: palette.primary,
         secondary: palette.accent,
         surface: Colors.white,
-        background: palette.background,
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: palette.background,
@@ -182,7 +181,6 @@ class ThemeService {
         primary: palette.primary,
         secondary: palette.accent,
         surface: const Color(0xFF1E1E1E),
-        background: const Color(0xFF121212),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: const Color(0xFF121212),

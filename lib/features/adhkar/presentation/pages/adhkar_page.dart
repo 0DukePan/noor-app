@@ -83,7 +83,7 @@ class _AdhkarPageState extends State<AdhkarPage> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
+                      color: Colors.orange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -132,8 +132,8 @@ class _AdhkarPageState extends State<AdhkarPage> {
                     colors: isMorning
                         ? [const Color(0xFFFFD54F), const Color(0xFFFFB300)]
                         : [
-                            const Color(0xFFFFD54F).withOpacity(0.5),
-                            const Color(0xFFFFB300).withOpacity(0.5)
+                            const Color(0xFFFFD54F).withValues(alpha: 0.5),
+                            const Color(0xFFFFB300).withValues(alpha: 0.5),
                           ],
                   ),
                   isHighlighted: isMorning,
@@ -147,8 +147,8 @@ class _AdhkarPageState extends State<AdhkarPage> {
                     colors: isEvening
                         ? [const Color(0xFFFF7043), const Color(0xFFE64A19)]
                         : [
-                            const Color(0xFFFF7043).withOpacity(0.5),
-                            const Color(0xFFE64A19).withOpacity(0.5)
+                            const Color(0xFFFF7043).withValues(alpha: 0.5),
+                            const Color(0xFFE64A19).withValues(alpha: 0.5),
                           ],
                   ),
                   isHighlighted: isEvening,
@@ -158,7 +158,7 @@ class _AdhkarPageState extends State<AdhkarPage> {
                   title: 'بعد الصلاة',
                   subtitle: _getCountLabel(AdhkarType.afterPrayer, 'ذكر'),
                   emoji: '🕌',
-                  gradient: LinearGradient(
+                  gradient: const LinearGradient(
                     colors: [
                       NoorDesignSystem.emeraldGreen,
                       NoorDesignSystem.deepTeal,
@@ -246,7 +246,7 @@ class _TodayProgressCard extends StatelessWidget {
             color: (stats.isComplete
                     ? Colors.green
                     : NoorDesignSystem.emeraldGreen)
-                .withOpacity(0.3),
+                .withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -261,7 +261,7 @@ class _TodayProgressCard extends StatelessWidget {
                 width: 54,
                 height: 54,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Center(
@@ -291,7 +291,7 @@ class _TodayProgressCard extends StatelessWidget {
                       _getProgressText(),
                       style: GoogleFonts.cairo(
                         fontSize: 14,
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                       ),
                     ),
                   ],
@@ -308,7 +308,7 @@ class _TodayProgressCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: stats.progress,
               minHeight: 8,
-              backgroundColor: Colors.white.withOpacity(0.2),
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
             ),
           ),
@@ -360,7 +360,7 @@ class _StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: isComplete ? Colors.white : Colors.white.withOpacity(0.2),
+        color: isComplete ? Colors.white : Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -419,19 +419,19 @@ class _ModernCategoryCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             border: isHighlighted
                 ? Border.all(
-                    color: Colors.white.withOpacity(0.5), width: 2)
+                    color: Colors.white.withValues(alpha: 0.5), width: 2,)
                 : null,
             boxShadow: isHighlighted
                 ? [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
+                      color: Colors.black.withValues(alpha: 0.15),
                       blurRadius: 15,
                       offset: const Offset(0, 6),
                     ),
                   ]
                 : [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 5,
                       offset: const Offset(0, 2),
                     ),
@@ -464,7 +464,7 @@ class _ModernCategoryCard extends StatelessWidget {
                       subtitle,
                       style: GoogleFonts.cairo(
                         fontSize: 12,
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                       ),
                     ),
                   ],
@@ -618,7 +618,7 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.type.arabicName,
-            style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+            style: GoogleFonts.cairo(fontWeight: FontWeight.bold),),
         centerTitle: true,
         actions: [
           Padding(
@@ -669,7 +669,7 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
           Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
+              color: Colors.green.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Text('✅', style: TextStyle(fontSize: 64)),
@@ -696,7 +696,7 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.arrow_back_rounded),
             label: Text('العودة للقائمة',
-                style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+                style: GoogleFonts.cairo(fontWeight: FontWeight.bold),),
             style: FilledButton.styleFrom(
               padding:
                   const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
@@ -759,7 +759,7 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
                           effects: [
                             ScaleEffect(
                                 duration: 200.ms,
-                                curve: Curves.easeOutBack)
+                                curve: Curves.easeOutBack,),
                           ],
                           child: Text(
                             '${_progress.currentCount}',
@@ -801,16 +801,16 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color:
-                      theme.colorScheme.primaryContainer.withOpacity(0.5),
+                      theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: theme.colorScheme.primary.withOpacity(0.2),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.2),
                   ),
                 ),
                 child: Row(
                   children: [
                     Icon(Icons.auto_awesome,
-                        size: 16, color: theme.colorScheme.primary),
+                        size: 16, color: theme.colorScheme.primary,),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(

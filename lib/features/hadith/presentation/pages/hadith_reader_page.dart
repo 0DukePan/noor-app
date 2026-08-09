@@ -65,7 +65,7 @@ class _HadithReaderPageState extends State<HadithReaderPage> {
     HadithUserDataService.saveReadingProgress(
       bookId: _currentHadith.collectionId ?? widget.bookTitle,
       bookTitle: widget.bookTitle,
-      colorValue: widget.bookColor.value,
+      colorValue: widget.bookColor.toARGB32(),
       hadithIndex: _currentIndex,
       totalHadiths: widget.allHadiths.length,
     );
@@ -74,6 +74,7 @@ class _HadithReaderPageState extends State<HadithReaderPage> {
   void _toggleBookmark() async {
     HapticFeedback.mediumImpact();
     final nowBookmarked = await HadithUserDataService.toggleBookmark(_currentHadith);
+    if (!mounted) return;
     setState(() => _isBookmarked = nowBookmarked);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -191,12 +192,12 @@ class _HadithReaderPageState extends State<HadithReaderPage> {
         onPrevious: _currentIndex > 0
             ? () => _pageController.previousPage(
                 duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut)
+                curve: Curves.easeInOut,)
             : null,
         onNext: _currentIndex < widget.allHadiths.length - 1
             ? () => _pageController.nextPage(
                 duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut)
+                curve: Curves.easeInOut,)
             : null,
       ),
     );
@@ -267,12 +268,12 @@ class _HadithReaderContent extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: bookColor.withOpacity(0.15),
+                color: bookColor.withValues(alpha: 0.15),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: bookColor.withOpacity(0.06),
+                  color: bookColor.withValues(alpha: 0.06),
                   blurRadius: 20,
                   offset: const Offset(0, 4),
                 ),
@@ -297,7 +298,7 @@ class _HadithReaderContent extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white.withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: Colors.grey.shade200,
@@ -308,8 +309,8 @@ class _HadithReaderContent extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.translate_rounded,
-                          size: 16, color: NoorDesignSystem.textSecondary),
+                      const Icon(Icons.translate_rounded,
+                          size: 16, color: NoorDesignSystem.textSecondary,),
                       const SizedBox(width: 6),
                       Text(
                         'Translation',
@@ -327,7 +328,7 @@ class _HadithReaderContent extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 15,
                       height: 1.7,
-                      color: NoorDesignSystem.textPrimary.withOpacity(0.8),
+                      color: NoorDesignSystem.textPrimary.withValues(alpha: 0.8),
                     ),
                     textAlign: TextAlign.left,
                   ),
@@ -382,12 +383,12 @@ class _MetadataCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            bookColor.withOpacity(0.08),
-            bookColor.withOpacity(0.03),
+            bookColor.withValues(alpha: 0.08),
+            bookColor.withValues(alpha: 0.03),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: bookColor.withOpacity(0.12)),
+        border: Border.all(color: bookColor.withValues(alpha: 0.12)),
       ),
       child: Column(
         children: [
@@ -410,7 +411,7 @@ class _MetadataCard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: bookColor.withOpacity(0.15),
+                  color: bookColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -430,8 +431,8 @@ class _MetadataCard extends StatelessWidget {
           if (chapterTitle.isNotEmpty)
             Row(
               children: [
-                Icon(Icons.bookmark_border_rounded,
-                    size: 16, color: NoorDesignSystem.textSecondary),
+                const Icon(Icons.bookmark_border_rounded,
+                    size: 16, color: NoorDesignSystem.textSecondary,),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -453,8 +454,8 @@ class _MetadataCard extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.person_outline_rounded,
-                    size: 16, color: NoorDesignSystem.textSecondary),
+                const Icon(Icons.person_outline_rounded,
+                    size: 16, color: NoorDesignSystem.textSecondary,),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -509,7 +510,7 @@ class _BottomNav extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -545,7 +546,7 @@ class _BottomNav extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
                     value: total > 0 ? (currentIndex + 1) / total : 0,
-                    backgroundColor: bookColor.withOpacity(0.1),
+                    backgroundColor: bookColor.withValues(alpha: 0.1),
                     valueColor: AlwaysStoppedAnimation(bookColor),
                     minHeight: 4,
                   ),

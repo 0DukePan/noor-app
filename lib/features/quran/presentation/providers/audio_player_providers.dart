@@ -38,7 +38,7 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
   AudioPlayerNotifier()
       : super(AudioPlayerState(
           selectedReciter: QuranAudioService.reciters.first,
-        ));
+        ),);
 
   void toggleExpanded() {
     state = state.copyWith(isExpanded: !state.isExpanded);

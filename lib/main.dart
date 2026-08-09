@@ -366,7 +366,7 @@ class _DatabaseImportScreen extends StatelessWidget {
                         value: value,
                         minHeight: 8,
                         backgroundColor: NoorDesignSystem.primaryGreen
-                            .withOpacity(0.1),
+                            .withValues(alpha: 0.1),
                         color: NoorDesignSystem.primaryGreen,
                       ),
                     ),

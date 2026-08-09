@@ -245,7 +245,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
         color: theme.colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -348,7 +348,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
                     color: theme.colorScheme.primary,
                     boxShadow: [
                       BoxShadow(
-                        color: theme.colorScheme.primary.withOpacity(0.3),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.3),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       ),
@@ -417,7 +417,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
   }
 
   void _cycleRepeatMode() {
-    final modes = RepeatMode.values;
+    const modes = RepeatMode.values;
     final currentIndex = modes.indexOf(QuranAudioEngine.repeatMode);
     final nextIndex = (currentIndex + 1) % modes.length;
     QuranAudioEngine.setRepeatMode(modes[nextIndex]);
@@ -528,7 +528,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
               Navigator.pop(context);
               setState(() {});
             },
-          )),
+          ),),
           const SizedBox(height: 16),
         ],
       ),
@@ -619,12 +619,12 @@ class _VerseCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isCurrentAyah
-              ? theme.colorScheme.primaryContainer.withOpacity(0.5)
-              : theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
+              : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(16),
           border: isCurrentAyah
               ? Border.all(
-                  color: theme.colorScheme.primary.withOpacity(0.5),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.5),
                   width: 2,
                 )
               : null,

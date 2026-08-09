@@ -238,7 +238,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
                           Container(
                             height: 30,
                             width: 2,
-                            color: theme.colorScheme.primary.withOpacity(0.3),
+                            color: theme.colorScheme.primary.withValues(alpha: 0.3),
                           ),
                       ],
                     );
@@ -308,7 +308,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
     final patterns = ['عن', 'حدثنا', 'أخبرنا', 'قال'];
     
     List<String> narrators = [];
-    String current = sanad;
+    final String current = sanad;
     
     for (final pattern in patterns) {
       if (current.contains(pattern)) {
@@ -356,7 +356,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
                       vertical: 16,
                     ),
                     decoration: BoxDecoration(
-                      color: gradeInfo.color.withOpacity(0.2),
+                      color: gradeInfo.color.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(30),
                       border: Border.all(
                         color: gradeInfo.color,
@@ -420,7 +420,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: _getGradeColor(result.entry.grade).withOpacity(0.2),
+                    color: _getGradeColor(result.entry.grade).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -439,7 +439,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
                 subtitle: Text('الحديث ${result.entry.number}'),
                 onTap: () => _openHadith(result.entry),
               ),
-            ))),
+            ),)),
           ],
           
           const SizedBox(height: 24),
@@ -615,7 +615,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
                       ),
                       onTap: () => _openHadith(result.entry),
                     ),
-                  ))),
+                  ),)),
           ],
           
           const SizedBox(height: 24),
@@ -706,34 +706,34 @@ ${widget.hadith.text}
 
   _GradeInfo _getGradeInfo(String grade) {
     if (grade.contains('صحيح')) {
-      return _GradeInfo(
+      return const _GradeInfo(
         color: Colors.green,
         icon: Icons.verified,
         explanation: 'حديث صحيح يحتج به، اتصل سنده بنقل العدل الضابط عن مثله إلى منتهاه من غير شذوذ ولا علة.',
       );
     }
     if (grade.contains('حسن')) {
-      return _GradeInfo(
+      return const _GradeInfo(
         color: Colors.lightGreen,
         icon: Icons.check_circle,
         explanation: 'حديث حسن يحتج به، وهو ما اتصل سنده بنقل العدل خفيف الضبط من غير شذوذ ولا علة.',
       );
     }
     if (grade.contains('ضعيف')) {
-      return _GradeInfo(
+      return const _GradeInfo(
         color: Colors.orange,
         icon: Icons.warning,
         explanation: 'حديث ضعيف لا يحتج به، فقد شرطًا من شروط الصحة.',
       );
     }
     if (grade.contains('موضوع')) {
-      return _GradeInfo(
+      return const _GradeInfo(
         color: Colors.red,
         icon: Icons.cancel,
         explanation: 'حديث موضوع مكذوب على النبي ﷺ، لا تجوز روايته إلا مع بيان وضعه.',
       );
     }
-    return _GradeInfo(
+    return const _GradeInfo(
       color: Colors.grey,
       icon: Icons.help_outline,
       explanation: 'لم يُحكم على هذا الحديث، يحتاج إلى مراجعة أهل الحديث.',

@@ -83,12 +83,12 @@ class _ElegantCard extends StatelessWidget {
         color: const Color(0xFFFAF8F5),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: NoorTheme.accentGold.withOpacity(0.3),
+          color: NoorTheme.accentGold.withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: NoorTheme.primary.withOpacity(0.1),
+            color: NoorTheme.primary.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -103,7 +103,7 @@ class _ElegantCard extends StatelessWidget {
             children: [
               Container(width: 40, height: 1, color: NoorTheme.accentGold),
               const SizedBox(width: 8),
-              Icon(Icons.auto_awesome, color: NoorTheme.accentGold, size: 16),
+              const Icon(Icons.auto_awesome, color: NoorTheme.accentGold, size: 16),
               const SizedBox(width: 8),
               Container(width: 40, height: 1, color: NoorTheme.accentGold),
             ],
@@ -127,7 +127,7 @@ class _ElegantCard extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               translation!,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: NoorTheme.textSecondary,
                 fontStyle: FontStyle.italic,
@@ -142,12 +142,12 @@ class _ElegantCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: NoorTheme.primary.withOpacity(0.1),
+              color: NoorTheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               source,
-              style: TextStyle(
+              style: const TextStyle(
                 color: NoorTheme.primary,
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
@@ -158,11 +158,11 @@ class _ElegantCard extends StatelessWidget {
           const SizedBox(height: 20),
 
           // App branding
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('🌙', style: TextStyle(fontSize: 14)),
-              const SizedBox(width: 6),
+              Text('🌙', style: TextStyle(fontSize: 14)),
+              SizedBox(width: 6),
               Text(
                 'نور',
                 style: TextStyle(
@@ -243,7 +243,7 @@ class _GradientCard extends StatelessWidget {
       width: 400,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
@@ -273,7 +273,7 @@ class _GradientCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -313,7 +313,7 @@ class _DarkCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A2E),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: NoorTheme.accentGold.withOpacity(0.3)),
+        border: Border.all(color: NoorTheme.accentGold.withValues(alpha: 0.3)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -325,15 +325,15 @@ class _DarkCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Icon(
                 Icons.star,
-                color: NoorTheme.accentGold.withOpacity(0.3 + i * 0.1),
+                color: NoorTheme.accentGold.withValues(alpha: 0.3 + i * 0.1),
                 size: 8,
               ),
-            )),
+            ),),
           ),
           const SizedBox(height: 24),
           Text(
             arabicText,
-            style: TextStyle(
+            style: const TextStyle(
               fontFamily: 'AmiriQuran',
               fontSize: 24,
               height: 2.0,
@@ -352,11 +352,11 @@ class _DarkCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('🌙', style: TextStyle(fontSize: 12)),
-              const SizedBox(width: 4),
+              Text('🌙', style: TextStyle(fontSize: 12)),
+              SizedBox(width: 4),
               Text(
                 'نور',
                 style: TextStyle(color: NoorTheme.accentGold, fontSize: 11),

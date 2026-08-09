@@ -75,7 +75,7 @@ class _IsnadGraphPageState extends State<IsnadGraphPage>
           nodeWidth,
           nodeHeight,
         ),
-      ));
+      ),);
     }
 
     setState(() {
@@ -106,8 +106,8 @@ class _IsnadGraphPageState extends State<IsnadGraphPage>
               padding: const EdgeInsets.only(left: 12),
               child: Chip(
                 label: Text('${_chain.length} راوٍ'),
-                backgroundColor: NoorTheme.primary.withOpacity(0.1),
-                labelStyle: TextStyle(
+                backgroundColor: NoorTheme.primary.withValues(alpha: 0.1),
+                labelStyle: const TextStyle(
                   color: NoorTheme.primary,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
@@ -142,9 +142,9 @@ class _IsnadGraphPageState extends State<IsnadGraphPage>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.hub_rounded, size: 64, color: NoorTheme.textSecondary.withOpacity(0.3)),
+          Icon(Icons.hub_rounded, size: 64, color: NoorTheme.textSecondary.withValues(alpha: 0.3)),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'لم يتم العثور على إسناد',
             style: TextStyle(color: NoorTheme.textSecondary, fontSize: 16),
           ),
@@ -167,10 +167,10 @@ class _IsnadGraphPageState extends State<IsnadGraphPage>
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: NoorTheme.primary.withOpacity(0.05),
+            color: NoorTheme.primary.withValues(alpha: 0.05),
             child: Text(
               widget.hadithSource,
-              style: TextStyle(
+              style: const TextStyle(
                 color: NoorTheme.primary,
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
@@ -387,7 +387,7 @@ class _IsnadGraphPainter extends CustomPainter {
 
     // Shadow
     final shadowPaint = Paint()
-      ..color = color.withOpacity(0.15)
+      ..color = color.withValues(alpha: 0.15)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect.translate(0, 3), const Radius.circular(12)),
@@ -453,7 +453,7 @@ class _IsnadGraphPainter extends CustomPainter {
       text: TextSpan(
         text: node.narrator.role,
         style: TextStyle(
-          color: color.withOpacity(0.7),
+          color: color.withValues(alpha: 0.7),
           fontSize: 10,
         ),
       ),

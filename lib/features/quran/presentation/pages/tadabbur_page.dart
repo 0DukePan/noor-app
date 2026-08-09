@@ -135,7 +135,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
                 color: NoorTheme.bgMushaf,
                 borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
                 border: Border.all(
-                  color: NoorTheme.accentGold.withOpacity(0.3),
+                  color: NoorTheme.accentGold.withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -185,7 +185,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
                           child: Icon(
                             Icons.lock_rounded,
                             size: 16,
-                            color: NoorTheme.textSecondary.withOpacity(0.5),
+                            color: NoorTheme.textSecondary.withValues(alpha: 0.5),
                           ),
                         ),
                       ),
@@ -193,7 +193,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
                     Container(
                       padding: const EdgeInsets.all(NoorTheme.spacingSm),
                       decoration: BoxDecoration(
-                        color: NoorTheme.primary.withOpacity(0.05),
+                        color: NoorTheme.primary.withValues(alpha: 0.05),
                         borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(NoorTheme.radiusMd),
                           bottomRight: Radius.circular(NoorTheme.radiusMd),
@@ -254,7 +254,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
                               Icon(
                                 Icons.edit_note_rounded,
                                 size: 64,
-                                color: NoorTheme.textSecondary.withOpacity(0.3),
+                                color: NoorTheme.textSecondary.withValues(alpha: 0.3),
                               ),
                               const SizedBox(height: NoorTheme.spacingMd),
                               Text(
@@ -289,11 +289,11 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Row(
+        title: const Row(
           children: [
-            const Icon(Icons.security_rounded, color: NoorTheme.primary),
-            const SizedBox(width: 8),
-            const Text('خصوصية ملاحظاتك'),
+            Icon(Icons.security_rounded, color: NoorTheme.primary),
+            SizedBox(width: 8),
+            Text('خصوصية ملاحظاتك'),
           ],
         ),
         content: Column(

@@ -59,7 +59,7 @@ class HadithSearchEngine {
       'chapter_id',
       'arabic',
       'english_narrator',
-    ]);
+    ],);
 
     for (final row in rows) {
       final entry = _createIndexEntry(row);
@@ -188,11 +188,11 @@ class HadithSearchEngine {
     }
     
     _companionIndex = Map<String, List<String>>.from(
-      _indexBox?.get('companion_index') ?? {}
+      _indexBox?.get('companion_index') ?? {},
     );
     
     _topicIndex = Map<String, List<String>>.from(
-      _indexBox?.get('topic_index') ?? {}
+      _indexBox?.get('topic_index') ?? {},
     );
     
     debugPrint('Loaded ${_searchIndex?.length ?? 0} hadiths from cache');
@@ -245,7 +245,7 @@ class HadithSearchEngine {
     }
     
     // Check cache first
-    final cacheKey = '${query}_${target.name}_$book\_$companion\_$topic';
+    final cacheKey = '${query}_${target.name}_${book}_${companion}_$topic';
     final cached = _cacheBox?.get(cacheKey);
     if (cached != null) {
       return (cached as List)
@@ -292,7 +292,7 @@ class HadithSearchEngine {
         entry: entry,
         score: score,
         matchType: target,
-      ));
+      ),);
     }
     
     // Sort by score
@@ -376,7 +376,7 @@ class HadithSearchEngine {
       curr[0] = i + 1;
       
       for (int j = 0; j < s2.length; j++) {
-        int cost = s1[i] == s2[j] ? 0 : 1;
+        final int cost = s1[i] == s2[j] ? 0 : 1;
         curr[j + 1] = [
           curr[j] + 1,
           prev[j + 1] + 1,
@@ -468,7 +468,7 @@ class HadithSearchEngine {
           entry: entry,
           score: score,
           matchType: SearchTarget.all,
-        ));
+        ),);
       }
     }
     

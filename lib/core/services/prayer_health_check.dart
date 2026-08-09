@@ -134,7 +134,7 @@ class PrayerHealthCheck {
     return CheckResult(
       name: 'إذن الإشعارات',
       passed: status.isGranted,
-      issue: status.isGranted ? null : HealthIssue(
+      issue: status.isGranted ? null : const HealthIssue(
         code: 'NOTIF_PERM',
         title: 'إذن الإشعارات مطلوب',
         description: 'لن يعمل الأذان بدون إذن الإشعارات',
@@ -151,7 +151,7 @@ class PrayerHealthCheck {
     return CheckResult(
       name: 'إذن الموقع',
       passed: status.isGranted,
-      issue: status.isGranted ? null : HealthIssue(
+      issue: status.isGranted ? null : const HealthIssue(
         code: 'LOC_PERM',
         title: 'إذن الموقع مطلوب',
         description: 'لن تكون المواقيت دقيقة بدون إذن الموقع',
@@ -168,7 +168,7 @@ class PrayerHealthCheck {
     return CheckResult(
       name: 'خدمة الموقع',
       passed: enabled,
-      issue: enabled ? null : HealthIssue(
+      issue: enabled ? null : const HealthIssue(
         code: 'LOC_SERVICE',
         title: 'خدمة الموقع معطلة',
         description: 'فعّل GPS للحصول على مواقيت دقيقة',
@@ -186,7 +186,7 @@ class PrayerHealthCheck {
     return CheckResult(
       name: 'إذن المنبه الدقيق',
       passed: status.isGranted || status.isLimited,
-      issue: (status.isGranted || status.isLimited) ? null : HealthIssue(
+      issue: (status.isGranted || status.isLimited) ? null : const HealthIssue(
         code: 'ALARM_PERM',
         title: 'إذن المنبه الدقيق مطلوب',
         description: 'لضمان دقة توقيت الأذان',
@@ -203,7 +203,7 @@ class PrayerHealthCheck {
     return CheckResult(
       name: 'استثناء توفير البطارية',
       passed: status.isGranted,
-      issue: status.isGranted ? null : HealthIssue(
+      issue: status.isGranted ? null : const HealthIssue(
         code: 'BATTERY_OPT',
         title: 'التطبيق قد يُوقف لتوفير البطارية',
         description: 'استثنِ التطبيق من تحسين البطارية لضمان الأذان في الوقت',
@@ -222,7 +222,7 @@ class PrayerHealthCheck {
     return CheckResult(
       name: 'جدولة الصلوات',
       passed: scheduled == true,
-      issue: scheduled == true ? null : HealthIssue(
+      issue: scheduled == true ? null : const HealthIssue(
         code: 'SCHEDULE',
         title: 'صلوات اليوم غير مجدولة',
         description: 'افتح التطبيق لتحديث الجدولة',
@@ -247,7 +247,7 @@ class PrayerHealthCheck {
     return CheckResult(
       name: 'تحديث الموقع',
       passed: isRecent,
-      issue: isRecent ? null : HealthIssue(
+      issue: isRecent ? null : const HealthIssue(
         code: 'OLD_LOC',
         title: 'الموقع قديم',
         description: 'لم يُحدَّث الموقع منذ أكثر من 24 ساعة',

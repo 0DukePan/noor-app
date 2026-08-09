@@ -31,7 +31,7 @@ class NextPrayerCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: NoorDesignSystem.primaryGreen.withOpacity(isDark ? 0.2 : 0.35),
+            color: NoorDesignSystem.primaryGreen.withValues(alpha: isDark ? 0.2 : 0.35),
             blurRadius: 24,
             offset: const Offset(0, 12),
             spreadRadius: -4,
@@ -47,7 +47,7 @@ class NextPrayerCard extends ConsumerWidget {
             child: Icon(
               Icons.mosque_rounded,
               size: 120,
-              color: Colors.white.withOpacity(isDark ? 0.05 : 0.06),
+              color: Colors.white.withValues(alpha: isDark ? 0.05 : 0.06),
             ),
           ),
           Column(
@@ -57,7 +57,7 @@ class NextPrayerCard extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.18),
+                  color: Colors.white.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Row(
@@ -69,7 +69,7 @@ class NextPrayerCard extends ConsumerWidget {
                       'الصلاة القادمة',
                       style: GoogleFonts.cairo(
                         fontSize: 12,
-                        color: Colors.white.withOpacity(0.95),
+                        color: Colors.white.withValues(alpha: 0.95),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -98,7 +98,7 @@ class NextPrayerCard extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -122,7 +122,7 @@ class NextPrayerCard extends ConsumerWidget {
                           'بعد ${nextInfo?['remaining'] ?? '...'}',
                           style: GoogleFonts.cairo(
                             fontSize: 15,
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -131,7 +131,7 @@ class NextPrayerCard extends ConsumerWidget {
                           'إن شاء الله',
                           style: GoogleFonts.cairo(
                             fontSize: 11,
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                           ),
                         ),
                       ],
@@ -145,7 +145,7 @@ class NextPrayerCard extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(
                   value: (nextInfo?['progress'] as double?) ?? 0.0,
-                  backgroundColor: Colors.white.withOpacity(0.15),
+                  backgroundColor: Colors.white.withValues(alpha: 0.15),
                   color: Colors.white,
                   minHeight: 4,
                 ),

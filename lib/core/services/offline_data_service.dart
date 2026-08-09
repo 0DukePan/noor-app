@@ -61,7 +61,7 @@ class OfflineDataService {
             // Find metadata
             final metadata = surahs.firstWhere(
               (s) => s['number'] == i, 
-              orElse: () => {'number': i, 'name': 'Surah $i'}
+              orElse: () => {'number': i, 'name': 'Surah $i'},
             );
 
             // Construct full surah object
@@ -77,7 +77,7 @@ class OfflineDataService {
                 'ruku': 0, // Placeholder
                 'hizbQuarter': 0, // Placeholder
                 'sajda': false, // Placeholder
-              }).toList(),
+              },).toList(),
             };
 
             await _quranBox!.put('surah_$i', surahData);

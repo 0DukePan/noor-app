@@ -74,7 +74,7 @@ class PersonalTag {
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
-        'color': color.value,
+        'color': color.toARGB32(),
         'icon': icon,
         'hadithIds': hadithIds,
         'createdAt': createdAt.toIso8601String(),
@@ -205,7 +205,7 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: isSelected ? _selectedColor.withOpacity(0.2) : null,
+                          color: isSelected ? _selectedColor.withValues(alpha: 0.2) : null,
                           borderRadius: BorderRadius.circular(8),
                           border: isSelected
                               ? Border.all(color: _selectedColor, width: 2)
@@ -242,7 +242,7 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
                           boxShadow: isSelected
                               ? [
                                   BoxShadow(
-                                    color: color.withOpacity(0.5),
+                                    color: color.withValues(alpha: 0.5),
                                     blurRadius: 8,
                                   ),
                                 ]
@@ -284,6 +284,7 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
     );
 
     await PersonalTagsService.addTag(tag);
+    if (!mounted) return;
     Navigator.pop(context);
     HapticFeedback.mediumImpact();
     _loadTags();
@@ -303,14 +304,14 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('🏷️', style: const TextStyle(fontSize: 64)),
+                  const Text('🏷️', style: TextStyle(fontSize: 64)),
                   const SizedBox(height: 16),
                   Text(
                     'لا توجد وسومات بعد',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  const Text(
                     'أنشئ وسوماً لتنظيم أحاديثك المفضلة',
                     style: TextStyle(color: NoorTheme.textSecondary),
                   ),
@@ -340,7 +341,7 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: tag.color.withOpacity(0.1),
+                                color: tag.color.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Center(
@@ -361,7 +362,7 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
                                   ),
                                   Text(
                                     '${tag.hadithIds.length} حديث',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       color: NoorTheme.textSecondary,
                                       fontSize: 12,
                                     ),

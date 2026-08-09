@@ -132,7 +132,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
                                 color: isSelected ? NoorTheme.primary : Colors.white,
                                 borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
                                 border: Border.all(
-                                  color: isSelected ? NoorTheme.primary : NoorTheme.primary.withOpacity(0.2),
+                                  color: isSelected ? NoorTheme.primary : NoorTheme.primary.withValues(alpha: 0.2),
                                 ),
                               ),
                               child: Center(
@@ -185,16 +185,16 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.search_off_rounded, size: 64, color: NoorTheme.textSecondary.withOpacity(0.3)),
+          Icon(Icons.search_off_rounded, size: 64, color: NoorTheme.textSecondary.withValues(alpha: 0.3)),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'لم يتم العثور على روايات مطابقة',
             style: TextStyle(color: NoorTheme.textSecondary, fontSize: 16),
           ),
           const SizedBox(height: 8),
           Text(
             'حاول بكلمة مفتاحية مختلفة',
-            style: TextStyle(color: NoorTheme.textSecondary.withOpacity(0.6), fontSize: 13),
+            style: TextStyle(color: NoorTheme.textSecondary.withValues(alpha: 0.6), fontSize: 13),
           ),
         ],
       ),
@@ -213,11 +213,11 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(NoorTheme.spacingMd),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [NoorTheme.primary, NoorTheme.primaryDark],
               ),
-              borderRadius: const BorderRadius.vertical(
+              borderRadius: BorderRadius.vertical(
                 top: Radius.circular(NoorTheme.radiusLg),
               ),
             ),
@@ -235,7 +235,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
                 Text(
                   'حديث رقم ${narration.hadithNumber}',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 14,
                   ),
                 ),
@@ -254,7 +254,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: NoorTheme.primary.withOpacity(0.1),
+                  color: NoorTheme.primary.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 5),
                 ),
@@ -266,7 +266,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
                 // Narrator
                 Text(
                   narration.narrator,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: NoorTheme.textSecondary,
                     fontSize: 14,
                   ),
@@ -285,7 +285,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
-                        color: gradeColor.withOpacity(0.1),
+                        color: gradeColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -307,7 +307,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
                     if (narration.differences.isNotEmpty && _showDiff)
                       Text(
                         '${narration.differences.length} اختلاف',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: NoorTheme.accentGold,
                           fontSize: 12,
                         ),
@@ -366,10 +366,10 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
         spans.add(TextSpan(
           text: diff,
           style: TextStyle(
-            backgroundColor: NoorTheme.accentGold.withOpacity(0.3),
+            backgroundColor: NoorTheme.accentGold.withValues(alpha: 0.3),
             color: NoorTheme.textArabic,
           ),
-        ));
+        ),);
         remaining = remaining.substring(index + diff.length);
       }
     }
@@ -406,7 +406,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: NoorTheme.textSecondary.withOpacity(0.3),
+                    color: NoorTheme.textSecondary.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -431,7 +431,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
                           border: Border.all(
-                            color: NoorTheme.primary.withOpacity(0.2),
+                            color: NoorTheme.primary.withValues(alpha: 0.2),
                           ),
                         ),
                         child: Column(

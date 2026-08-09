@@ -19,7 +19,7 @@ class LocalHadithDataSource {
       titleEnglish: r['title_english'] as String? ?? '',
       hadithsCount: r['hadith_count'] as int? ?? 0,
       author: r['author_arabic'] as String? ?? '',
-    )).toList();
+    ),).toList();
   }
 
   /// Map a `hadiths` table row to a [Hadith] entity.
@@ -102,7 +102,7 @@ class LocalHadithDataSource {
       bookId: bookId,
       topicArabic: c['title_arabic'] as String,
       topicEnglish: c['title_english'] as String? ?? '',
-    )).toList();
+    ),).toList();
   }
 
   /// Paginated hadiths from SQLite

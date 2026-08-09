@@ -54,7 +54,7 @@ class LocationService {
           latitude: position.latitude,
           longitude: position.longitude,
           altitude: position.altitude,
-        ));
+        ),);
   }
 
   /// Calculate distance between two locations (in km)

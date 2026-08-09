@@ -258,7 +258,7 @@ List<ReadingDay> generateSchedule(Khatmah khatmah) {
       surahRange: _surahsInRange(fromPage, toPage),
       pageRange: '$fromPage - $toPage',
       isToday: i == 0,
-    ));
+    ),);
   }
   return result;
 }

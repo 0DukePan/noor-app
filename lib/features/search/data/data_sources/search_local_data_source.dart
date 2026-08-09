@@ -44,7 +44,7 @@ class SearchLocalDataSource {
       final count = Sqflite.firstIntValue(await _db!.rawQuery(
         "SELECT COUNT(*) FROM search_index WHERE source = ?",
         [source],
-      ));
+      ),);
       return (count ?? 0) > 0;
     }
 
@@ -78,7 +78,7 @@ class SearchLocalDataSource {
       'id',
       'collection_id',
       'arabic',
-    ]);
+    ],);
 
     final records = <Map<String, dynamic>>[];
     for (final row in rows) {
@@ -176,14 +176,14 @@ class SearchLocalDataSource {
         WHERE text MATCH ? 
         ORDER BY rank 
         LIMIT 50
-      ''', ['"$safeQuery"']);
+      ''', ['"$safeQuery"'],);
     } catch (e) {
       // Fallback: substring search (robust against odd tokenization).
       return _db!.rawQuery('''
         SELECT * FROM search_index 
         WHERE text LIKE ? 
         LIMIT 50
-      ''', ['%$simplified%']);
+      ''', ['%$simplified%'],);
     }
   }
 }

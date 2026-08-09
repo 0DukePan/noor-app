@@ -111,7 +111,7 @@ class ArabesqueDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final dividerColor = color ?? theme.colorScheme.primary.withOpacity(0.25);
+    final dividerColor = color ?? theme.colorScheme.primary.withValues(alpha: 0.25);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -146,8 +146,8 @@ class ArabesqueDivider extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isLeft
-                    ? [color.withOpacity(0.0), color]
-                    : [color, color.withOpacity(0.0)],
+                    ? [color.withValues(alpha: 0.0), color]
+                    : [color, color.withValues(alpha: 0.0)],
               ),
             ),
           ),
@@ -178,7 +178,7 @@ class ArabesqueDividerCompact extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final c = color ?? theme.colorScheme.primary.withOpacity(0.2);
+    final c = color ?? theme.colorScheme.primary.withValues(alpha: 0.2);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),

@@ -45,25 +45,25 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
         physics: const BouncingScrollPhysics(),
         children: [
           // ── Section 1: Adhan Sounds ──
-          _SectionHeader(icon: Icons.volume_up_rounded, title: 'الأذان والتنبيهات'),
+          const _SectionHeader(icon: Icons.volume_up_rounded, title: 'الأذان والتنبيهات'),
           const SizedBox(height: 8),
           _buildAdhanSection(theme, isDark),
           const SizedBox(height: 24),
 
           // ── Section 2: Mosque Mode ──
-          _SectionHeader(icon: Icons.mosque_rounded, title: 'وضع المسجد'),
+          const _SectionHeader(icon: Icons.mosque_rounded, title: 'وضع المسجد'),
           const SizedBox(height: 8),
           _buildMosqueModeSection(theme, isDark),
           const SizedBox(height: 24),
 
           // ── Section 3: Seasonal Offsets ──
-          _SectionHeader(icon: Icons.tune_rounded, title: 'الإزاحات الموسمية'),
+          const _SectionHeader(icon: Icons.tune_rounded, title: 'الإزاحات الموسمية'),
           const SizedBox(height: 8),
           _buildOffsetsSection(theme, isDark),
           const SizedBox(height: 24),
 
           // ── Section 4: Prayer Health Check ──
-          _SectionHeader(icon: Icons.health_and_safety_rounded, title: 'فحص النظام'),
+          const _SectionHeader(icon: Icons.health_and_safety_rounded, title: 'فحص النظام'),
           const SizedBox(height: 8),
           _buildHealthSection(theme, isDark),
           const SizedBox(height: 100),
@@ -106,13 +106,13 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                   color: enabled ? NoorDesignSystem.primaryGreen : Colors.grey,
                 ),
                 value: enabled,
-                activeColor: NoorDesignSystem.primaryGreen,
+                activeThumbColor: NoorDesignSystem.primaryGreen,
                 onChanged: (v) {
                   HapticFeedback.selectionClick();
                   notifier.toggleAdhan(prayer, v);
                 },
               ),
-              if (prayer != _prayers.last) Divider(height: 1, indent: 56, color: theme.dividerColor.withOpacity(0.3)),
+              if (prayer != _prayers.last) Divider(height: 1, indent: 56, color: theme.dividerColor.withValues(alpha: 0.3)),
             ],
           );
         }).toList(),
@@ -147,7 +147,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
               style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey),
             ),
             value: settings.mosqueModeGlobal,
-            activeColor: NoorDesignSystem.primaryGreen,
+            activeThumbColor: NoorDesignSystem.primaryGreen,
             onChanged: (v) {
               HapticFeedback.mediumImpact();
               notifier.setMosqueMode(v);
@@ -243,7 +243,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: NoorDesignSystem.primaryGreen.withOpacity(0.1),
+              color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -385,7 +385,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                   await PrayerHealthCheck.attemptFix(issue);
                   notifier.runHealthCheck();
                 },
-              )),
+              ),),
           ],
         ],
       ),
@@ -474,7 +474,7 @@ class _HealthStatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: (colors[status] ?? Colors.grey).withOpacity(0.1),
+        color: (colors[status] ?? Colors.grey).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -519,7 +519,7 @@ class _HealthIssueCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         border: Border(left: BorderSide(color: color, width: 3)),
-        color: color.withOpacity(0.05),
+        color: color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
       ),
       padding: const EdgeInsets.all(12),

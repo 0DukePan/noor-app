@@ -247,7 +247,7 @@ class DayStateMachine {
   }
 
   static DayState _getNextState() {
-    final states = DayState.values;
+    const states = DayState.values;
     final currentIndex = states.indexOf(_currentState);
     if (currentIndex < states.length - 1) {
       return states[currentIndex + 1];

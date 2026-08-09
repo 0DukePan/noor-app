@@ -40,19 +40,19 @@ class _CloudSettingsPageState extends State<CloudSettingsPage> {
         physics: const BouncingScrollPhysics(),
         children: [
           // ── Location Trust ──
-          _SectionHeader(icon: Icons.location_on_rounded, title: 'محرك ثقة الموقع'),
+          const _SectionHeader(icon: Icons.location_on_rounded, title: 'محرك ثقة الموقع'),
           const SizedBox(height: 8),
           _buildLocationCard(isDark),
           const SizedBox(height: 24),
 
           // ── Cloud Sync ──
-          _SectionHeader(icon: Icons.cloud_rounded, title: 'المزامنة السحابية'),
+          const _SectionHeader(icon: Icons.cloud_rounded, title: 'المزامنة السحابية'),
           const SizedBox(height: 8),
           _buildCloudCard(isDark),
           const SizedBox(height: 24),
 
           // ── Auth Status ──
-          _SectionHeader(icon: Icons.person_rounded, title: 'الحساب'),
+          const _SectionHeader(icon: Icons.person_rounded, title: 'الحساب'),
           const SizedBox(height: 8),
           _buildAuthCard(isDark),
           const SizedBox(height: 100),
@@ -78,7 +78,7 @@ class _CloudSettingsPageState extends State<CloudSettingsPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: NoorDesignSystem.primaryGreen.withOpacity(0.1),
+                  color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.gps_fixed_rounded, color: NoorDesignSystem.primaryGreen, size: 20),
@@ -163,7 +163,7 @@ class _CloudSettingsPageState extends State<CloudSettingsPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: (isAuth ? NoorDesignSystem.primaryGreen : Colors.grey).withOpacity(0.1),
+                  color: (isAuth ? NoorDesignSystem.primaryGreen : Colors.grey).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -244,7 +244,7 @@ class _CloudSettingsPageState extends State<CloudSettingsPage> {
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: NoorDesignSystem.primaryGreen.withOpacity(0.1),
+            backgroundColor: NoorDesignSystem.primaryGreen.withValues(alpha: 0.1),
             radius: 24,
             child: Icon(
               isAuth ? Icons.person_rounded : Icons.person_outline_rounded,
@@ -306,7 +306,7 @@ class _SectionHeader extends StatelessWidget {
           fontSize: 18,
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.onSurface,
-        )),
+        ),),
       ],
     );
   }

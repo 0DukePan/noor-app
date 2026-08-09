@@ -29,7 +29,7 @@ class DayStateCard extends StatelessWidget {
         color: isDark ? const Color(0xFF1A262C) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.white12 : Colors.black.withOpacity(0.05),
+          color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.05),
         ),
         boxShadow: NoorDesignSystem.shadowSmall,
       ),
@@ -40,7 +40,7 @@ class DayStateCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: NoorDesignSystem.primaryGreen.withOpacity(0.1),
+              color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Center(
@@ -109,7 +109,7 @@ class DayStateCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: NoorDesignSystem.goldAccent.withOpacity(0.12),
+                    color: NoorDesignSystem.goldAccent.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(

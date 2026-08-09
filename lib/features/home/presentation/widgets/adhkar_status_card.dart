@@ -26,12 +26,12 @@ class AdhkarStatusCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: stats.isComplete
-                  ? NoorDesignSystem.sageGreen.withOpacity(0.3)
+                  ? NoorDesignSystem.sageGreen.withValues(alpha: 0.3)
                   : Colors.transparent,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -46,7 +46,7 @@ class AdhkarStatusCard extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: stats.isComplete 
                         ? [const Color(0xFF43A047), const Color(0xFF2E7D32)]
-                        : [NoorDesignSystem.primaryGreen.withOpacity(0.12), NoorDesignSystem.primaryLight.withOpacity(0.08)],
+                        : [NoorDesignSystem.primaryGreen.withValues(alpha: 0.12), NoorDesignSystem.primaryLight.withValues(alpha: 0.08)],
                   ),
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -95,7 +95,7 @@ class AdhkarStatusCard extends StatelessWidget {
               Icon(
                 Icons.arrow_forward_ios_rounded,
                 size: 16,
-                color: isDark ? Colors.white24 : NoorDesignSystem.textSecondary.withOpacity(0.4),
+                color: isDark ? Colors.white24 : NoorDesignSystem.textSecondary.withValues(alpha: 0.4),
               ),
             ],
           ),

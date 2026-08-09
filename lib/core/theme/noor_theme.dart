@@ -86,7 +86,7 @@ class NoorTheme {
       error: NoorDesignSystem.error,
     ),
     textTheme: NoorDesignSystem.textTheme,
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       backgroundColor: NoorDesignSystem.bgLight,
       foregroundColor: NoorDesignSystem.textPrimary,
       elevation: 0,
@@ -99,7 +99,7 @@ class NoorTheme {
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
-        side: BorderSide(color: Colors.black.withOpacity(0.05)),
+        side: BorderSide(color: Colors.black.withValues(alpha: 0.05)),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -121,11 +121,11 @@ class NoorTheme {
       fillColor: Colors.white,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
-        borderSide: BorderSide(color: Colors.grey.withOpacity(0.1)),
+        borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
-        borderSide: BorderSide(color: Colors.grey.withOpacity(0.1)),
+        borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
@@ -134,7 +134,7 @@ class NoorTheme {
       contentPadding: const EdgeInsets.all(NoorDesignSystem.spacingM),
     ),
     dividerTheme: DividerThemeData(
-      color: Colors.black.withOpacity(0.05),
+      color: Colors.black.withValues(alpha: 0.05),
       thickness: 1,
     ),
   );
@@ -178,7 +178,7 @@ class NoorTheme {
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
-        side: BorderSide(color: Colors.white.withOpacity(0.05)),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -198,11 +198,11 @@ class NoorTheme {
       fillColor: NoorDesignSystem.surfaceDark,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
@@ -210,7 +210,7 @@ class NoorTheme {
       ),
       contentPadding: const EdgeInsets.all(NoorDesignSystem.spacingM),
     ),
-    dividerTheme: DividerThemeData(
+    dividerTheme: const DividerThemeData(
       color: NoorDesignSystem.separatorDark,
       thickness: 1,
     ),
@@ -250,11 +250,11 @@ class NoorTheme {
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
-        side: BorderSide(color: Colors.brown.withOpacity(0.08)),
+        side: BorderSide(color: Colors.brown.withValues(alpha: 0.08)),
       ),
     ),
     dividerTheme: DividerThemeData(
-      color: Colors.brown.withOpacity(0.1),
+      color: Colors.brown.withValues(alpha: 0.1),
       thickness: 1,
     ),
   );
@@ -317,7 +317,7 @@ class NoorTheme {
       ),
       bodySmall: GoogleFonts.cairo(
         fontSize: 12, fontWeight: FontWeight.normal,
-        color: color.withOpacity(0.7), height: 1.5,
+        color: color.withValues(alpha: 0.7), height: 1.5,
       ),
       // Labels (Cairo)
       labelLarge: GoogleFonts.cairo(
@@ -328,7 +328,7 @@ class NoorTheme {
       ),
       labelSmall: GoogleFonts.cairo(
         fontSize: 10, fontWeight: FontWeight.w500,
-        color: color.withOpacity(0.7),
+        color: color.withValues(alpha: 0.7),
       ),
     );
   }

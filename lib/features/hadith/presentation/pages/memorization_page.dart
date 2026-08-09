@@ -85,7 +85,7 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
             margin: const EdgeInsets.only(left: 16),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: NoorTheme.accentGold.withOpacity(0.2),
+              color: NoorTheme.accentGold.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -94,7 +94,7 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
                 const SizedBox(width: 4),
                 Text(
                   '${state.streak.currentStreak}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: NoorTheme.accentGold,
                   ),
@@ -192,7 +192,7 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
         borderRadius: BorderRadius.circular(NoorTheme.radiusLg),
         boxShadow: [
           BoxShadow(
-            color: NoorTheme.primary.withOpacity(0.1),
+            color: NoorTheme.primary.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -204,7 +204,7 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
           Icon(
             Icons.lightbulb_outline_rounded,
             size: 48,
-            color: NoorTheme.accentGold.withOpacity(0.5),
+            color: NoorTheme.accentGold.withValues(alpha: 0.5),
           ),
           const SizedBox(height: NoorTheme.spacingLg),
           const Text(
@@ -218,7 +218,7 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
           // Show partial hadith as hint
           Text(
             hint,
-            style: TextStyle(
+            style: const TextStyle(
               fontFamily: 'Amiri',
               fontSize: 22,
               color: NoorTheme.textArabic,
@@ -232,7 +232,7 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
           Text(
             'اضغط لإظهار الإجابة',
             style: TextStyle(
-              color: NoorTheme.textSecondary.withOpacity(0.6),
+              color: NoorTheme.textSecondary.withValues(alpha: 0.6),
               fontSize: 14,
             ),
           ),
@@ -254,15 +254,15 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            NoorTheme.primary.withOpacity(0.05),
+            NoorTheme.primary.withValues(alpha: 0.05),
             Colors.white,
           ],
         ),
         borderRadius: BorderRadius.circular(NoorTheme.radiusLg),
-        border: Border.all(color: NoorTheme.primary.withOpacity(0.3)),
+        border: Border.all(color: NoorTheme.primary.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: NoorTheme.primary.withOpacity(0.15),
+            color: NoorTheme.primary.withValues(alpha: 0.15),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -291,12 +291,12 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
                 vertical: NoorTheme.spacingSm,
               ),
               decoration: BoxDecoration(
-                color: NoorTheme.hadithSahih.withOpacity(0.1),
+                color: NoorTheme.hadithSahih.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(NoorTheme.radiusSm),
               ),
               child: Text(
                 source,
-                style: TextStyle(
+                style: const TextStyle(
                   color: NoorTheme.hadithSahih,
                   fontWeight: FontWeight.bold,
                 ),
@@ -347,9 +347,9 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          const Text(
             '🎉',
-            style: const TextStyle(fontSize: 64),
+            style: TextStyle(fontSize: 64),
           ),
           const SizedBox(height: NoorTheme.spacingLg),
           Text(
@@ -357,7 +357,7 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: NoorTheme.spacingSm),
-          Text(
+          const Text(
             'عد غداً لمواصلة الحفظ',
             style: TextStyle(color: NoorTheme.textSecondary),
           ),
@@ -391,7 +391,7 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(NoorTheme.spacingMd),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
       ),
       child: Column(
@@ -408,7 +408,7 @@ class _StatCard extends StatelessWidget {
           ),
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 10,
               color: NoorTheme.textSecondary,
             ),
@@ -446,7 +446,7 @@ class _RatingButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: _color.withOpacity(0.1),
+      color: _color.withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
       child: InkWell(
         onTap: onTap,
@@ -467,7 +467,7 @@ class _RatingButton extends StatelessWidget {
               ),
               Text(
                 intervalText,
-                style: TextStyle(
+                style: const TextStyle(
                   color: NoorTheme.textSecondary,
                   fontSize: 10,
                 ),

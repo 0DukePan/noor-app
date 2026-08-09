@@ -40,7 +40,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           textDirection: TextDirection.rtl,
           decoration: InputDecoration(
             hintText: 'ابحث في القرآن والحديث...',
-            hintStyle: TextStyle(color: NoorDesignSystem.textSecondary.withOpacity(0.5)),
+            hintStyle: TextStyle(color: NoorDesignSystem.textSecondary.withValues(alpha: 0.5)),
             border: InputBorder.none,
           ),
           style: GoogleFonts.cairo(fontSize: 18),
@@ -122,7 +122,7 @@ class _SearchResultCard extends StatelessWidget {
       color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.black.withOpacity(0.05)),
+        side: BorderSide(color: Colors.black.withValues(alpha: 0.05)),
       ),
       child: InkWell(
         onTap: () => _openResult(context),
@@ -137,7 +137,7 @@ class _SearchResultCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: badgeColor.withOpacity(0.1),
+                      color: badgeColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -209,7 +209,7 @@ class _SearchResultCard extends StatelessWidget {
             allHadiths: [hadith],
             currentIndex: 0,
           ),
-        ));
+        ),);
       } catch (e) {
         debugPrint('Failed to open hadith result: $e');
       }

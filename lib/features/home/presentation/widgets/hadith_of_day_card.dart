@@ -25,12 +25,12 @@ class HadithOfDayCard extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: NoorDesignSystem.primaryGreen.withOpacity(isDark ? 0.15 : 0.1),
+          color: NoorDesignSystem.primaryGreen.withValues(alpha: isDark ? 0.15 : 0.1),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -44,12 +44,12 @@ class HadithOfDayCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: NoorDesignSystem.primaryGreen.withOpacity(0.1),
+                  color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   Icons.format_quote_rounded,
-                  color: NoorDesignSystem.primaryGreen.withOpacity(0.6),
+                  color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.6),
                   size: 20,
                 ),
               ),
@@ -72,7 +72,7 @@ class HadithOfDayCard extends StatelessWidget {
             style: GoogleFonts.amiri(
               fontSize: 18,
               height: 1.9,
-              color: isDark ? Colors.white.withOpacity(0.9) : NoorDesignSystem.textPrimary,
+              color: isDark ? Colors.white.withValues(alpha: 0.9) : NoorDesignSystem.textPrimary,
             ),
             textDirection: TextDirection.rtl,
           ),

@@ -100,7 +100,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   if (_currentPage < _steps.length - 1)
                     TextButton(
                       onPressed: _completeOnboarding,
-                      child: Text(
+                      child: const Text(
                         'تخطي',
                         style: TextStyle(color: NoorTheme.textSecondary),
                       ),
@@ -136,7 +136,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     decoration: BoxDecoration(
                       color: isActive
                           ? _steps[_currentPage].color
-                          : NoorTheme.textSecondary.withOpacity(0.3),
+                          : NoorTheme.textSecondary.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   );

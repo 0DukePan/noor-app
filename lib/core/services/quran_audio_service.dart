@@ -121,7 +121,7 @@ class QuranAudioService {
           album: 'سورة $surah',
           artist: _getReciterName(_currentReciter),
         ),
-      ));
+      ),);
     }
 
     return sources;

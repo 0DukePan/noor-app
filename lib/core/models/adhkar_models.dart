@@ -1,4 +1,5 @@
 /// 📿 نماذج بيانات الأذكار - Adhkar Data Models
+library;
 
 /// نوع الأذكار
 enum AdhkarType {
@@ -64,7 +65,7 @@ class AdhkarCollection {
       title: json['title'] ?? '',
       type: type,
       adhkar: content.asMap().entries.map((e) => 
-        Zekr.fromJson(e.value, e.key, type)
+        Zekr.fromJson(e.value, e.key, type),
       ).toList(),
     );
   }

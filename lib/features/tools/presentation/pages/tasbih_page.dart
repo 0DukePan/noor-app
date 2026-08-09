@@ -157,11 +157,11 @@ class _TasbihPageState extends State<TasbihPage> with SingleTickerProviderStateM
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: isComplete 
-                                ? NoorDesignSystem.goldAccent.withOpacity(0.1) 
+                                ? NoorDesignSystem.goldAccent.withValues(alpha: 0.1) 
                                 : Colors.white,
                             boxShadow: [
                               BoxShadow(
-                                color: (isComplete ? NoorDesignSystem.goldAccent : NoorDesignSystem.primaryGreen).withOpacity(0.2),
+                                color: (isComplete ? NoorDesignSystem.goldAccent : NoorDesignSystem.primaryGreen).withValues(alpha: 0.2),
                                 blurRadius: 30,
                                 spreadRadius: 10,
                               ),
@@ -246,7 +246,7 @@ class _PresetChip extends StatelessWidget {
           ),
           boxShadow: isSelected ? [
             BoxShadow(
-              color: NoorDesignSystem.primaryGreen.withOpacity(0.3),
+              color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.3),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),

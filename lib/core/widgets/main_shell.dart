@@ -34,18 +34,18 @@ class _NoorBottomNav extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       decoration: BoxDecoration(
         color: isDark
-            ? const Color(0xFF1A262C).withOpacity(0.95)
-            : Colors.white.withOpacity(0.95),
+            ? const Color(0xFF1A262C).withValues(alpha: 0.95)
+            : Colors.white.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: NoorDesignSystem.emeraldGreen.withOpacity(isDark ? 0.15 : 0.08),
+            color: NoorDesignSystem.emeraldGreen.withValues(alpha: isDark ? 0.15 : 0.08),
             blurRadius: 24,
             offset: const Offset(0, -4),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.06),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -163,8 +163,8 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
             gradient: widget.isSelected
                 ? LinearGradient(
                     colors: [
-                      NoorDesignSystem.emeraldGreen.withOpacity(isDark ? 0.25 : 0.12),
-                      NoorDesignSystem.deepTeal.withOpacity(isDark ? 0.15 : 0.06),
+                      NoorDesignSystem.emeraldGreen.withValues(alpha: isDark ? 0.25 : 0.12),
+                      NoorDesignSystem.deepTeal.withValues(alpha: isDark ? 0.15 : 0.06),
                     ],
                   )
                 : null,

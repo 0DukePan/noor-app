@@ -200,7 +200,7 @@ class HadithDatabase {
         'author_english': englishMeta['author'] ?? '',
         'introduction': arabicMeta['introduction'] ?? '',
         'hadith_count': hadithsList.length,
-      }, conflictAlgorithm: ConflictAlgorithm.replace);
+      }, conflictAlgorithm: ConflictAlgorithm.replace,);
 
       // --- Chapters ---
       final chaptersList = (json['chapters'] as List?) ?? [];
@@ -211,7 +211,7 @@ class HadithDatabase {
           'collection_id': bookId,
           'title_arabic': c['arabic'] ?? '',
           'title_english': c['english'] ?? '',
-        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        }, conflictAlgorithm: ConflictAlgorithm.replace,);
       }
       await chapterBatch.commit(noResult: true);
 
@@ -234,7 +234,7 @@ class HadithDatabase {
             'arabic': h['arabic'] ?? '',
             'english_narrator': engMap['narrator'] ?? '',
             'english_text': engMap['text'] ?? '',
-          }, conflictAlgorithm: ConflictAlgorithm.replace);
+          }, conflictAlgorithm: ConflictAlgorithm.replace,);
         }
 
         await batch.commit(noResult: true);
@@ -276,7 +276,7 @@ class HadithDatabase {
   }) async {
     final db = await database;
     String where = 'collection_id = ?';
-    List<dynamic> args = [collectionId];
+    final List<dynamic> args = [collectionId];
 
     if (chapterId != null) {
       where += ' AND chapter_id = ?';
@@ -355,7 +355,7 @@ class HadithDatabase {
     // Fallback: normalized LIKE search across Arabic and English text.
     final normalizedQuery = normalizeForSearch(query);
     String where = '(arabic LIKE ? OR english_text LIKE ? OR english_narrator LIKE ?)';
-    List<dynamic> args = ['%$normalizedQuery%', '%$normalizedQuery%', '%$normalizedQuery%'];
+    final List<dynamic> args = ['%$normalizedQuery%', '%$normalizedQuery%', '%$normalizedQuery%'];
 
     if (collectionId != null) {
       where += ' AND collection_id = ?';

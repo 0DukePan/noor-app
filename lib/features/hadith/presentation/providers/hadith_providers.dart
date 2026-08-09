@@ -122,7 +122,7 @@ class PaginatedHadithsNotifier extends StateNotifier<PaginatedHadithsState> {
       final newHadiths = await _repository.getHadiths(
         _bookId, 
         page: nextPage, 
-        limit: _limit
+        limit: _limit,
       );
       
       state = state.copyWith(
@@ -256,7 +256,7 @@ class QuizNotifier extends StateNotifier<QuizState> {
             .take(3)
             .map((h) => h.arabic.length > 100
                 ? '${h.arabic.substring(0, 100)}...'
-                : h.arabic)
+                : h.arabic,)
             .toList();
 
         return QuizQuestion(

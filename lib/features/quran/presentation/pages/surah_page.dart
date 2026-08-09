@@ -124,7 +124,7 @@ class _SurahPageState extends ConsumerState<SurahPage>
                     SliverAppBar(
                       floating: true,
                       snap: true,
-                      backgroundColor: theme.scaffoldBackgroundColor.withOpacity(0.9),
+                      backgroundColor: theme.scaffoldBackgroundColor.withValues(alpha: 0.9),
                       surfaceTintColor: Colors.transparent,
                       elevation: 0,
                       centerTitle: true,
@@ -246,8 +246,8 @@ class _SurahPageState extends ConsumerState<SurahPage>
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          backgroundColor.withOpacity(0.0),
-                          backgroundColor.withOpacity(0.1),
+                          backgroundColor.withValues(alpha: 0.0),
+                          backgroundColor.withValues(alpha: 0.1),
                         ],
                       ),
                     ),
@@ -289,7 +289,7 @@ class _SurahPageState extends ConsumerState<SurahPage>
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: NoorTheme.textSecondary.withOpacity(0.3),
+                color: NoorTheme.textSecondary.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -372,11 +372,11 @@ class _BismillahHeader extends StatelessWidget {
         color: isDark ? theme.colorScheme.surfaceContainerHighest : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: theme.colorScheme.primary.withOpacity(0.1),
+          color: theme.colorScheme.primary.withValues(alpha: 0.1),
         ),
         boxShadow: isDark ? [] : [
           BoxShadow(
-            color: theme.colorScheme.primary.withOpacity(0.05),
+            color: theme.colorScheme.primary.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -386,7 +386,7 @@ class _BismillahHeader extends StatelessWidget {
         children: [
           Icon(
             Icons.horizontal_rule_rounded, 
-            color: theme.colorScheme.primary.withOpacity(0.3),
+            color: theme.colorScheme.primary.withValues(alpha: 0.3),
             size: 24,
           ),
           const SizedBox(height: 12),
@@ -435,11 +435,11 @@ class _DynamicVerseCard extends StatelessWidget {
         padding: EdgeInsets.all(isKhushuMode ? 24 : 16),
         decoration: BoxDecoration(
           color: isSelected
-              ? theme.colorScheme.primary.withOpacity(isDark ? 0.2 : 0.05)
+              ? theme.colorScheme.primary.withValues(alpha: isDark ? 0.2 : 0.05)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: isSelected
-              ? Border.all(color: theme.colorScheme.primary.withOpacity(0.3))
+              ? Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3))
               : null,
         ),
         child: Column(
@@ -509,7 +509,7 @@ class _DynamicTafsirPanel extends ConsumerWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 30,
             offset: const Offset(0, -10),
           ),
@@ -524,7 +524,7 @@ class _DynamicTafsirPanel extends ConsumerWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: theme.colorScheme.onSurface.withOpacity(0.2),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -537,7 +537,7 @@ class _DynamicTafsirPanel extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(Icons.menu_book_rounded, color: theme.colorScheme.primary),
@@ -611,7 +611,7 @@ class _DynamicTafsirPanel extends ConsumerWidget {
                       style: GoogleFonts.amiri(
                         fontSize: 18,
                         height: 1.8,
-                        color: theme.colorScheme.onSurface.withOpacity(0.9),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.9),
                       ),
                       textDirection: TextDirection.rtl,
                     )
@@ -676,7 +676,7 @@ class _AudioPlayerSheetState extends State<_AudioPlayerSheet> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.onSurface.withOpacity(0.2),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -696,7 +696,7 @@ class _AudioPlayerSheetState extends State<_AudioPlayerSheet> {
                           icon: Icon(Icons.keyboard_arrow_down_rounded, color: theme.colorScheme.primary),
                           dropdownColor: theme.colorScheme.surface,
                           items: _reciters.entries.map((e) => 
-                            DropdownMenuItem(value: e.key, child: Text(e.value))
+                            DropdownMenuItem(value: e.key, child: Text(e.value)),
                           ).toList(),
                           onChanged: (value) {
                              if (value != null) {
@@ -731,7 +731,7 @@ class _AudioPlayerSheetState extends State<_AudioPlayerSheet> {
                             gradient: LinearGradient(
                               colors: [
                                 theme.colorScheme.primary, 
-                                theme.colorScheme.primary.withAlpha(200)
+                                theme.colorScheme.primary.withAlpha(200),
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
@@ -739,7 +739,7 @@ class _AudioPlayerSheetState extends State<_AudioPlayerSheet> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: theme.colorScheme.primary.withOpacity(0.3),
+                                color: theme.colorScheme.primary.withValues(alpha: 0.3),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),
                               ),
@@ -768,9 +768,9 @@ class _AudioPlayerSheetState extends State<_AudioPlayerSheet> {
                   ],
                 ),
               );
-            }
+            },
           );
-      }
+      },
     );
   }
 
@@ -837,7 +837,7 @@ class _MiniAudioPlayer extends ConsumerWidget {
             color: isDark ? const Color(0xFF1E2C33) : Colors.white,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: NoorDesignSystem.primaryGreen.withOpacity(0.1),
+              color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.1),
             ),
             boxShadow: NoorDesignSystem.shadowSmall,
           ),
@@ -856,7 +856,7 @@ class _MiniAudioPlayer extends ConsumerWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: NoorDesignSystem.primaryGreen.withOpacity(0.1),
+                    color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -883,7 +883,7 @@ class _MiniAudioPlayer extends ConsumerWidget {
                       'تلاوة عذبة',
                       style: GoogleFonts.cairo(
                         fontSize: 12,
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -891,7 +891,7 @@ class _MiniAudioPlayer extends ConsumerWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.close_rounded),
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 onPressed: () => QuranAudioService.stop(),
               ),
             ],

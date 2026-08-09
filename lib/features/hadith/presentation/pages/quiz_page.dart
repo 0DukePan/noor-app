@@ -54,7 +54,7 @@ class _QuizPageState extends ConsumerState<QuizPage> {
             margin: const EdgeInsets.only(left: 16),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: NoorTheme.hadithSahih.withOpacity(0.2),
+              color: NoorTheme.hadithSahih.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -140,10 +140,10 @@ class _QuizPageState extends ConsumerState<QuizPage> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.2),
+                    color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Column(
@@ -177,10 +177,10 @@ class _QuizPageState extends ConsumerState<QuizPage> {
                   Color? borderColor;
                   if (showFeedback) {
                     if (isCorrect) {
-                      bgColor = NoorTheme.hadithSahih.withOpacity(0.2);
+                      bgColor = NoorTheme.hadithSahih.withValues(alpha: 0.2);
                       borderColor = NoorTheme.hadithSahih;
                     } else if (isSelected) {
-                      bgColor = NoorTheme.hadithDaif.withOpacity(0.2);
+                      bgColor = NoorTheme.hadithDaif.withValues(alpha: 0.2);
                       borderColor = NoorTheme.hadithDaif;
                     }
                   }
@@ -210,7 +210,7 @@ class _QuizPageState extends ConsumerState<QuizPage> {
                                 height: 32,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                                 ),
                                 child: Center(
                                   child: Text('${index + 1}'),
@@ -262,8 +262,8 @@ class _QuizPageState extends ConsumerState<QuizPage> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isPassed 
-                    ? NoorTheme.hadithSahih.withOpacity(0.2)
-                    : NoorTheme.hadithDaif.withOpacity(0.2),
+                    ? NoorTheme.hadithSahih.withValues(alpha: 0.2)
+                    : NoorTheme.hadithDaif.withValues(alpha: 0.2),
               ),
               child: Icon(
                 isPassed ? Icons.emoji_events_rounded : Icons.refresh_rounded,

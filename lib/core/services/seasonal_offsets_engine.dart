@@ -113,7 +113,7 @@ class SeasonalOffsetsEngine {
     final prayers = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
     return {
       for (final prayer in prayers) 
-        prayer: getOffset(prayer, latitude: latitude)
+        prayer: getOffset(prayer, latitude: latitude),
     };
   }
 
@@ -178,7 +178,7 @@ class SeasonalOffsetsEngine {
   /// تطبيق جميع الإزاحات على المواقيت
   static Map<String, DateTime> applyAllOffsets(
     Map<String, DateTime> times, 
-    {double? latitude}
+    {double? latitude,}
   ) {
     return times.map((prayer, time) {
       return MapEntry(prayer, applyOffset(time, prayer, latitude: latitude));

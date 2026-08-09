@@ -34,7 +34,7 @@ class _KhatmahPlannerPageState extends ConsumerState<KhatmahPlannerPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.auto_stories_rounded, size: 64, color: NoorTheme.primary.withOpacity(0.3)),
+                  Icon(Icons.auto_stories_rounded, size: 64, color: NoorTheme.primary.withValues(alpha: 0.3)),
                   const SizedBox(height: 16),
                   Text('لا توجد ختمة نشطة', style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
@@ -127,7 +127,7 @@ class _KhatmahPlannerPageState extends ConsumerState<KhatmahPlannerPage> {
                         name: k.name,
                         completedDate: k.completedDate,
                         durationDays: k.durationDays,
-                      )).toList(),
+                      ),).toList(),
                     );
                   },
                   loading: () => const Center(child: CircularProgressIndicator()),
@@ -172,7 +172,7 @@ class _ActiveKhatmahCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(NoorTheme.spacingLg),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [NoorTheme.primary, NoorTheme.primaryDark],
@@ -180,7 +180,7 @@ class _ActiveKhatmahCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(NoorTheme.radiusLg),
         boxShadow: [
           BoxShadow(
-            color: NoorTheme.primary.withOpacity(0.3),
+            color: NoorTheme.primary.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -225,7 +225,7 @@ class _ActiveKhatmahCard extends StatelessWidget {
               Container(
                 height: 8,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -248,7 +248,7 @@ class _ActiveKhatmahCard extends StatelessWidget {
             children: [
               Text(
                 '${(progressPercentage * 100).toInt()}%',
-                style: TextStyle(
+                style: const TextStyle(
                   color: NoorTheme.accentGold,
                   fontWeight: FontWeight.bold,
                 ),
@@ -256,7 +256,7 @@ class _ActiveKhatmahCard extends StatelessWidget {
               Text(
                 'صفحة $currentPage من 604',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
               ),
             ],
@@ -268,7 +268,7 @@ class _ActiveKhatmahCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(NoorTheme.spacingMd),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
             ),
             child: Row(
@@ -285,7 +285,7 @@ class _ActiveKhatmahCard extends StatelessWidget {
                       Text(
                         'آخر موضع',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.white.withOpacity(0.7),
+                              color: Colors.white.withValues(alpha: 0.7),
                             ),
                       ),
                       Text(
@@ -314,7 +314,7 @@ class _ActiveKhatmahCard extends StatelessWidget {
             Text(
               'الهدف: ${_formatDate(targetEndDate!)}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                   ),
             ),
           ],
@@ -354,7 +354,7 @@ class _DailyGoalCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.today_rounded,
                 color: NoorTheme.primary,
               ),
@@ -372,7 +372,7 @@ class _DailyGoalCard extends StatelessWidget {
               Expanded(
                 child: LinearProgressIndicator(
                   value: progress.clamp(0.0, 1.0),
-                  backgroundColor: NoorTheme.primary.withOpacity(0.1),
+                  backgroundColor: NoorTheme.primary.withValues(alpha: 0.1),
                   valueColor: AlwaysStoppedAnimation<Color>(
                     progress >= 1.0 ? NoorTheme.hadithSahih : NoorTheme.primary,
                   ),
@@ -391,8 +391,8 @@ class _DailyGoalCard extends StatelessWidget {
           ),
 
           if (progress >= 1.0)
-            Padding(
-              padding: const EdgeInsets.only(top: NoorTheme.spacingSm),
+            const Padding(
+              padding: EdgeInsets.only(top: NoorTheme.spacingSm),
               child: Text(
                 '🎉 أحسنت! أتممت هدف اليوم',
                 style: TextStyle(
@@ -427,7 +427,7 @@ class _ScheduleCard extends StatelessWidget {
       padding: const EdgeInsets.all(NoorTheme.spacingMd),
       decoration: BoxDecoration(
         color: isToday
-            ? NoorTheme.primary.withOpacity(0.1)
+            ? NoorTheme.primary.withValues(alpha: 0.1)
             : Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
         border: isToday
@@ -492,7 +492,7 @@ class _PastKhatmahCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(NoorTheme.spacingSm),
             decoration: BoxDecoration(
-              color: NoorTheme.hadithSahih.withOpacity(0.1),
+              color: NoorTheme.hadithSahih.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(NoorTheme.radiusSm),
             ),
             child: const Icon(
@@ -568,7 +568,7 @@ class _CreateKhatmahDialogState extends ConsumerState<_CreateKhatmahDialog> {
                     .map((d) => DropdownMenuItem(
                           value: d,
                           child: Text('$d يوم'),
-                        ))
+                        ),)
                     .toList(),
                 onChanged: (value) {
                   setState(() => _durationDays = value!);
@@ -597,7 +597,7 @@ class _CreateKhatmahDialogState extends ConsumerState<_CreateKhatmahDialog> {
                     name: _nameController.text,
                     targetEndDate: DateTime.now().add(Duration(days: _durationDays)),
                   );
-                  if (mounted) Navigator.pop(context);
+                  if (context.mounted) Navigator.pop(context);
                 },
           child: _isLoading
               ? const SizedBox(

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../../core/services/hadith_user_data_service.dart';
@@ -73,7 +72,7 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
     } catch (_) {}
 
     // --- Weekly activity (last 7 days read counts) ---
-    List<int> weeklyActivity = List.filled(7, 0);
+    final List<int> weeklyActivity = List.filled(7, 0);
     try {
       final activityBox = await Hive.openBox('daily_activity');
       final now = DateTime.now();
@@ -89,7 +88,7 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
     for (final bm in bookmarks) {
       final coll = bm['collectionId'] as String? ?? '';
       if (coll.isNotEmpty) {
-        booksProgress.putIfAbsent(coll, () => _BookProg(read: 0, total: 0));
+        booksProgress.putIfAbsent(coll, () => const _BookProg(read: 0, total: 0));
         booksProgress[coll] = _BookProg(
           read: booksProgress[coll]!.read + 1,
           total: booksProgress[coll]!.total,
@@ -178,7 +177,7 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(NoorTheme.spacingLg),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [NoorTheme.primary, NoorTheme.primaryDark],
         ),
         borderRadius: BorderRadius.circular(NoorTheme.radiusLg),
@@ -238,14 +237,14 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 20),
               ),
               Text(
                 title,
-                style: TextStyle(color: NoorTheme.textSecondary, fontSize: 12),
+                style: const TextStyle(color: NoorTheme.textSecondary, fontSize: 12),
               ),
             ],
           ),
@@ -256,7 +255,7 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
           ),
           Text(
             subtitle,
-            style: TextStyle(color: NoorTheme.textSecondary, fontSize: 11),
+            style: const TextStyle(color: NoorTheme.textSecondary, fontSize: 11),
           ),
         ],
       ),
@@ -306,7 +305,7 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
                       end: Alignment.topCenter,
                       colors: isToday
                           ? [NoorTheme.primary, NoorTheme.primaryDark]
-                          : [NoorTheme.primary.withOpacity(0.3), NoorTheme.primary.withOpacity(0.5)],
+                          : [NoorTheme.primary.withValues(alpha: 0.3), NoorTheme.primary.withValues(alpha: 0.5)],
                     ),
                     borderRadius: BorderRadius.circular(4),
                   ),
@@ -323,7 +322,7 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
               ),
               Text(
                 '$activity',
-                style: TextStyle(color: NoorTheme.textSecondary, fontSize: 10),
+                style: const TextStyle(color: NoorTheme.textSecondary, fontSize: 10),
               ),
             ],
           );
@@ -346,13 +345,13 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: NoorTheme.primary.withOpacity(0.1),
+              color: NoorTheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
               child: Text(
                 '${progress.read}',
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: NoorTheme.primary,
                 ),
@@ -369,7 +368,7 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
           ),
           Text(
             '${progress.read} محفوظ',
-            style: TextStyle(color: NoorTheme.textSecondary, fontSize: 12),
+            style: const TextStyle(color: NoorTheme.textSecondary, fontSize: 12),
           ),
         ],
       ),

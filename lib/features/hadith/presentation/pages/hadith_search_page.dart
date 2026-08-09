@@ -94,7 +94,7 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: NoorTheme.primary.withOpacity(0.06),
+                        color: NoorTheme.primary.withValues(alpha: 0.06),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -258,7 +258,7 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.manage_search_rounded, size: 72, color: NoorTheme.textSecondary.withOpacity(0.2)),
+          Icon(Icons.manage_search_rounded, size: 72, color: NoorTheme.textSecondary.withValues(alpha: 0.2)),
           const SizedBox(height: 16),
           Text(
             'ابحث في الكتب التسعة',
@@ -267,7 +267,7 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
           const SizedBox(height: 4),
           Text(
             'البحث يشمل النص العربي والإنجليزي',
-            style: GoogleFonts.cairo(color: NoorTheme.textSecondary.withOpacity(0.6), fontSize: 13),
+            style: GoogleFonts.cairo(color: NoorTheme.textSecondary.withValues(alpha: 0.6), fontSize: 13),
           ),
         ],
       ),
@@ -279,7 +279,7 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.search_off_rounded, size: 64, color: NoorTheme.textSecondary.withOpacity(0.3)),
+          Icon(Icons.search_off_rounded, size: 64, color: NoorTheme.textSecondary.withValues(alpha: 0.3)),
           const SizedBox(height: 16),
           Text(
             'لم يتم العثور على نتائج',
@@ -301,7 +301,7 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: NoorTheme.primary.withOpacity(0.1),
+                  color: NoorTheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -411,7 +411,7 @@ class _SearchResultCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: NoorTheme.primary.withOpacity(0.04),
+            color: NoorTheme.primary.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -433,7 +433,7 @@ class _SearchResultCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: NoorTheme.primary.withOpacity(0.1),
+                        color: NoorTheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -480,7 +480,7 @@ class _SearchResultCard extends StatelessWidget {
                 if (hadith.narratorEnglish.isNotEmpty)
                   Text(
                     hadith.narratorEnglish,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       color: NoorTheme.textSecondary,
                       fontStyle: FontStyle.italic,

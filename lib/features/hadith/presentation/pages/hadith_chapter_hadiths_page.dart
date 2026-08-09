@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -180,7 +179,7 @@ class _HadithPreviewCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         elevation: 1,
-        shadowColor: Colors.black.withOpacity(0.04),
+        shadowColor: Colors.black.withValues(alpha: 0.04),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: onTap,
@@ -194,9 +193,9 @@ class _HadithPreviewCard extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                          horizontal: 10, vertical: 4,),
                       decoration: BoxDecoration(
-                        color: bookColor.withOpacity(0.1),
+                        color: bookColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -210,7 +209,7 @@ class _HadithPreviewCard extends StatelessWidget {
                     ),
                     const Spacer(),
                     Icon(Icons.arrow_forward_ios_rounded,
-                        size: 14, color: Colors.grey.shade400),
+                        size: 14, color: Colors.grey.shade400,),
                   ],
                 ),
                 const SizedBox(height: 14),

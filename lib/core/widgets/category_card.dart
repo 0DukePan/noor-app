@@ -30,7 +30,7 @@ class CategoryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -39,7 +39,7 @@ class CategoryCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            color.withOpacity(0.9),
+            color.withValues(alpha: 0.9),
             color,
           ],
         ),
@@ -59,7 +59,7 @@ class CategoryCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: emoji != null
@@ -89,7 +89,7 @@ class CategoryCard extends StatelessWidget {
                         subtitle!,
                         style: GoogleFonts.cairo(
                           fontSize: 12,
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

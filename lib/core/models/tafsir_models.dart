@@ -1,4 +1,5 @@
 /// 📖 نماذج بيانات التفسير - Tafsir Data Models
+library;
 
 /// مصدر التفسير
 enum TafsirSourceId {

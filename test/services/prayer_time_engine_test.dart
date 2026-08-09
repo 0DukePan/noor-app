@@ -151,7 +151,7 @@ void main() {
           date: DateTime(2026, 3, 15),
           method: CalculationMethod.ummAlQura,
           utcOffset: 3,
-          adjustments: PrayerAdjustments(
+          adjustments: const PrayerAdjustments(
             fajr: 5,
             dhuhr: -3,
           ),

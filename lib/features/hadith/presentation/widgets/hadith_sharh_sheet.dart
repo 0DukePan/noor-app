@@ -132,7 +132,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.3),
+                  color: Colors.grey.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -146,7 +146,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: widget.bookColor.withOpacity(0.1),
+                        color: widget.bookColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(Icons.menu_book_rounded, color: widget.bookColor, size: 20),
@@ -232,7 +232,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                               ),
                             ],
                           ),
-                        )).toList(),
+                        ),).toList(),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -252,7 +252,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                               hintStyle: GoogleFonts.cairo(color: Colors.grey),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+                                borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.3)),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -299,15 +299,15 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                             ? const Center(child: Padding(
                                 padding: EdgeInsets.all(16),
                                 child: CircularProgressIndicator(),
-                              ))
+                              ),)
                             : Column(
                                 children: _similarHadiths.map((h) => Container(
                                   margin: const EdgeInsets.only(bottom: 12),
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue.withOpacity(0.05),
+                                    color: Colors.blue.withValues(alpha: 0.05),
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.blue.withOpacity(0.1)),
+                                    border: Border.all(color: Colors.blue.withValues(alpha: 0.1)),
                                   ),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -326,7 +326,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                                       ),
                                     ],
                                   ),
-                                )).toList(),
+                                ),).toList(),
                               ),
                       ),
                     const SizedBox(height: 16),
@@ -351,7 +351,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                                   hadithId: widget.hadith.id.toString(),
                                   hadithText: widget.hadith.arabic,
                                 ),
-                              ));
+                              ),);
                             },
                           ),
                           const SizedBox(height: 8),
@@ -368,7 +368,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                                   hadithText: widget.hadith.arabic,
                                   hadithSource: widget.bookTitle,
                                 ),
-                              ));
+                              ),);
                             },
                           ),
                           // Cross-References
@@ -383,7 +383,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                                 builder: (_) => NarrationComparisonPage(
                                   hadithKeyword: widget.hadith.arabic.split(' ').take(4).join(' '),
                                 ),
-                              ));
+                              ),);
                             },
                           ),
                         ],
@@ -411,12 +411,12 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
-            ? Colors.white.withOpacity(0.05)
+            ? Colors.white.withValues(alpha: 0.05)
             : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -433,7 +433,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: color,
-              )),
+              ),),
             ],
           ),
           const SizedBox(height: 12),
@@ -512,7 +512,7 @@ class _InfoRow extends StatelessWidget {
             width: 90,
             child: Text(label, style: GoogleFonts.cairo(
               fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w600,
-            )),
+            ),),
           ),
           Expanded(
             child: Text(value, style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold)),
@@ -548,16 +548,16 @@ class _StudyToolButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.05),
+            color: color.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.15)),
+            border: Border.all(color: color.withValues(alpha: 0.15)),
           ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -569,14 +569,14 @@ class _StudyToolButton extends StatelessWidget {
                   children: [
                     Text(label, style: GoogleFonts.cairo(
                       fontSize: 14, fontWeight: FontWeight.bold, color: color,
-                    )),
+                    ),),
                     Text(subtitle, style: GoogleFonts.cairo(
                       fontSize: 11, color: Colors.grey,
-                    )),
+                    ),),
                   ],
                 ),
               ),
-              Icon(Icons.arrow_forward_ios_rounded, size: 14, color: color.withOpacity(0.5)),
+              Icon(Icons.arrow_forward_ios_rounded, size: 14, color: color.withValues(alpha: 0.5)),
             ],
           ),
         ),

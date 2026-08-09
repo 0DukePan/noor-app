@@ -87,9 +87,9 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
               begin: Alignment(_animation.value, 0),
               end: Alignment(_animation.value + 2, 0),
               colors: [
-                NoorTheme.textSecondary.withOpacity(0.1),
-                NoorTheme.textSecondary.withOpacity(0.2),
-                NoorTheme.textSecondary.withOpacity(0.1),
+                NoorTheme.textSecondary.withValues(alpha: 0.1),
+                NoorTheme.textSecondary.withValues(alpha: 0.2),
+                NoorTheme.textSecondary.withValues(alpha: 0.1),
               ],
             ),
           ),
@@ -122,14 +122,14 @@ class SurahListSkeleton extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
       ),
-      child: Row(
+      child: const Row(
         children: [
-          const LoadingSkeleton.circle(size: 40),
-          const SizedBox(width: 12),
+          LoadingSkeleton.circle(size: 40),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
-              children: const [
+              children: [
                 LoadingSkeleton.text(width: 120),
                 SizedBox(height: 8),
                 LoadingSkeleton.text(width: 80, height: 12),
@@ -165,24 +165,24 @@ class HadithListSkeleton extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
+            children: [
               LoadingSkeleton(width: 60, height: 24, borderRadius: 12),
               LoadingSkeleton.text(width: 100),
             ],
           ),
-          const SizedBox(height: 12),
-          const LoadingSkeleton(height: 16),
-          const SizedBox(height: 6),
-          const LoadingSkeleton(height: 16),
-          const SizedBox(height: 6),
-          const LoadingSkeleton(width: 200, height: 16),
-          const SizedBox(height: 12),
-          const LoadingSkeleton.text(width: 80, height: 12),
+          SizedBox(height: 12),
+          LoadingSkeleton(height: 16),
+          SizedBox(height: 6),
+          LoadingSkeleton(height: 16),
+          SizedBox(height: 6),
+          LoadingSkeleton(width: 200, height: 16),
+          SizedBox(height: 12),
+          LoadingSkeleton.text(width: 80, height: 12),
         ],
       ),
     );
@@ -207,20 +207,20 @@ class VerseListSkeleton extends StatelessWidget {
   Widget _buildVerseItem() {
     return Container(
       margin: const EdgeInsets.only(bottom: NoorTheme.spacingMd),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: const [
+            children: [
               LoadingSkeleton(width: 28, height: 28, borderRadius: 14),
             ],
           ),
-          const SizedBox(height: 8),
-          const LoadingSkeleton(height: 24),
-          const SizedBox(height: 4),
-          const LoadingSkeleton(height: 24),
-          const SizedBox(height: 16),
+          SizedBox(height: 8),
+          LoadingSkeleton(height: 24),
+          SizedBox(height: 4),
+          LoadingSkeleton(height: 24),
+          SizedBox(height: 16),
         ],
       ),
     );
@@ -249,15 +249,15 @@ class PrayerTimesSkeleton extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+                children: [
                   LoadingSkeleton.text(width: 50),
                   LoadingSkeleton.text(width: 60),
                 ],
               ),
             ),
-          )),
+          ),),
         ],
       ),
     );

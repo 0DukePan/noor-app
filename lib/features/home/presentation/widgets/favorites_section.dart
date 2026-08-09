@@ -70,7 +70,7 @@ class _FavoriteItemCard extends StatelessWidget {
           color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
           border: Border.all(
-            color: isDark ? Colors.white12 : Colors.black.withOpacity(0.05),
+            color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.05),
           ),
           boxShadow: NoorDesignSystem.shadowSmall,
         ),
@@ -81,7 +81,7 @@ class _FavoriteItemCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 20),
@@ -103,7 +103,7 @@ class _FavoriteItemCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.cairo(
                 fontSize: 12,
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
           ],

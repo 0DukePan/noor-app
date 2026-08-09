@@ -94,7 +94,7 @@ class QuranDataSource {
       'text': v['text'],
       'page': 1, // Can be enhanced with page data
       'juz': 1,  // Can be enhanced with juz data
-    }).toList();
+    },).toList();
 
     return {
       'number': surahNumber,

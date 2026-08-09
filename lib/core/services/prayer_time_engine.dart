@@ -1196,7 +1196,7 @@ class CountryPresets {
     return _presets.values.where((p) =>
       p.arabicName.contains(q) ||
       p.englishName.toLowerCase().contains(q) ||
-      p.countryCode.toLowerCase().contains(q)
+      p.countryCode.toLowerCase().contains(q),
     ).toList();
   }
   

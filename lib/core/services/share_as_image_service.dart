@@ -36,7 +36,7 @@ class ShareAsImageService {
       design: design,
     );
     
-    await _shareWidget(context, widget, 'quran_$surah\_$ayah');
+    await _shareWidget(context, widget, 'quran_${surah}_$ayah');
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -89,7 +89,9 @@ class ShareAsImageService {
       await file.writeAsBytes(image);
       
       // Close loading
-      Navigator.of(context).pop();
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
       
       // Share
       await Share.shareXFiles(
@@ -97,10 +99,12 @@ class ShareAsImageService {
         text: 'من تطبيق نور الإسلامي',
       );
     } catch (e) {
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('خطأ في المشاركة: $e')),
-      );
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ في المشاركة: $e')),
+        );
+      }
     }
   }
 
@@ -114,7 +118,7 @@ class ShareAsImageService {
         alignment: Alignment.center,
         child: repaintBoundary,
       ),
-      configuration: ViewConfiguration(
+      configuration: const ViewConfiguration(
         logicalConstraints: BoxConstraints(
           maxWidth: 1080,
           maxHeight: 1920,
@@ -240,14 +244,14 @@ class _QuranVerseImage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             decoration: BoxDecoration(
-              color: _getAccentColor().withOpacity(0.2),
+              color: _getAccentColor().withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(30),
             ),
             child: Text(
               '[ سورة $surahName : $ayah ]',
               style: TextStyle(
                 fontSize: 24,
-                color: _getTextColor().withOpacity(0.8),
+                color: _getTextColor().withValues(alpha: 0.8),
                 fontFamily: 'Amiri',
               ),
             ),
@@ -260,7 +264,7 @@ class _QuranVerseImage extends StatelessWidget {
             'تطبيق نور الإسلامي',
             style: TextStyle(
               fontSize: 18,
-              color: _getTextColor().withOpacity(0.5),
+              color: _getTextColor().withValues(alpha: 0.5),
             ),
           ),
         ],
@@ -324,7 +328,7 @@ class _QuranVerseImage extends StatelessWidget {
         Container(
           width: 60,
           height: 2,
-          color: _getAccentColor().withOpacity(0.5),
+          color: _getAccentColor().withValues(alpha: 0.5),
         ),
         const SizedBox(width: 16),
         Icon(
@@ -336,7 +340,7 @@ class _QuranVerseImage extends StatelessWidget {
         Container(
           width: 60,
           height: 2,
-          color: _getAccentColor().withOpacity(0.5),
+          color: _getAccentColor().withValues(alpha: 0.5),
         ),
       ],
     );
@@ -364,11 +368,11 @@ class _HadithImage extends StatelessWidget {
     return Container(
       width: 1080,
       padding: const EdgeInsets.all(60),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFF37474F),
-            const Color(0xFF263238),
+            Color(0xFF37474F),
+            Color(0xFF263238),
           ],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -382,7 +386,7 @@ class _HadithImage extends StatelessWidget {
             'حديث شريف',
             style: TextStyle(
               fontSize: 28,
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
               fontFamily: 'Amiri',
             ),
           ),
@@ -423,7 +427,7 @@ class _HadithImage extends StatelessWidget {
             '— $narrator —',
             style: TextStyle(
               fontSize: 22,
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -437,7 +441,7 @@ class _HadithImage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -453,7 +457,7 @@ class _HadithImage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: _getGradeColor(grade!).withOpacity(0.3),
+                    color: _getGradeColor(grade!).withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -476,7 +480,7 @@ class _HadithImage extends StatelessWidget {
             'تطبيق نور الإسلامي',
             style: TextStyle(
               fontSize: 18,
-              color: Colors.white.withOpacity(0.4),
+              color: Colors.white.withValues(alpha: 0.4),
             ),
           ),
         ],

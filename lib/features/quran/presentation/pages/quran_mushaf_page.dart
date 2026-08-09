@@ -246,7 +246,7 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: MushafThemeData.themes[currentTheme]!.textColor.withOpacity(0.2),
+                color: MushafThemeData.themes[currentTheme]!.textColor.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -285,7 +285,7 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
                           ),
                           boxShadow: isSelected ? [
                             BoxShadow(
-                              color: data.headerColor.withOpacity(0.3),
+                              color: data.headerColor.withValues(alpha: 0.3),
                               blurRadius: 8,
                             ),
                           ] : null,
@@ -376,7 +376,7 @@ class _MushafPageWidget extends ConsumerWidget {
                   '$pageNumber',
                   style: GoogleFonts.cairo(
                     fontSize: 13,
-                    color: themeData.verseMarkerColor.withOpacity(0.6),
+                    color: themeData.verseMarkerColor.withValues(alpha: 0.6),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -426,7 +426,7 @@ class _MushafPageWidget extends ConsumerWidget {
           surahName: verse.surahName ?? 'سورة ${verse.surahNumber}',
           surahNumber: verse.surahNumber,
           themeData: themeData,
-        ));
+        ),);
       }
 
       // Collect all consecutive verses from the same surah segment
@@ -443,7 +443,7 @@ class _MushafPageWidget extends ConsumerWidget {
         verses: segmentVerses,
         themeData: themeData,
         onVerseTap: (verse) => _showAyahActions(context, verse, themeData),
-      ));
+      ),);
     }
 
     return Column(children: children);
@@ -534,7 +534,7 @@ class _SurahStartBanner extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(color: themeData.borderColor, width: 1.5),
         borderRadius: BorderRadius.circular(12),
-        color: themeData.headerColor.withOpacity(0.06),
+        color: themeData.headerColor.withValues(alpha: 0.06),
       ),
       child: Column(
         children: [
@@ -553,7 +553,7 @@ class _SurahStartBanner extends StatelessWidget {
                 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
                 style: GoogleFonts.amiri(
                   fontSize: 20,
-                  color: themeData.textColor.withOpacity(0.8),
+                  color: themeData.textColor.withValues(alpha: 0.8),
                   height: 1.6,
                 ),
               ),
@@ -634,7 +634,7 @@ class _ContinuousVerseBlockState extends State<_ContinuousVerseBlock> {
           fontWeight: FontWeight.w500,
         ),
         recognizer: _recognizers[idx],
-      ));
+      ),);
 
       // Verse number marker ﴿١﴾ (also tappable)
       spans.add(TextSpan(
@@ -645,7 +645,7 @@ class _ContinuousVerseBlockState extends State<_ContinuousVerseBlock> {
           fontWeight: FontWeight.bold,
         ),
         recognizer: _recognizers[idx],
-      ));
+      ),);
     }
 
     return Padding(
@@ -691,7 +691,7 @@ class _MushafTopBar extends StatelessWidget {
           end: Alignment.bottomCenter,
           colors: [
             themeData.backgroundColor,
-            themeData.backgroundColor.withOpacity(0.0),
+            themeData.backgroundColor.withValues(alpha: 0.0),
           ],
         ),
       ),
@@ -738,7 +738,7 @@ class _MushafBottomBar extends StatelessWidget {
           end: Alignment.topCenter,
           colors: [
             themeData.backgroundColor,
-            themeData.backgroundColor.withOpacity(0.0),
+            themeData.backgroundColor.withValues(alpha: 0.0),
           ],
         ),
       ),
@@ -753,7 +753,7 @@ class _MushafBottomBar extends StatelessWidget {
                 activeTrackColor: themeData.headerColor,
                 inactiveTrackColor: themeData.borderColor,
                 thumbColor: themeData.headerColor,
-                overlayColor: themeData.headerColor.withOpacity(0.2),
+                overlayColor: themeData.headerColor.withValues(alpha: 0.2),
                 trackHeight: 3,
                 thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
               ),
@@ -769,7 +769,7 @@ class _MushafBottomBar extends StatelessWidget {
             'صفحة $currentPage / 604',
             style: GoogleFonts.cairo(
               fontSize: 12,
-              color: themeData.textColor.withOpacity(0.6),
+              color: themeData.textColor.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -836,7 +836,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
         border: Border.all(color: td.borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -853,7 +853,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: td.textColor.withOpacity(0.15),
+                  color: td.textColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -865,7 +865,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
-                  color: td.headerColor.withOpacity(0.12),
+                  color: td.headerColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -884,9 +884,9 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: td.headerColor.withOpacity(0.04),
+                color: td.headerColor.withValues(alpha: 0.04),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: td.borderColor.withOpacity(0.5)),
+                border: Border.all(color: td.borderColor.withValues(alpha: 0.5)),
               ),
               child: Text(
                 verse.textUthmani,
@@ -910,7 +910,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                   icon: Icons.copy_rounded,
                   label: 'نسخ',
                   color: td.headerColor,
-                  bgColor: td.headerColor.withOpacity(0.1),
+                  bgColor: td.headerColor.withValues(alpha: 0.1),
                   onTap: () {
                     Clipboard.setData(ClipboardData(text: verse.textUthmani));
                     Navigator.pop(context);
@@ -930,7 +930,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                   icon: Icons.bookmark_add_rounded,
                   label: 'حفظ',
                   color: const Color(0xFFE8A838),
-                  bgColor: const Color(0xFFE8A838).withOpacity(0.1),
+                  bgColor: const Color(0xFFE8A838).withValues(alpha: 0.1),
                   onTap: () async {
                     await TafsirDataSource.addBookmark(
                       surah: verse.surahNumber,
@@ -955,7 +955,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                   icon: Icons.share_rounded,
                   label: 'مشاركة',
                   color: const Color(0xFF5C6BC0),
-                  bgColor: const Color(0xFF5C6BC0).withOpacity(0.1),
+                  bgColor: const Color(0xFF5C6BC0).withValues(alpha: 0.1),
                   onTap: () {
                     final shareText = '${verse.textUthmani}\n\n'
                         '— ${verse.surahName ?? 'سورة ${verse.surahNumber}'} ﴿${verse.numberInSurah}﴾';
@@ -990,7 +990,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
-                      color: td.headerColor.withOpacity(0.08),
+                      color: td.headerColor.withValues(alpha: 0.08),
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(15),
                       ),
@@ -1044,7 +1044,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                                 'التفسير غير متوفر حالياً',
                                 style: GoogleFonts.cairo(
                                   fontSize: 14,
-                                  color: td.textColor.withOpacity(0.5),
+                                  color: td.textColor.withValues(alpha: 0.5),
                                 ),
                                 textAlign: TextAlign.center,
                               )
@@ -1058,7 +1058,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                                     style: GoogleFonts.cairo(
                                       fontSize: 15,
                                       height: 1.9,
-                                      color: td.textColor.withOpacity(0.85),
+                                      color: td.textColor.withValues(alpha: 0.85),
                                     ),
                                     textDirection: TextDirection.rtl,
                                   ),

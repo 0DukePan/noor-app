@@ -78,7 +78,7 @@ class ExportShareService {
           children: [
             pw.Text(
               'صفحة ${context.pageNumber} من ${context.pagesCount}',
-              style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
             ),
             if (includeWatermark)
               pw.Text(
@@ -131,7 +131,7 @@ class ExportShareService {
                   ),
                   child: pw.Text(
                     item.grade!,
-                    style: pw.TextStyle(fontSize: 10, color: PdfColors.white),
+                    style: const pw.TextStyle(fontSize: 10, color: PdfColors.white),
                   ),
                 ),
               pw.Text(

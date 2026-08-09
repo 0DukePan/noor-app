@@ -70,10 +70,10 @@ class HadithChaptersPage extends ConsumerWidget {
             Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
             const SizedBox(height: 16),
             Text('حدث خطأ أثناء تحميل الكتاب',
-                style: GoogleFonts.cairo(fontSize: 16)),
+                style: GoogleFonts.cairo(fontSize: 16),),
             const SizedBox(height: 8),
             Text(error.toString(),
-                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                style: const TextStyle(color: Colors.grey, fontSize: 12),),
           ],
         ),
       ),
@@ -116,7 +116,7 @@ class HadithChaptersPage extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Material(
-              color: bookColor.withOpacity(0.08),
+              color: bookColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(14),
               child: InkWell(
                 borderRadius: BorderRadius.circular(14),
@@ -151,7 +151,7 @@ class HadithChaptersPage extends ConsumerWidget {
                         ),
                       ),
                       Icon(Icons.arrow_forward_ios_rounded,
-                          size: 14, color: bookColor.withOpacity(0.6)),
+                          size: 14, color: bookColor.withValues(alpha: 0.6),),
                     ],
                   ),
                 ),
@@ -222,7 +222,7 @@ class HadithChaptersPage extends ConsumerWidget {
               end: Alignment.bottomRight,
               colors: [
                 bookColor,
-                bookColor.withOpacity(0.7),
+                bookColor.withValues(alpha: 0.7),
               ],
             ),
           ),
@@ -245,7 +245,7 @@ class HadithChaptersPage extends ConsumerWidget {
                     book.metadata.author,
                     style: GoogleFonts.cairo(
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
                 ],
@@ -279,7 +279,7 @@ class _StatChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -324,7 +324,7 @@ class _ChapterTile extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         elevation: 0.5,
-        shadowColor: Colors.black.withOpacity(0.05),
+        shadowColor: Colors.black.withValues(alpha: 0.05),
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: onTap,
@@ -338,7 +338,7 @@ class _ChapterTile extends StatelessWidget {
                   height: 38,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: bookColor.withOpacity(0.1),
+                    color: bookColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
@@ -405,7 +405,7 @@ class _ChapterTile extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Icon(Icons.chevron_right_rounded,
-                    size: 20, color: Colors.grey.shade400),
+                    size: 20, color: Colors.grey.shade400,),
               ],
             ),
           ),

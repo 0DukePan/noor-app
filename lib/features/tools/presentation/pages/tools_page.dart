@@ -44,7 +44,7 @@ class ToolsPage extends StatelessWidget {
                     icon: Icons.access_time_rounded,
                     title: 'مواقيت الصلاة',
                     subtitle: 'الأوقات والتنبيهات',
-                    gradient: [
+                    gradient: const [
                       NoorDesignSystem.primaryGreen,
                       NoorDesignSystem.primaryLight,
                     ],
@@ -57,9 +57,9 @@ class ToolsPage extends StatelessWidget {
                     icon: Icons.explore_rounded,
                     title: 'القبلة',
                     subtitle: 'اتجاه القبلة',
-                    gradient: [
-                      const Color(0xFF1565C0),
-                      const Color(0xFF42A5F5),
+                    gradient: const [
+                      Color(0xFF1565C0),
+                      Color(0xFF42A5F5),
                     ],
                     onTap: () {
                       HapticFeedback.selectionClick();
@@ -70,7 +70,7 @@ class ToolsPage extends StatelessWidget {
                     icon: Icons.radio_button_checked_rounded,
                     title: 'المسبحة',
                     subtitle: 'عداد التسبيح',
-                    gradient: [
+                    gradient: const [
                       NoorDesignSystem.goldMuted,
                       NoorDesignSystem.goldAccent,
                     ],
@@ -83,9 +83,9 @@ class ToolsPage extends StatelessWidget {
                     icon: Icons.search_rounded,
                     title: 'البحث',
                     subtitle: 'البحث في القرآن والحديث',
-                    gradient: [
-                      const Color(0xFF6A1B9A),
-                      const Color(0xFF9C27B0),
+                    gradient: const [
+                      Color(0xFF6A1B9A),
+                      Color(0xFF9C27B0),
                     ],
                     onTap: () {
                       HapticFeedback.selectionClick();
@@ -96,9 +96,9 @@ class ToolsPage extends StatelessWidget {
                     icon: Icons.person_rounded,
                     title: 'ملفي الشخصي',
                     subtitle: 'الإحصائيات والتقدم',
-                    gradient: [
-                      const Color(0xFFBF360C),
-                      const Color(0xFFFF7043),
+                    gradient: const [
+                      Color(0xFFBF360C),
+                      Color(0xFFFF7043),
                     ],
                     onTap: () {
                       HapticFeedback.selectionClick();
@@ -168,7 +168,7 @@ class _ToolCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
           boxShadow: [
             BoxShadow(
-              color: gradient.first.withOpacity(0.25),
+              color: gradient.first.withValues(alpha: 0.25),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -183,7 +183,7 @@ class _ToolCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: Colors.white, size: 28),
@@ -203,7 +203,7 @@ class _ToolCard extends StatelessWidget {
                     subtitle,
                     style: GoogleFonts.cairo(
                       fontSize: 12,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
                 ],

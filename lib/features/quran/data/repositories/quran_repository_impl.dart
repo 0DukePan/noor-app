@@ -110,7 +110,7 @@ class QuranRepositoryImpl implements QuranRepository {
       final remoteCause = await remoteDataSource.fetchRevelationCause(surahNumber, verseNumber);
       return Right(remoteCause);
     } catch (e) {
-      return Right(null); // Revelation cause is optional
+      return const Right(null); // Revelation cause is optional
     }
   }
 
@@ -147,7 +147,7 @@ class QuranRepositoryImpl implements QuranRepository {
         surahNumber: data['surah_number'] as int,
         verseNumber: data['verse_number'] as int,
         page: data['page'] as int,
-      ));
+      ),);
     } catch (e) {
       return const Right((surahNumber: 1, verseNumber: 1, page: 1));
     }

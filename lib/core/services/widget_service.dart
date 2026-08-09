@@ -15,7 +15,7 @@ class WidgetService {
     await HomeWidget.setAppGroupId(_appGroupId);
     
     // Register background callback
-    HomeWidget.registerBackgroundCallback(backgroundCallback);
+    HomeWidget.registerInteractivityCallback(backgroundCallback);
   }
 
   /// Background callback for widget updates
@@ -152,7 +152,7 @@ class WidgetService {
     try {
       // Get today's adhkar count from storage
       final todayCount = await _getTodayAdhkarCount();
-      final targetCount = 100; // Daily target
+      const targetCount = 100; // Daily target
 
       await HomeWidget.saveWidgetData<int>('adhkar_count', todayCount);
       await HomeWidget.saveWidgetData<int>('adhkar_target', targetCount);

@@ -56,19 +56,19 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
         physics: const BouncingScrollPhysics(),
         children: [
           // ── Cache Stats ──
-          _SectionHeader(icon: Icons.storage_rounded, title: 'التخزين المؤقت'),
+          const _SectionHeader(icon: Icons.storage_rounded, title: 'التخزين المؤقت'),
           const SizedBox(height: 8),
           _buildCacheStatsCard(isDark),
           const SizedBox(height: 24),
 
           // ── Cache Actions ──
-          _SectionHeader(icon: Icons.cleaning_services_rounded, title: 'إدارة البيانات'),
+          const _SectionHeader(icon: Icons.cleaning_services_rounded, title: 'إدارة البيانات'),
           const SizedBox(height: 8),
           _buildCacheActionsCard(isDark),
           const SizedBox(height: 24),
 
           // ── Silent UI ──
-          _SectionHeader(icon: Icons.notifications_paused_rounded, title: 'الواجهة الهادئة'),
+          const _SectionHeader(icon: Icons.notifications_paused_rounded, title: 'الواجهة الهادئة'),
           const SizedBox(height: 8),
           _buildSilentUICard(isDark),
           const SizedBox(height: 100),
@@ -115,7 +115,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
             leading: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.delete_sweep_rounded, color: Colors.red, size: 20),
@@ -136,7 +136,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
             leading: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: NoorDesignSystem.primaryGreen.withOpacity(0.1),
+                color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.sync_rounded, color: NoorDesignSystem.primaryGreen, size: 20),
@@ -264,7 +264,7 @@ class _SectionHeader extends StatelessWidget {
           fontSize: 18,
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.onSurface,
-        )),
+        ),),
       ],
     );
   }
@@ -280,7 +280,7 @@ class _StatRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: NoorDesignSystem.primaryGreen.withOpacity(0.7)),
+        Icon(icon, size: 18, color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.7)),
         const SizedBox(width: 12),
         Expanded(child: Text(label, style: GoogleFonts.cairo(fontSize: 14))),
         Text(value, style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 15)),

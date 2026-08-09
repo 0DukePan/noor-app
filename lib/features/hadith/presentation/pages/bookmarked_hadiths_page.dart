@@ -69,7 +69,7 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: NoorDesignSystem.primaryGreen.withOpacity(0.1),
+                    color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -97,7 +97,7 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
           Icon(
             Icons.bookmark_border_rounded,
             size: 72,
-            color: NoorDesignSystem.textSecondary.withOpacity(0.2),
+            color: NoorDesignSystem.textSecondary.withValues(alpha: 0.2),
           ),
           const SizedBox(height: 16),
           Text(
@@ -111,7 +111,7 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
           Text(
             'اضغط على أيقونة الحفظ أثناء قراءة الحديث',
             style: GoogleFonts.cairo(
-              color: NoorDesignSystem.textSecondary.withOpacity(0.6),
+              color: NoorDesignSystem.textSecondary.withValues(alpha: 0.6),
               fontSize: 13,
             ),
           ),
@@ -164,7 +164,7 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: NoorDesignSystem.primaryGreen.withOpacity(0.04),
+                  color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.04),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -201,7 +201,7 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: NoorDesignSystem.primaryGreen.withOpacity(0.1),
+                              color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -226,7 +226,7 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
                           // Remove button
                           GestureDetector(
                             onTap: () => _removeBookmark(collectionId, hadithId),
-                            child: Icon(
+                            child: const Icon(
                               Icons.bookmark_rounded,
                               size: 20,
                               color: NoorDesignSystem.goldAccent,
@@ -254,7 +254,7 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
                         const SizedBox(height: 8),
                         Text(
                           narrator,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
                             fontStyle: FontStyle.italic,
                             color: NoorDesignSystem.textSecondary,

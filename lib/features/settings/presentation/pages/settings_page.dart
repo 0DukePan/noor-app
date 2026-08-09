@@ -40,7 +40,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: NoorDesignSystem.emeraldGreen.withOpacity(0.1),
+                    color: NoorDesignSystem.emeraldGreen.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.settings_suggest_rounded, size: 48, color: NoorDesignSystem.emeraldGreen),
@@ -103,7 +103,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       child: SliderTheme(
                         data: SliderTheme.of(context).copyWith(
                           activeTrackColor: NoorDesignSystem.emeraldGreen,
-                          inactiveTrackColor: NoorDesignSystem.emeraldGreen.withOpacity(0.2),
+                          inactiveTrackColor: NoorDesignSystem.emeraldGreen.withValues(alpha: 0.2),
                           thumbColor: NoorDesignSystem.emeraldGreen,
                         ),
                         child: Slider(
@@ -416,7 +416,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeColor: NoorDesignSystem.emeraldGreen,
+        activeThumbColor: NoorDesignSystem.emeraldGreen,
       ),
     );
   }

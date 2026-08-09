@@ -44,7 +44,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
         physics: const BouncingScrollPhysics(),
         children: [
           // ── Adhkar Reminders ──
-          _SectionHeader(icon: Icons.wb_sunny_rounded, title: 'تذكيرات الأذكار'),
+          const _SectionHeader(icon: Icons.wb_sunny_rounded, title: 'تذكيرات الأذكار'),
           const SizedBox(height: 8),
           _buildCard(isDark, [
             _SettingsTile(
@@ -72,7 +72,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
           const SizedBox(height: 24),
 
           // ── Prayer Notifications ──
-          _SectionHeader(icon: Icons.mosque_rounded, title: 'إشعارات الصلاة'),
+          const _SectionHeader(icon: Icons.mosque_rounded, title: 'إشعارات الصلاة'),
           const SizedBox(height: 8),
           _buildCard(isDark, [
             _SettingsTile(
@@ -94,7 +94,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                   children: [
                     Text('قبل الصلاة بـ', style: GoogleFonts.cairo(fontSize: 13, color: Colors.grey)),
                     Text('${_settings.prayerNotificationMinutesBefore} دقائق',
-                        style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+                        style: GoogleFonts.cairo(fontWeight: FontWeight.bold),),
                   ],
                 ),
               ),
@@ -114,7 +114,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
           const SizedBox(height: 24),
 
           // ── Khatmah Reminder ──
-          _SectionHeader(icon: Icons.auto_stories_rounded, title: 'تذكير القراءة اليومية'),
+          const _SectionHeader(icon: Icons.auto_stories_rounded, title: 'تذكير القراءة اليومية'),
           const SizedBox(height: 8),
           _buildCard(isDark, [
             _SettingsTile(
@@ -135,7 +135,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    Icon(Icons.access_time_rounded, size: 20, color: NoorDesignSystem.goldAccent),
+                    const Icon(Icons.access_time_rounded, size: 20, color: NoorDesignSystem.goldAccent),
                     const SizedBox(width: 12),
                     Text('وقت التذكير', style: GoogleFonts.cairo(fontSize: 14)),
                     const Spacer(),
@@ -159,7 +159,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
           const SizedBox(height: 24),
 
           // ── Quiet Hours ──
-          _SectionHeader(icon: Icons.do_not_disturb_rounded, title: 'ساعات الهدوء'),
+          const _SectionHeader(icon: Icons.do_not_disturb_rounded, title: 'ساعات الهدوء'),
           const SizedBox(height: 8),
           _buildCard(isDark, [
             _SettingsTile(
@@ -199,7 +199,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                     message: 'حان وقت ورد القراءة اليومي',
                   );
                 }
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('✅ تم تحديث الإشعارات', style: GoogleFonts.cairo()),
@@ -243,7 +243,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
       _updateSettings(_settings.copyWith(
         khatmahReminderHour: picked.hour,
         khatmahReminderMinute: picked.minute,
-      ));
+      ),);
     }
   }
 }
@@ -267,7 +267,7 @@ class _SectionHeader extends StatelessWidget {
           fontSize: 18,
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.onSurface,
-        )),
+        ),),
       ],
     );
   }
@@ -296,7 +296,7 @@ class _SettingsTile extends StatelessWidget {
       secondary: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: iconColor.withOpacity(0.1),
+          color: iconColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(icon, color: iconColor, size: 20),
@@ -304,7 +304,7 @@ class _SettingsTile extends StatelessWidget {
       title: Text(title, style: GoogleFonts.cairo(fontWeight: FontWeight.w600, fontSize: 15)),
       subtitle: Text(subtitle, style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey)),
       value: value,
-      activeColor: NoorDesignSystem.primaryGreen,
+      activeThumbColor: NoorDesignSystem.primaryGreen,
       onChanged: (v) {
         HapticFeedback.selectionClick();
         onChanged(v);

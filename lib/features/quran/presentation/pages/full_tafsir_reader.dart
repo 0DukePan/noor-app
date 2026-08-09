@@ -142,7 +142,7 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
                     Expanded(child: Text(s.arabicName)),
                   ],
                 ),
-              )).toList(),
+              ),).toList(),
             ),
         ],
       ),
@@ -175,9 +175,9 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
         height: 52,
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           border: Border(
-            bottom: BorderSide(color: theme.dividerColor.withOpacity(0.2)),
+            bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.2)),
           ),
         ),
         child: ListView(
@@ -200,7 +200,7 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
                   setState(() => _currentSource = source.id);
                   _loadTafsir();
                 },
-                selectedColor: theme.colorScheme.primary.withOpacity(0.15),
+                selectedColor: theme.colorScheme.primary.withValues(alpha: 0.15),
                 labelStyle: TextStyle(
                   color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface,
                 ),
@@ -218,9 +218,9 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         border: Border(
-          bottom: BorderSide(color: theme.dividerColor.withOpacity(0.2)),
+          bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.2)),
         ),
       ),
       child: Column(
@@ -250,7 +250,7 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
                   });
                   _loadCompareData();
                 },
-                selectedColor: theme.colorScheme.primary.withOpacity(0.15),
+                selectedColor: theme.colorScheme.primary.withValues(alpha: 0.15),
                 checkmarkColor: theme.colorScheme.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
@@ -275,7 +275,7 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -316,7 +316,7 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
             Icon(Icons.menu_book_rounded, size: 64, color: theme.colorScheme.outline),
             const SizedBox(height: 16),
             Text('التفسير غير متوفر',
-              style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.outline)),
+              style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.outline),),
           ],
         ),
       );
@@ -337,12 +337,12 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
             margin: const EdgeInsets.only(bottom: 20),
             decoration: BoxDecoration(
               color: isTarget
-                  ? theme.colorScheme.primaryContainer.withOpacity(0.3)
+                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
                   : theme.cardTheme.color ?? theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
               border: isTarget
                   ? Border.all(color: theme.colorScheme.primary, width: 2)
-                  : Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
+                  : Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.1)),
             ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -355,7 +355,7 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -377,11 +377,11 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.tertiary.withOpacity(0.08),
+                          color: theme.colorScheme.tertiary.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(Icons.edit_note_rounded, size: 16,
-                          color: theme.colorScheme.tertiary),
+                          color: theme.colorScheme.tertiary,),
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -397,11 +397,11 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.secondary.withOpacity(0.08),
+                          color: theme.colorScheme.secondary.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(Icons.compare_rounded, size: 16,
-                          color: theme.colorScheme.secondary),
+                          color: theme.colorScheme.secondary,),
                       ),
                     ),
                   ],
@@ -414,7 +414,7 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
                   entry.text,
                   style: GoogleFonts.cairo(
                     fontSize: _fontSize, height: 1.9,
-                    color: theme.colorScheme.onSurface.withOpacity(0.85),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
                   ),
                   textDirection: TextDirection.rtl,
                 ),
@@ -467,8 +467,8 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
             borderRadius: BorderRadius.circular(16),
             border: Border(right: BorderSide(color: accentColor, width: 4)),
             boxShadow: [
-              BoxShadow(color: accentColor.withOpacity(0.05), blurRadius: 8,
-                offset: const Offset(0, 2)),
+              BoxShadow(color: accentColor.withValues(alpha: 0.05), blurRadius: 8,
+                offset: const Offset(0, 2),),
             ],
           ),
           child: Column(
@@ -478,7 +478,7 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.06),
+                  color: accentColor.withValues(alpha: 0.06),
                   borderRadius: const BorderRadius.only(topLeft: Radius.circular(16)),
                 ),
                 child: Row(
@@ -490,10 +490,10 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
                     const SizedBox(width: 8),
                     Text(sourceInfo.arabicName,
                       style: GoogleFonts.cairo(
-                        fontSize: 14, fontWeight: FontWeight.bold, color: accentColor)),
+                        fontSize: 14, fontWeight: FontWeight.bold, color: accentColor,),),
                     const Spacer(),
                     Text(sourceInfo.author,
-                      style: GoogleFonts.cairo(fontSize: 11, color: theme.colorScheme.outline)),
+                      style: GoogleFonts.cairo(fontSize: 11, color: theme.colorScheme.outline),),
                   ],
                 ),
               ),
@@ -503,7 +503,7 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
                   entry.value.text,
                   style: GoogleFonts.cairo(
                     fontSize: _fontSize, height: 1.9,
-                    color: theme.colorScheme.onSurface.withOpacity(0.85)),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.85),),
                   textDirection: TextDirection.rtl,
                 ),
               ),
@@ -524,7 +524,7 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('حجم الخط',
-                style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold)),
+                style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold),),
               const SizedBox(height: 16),
               Slider(
                 value: _fontSize, min: 12, max: 28, divisions: 8,
@@ -533,7 +533,7 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
               ),
               Text('مثال: بسم الله الرحمن الرحيم',
                 style: GoogleFonts.cairo(fontSize: _fontSize),
-                textDirection: TextDirection.rtl),
+                textDirection: TextDirection.rtl,),
               const SizedBox(height: 16),
             ],
           ),
@@ -579,11 +579,11 @@ class _WordAnalysisButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: theme.colorScheme.tertiary.withOpacity(0.08),
+          color: theme.colorScheme.tertiary.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(Icons.translate_rounded, size: 16,
-          color: theme.colorScheme.tertiary),
+          color: theme.colorScheme.tertiary,),
       ),
     );
   }
@@ -722,8 +722,8 @@ class _WordAnalysisSheetState extends State<_WordAnalysisSheet> {
         color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 16,
-            offset: const Offset(0, -4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 16,
+            offset: const Offset(0, -4),),
         ],
       ),
       child: SingleChildScrollView(
@@ -736,8 +736,8 @@ class _WordAnalysisSheetState extends State<_WordAnalysisSheet> {
               child: Container(
                 width: 40, height: 4,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.outline.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(2)),
+                  color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(2),),
               ),
             ),
             // Header
@@ -750,7 +750,7 @@ class _WordAnalysisSheetState extends State<_WordAnalysisSheet> {
                   Text('تحليل الكلمات — سورة ${widget.surah}:${widget.ayah}',
                     style: GoogleFonts.cairo(
                       fontSize: 15, fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onSurface)),
+                      color: theme.colorScheme.onSurface,),),
                 ],
               ),
             ),
@@ -773,12 +773,12 @@ class _WordAnalysisSheetState extends State<_WordAnalysisSheet> {
                       decoration: BoxDecoration(
                         color: isSelected
                             ? theme.colorScheme.primary
-                            : theme.colorScheme.primary.withOpacity(0.06),
+                            : theme.colorScheme.primary.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected
                               ? theme.colorScheme.primary
-                              : theme.colorScheme.outline.withOpacity(0.2)),
+                              : theme.colorScheme.outline.withValues(alpha: 0.2),),
                       ),
                       child: Text(word.arabic,
                         style: GoogleFonts.amiri(
@@ -786,7 +786,7 @@ class _WordAnalysisSheetState extends State<_WordAnalysisSheet> {
                           color: isSelected
                               ? theme.colorScheme.onPrimary
                               : theme.colorScheme.onSurface,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500)),
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,),),
                     ),
                   );
                 }),
@@ -812,16 +812,16 @@ class _WordAnalysisSheetState extends State<_WordAnalysisSheet> {
         margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: theme.colorScheme.primaryContainer.withOpacity(0.15),
+          color: theme.colorScheme.primaryContainer.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2)),
+          border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
         ),
         child: Column(
           children: [
             Text(word.arabic,
               style: GoogleFonts.amiri(
                 fontSize: 36, fontWeight: FontWeight.bold,
-                color: theme.colorScheme.primary, height: 1.4)),
+                color: theme.colorScheme.primary, height: 1.4,),),
             const SizedBox(height: 12),
             _DetailRow(icon: Icons.account_tree_rounded, label: 'الجذر', value: word.root, theme: theme),
             _DetailRow(icon: Icons.translate_rounded, label: 'المعنى', value: word.meaning, theme: theme),
@@ -866,14 +866,14 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         textDirection: TextDirection.rtl,
         children: [
-          Icon(icon, size: 16, color: theme.colorScheme.primary.withOpacity(0.7)),
+          Icon(icon, size: 16, color: theme.colorScheme.primary.withValues(alpha: 0.7)),
           const SizedBox(width: 8),
           SizedBox(
             width: 56,
             child: Text(label,
               style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold,
-                color: theme.colorScheme.outline),
-              textDirection: TextDirection.rtl),
+                color: theme.colorScheme.outline,),
+              textDirection: TextDirection.rtl,),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -885,7 +885,7 @@ class _DetailRow extends StatelessWidget {
                     ? theme.colorScheme.outline
                     : theme.colorScheme.onSurface,
               ),
-              textDirection: TextDirection.rtl),
+              textDirection: TextDirection.rtl,),
           ),
         ],
       ),
@@ -924,7 +924,7 @@ class _InlineAnnotationsPanel extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.tertiaryContainer.withOpacity(0.15),
+        color: theme.colorScheme.tertiaryContainer.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
         border: Border(
           right: BorderSide(color: theme.colorScheme.tertiary, width: 3),
@@ -940,12 +940,12 @@ class _InlineAnnotationsPanel extends StatelessWidget {
               Text('ملاحظات تدبر',
                 style: GoogleFonts.cairo(
                   fontSize: 12, fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.tertiary)),
+                  color: theme.colorScheme.tertiary,),),
               const Spacer(),
               GestureDetector(
                 onTap: onAddNote,
                 child: Icon(Icons.add_circle_outline, size: 16,
-                  color: theme.colorScheme.tertiary),
+                  color: theme.colorScheme.tertiary,),
               ),
             ],
           ),
@@ -957,18 +957,18 @@ class _InlineAnnotationsPanel extends StatelessWidget {
               textDirection: TextDirection.rtl,
               children: [
                 Icon(Icons.circle, size: 6,
-                  color: theme.colorScheme.tertiary.withOpacity(0.5)),
+                  color: theme.colorScheme.tertiary.withValues(alpha: 0.5),),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(note.noteText,
                     style: GoogleFonts.cairo(
                       fontSize: 13, height: 1.6,
-                      color: theme.colorScheme.onSurface.withOpacity(0.75)),
-                    textDirection: TextDirection.rtl),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.75),),
+                    textDirection: TextDirection.rtl,),
                 ),
               ],
             ),
-          )),
+          ),),
         ],
       ),
     );
@@ -1064,8 +1064,8 @@ class _TadabburNoteSheetState extends State<_TadabburNoteSheet> {
         color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 16,
-            offset: const Offset(0, -4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 16,
+            offset: const Offset(0, -4),),
         ],
       ),
       child: Column(
@@ -1077,8 +1077,8 @@ class _TadabburNoteSheetState extends State<_TadabburNoteSheet> {
             child: Container(
               width: 40, height: 4,
               decoration: BoxDecoration(
-                color: theme.colorScheme.outline.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(2)),
+                color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(2),),
             ),
           ),
           // Header
@@ -1091,7 +1091,7 @@ class _TadabburNoteSheetState extends State<_TadabburNoteSheet> {
                 Text('ملاحظات تدبر — سورة ${widget.surah}:${widget.ayah}',
                   style: GoogleFonts.cairo(
                     fontSize: 15, fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface)),
+                    color: theme.colorScheme.onSurface,),),
               ],
             ),
           ),
@@ -1110,7 +1110,7 @@ class _TadabburNoteSheetState extends State<_TadabburNoteSheet> {
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.tertiaryContainer.withOpacity(0.12),
+                      color: theme.colorScheme.tertiaryContainer.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -1121,14 +1121,14 @@ class _TadabburNoteSheetState extends State<_TadabburNoteSheet> {
                           child: Text(note.noteText,
                             style: GoogleFonts.cairo(
                               fontSize: 14, height: 1.6,
-                              color: theme.colorScheme.onSurface),
-                            textDirection: TextDirection.rtl),
+                              color: theme.colorScheme.onSurface,),
+                            textDirection: TextDirection.rtl,),
                         ),
                         const SizedBox(width: 8),
                         GestureDetector(
                           onTap: () => _deleteNote(note),
                           child: Icon(Icons.delete_outline, size: 18,
-                            color: theme.colorScheme.error.withOpacity(0.6)),
+                            color: theme.colorScheme.error.withValues(alpha: 0.6),),
                         ),
                       ],
                     ),
@@ -1143,14 +1143,14 @@ class _TadabburNoteSheetState extends State<_TadabburNoteSheet> {
               child: Column(
                 children: [
                   Icon(Icons.sticky_note_2_outlined, size: 48,
-                    color: theme.colorScheme.outline.withOpacity(0.3)),
+                    color: theme.colorScheme.outline.withValues(alpha: 0.3),),
                   const SizedBox(height: 8),
                   Text('لا توجد ملاحظات تدبّر بعد',
                     style: GoogleFonts.cairo(
-                      fontSize: 14, color: theme.colorScheme.outline)),
+                      fontSize: 14, color: theme.colorScheme.outline,),),
                   Text('سجّل خواطرك وتأملاتك هنا',
                     style: GoogleFonts.cairo(
-                      fontSize: 12, color: theme.colorScheme.outline.withOpacity(0.6))),
+                      fontSize: 12, color: theme.colorScheme.outline.withValues(alpha: 0.6),),),
                 ],
               ),
             ),
@@ -1172,9 +1172,9 @@ class _TadabburNoteSheetState extends State<_TadabburNoteSheet> {
                       hintText: 'أضف تدبّرك هنا...',
                       hintTextDirection: TextDirection.rtl,
                       contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
+                        horizontal: 16, vertical: 10,),
                       filled: true,
-                      fillColor: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                      fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
@@ -1193,7 +1193,7 @@ class _TadabburNoteSheetState extends State<_TadabburNoteSheet> {
                     child: Padding(
                       padding: const EdgeInsets.all(10),
                       child: Icon(Icons.send_rounded, size: 20,
-                        color: theme.colorScheme.onPrimary),
+                        color: theme.colorScheme.onPrimary,),
                     ),
                   ),
                 ),

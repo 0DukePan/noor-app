@@ -152,7 +152,7 @@ class _IsnadChainPageState extends State<IsnadChainPage>
             Icon(
               Icons.link_off_rounded,
               size: 64,
-              color: NoorDesignSystem.textSecondary.withOpacity(0.4),
+              color: NoorDesignSystem.textSecondary.withValues(alpha: 0.4),
             ),
             const SizedBox(height: 16),
             Text(
@@ -168,7 +168,7 @@ class _IsnadChainPageState extends State<IsnadChainPage>
               'لا يحتوي نص الحديث على سلسلة إسناد قابلة للتحليل',
               style: GoogleFonts.cairo(
                 fontSize: 14,
-                color: NoorDesignSystem.textSecondary.withOpacity(0.7),
+                color: NoorDesignSystem.textSecondary.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -253,11 +253,11 @@ class _IsnadChainPageState extends State<IsnadChainPage>
         color: isDark ? NoorDesignSystem.surfaceDark : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: NoorDesignSystem.primaryGreen.withOpacity(0.1),
+          color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.1),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -349,11 +349,11 @@ class _NarratorCard extends StatelessWidget {
 
         if (narrator.isProphet) {
           accentColor = NoorDesignSystem.goldAccent;
-          bgColor = NoorDesignSystem.goldAccent.withOpacity(0.08);
+          bgColor = NoorDesignSystem.goldAccent.withValues(alpha: 0.08);
           icon = Icons.star_rounded;
         } else if (narrator.isCompanion) {
           accentColor = NoorDesignSystem.gradeSahih;
-          bgColor = NoorDesignSystem.gradeSahih.withOpacity(0.06);
+          bgColor = NoorDesignSystem.gradeSahih.withValues(alpha: 0.06);
           icon = Icons.shield_rounded;
         } else {
           accentColor = NoorDesignSystem.primaryGreen;
@@ -375,20 +375,20 @@ class _NarratorCard extends StatelessWidget {
               border: Border.all(
                 color: isSelected
                     ? accentColor
-                    : accentColor.withOpacity(0.15),
+                    : accentColor.withValues(alpha: 0.15),
                 width: isSelected ? 2 : 1,
               ),
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: accentColor.withOpacity(0.2),
+                        color: accentColor.withValues(alpha: 0.2),
                         blurRadius: 16,
                         offset: const Offset(0, 4),
                       ),
                     ]
                   : [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
+                        color: Colors.black.withValues(alpha: 0.03),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -413,7 +413,7 @@ class _NarratorCard extends StatelessWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: accentColor.withOpacity(0.3),
+                        color: accentColor.withValues(alpha: 0.3),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -422,7 +422,7 @@ class _NarratorCard extends StatelessWidget {
                   child: Center(
                     child: narrator.isProphet
                         ? Text('ﷺ', style: GoogleFonts.amiri(
-                            color: Colors.white, fontSize: 18))
+                            color: Colors.white, fontSize: 18,),)
                         : Text(
                             '${total - index}',
                             style: GoogleFonts.cairo(
@@ -457,7 +457,7 @@ class _NarratorCard extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Icon(icon, size: 12, color: accentColor.withOpacity(0.7)),
+                          Icon(icon, size: 12, color: accentColor.withValues(alpha: 0.7)),
                           const SizedBox(width: 4),
                           Text(
                             narrator.role,
@@ -479,10 +479,10 @@ class _NarratorCard extends StatelessWidget {
                     margin: const EdgeInsets.only(right: 10),
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: NoorDesignSystem.gradeSahih.withOpacity(0.08),
+                      color: NoorDesignSystem.gradeSahih.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: NoorDesignSystem.gradeSahih.withOpacity(0.15),
+                        color: NoorDesignSystem.gradeSahih.withValues(alpha: 0.15),
                       ),
                     ),
                     child: Text(
@@ -529,8 +529,8 @@ class _IsnadConnector extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  NoorDesignSystem.primaryGreen.withOpacity(0.0),
-                  NoorDesignSystem.primaryGreen.withOpacity(0.3),
+                  NoorDesignSystem.primaryGreen.withValues(alpha: 0.0),
+                  NoorDesignSystem.primaryGreen.withValues(alpha: 0.3),
                 ],
               ),
             ),
@@ -540,10 +540,10 @@ class _IsnadConnector extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: NoorDesignSystem.primaryGreen.withOpacity(0.08),
+              color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: NoorDesignSystem.primaryGreen.withOpacity(0.15),
+                color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.15),
               ),
             ),
             child: Row(
@@ -552,7 +552,7 @@ class _IsnadConnector extends StatelessWidget {
                 Icon(
                   Icons.arrow_downward_rounded,
                   size: 12,
-                  color: NoorDesignSystem.primaryGreen.withOpacity(0.6),
+                  color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.6),
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -574,8 +574,8 @@ class _IsnadConnector extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  NoorDesignSystem.primaryGreen.withOpacity(0.3),
-                  NoorDesignSystem.primaryGreen.withOpacity(0.0),
+                  NoorDesignSystem.primaryGreen.withValues(alpha: 0.3),
+                  NoorDesignSystem.primaryGreen.withValues(alpha: 0.0),
                 ],
               ),
             ),
@@ -616,7 +616,7 @@ class _NarratorDetailPanel extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -643,8 +643,8 @@ class _NarratorDetailPanel extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(Icons.person_rounded,
-                  color: NoorDesignSystem.primaryGreen, size: 20),
+              const Icon(Icons.person_rounded,
+                  color: NoorDesignSystem.primaryGreen, size: 20,),
             ],
           ),
           const Divider(height: 20),

@@ -108,16 +108,16 @@ class _TopicTreePageState extends ConsumerState<TopicTreePage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.topic_rounded, size: 64, color: NoorTheme.textSecondary.withOpacity(0.3)),
+          Icon(Icons.topic_rounded, size: 64, color: NoorTheme.textSecondary.withValues(alpha: 0.3)),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'لا توجد مواضيع بعد',
             style: TextStyle(color: NoorTheme.textSecondary, fontSize: 16),
           ),
           const SizedBox(height: 8),
           Text(
             'يتم بناء الفهرس عند أول تحميل للأحاديث',
-            style: TextStyle(color: NoorTheme.textSecondary.withOpacity(0.6), fontSize: 13),
+            style: TextStyle(color: NoorTheme.textSecondary.withValues(alpha: 0.6), fontSize: 13),
           ),
         ],
       ),
@@ -143,7 +143,7 @@ class _TopicTreePageState extends ConsumerState<TopicTreePage> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
+                    gradient: const LinearGradient(
                       colors: [NoorTheme.primary, NoorTheme.primaryDark],
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -168,7 +168,7 @@ class _TopicTreePageState extends ConsumerState<TopicTreePage> {
                       ),
                       Text(
                         '${topic.hadithCount} حديث',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: NoorTheme.textSecondary,
                         ),
@@ -180,7 +180,7 @@ class _TopicTreePageState extends ConsumerState<TopicTreePage> {
                 Icon(
                   Icons.arrow_back_ios_new_rounded,
                   size: 14,
-                  color: NoorTheme.textSecondary.withOpacity(0.5),
+                  color: NoorTheme.textSecondary.withValues(alpha: 0.5),
                 ),
               ],
             ),

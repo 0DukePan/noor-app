@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
@@ -83,7 +82,7 @@ class _HadithPageState extends ConsumerState<HadithPage> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      NoorDesignSystem.emeraldGreen.withOpacity(0.1),
+                      NoorDesignSystem.emeraldGreen.withValues(alpha: 0.1),
                       NoorDesignSystem.creamWhite,
                     ],
                   ),
@@ -155,7 +154,8 @@ class _HadithPageState extends ConsumerState<HadithPage> {
                   try {
                     final ds = ref.read(localHadithDataSourceProvider);
                     final book = await ds.loadBook(bookId);
-                    if (mounted && book.hadiths.isNotEmpty) {
+                    if (!context.mounted) return;
+                    if (book.hadiths.isNotEmpty) {
                       final safeIndex = hadithIndex.clamp(0, book.hadiths.length - 1);
                       Navigator.push(
                         context,
@@ -312,7 +312,7 @@ class _ContinueReadingCard extends StatelessWidget {
         : knownName;
     final hadithIndex = progress['hadithIndex'] as int? ?? 0;
     final totalHadiths = progress['totalHadiths'] as int? ?? 1;
-    final colorValue = progress['colorValue'] as int? ?? NoorDesignSystem.emeraldGreen.value;
+    final colorValue = progress['colorValue'] as int? ?? NoorDesignSystem.emeraldGreen.toARGB32();
     final bookColor = Color(colorValue);
 
     final progressRatio = totalHadiths > 0 ? (hadithIndex + 1) / totalHadiths : 0.0;
@@ -326,10 +326,10 @@ class _ContinueReadingCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: bookColor.withOpacity(0.15)),
+            border: Border.all(color: bookColor.withValues(alpha: 0.15)),
             boxShadow: [
               BoxShadow(
-                color: bookColor.withOpacity(0.06),
+                color: bookColor.withValues(alpha: 0.06),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -342,7 +342,7 @@ class _ContinueReadingCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: bookColor.withOpacity(0.1),
+                  color: bookColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(Icons.menu_book_rounded, color: bookColor, size: 24),
@@ -375,7 +375,7 @@ class _ContinueReadingCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
                         value: progressRatio,
-                        backgroundColor: bookColor.withOpacity(0.1),
+                        backgroundColor: bookColor.withValues(alpha: 0.1),
                         valueColor: AlwaysStoppedAnimation(bookColor),
                         minHeight: 4,
                       ),
@@ -423,7 +423,7 @@ class _HadithOfTheDayCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF1B5E20).withOpacity(0.3),
+                color: const Color(0xFF1B5E20).withValues(alpha: 0.3),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
@@ -438,7 +438,7 @@ class _HadithOfTheDayCard extends StatelessWidget {
                 child: Icon(
                   Icons.auto_stories_rounded,
                   size: 100,
-                  color: Colors.white.withOpacity(0.06),
+                  color: Colors.white.withValues(alpha: 0.06),
                 ),
               ),
               // Content
@@ -453,7 +453,7 @@ class _HadithOfTheDayCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(

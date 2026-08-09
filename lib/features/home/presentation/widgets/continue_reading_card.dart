@@ -31,7 +31,7 @@ class ContinueReadingCard extends StatelessWidget {
           color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
           border: Border.all(
-            color: isDark ? Colors.white12 : Colors.black.withOpacity(0.05),
+            color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.05),
           ),
           boxShadow: NoorDesignSystem.shadowSmall,
         ),
@@ -42,7 +42,7 @@ class ContinueReadingCard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: NoorDesignSystem.primaryGreen.withOpacity(0.1),
+                color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
@@ -86,7 +86,7 @@ class ContinueReadingCard extends StatelessWidget {
                       'الآية ${lastRead!.ayah}',
                       style: GoogleFonts.cairo(
                         fontSize: 13,
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     )
                   else
@@ -94,7 +94,7 @@ class ContinueReadingCard extends StatelessWidget {
                       'اضغط للانتقال إلى المصحف',
                       style: GoogleFonts.cairo(
                         fontSize: 13,
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                 ],

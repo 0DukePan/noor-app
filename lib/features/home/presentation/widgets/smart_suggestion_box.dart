@@ -17,9 +17,9 @@ class SmartSuggestionBox extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: NoorDesignSystem.primaryGreen.withOpacity(0.08),
+        color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: NoorDesignSystem.primaryGreen.withOpacity(0.3)),
+        border: Border.all(color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [

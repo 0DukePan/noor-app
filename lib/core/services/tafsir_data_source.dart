@@ -166,7 +166,7 @@ class TafsirDataSource {
         ayah: e['ayah'],
         text: e['text'],
         source: source,
-      )).toList();
+      ),).toList();
       
       return SurahTafsir(surah: surah, source: source, entries: entries);
     }
@@ -190,7 +190,7 @@ class TafsirDataSource {
         'surah': e.surah,
         'ayah': e.ayah,
         'text': e.text,
-      }).toList(),
+      },).toList(),
     });
   }
 
@@ -297,9 +297,9 @@ class TafsirDataSource {
     TafsirReadingHistory? latest;
     DateTime? latestTime;
     
-    _historyBox!.values.forEach((json) {
+    for (var json in _historyBox!.values) {
       final lastRead = DateTime.tryParse(json['lastRead'] ?? '');
-      if (lastRead != null && (latestTime == null || lastRead.isAfter(latestTime!))) {
+      if (lastRead != null && (latestTime == null || lastRead.isAfter(latestTime))) {
         latestTime = lastRead;
         latest = TafsirReadingHistory(
           surah: json['surah'],
@@ -312,7 +312,7 @@ class TafsirDataSource {
           readCount: json['readCount'] ?? 1,
         );
       }
-    });
+    }
     
     return latest;
   }
@@ -331,7 +331,7 @@ class TafsirDataSource {
         ),
         lastRead: DateTime.parse(json['lastRead']),
         readCount: json['readCount'] ?? 1,
-      ));
+      ),);
     });
     
     all.sort((a, b) => b.lastRead.compareTo(a.lastRead));
@@ -367,7 +367,7 @@ class TafsirDataSource {
         TafsirSourceId.values.firstWhere(
           (e) => e.name == s,
           orElse: () => TafsirSourceId.muyassar,
-        )
+        ),
       ).toList() ?? [],
       showReferences: json['showReferences'] ?? true,
       fontSize: (json['fontSize'] ?? 18.0).toDouble(),

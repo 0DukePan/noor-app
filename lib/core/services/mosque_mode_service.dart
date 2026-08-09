@@ -9,7 +9,7 @@ class MosqueModeService {
   static const _channelName = 'com.noor.app/adhan';
   static const _cacheBoxName = 'mosque_mode';
   
-  static final _channel = const MethodChannel(_channelName);
+  static const _channel = MethodChannel(_channelName);
   static Box? _cacheBox;
   
   // Settings

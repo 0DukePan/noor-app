@@ -127,10 +127,10 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.2),
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -406,7 +406,7 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
                   Text(s.arabicName),
                 ],
               ),
-            )).toList(),
+            ),).toList(),
           ),
           
           // Font size
@@ -475,7 +475,7 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
                 color: theme.colorScheme.surface,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 8,
                     offset: const Offset(0, -2),
                   ),
@@ -916,7 +916,7 @@ class _TafsirSheetContentState extends State<TafsirSheetContent> {
                 itemBuilder: (_) => TafsirSource.all.map((s) => PopupMenuItem(
                   value: s.id,
                   child: Text(s.arabicName),
-                )).toList(),
+                ),).toList(),
               ),
             ],
           ),

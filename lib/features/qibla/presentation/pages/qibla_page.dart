@@ -184,7 +184,8 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
 
   void _toggleMosqueMode() async {
     await HapticFeedback.heavyImpact();
-    
+    if (!mounted) return;
+
     setState(() {
       _mosqueMode = !_mosqueMode;
       if (_mosqueMode) {
@@ -229,7 +230,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: Colors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Text(
@@ -314,7 +315,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
             end: Alignment.bottomCenter,
             colors: [
               const Color(0xFF1A1A2E),
-              theme.colorScheme.primary.withOpacity(0.8),
+              theme.colorScheme.primary.withValues(alpha: 0.8),
             ],
           ),
         ),
@@ -354,7 +355,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
           const SizedBox(height: 24),
           Text(
             'جارٍ تحديد موقعك...',
-            style: TextStyle(color: Colors.white.withOpacity(0.8)),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
           ),
         ],
       ),
@@ -397,13 +398,13 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: alignment.isAligned 
-            ? Colors.green.withOpacity(0.2)
-            : Colors.white.withOpacity(0.1),
+            ? Colors.green.withValues(alpha: 0.2)
+            : Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
           color: alignment.isAligned 
-              ? Colors.green.withOpacity(0.5)
-              : Colors.white.withOpacity(0.2),
+              ? Colors.green.withValues(alpha: 0.5)
+              : Colors.white.withValues(alpha: 0.2),
         ),
       ),
       child: Row(
@@ -412,7 +413,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: _getAccuracyColor(accuracy).withOpacity(0.2),
+              color: _getAccuracyColor(accuracy).withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -478,12 +479,12 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
             shape: BoxShape.circle,
             gradient: RadialGradient(
               colors: [
-                Colors.white.withOpacity(0.05),
+                Colors.white.withValues(alpha: 0.05),
                 Colors.transparent,
               ],
             ),
             border: Border.all(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               width: 1,
             ),
           ),
@@ -510,7 +511,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
                   color: alignment.isAligned ? const Color(0xFF4CAF50) : const Color(0xFFFFD700),
                   shadows: [
                     BoxShadow(
-                      color: (alignment.isAligned ? Colors.green : Colors.amber).withOpacity(0.5),
+                      color: (alignment.isAligned ? Colors.green : Colors.amber).withValues(alpha: 0.5),
                       blurRadius: 20,
                       spreadRadius: 5,
                     ),
@@ -521,11 +522,11 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   decoration: BoxDecoration(
                     color: (alignment.isAligned ? Colors.green : const Color(0xFFFFD700))
-                        .withOpacity(0.2),
+                        .withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: (alignment.isAligned ? Colors.green : const Color(0xFFFFD700))
-                          .withOpacity(0.5),
+                          .withValues(alpha: 0.5),
                     ),
                   ),
                   child: Text(
@@ -549,7 +550,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: _mosqueMode ? Colors.green.withOpacity(0.2) : Colors.blue.withOpacity(0.2),
+                color: _mosqueMode ? Colors.green.withValues(alpha: 0.2) : Colors.blue.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: _mosqueMode ? Colors.green : Colors.blue,
@@ -573,9 +574,9 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
       margin: const EdgeInsets.symmetric(horizontal: 24),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -585,13 +586,13 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
             label: 'اتجاه القبلة',
             value: '${_qiblaResult!.trueQiblaDirection.toStringAsFixed(1)}°',
           ),
-          Container(height: 40, width: 1, color: Colors.white.withOpacity(0.1)),
+          Container(height: 40, width: 1, color: Colors.white.withValues(alpha: 0.1)),
           _InfoItem(
             icon: Icons.straighten_rounded,
             label: 'المسافة',
             value: QiblaEngine.formatDistance(_qiblaResult!.distanceToKaaba),
           ),
-          Container(height: 40, width: 1, color: Colors.white.withOpacity(0.1)),
+          Container(height: 40, width: 1, color: Colors.white.withValues(alpha: 0.1)),
           _InfoItem(
             icon: Icons.near_me_rounded,
             label: 'الاتجاه',
@@ -617,7 +618,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
                 style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
               ),
               style: FilledButton.styleFrom(
-                backgroundColor: _isLocked ? Colors.green : Colors.white.withOpacity(0.1),
+                backgroundColor: _isLocked ? Colors.green : Colors.white.withValues(alpha: 0.1),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
@@ -631,8 +632,8 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
             onPressed: _toggleMosqueMode,
             style: FilledButton.styleFrom(
               backgroundColor: _mosqueMode 
-                  ? Colors.green.withOpacity(0.3)
-                  : Colors.white.withOpacity(0.1),
+                  ? Colors.green.withValues(alpha: 0.3)
+                  : Colors.white.withValues(alpha: 0.1),
               padding: const EdgeInsets.all(16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
@@ -648,7 +649,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
           FilledButton.tonal(
             onPressed: _getLocation,
             style: FilledButton.styleFrom(
-              backgroundColor: Colors.white.withOpacity(0.1),
+              backgroundColor: Colors.white.withValues(alpha: 0.1),
               padding: const EdgeInsets.all(16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
@@ -664,22 +665,22 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.5),
+        color: Colors.black.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('🧭 Heading: ${_currentHeading.toStringAsFixed(1)}°', 
-              style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              style: const TextStyle(color: Colors.white70, fontSize: 12),),
           Text('🕋 Qibla: ${_qiblaResult?.magneticQiblaDirection.toStringAsFixed(1) ?? '--'}°', 
-              style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              style: const TextStyle(color: Colors.white70, fontSize: 12),),
           Text('📐 Deviation: ${deviation.toStringAsFixed(1)}°', 
-              style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              style: const TextStyle(color: Colors.white70, fontSize: 12),),
           Text('🧲 Declination: ${_qiblaResult?.declination.toStringAsFixed(1) ?? '--'}°', 
-              style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              style: const TextStyle(color: Colors.white70, fontSize: 12),),
           Text('📊 Accuracy: ${_compassAccuracy.toStringAsFixed(1)}° (${accuracy.arabicName})', 
-              style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              style: const TextStyle(color: Colors.white70, fontSize: 12),),
         ],
       ),
     );
@@ -720,7 +721,7 @@ class _InfoItem extends StatelessWidget {
         Text(
           label,
           style: GoogleFonts.cairo(
-            color: Colors.white.withOpacity(0.6),
+            color: Colors.white.withValues(alpha: 0.6),
             fontSize: 12,
           ),
         ),
@@ -756,7 +757,7 @@ class _CompassPainter extends CustomPainter {
 
     // Draw tick marks
     final tickPaint = Paint()
-      ..color = Colors.white.withOpacity(0.3)
+      ..color = Colors.white.withValues(alpha: 0.3)
       ..strokeWidth = 1;
 
     for (var i = 0; i < 360; i += 10) {
@@ -771,8 +772,8 @@ class _CompassPainter extends CustomPainter {
       
       tickPaint.strokeWidth = isCardinal ? 2 : 1;
       tickPaint.color = isCardinal 
-          ? Colors.white.withOpacity(0.6)
-          : Colors.white.withOpacity(0.2);
+          ? Colors.white.withValues(alpha: 0.6)
+          : Colors.white.withValues(alpha: 0.2);
       
       canvas.drawLine(Offset(x1, y1), Offset(x2, y2), tickPaint);
     }
@@ -789,7 +790,7 @@ class _CompassPainter extends CustomPainter {
       textPainter.text = TextSpan(
         text: directions[i],
         style: TextStyle(
-          color: i == 0 ? const Color(0xFFFFD700) : Colors.white.withOpacity(0.6),
+          color: i == 0 ? const Color(0xFFFFD700) : Colors.white.withValues(alpha: 0.6),
           fontSize: i == 0 ? 18 : 14,
           fontWeight: i == 0 ? FontWeight.bold : FontWeight.normal,
         ),

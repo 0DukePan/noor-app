@@ -107,7 +107,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: NoorDesignSystem.textSecondary.withOpacity(0.3),
+              color: NoorDesignSystem.textSecondary.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -128,7 +128,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
             decoration: BoxDecoration(
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -181,9 +181,9 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [
-        widget.bookColor.withOpacity(0.05),
+        widget.bookColor.withValues(alpha: 0.05),
         Colors.white,
-        widget.bookColor.withOpacity(0.1),
+        widget.bookColor.withValues(alpha: 0.1),
       ],
     );
 
@@ -195,7 +195,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
       decoration: BoxDecoration(
         color: Colors.white,
         gradient: bgGradient,
-        border: Border.all(color: widget.bookColor.withOpacity(0.2), width: 1),
+        border: Border.all(color: widget.bookColor.withValues(alpha: 0.2), width: 1),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -221,7 +221,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
           // Hadith Text
           Icon(
             Icons.format_quote_rounded,
-            color: widget.bookColor.withOpacity(0.2),
+            color: widget.bookColor.withValues(alpha: 0.2),
             size: 40,
           ),
           
@@ -242,7 +242,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
             const SizedBox(height: 16),
             Text(
               widget.hadith.narratorEnglish,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 fontStyle: FontStyle.italic,
                 color: NoorDesignSystem.textSecondary,

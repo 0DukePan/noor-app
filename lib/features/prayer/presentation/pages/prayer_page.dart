@@ -41,7 +41,7 @@ class PrayerPage extends ConsumerWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              theme.colorScheme.primary.withOpacity(0.1),
+              theme.colorScheme.primary.withValues(alpha: 0.1),
               theme.colorScheme.surface,
             ],
             stops: const [0.0, 0.3],
@@ -53,7 +53,7 @@ class PrayerPage extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.error_outline_rounded, size: 48, color: Colors.red.withOpacity(0.6)),
+                Icon(Icons.error_outline_rounded, size: 48, color: Colors.red.withValues(alpha: 0.6)),
                 const SizedBox(height: 16),
                 Text(
                   'تعذر تحميل أوقات الصلاة',
@@ -92,7 +92,7 @@ class PrayerPage extends ConsumerWidget {
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                color: isDark ? Colors.white12 : Colors.black.withOpacity(0.05),
+                color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.05),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
               ),
             ).animate(onPlay: (c) => c.repeat()).shimmer(duration: 1500.ms),
@@ -137,7 +137,7 @@ class _PrayerContent extends ConsumerWidget {
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 20,
                     offset: const Offset(0, -5),
                   ),
@@ -403,8 +403,8 @@ class _TimelinePrayerRow extends StatelessWidget {
                     width: 2,
                     child: Container(
                       color: isPassed
-                          ? theme.colorScheme.primary.withOpacity(0.3)
-                          : theme.colorScheme.outline.withOpacity(0.1),
+                          ? theme.colorScheme.primary.withValues(alpha: 0.3)
+                          : theme.colorScheme.outline.withValues(alpha: 0.1),
                     ),
                   ),
                 Container(
@@ -414,7 +414,7 @@ class _TimelinePrayerRow extends StatelessWidget {
                     color: isNext
                         ? NoorDesignSystem.goldAccent
                         : isPassed
-                            ? NoorDesignSystem.primaryGreen.withOpacity(0.5)
+                            ? NoorDesignSystem.primaryGreen.withValues(alpha: 0.5)
                             : theme.colorScheme.surface,
                     shape: BoxShape.circle,
                     border: Border.all(
@@ -422,13 +422,13 @@ class _TimelinePrayerRow extends StatelessWidget {
                           ? NoorDesignSystem.goldAccent
                           : isPassed
                               ? Colors.transparent
-                              : theme.colorScheme.outline.withOpacity(0.3),
+                              : theme.colorScheme.outline.withValues(alpha: 0.3),
                       width: 2,
                     ),
                     boxShadow: isNext
                         ? [
                             BoxShadow(
-                              color: NoorDesignSystem.goldAccent.withOpacity(0.4),
+                              color: NoorDesignSystem.goldAccent.withValues(alpha: 0.4),
                               blurRadius: 8,
                               spreadRadius: 2,
                             ),
@@ -450,11 +450,11 @@ class _TimelinePrayerRow extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: isNext
-                      ? theme.colorScheme.primaryContainer.withOpacity(0.4)
+                      ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
                   border: isNext
-                      ? Border.all(color: theme.colorScheme.primary.withOpacity(0.2))
+                      ? Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2))
                       : null,
                 ),
                 child: Row(
@@ -479,7 +479,7 @@ class _TimelinePrayerRow extends StatelessWidget {
                     ),
                     const Spacer(),
                     if (isCompleted) ...[
-                      Icon(
+                      const Icon(
                         Icons.check_circle_rounded,
                         color: NoorDesignSystem.primaryGreen,
                         size: 20,
@@ -527,7 +527,7 @@ class _LocationCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(50),
       ),
       child: Row(
