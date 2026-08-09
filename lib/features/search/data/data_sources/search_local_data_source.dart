@@ -38,13 +38,25 @@ class SearchLocalDataSource {
   Future<void> ensureIndexed(List<String> quranPaths, List<String> hadithPaths) async {
     if (_db == null) await init();
 
-    final count = Sqflite.firstIntValue(await _db!.rawQuery('SELECT COUNT(*) FROM search_index'));
-    if (count != null && count > 0) return; // Already indexed
+    // Index each source independently so installs that already have a
+    // Quran-only index also get hadith and adhkar entries.
+    Future<bool> hasSource(String source) async {
+      final count = Sqflite.firstIntValue(await _db!.rawQuery(
+        "SELECT COUNT(*) FROM search_index WHERE source = ?",
+        [source],
+      ));
+      return (count ?? 0) > 0;
+    }
 
-    // Indexing needed
-    await _indexQuran(quranPaths);
-    await _indexHadith();
-    await _indexAdhkar();
+    if (!await hasSource('quran')) {
+      await _indexQuran(quranPaths);
+    }
+    if (!await hasSource('hadith')) {
+      await _indexHadith();
+    }
+    if (!await hasSource('adhkar')) {
+      await _indexAdhkar();
+    }
   }
 
   Future<void> _indexQuran(List<String> paths) async {

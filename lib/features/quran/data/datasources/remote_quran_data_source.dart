@@ -1,5 +1,4 @@
 
-import '../../domain/entities/quran_entities.dart';
 import 'quran_datasources.dart';
 
 /// Stub implementation for Remote Data Source

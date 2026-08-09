@@ -8,7 +8,6 @@ import '../../../../core/theme/design_system.dart';
 import '../../../../core/widgets/book_card.dart';
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/services/hadith_user_data_service.dart';
-import '../../../../core/data/data_sources/local_hadith_data_source.dart';
 import '../providers/hadith_providers.dart';
 import '../hadith_book_names.dart';
 import 'bookmarked_hadiths_page.dart';

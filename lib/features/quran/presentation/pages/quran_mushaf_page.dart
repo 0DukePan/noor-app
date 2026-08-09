@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/design_system.dart';
 import '../../../../core/theme/tafsir_theme.dart';
 import '../../../../core/domain/entities/surah.dart';
 import '../../../../core/models/tafsir_models.dart';
@@ -209,7 +208,7 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
       final verses = await ref.read(quranPageProvider(page).future);
       if (verses.isEmpty) return;
       final first = verses.first;
-      final surah = first.surahNumber ?? 1;
+      final surah = first.surahNumber;
       final ayah = first.numberInSurah;
 
       // Statistics/home card reads the app_statistics box.

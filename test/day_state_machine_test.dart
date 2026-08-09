@@ -15,7 +15,7 @@ void main() {
   });
 
   tearDown(() async {
-    await DayStateMachine.dispose();
+    DayStateMachine.dispose();
     await Hive.deleteFromDisk();
     await tempDir.delete(recursive: true);
   });

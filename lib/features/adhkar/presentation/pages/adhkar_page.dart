@@ -498,7 +498,6 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
   AdhkarDisplaySettings _settings = const AdhkarDisplaySettings();
 
   late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
 
   bool _isLoading = true;
 
@@ -508,9 +507,6 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 150),
       vsync: this,
-    );
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
     _loadData();
   }

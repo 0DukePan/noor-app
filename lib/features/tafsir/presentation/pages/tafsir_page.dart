@@ -4,7 +4,6 @@ import '../../../../core/models/tafsir_models.dart';
 import '../../../../core/services/tafsir_data_source.dart';
 import '../../../../core/theme/tafsir_theme.dart';
 import '../../../../core/domain/entities/surah_names.dart';
-import '../widgets/tafsir_widgets.dart';
 
 /// 📖 TafsirPage - صفحة التفسير الرئيسية
 class TafsirPage extends StatefulWidget {

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/design_system.dart';
 import '../../../../core/services/isnad_parser_service.dart';

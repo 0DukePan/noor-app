@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/hadith_search_engine.dart';
 import '../hadith_book_names.dart';
-import 'scholar_mode_page.dart';
 import 'layered_hadith_page.dart';
 
 /// 📚 صفحة تصفح الأحاديث المتقدمة - Advanced Hadith Browser
@@ -86,7 +85,6 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     
     return Scaffold(
       appBar: AppBar(

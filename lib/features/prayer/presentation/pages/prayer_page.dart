@@ -112,7 +112,6 @@ class _PrayerContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     // Watch the tick stream to reactively update countdown
     final now = ref.watch(prayerTimeTickProvider).valueOrNull ?? DateTime.now();

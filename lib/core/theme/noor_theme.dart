@@ -93,7 +93,7 @@ class NoorTheme {
       centerTitle: true,
       scrolledUnderElevation: 0,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: NoorDesignSystem.surfaceLight,
       elevation: 0,
       margin: EdgeInsets.zero,
@@ -172,7 +172,7 @@ class NoorTheme {
         color: NoorDesignSystem.textPrimaryDark,
       ),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: NoorDesignSystem.surfaceDark,
       elevation: 0,
       margin: EdgeInsets.zero,
@@ -244,7 +244,7 @@ class NoorTheme {
       centerTitle: true,
       scrolledUnderElevation: 0,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: const Color(0xFFF0E5D3),
       elevation: 0,
       margin: EdgeInsets.zero,

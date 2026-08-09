@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../../../../core/utils/isolate_parser.dart';
 import '../../../../core/utils/arabic_text.dart';
-import '../../domain/entities/quran_entities.dart'; // Surah entity
 import 'quran_datasources.dart'; // Abstract class and Models
 
 class LocalQuranDataSourceImpl implements QuranLocalDataSource {

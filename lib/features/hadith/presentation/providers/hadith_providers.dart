@@ -362,7 +362,7 @@ class MemorizationState extends Equatable {
     this.fsrsCards = const {},
     this.currentIndex = 0,
     this.isComplete = false,
-    this.streak = const StreakTracker(),
+    required this.streak,
   });
 
   Hadith? get currentCard =>
@@ -371,12 +371,12 @@ class MemorizationState extends Equatable {
   MemorizationCard? get currentFsrsCard {
     final card = currentCard;
     if (card == null) return null;
-    return fsrsCards[card.id];
+    return fsrsCards[card.id.toString()];
   }
 
   /// Hadiths due for review today (new cards are always due).
   List<Hadith> get dueCards =>
-      deck.where((h) => fsrsCards[h.id]?.isDue ?? true).toList();
+      deck.where((h) => fsrsCards[h.id.toString()]?.isDue ?? true).toList();
 
   int get todayReviewed =>
       fsrsCards.values.where((c) => c.repetitions > 0 && _isToday(c.lastReview)).length;
@@ -412,7 +412,7 @@ class MemorizationState extends Equatable {
 }
 
 class MemorizationNotifier extends StateNotifier<MemorizationState> {
-  MemorizationNotifier() : super(const MemorizationState());
+  MemorizationNotifier() : super(MemorizationState(streak: StreakTracker()));
 
   static const _boxName = 'memorization_cards';
   Box? _box;
@@ -426,12 +426,13 @@ class MemorizationNotifier extends StateNotifier<MemorizationState> {
     await _ensureBox();
     final fsrsCards = <String, MemorizationCard>{};
     for (final h in hadiths) {
-      final raw = _box!.get(h.id);
-      fsrsCards[h.id] = raw != null
+      final key = h.id.toString();
+      final raw = _box!.get(key);
+      fsrsCards[key] = raw != null
           ? MemorizationCard.fromJson(Map<String, dynamic>.from(raw))
-          : MemorizationCard(id: h.id, hadithId: h.id);
+          : MemorizationCard(id: key, hadithId: key);
     }
-    StreakTracker streak = const StreakTracker();
+    StreakTracker streak = StreakTracker();
     final streakRaw = _box!.get('_streak');
     if (streakRaw != null) {
       streak = StreakTracker.fromJson(Map<String, dynamic>.from(streakRaw));

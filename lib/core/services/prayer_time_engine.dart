@@ -240,7 +240,6 @@ class PrayerTimeEngine {
     final t = (jd - 2451545.0) / 36525.0;
     final l0 = 280.46646 + t * (36000.76983 + 0.0003032 * t);
     final m = 357.52911 + t * (35999.05029 - 0.0001537 * t);
-    final e = 0.016708634 - t * (0.000042037 + 0.0000001267 * t);
     
     final c = (1.914602 - t * (0.004817 + 0.000014 * t)) * _sin(m) +
               (0.019993 - 0.000101 * t) * _sin(2 * m) +
@@ -292,10 +291,12 @@ class PrayerTimeEngine {
     DateTime dhuhr,
     bool isAfternoon,
   ) {
-    final hourAngle = _arccos(
-      (_sin(angle) - _sin(latitude) * _sin(declination)) /
-      (_cos(latitude) * _cos(declination))
-    ) / 15;
+    // Guard against floating-point drift pushing the cosine ratio outside
+    // [-1, 1] (which would make acos() return NaN at high latitudes).
+    final ratio = ((_sin(angle) - _sin(latitude) * _sin(declination)) /
+            (_cos(latitude) * _cos(declination)))
+        .clamp(-1.0, 1.0);
+    final hourAngle = _arccos(ratio) / 15;
     
     if (isAfternoon) {
       return dhuhr.add(Duration(minutes: (hourAngle * 60).round()));
@@ -311,7 +312,10 @@ class PrayerTimeEngine {
     Madhab madhab,
   ) {
     final shadowLength = madhab == Madhab.hanafi ? 2 : 1;
-    final angle = -_arccot(shadowLength + _tan((latitude - declination).abs()));
+    // Asr is an ABOVE-horizon event: the sun altitude angle is positive.
+    // (A negative angle would place Asr below the horizon, pushing it after
+    // sunset and producing out-of-domain hour angles at higher latitudes.)
+    final angle = _arccot(shadowLength + _tan((latitude - declination).abs()));
     
     return _calculateSunAngle(latitude, declination, angle, dhuhr, true);
   }
@@ -412,6 +416,116 @@ class PrayerTimeEngine {
     final h = hours.floor();
     final m = ((hours - h) * 60).round();
     return DateTime(date.year, date.month, date.day, h, m);
+  }
+  static PrayerTimes calculateWithRegion({
+    required double latitude,
+    required double longitude,
+    required DateTime date,
+    required PrayerRegion region,
+    Madhab? madhab,
+    double elevation = 0,
+    PrayerAdjustments? additionalAdjustments,
+    double utcOffset = 0,
+  }) {
+    final preset = RegionPresets.getPreset(region);
+    
+    // 🔄 Auto-switch للمناطق الباردة
+    HighLatitudeRule effectiveRule = preset.highLatitudeRule;
+    if (latitude.abs() > 48) {
+      effectiveRule = HighLatitudeRule.seventhOfNight;
+    }
+    if (latitude.abs() > 60) {
+      effectiveRule = HighLatitudeRule.middleOfNight;
+    }
+    
+    // دمج التعديلات
+    final adjustments = additionalAdjustments != null
+        ? PrayerAdjustments(
+            fajr: preset.adjustments.fajr + additionalAdjustments.fajr,
+            sunrise: preset.adjustments.sunrise + additionalAdjustments.sunrise,
+            dhuhr: preset.adjustments.dhuhr + additionalAdjustments.dhuhr,
+            asr: preset.adjustments.asr + additionalAdjustments.asr,
+            maghrib: preset.adjustments.maghrib + additionalAdjustments.maghrib,
+            isha: preset.adjustments.isha + additionalAdjustments.isha,
+          )
+        : preset.adjustments;
+    
+    return PrayerTimeEngine.calculate(
+      latitude: latitude,
+      longitude: longitude,
+      date: date,
+      method: preset.method,
+      madhab: madhab ?? preset.defaultMadhab,
+      highLatitudeRule: effectiveRule,
+      elevation: elevation,
+      adjustments: adjustments,
+      utcOffset: utcOffset,
+    );
+  }
+  
+  /// حساب المواقيت مع اكتشاف تلقائي للمنطقة
+  static PrayerTimes calculateAuto({
+    required double latitude,
+    required double longitude,
+    required DateTime date,
+    double elevation = 0,
+    double utcOffset = 0,
+  }) {
+    final region = RegionPresets.guessRegion(latitude, longitude);
+    return calculateWithRegion(
+      latitude: latitude,
+      longitude: longitude,
+      date: date,
+      region: region,
+      elevation: elevation,
+      utcOffset: utcOffset,
+    );
+  }
+  
+  /// حساب المواقيت باستخدام الدولة
+  static PrayerTimes calculateByCountry({
+    required double latitude,
+    required double longitude,
+    required DateTime date,
+    required String countryCode,
+    double elevation = 0,
+    PrayerAdjustments? additionalAdjustments,
+    double utcOffset = 0,
+  }) {
+    final preset = CountryPresets.getPreset(countryCode);
+    
+    // 🔄 Auto-switch للمناطق الباردة
+    HighLatitudeRule effectiveRule = preset.highLatitudeRule;
+    if (latitude.abs() > 48) {
+      effectiveRule = HighLatitudeRule.seventhOfNight;
+    }
+    if (latitude.abs() > 60) {
+      effectiveRule = HighLatitudeRule.middleOfNight;
+    }
+    
+    // دمج التعديلات
+    final adjustments = additionalAdjustments != null
+        ? PrayerAdjustments(
+            fajr: preset.adjustments.fajr + additionalAdjustments.fajr,
+            sunrise: preset.adjustments.sunrise + additionalAdjustments.sunrise,
+            dhuhr: preset.adjustments.dhuhr + additionalAdjustments.dhuhr,
+            asr: preset.adjustments.asr + additionalAdjustments.asr,
+            maghrib: preset.adjustments.maghrib + additionalAdjustments.maghrib,
+            isha: preset.adjustments.isha + additionalAdjustments.isha,
+          )
+        : preset.adjustments;
+    
+    return PrayerTimeEngine.calculate(
+      latitude: latitude,
+      longitude: longitude,
+      date: date,
+      method: preset.method,
+      madhab: preset.madhab,
+      highLatitudeRule: effectiveRule,
+      elevation: elevation,
+      adjustments: adjustments,
+      utcOffset: utcOffset,
+    );
   }
 }
 
@@ -723,121 +837,7 @@ class RegionPresets {
     // أوروبا (الافتراضي لخطوط العرض العالية)
     return PrayerRegion.europe;
   }
-}
-
-/// Extension لسهولة الاستخدام
-extension PrayerTimeEngineRegion on PrayerTimeEngine {
   /// حساب المواقيت باستخدام المنطقة
-  static PrayerTimes calculateWithRegion({
-    required double latitude,
-    required double longitude,
-    required DateTime date,
-    required PrayerRegion region,
-    Madhab? madhab,
-    double elevation = 0,
-    PrayerAdjustments? additionalAdjustments,
-    double utcOffset = 0,
-  }) {
-    final preset = RegionPresets.getPreset(region);
-    
-    // 🔄 Auto-switch للمناطق الباردة
-    HighLatitudeRule effectiveRule = preset.highLatitudeRule;
-    if (latitude.abs() > 48) {
-      effectiveRule = HighLatitudeRule.seventhOfNight;
-    }
-    if (latitude.abs() > 60) {
-      effectiveRule = HighLatitudeRule.middleOfNight;
-    }
-    
-    // دمج التعديلات
-    final adjustments = additionalAdjustments != null
-        ? PrayerAdjustments(
-            fajr: preset.adjustments.fajr + additionalAdjustments.fajr,
-            sunrise: preset.adjustments.sunrise + additionalAdjustments.sunrise,
-            dhuhr: preset.adjustments.dhuhr + additionalAdjustments.dhuhr,
-            asr: preset.adjustments.asr + additionalAdjustments.asr,
-            maghrib: preset.adjustments.maghrib + additionalAdjustments.maghrib,
-            isha: preset.adjustments.isha + additionalAdjustments.isha,
-          )
-        : preset.adjustments;
-    
-    return PrayerTimeEngine.calculate(
-      latitude: latitude,
-      longitude: longitude,
-      date: date,
-      method: preset.method,
-      madhab: madhab ?? preset.defaultMadhab,
-      highLatitudeRule: effectiveRule,
-      elevation: elevation,
-      adjustments: adjustments,
-      utcOffset: utcOffset,
-    );
-  }
-  
-  /// حساب المواقيت مع اكتشاف تلقائي للمنطقة
-  static PrayerTimes calculateAuto({
-    required double latitude,
-    required double longitude,
-    required DateTime date,
-    double elevation = 0,
-    double utcOffset = 0,
-  }) {
-    final region = RegionPresets.guessRegion(latitude, longitude);
-    return calculateWithRegion(
-      latitude: latitude,
-      longitude: longitude,
-      date: date,
-      region: region,
-      elevation: elevation,
-      utcOffset: utcOffset,
-    );
-  }
-  
-  /// حساب المواقيت باستخدام الدولة
-  static PrayerTimes calculateByCountry({
-    required double latitude,
-    required double longitude,
-    required DateTime date,
-    required String countryCode,
-    double elevation = 0,
-    PrayerAdjustments? additionalAdjustments,
-    double utcOffset = 0,
-  }) {
-    final preset = CountryPresets.getPreset(countryCode);
-    
-    // 🔄 Auto-switch للمناطق الباردة
-    HighLatitudeRule effectiveRule = preset.highLatitudeRule;
-    if (latitude.abs() > 48) {
-      effectiveRule = HighLatitudeRule.seventhOfNight;
-    }
-    if (latitude.abs() > 60) {
-      effectiveRule = HighLatitudeRule.middleOfNight;
-    }
-    
-    // دمج التعديلات
-    final adjustments = additionalAdjustments != null
-        ? PrayerAdjustments(
-            fajr: preset.adjustments.fajr + additionalAdjustments.fajr,
-            sunrise: preset.adjustments.sunrise + additionalAdjustments.sunrise,
-            dhuhr: preset.adjustments.dhuhr + additionalAdjustments.dhuhr,
-            asr: preset.adjustments.asr + additionalAdjustments.asr,
-            maghrib: preset.adjustments.maghrib + additionalAdjustments.maghrib,
-            isha: preset.adjustments.isha + additionalAdjustments.isha,
-          )
-        : preset.adjustments;
-    
-    return PrayerTimeEngine.calculate(
-      latitude: latitude,
-      longitude: longitude,
-      date: date,
-      method: preset.method,
-      madhab: preset.madhab,
-      highLatitudeRule: effectiveRule,
-      elevation: elevation,
-      adjustments: adjustments,
-      utcOffset: utcOffset,
-    );
-  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -66,7 +66,6 @@ class _TasbihPageState extends State<TasbihPage> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final progress = _target > 0 ? (_count / _target).clamp(0.0, 1.0) : 0.0;
     final isComplete = _target > 0 && _count >= _target;
 

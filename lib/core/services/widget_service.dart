@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 
 import '../../core/services/prayer_calculation_service.dart';

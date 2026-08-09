@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:encrypt/encrypt.dart';
 
@@ -59,7 +60,7 @@ class DefaultPrivacyPolicy implements PrivacyPolicy {
   String encryptLocalData(String plainText) {
     if (plainText.isEmpty) return '';
     final ivBytes = List<int>.generate(16, (_) => Random.secure().nextInt(256));
-    final iv = IV(ivBytes);
+    final iv = IV(Uint8List.fromList(ivBytes));
     final encrypted = _encrypter.encrypt(plainText, iv: iv);
     return '${base64Encode(ivBytes)}:${encrypted.base64}';
   }

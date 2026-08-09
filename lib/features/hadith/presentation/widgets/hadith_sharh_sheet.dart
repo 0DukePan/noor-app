@@ -54,7 +54,6 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
   final _noteController = TextEditingController();
   List<HadithSearchResult> _similarHadiths = [];
   bool _loadingSimilar = true;
-  String _userNote = '';
 
   @override
   void initState() {
@@ -68,7 +67,6 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
       final box = await Hive.openBox('hadith_notes');
       final note = box.get('note_${widget.hadith.id}', defaultValue: '') as String;
       setState(() {
-        _userNote = note;
         _noteController.text = note;
       });
     } catch (_) {}
@@ -78,7 +76,6 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
     try {
       final box = await Hive.openBox('hadith_notes');
       await box.put('note_${widget.hadith.id}', note);
-      setState(() => _userNote = note);
     } catch (_) {}
   }
 

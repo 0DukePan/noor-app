@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 
 /// 🔗 خدمة تحليل الإسناد - Isnad Chain Parser Service
 ///
@@ -22,20 +21,27 @@ class IsnadParserService {
     if (arabicText.isEmpty) return [];
 
     final normalized = _stripDiacritics(arabicText);
+
+    // Not an Arabic isnad — nothing to parse.
+    if (!_containsArabic(normalized)) return [];
+
+    // Arabic commas separate names; turn them into plain spaces so the
+    // "next transmission keyword" lookahead can see across name boundaries.
+    final spaced = normalized.replaceAll(RegExp(r'[،,؛]'), ' ');
     final narrators = <NarratorInfo>[];
 
     // Transmission keywords. The leading `(?:^|\s)` requires each keyword to
     // be a standalone word, so the short forms (ثنا/نا/انا/عن/قال) cannot
     // match inside words like "منا" or "اثنا عشر".
-    const keywords =
-        r'حدثنا|حدثني|اخبرنا|اخبرني|انبانا|ثنا|نا|انا|عن|قال|سمعت';
+    // NOTE: built with a raw string so backslashes are literal, but the
+    // alternation is inlined because raw strings do not interpolate `$`.
     final regex = RegExp(
-      r'(?:^|\s)(?:$keywords)\s+'
-      r'([^،,\.:]+?)(?=\s*(?:$keywords)\s+|$)',
+      r'(?:^|\s)(?:حدثنا|حدثني|اخبرنا|اخبرني|انبانا|ثنا|نا|انا|عن|قال|سمعت)\s+'
+      r'([^،,\.:]+?)(?=\s*(?:حدثنا|حدثني|اخبرنا|اخبرني|انبانا|ثنا|نا|انا|عن|قال|سمعت)|$)',
       unicode: true,
     );
 
-    final matches = regex.allMatches(normalized);
+    final matches = regex.allMatches(spaced);
 
     for (final match in matches) {
       final rawName = match.group(1)?.trim() ?? '';
@@ -48,10 +54,12 @@ class IsnadParserService {
       // Avoid duplicates
       if (narrators.any((n) => n.normalizedName == cleanName)) continue;
 
-      // Classify the narrator
-      final role = _classifyNarrator(cleanName, arabicText);
-      final isProphet = _isProphet(cleanName);
-      final isCompanion = _isCompanion(cleanName, arabicText);
+      // Classify using the RAW name: honorifics (رضي الله عنه, صلى الله عليه
+      // وسلم) are the most reliable signals for companion/prophet and are
+      // stripped away by _cleanNarratorName.
+      final role = _classifyNarrator(rawName, arabicText);
+      final isProphet = _isProphet(rawName);
+      final isCompanion = _isCompanion(rawName, arabicText);
 
       narrators.add(NarratorInfo(
         name: _restoreOriginalName(cleanName, arabicText),
@@ -109,12 +117,16 @@ class IsnadParserService {
       narrators.add(NarratorInfo(
         name: _restoreOriginalName(cleanName, arabicText),
         normalizedName: cleanName,
-        role: _classifyNarrator(cleanName, arabicText),
-        isProphet: _isProphet(cleanName),
-        isCompanion: _isCompanion(cleanName, arabicText),
+        role: _classifyNarrator(name, arabicText),
+        isProphet: _isProphet(name),
+        isCompanion: _isCompanion(name, arabicText),
         level: narrators.length,
         linkWord: 'عن',
       ));
+
+      // Stop at the Prophet/Companion — everything after is matn.
+      final last = narrators.last;
+      if (last.isProphet || last.isCompanion) break;
     }
 
     return narrators;
@@ -135,6 +147,11 @@ class IsnadParserService {
         .trim();
   }
 
+  /// Whether the text contains Arabic script characters.
+  static bool _containsArabic(String text) {
+    return RegExp(r'[\u0600-\u06FF]').hasMatch(text);
+  }
+
   /// Clean a raw narrator name
   static String _cleanNarratorName(String name) {
     var cleaned = name
@@ -150,17 +167,22 @@ class IsnadParserService {
     // Remove trailing particles
     cleaned = cleaned.replaceAll(RegExp(r'\s+(قال|يقول|انه|انها)$'), '').trim();
 
-    // Skip if it's just a verb or particle
+    // Skip if it's just a verb or particle. (النبي/الرسول are deliberately NOT
+    // here: a name of exactly "النبي" or "رسول الله" is the Prophet node.)
     final skipWords = {
       'قال', 'يقول', 'سمعت', 'ان', 'انه', 'انها', 'كان', 'كانت',
-      'النبي', 'الرسول', 'رسول', 'الله', 'فقال', 'فان',
+      'الله', 'فقال', 'فان',
     };
     if (skipWords.contains(cleaned)) return '';
 
     return cleaned;
   }
 
-  /// Try to find the original (with diacritics) name in the source text
+  /// Try to find the original (with diacritics) name in the source text.
+  ///
+  /// Both the start and end mapping count every non-diacritic character —
+  /// including spaces — so indices line up with [String.indexOf] on the
+  /// diacritic-stripped text.
   static String _restoreOriginalName(String normalizedName, String originalText) {
     final strippedOriginal = _stripDiacritics(originalText);
     final idx = strippedOriginal.indexOf(normalizedName);
@@ -168,14 +190,13 @@ class IsnadParserService {
 
     final origChars = originalText.runes.toList();
 
-    // Walk the original text rune-by-rune, counting how many "visible"
-    // (non-diacritic) characters we have consumed, until we reach the start
-    // of the name (visible index `idx`).
+    // Walk the original text rune-by-rune, counting visible characters until
+    // we reach the start of the name (visible index `idx`).
     int origStart = 0;
     int visibleCount = 0;
     for (int i = 0; i < origChars.length; i++) {
       final ch = String.fromCharCode(origChars[i]);
-      if (_stripDiacritics(ch).isNotEmpty) {
+      if (_isVisibleChar(ch)) {
         if (visibleCount == idx) {
           origStart = i;
           break;
@@ -189,7 +210,7 @@ class IsnadParserService {
     int origEnd = origStart;
     for (int i = origStart; i < origChars.length && remaining > 0; i++) {
       final ch = String.fromCharCode(origChars[i]);
-      if (_stripDiacritics(ch).isNotEmpty) {
+      if (_isVisibleChar(ch)) {
         remaining--;
       }
       origEnd = i + 1;
@@ -204,6 +225,13 @@ class IsnadParserService {
     }
 
     return normalizedName;
+  }
+
+  /// Whether a single character is "visible" (not a diacritic or tatweel).
+  /// Spaces count as visible so index mapping matches the stripped text.
+  static bool _isVisibleChar(String ch) {
+    if (ch == 'ـ') return false;
+    return !RegExp(r'[\u064B-\u0652\u0670\u06D6-\u06ED]').hasMatch(ch);
   }
 
   /// Extract the link word (عن, حدثنا, etc.) used before this narrator

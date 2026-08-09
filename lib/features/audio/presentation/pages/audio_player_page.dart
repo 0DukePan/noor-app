@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter/services.dart';
 import '../../../../core/services/quran_audio_engine.dart';
 import '../../../../core/services/quran_data_source.dart';

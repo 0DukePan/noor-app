@@ -7,8 +7,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/design_system.dart';
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/data/data_sources/hadith_database.dart';
-import '../../hadith/presentation/hadith_book_names.dart';
-import '../../hadith/presentation/pages/hadith_reader_page.dart';
+import '../../../hadith/presentation/hadith_book_names.dart';
+import '../../../hadith/presentation/pages/hadith_reader_page.dart';
 import '../providers/search_provider.dart';
 
 class SearchPage extends ConsumerStatefulWidget {
@@ -200,7 +200,7 @@ class _SearchResultCard extends StatelessWidget {
           bookId: null,
           collectionId: book,
         );
-        context.push(MaterialPageRoute(
+        Navigator.of(context).push(MaterialPageRoute(
           builder: (_) => HadithReaderPage(
             hadith: hadith,
             bookTitle: hadithBookName(book),

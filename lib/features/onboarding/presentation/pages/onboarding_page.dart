@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../../core/theme/noor_theme.dart';
 import '../../../../core/services/hive_service.dart';

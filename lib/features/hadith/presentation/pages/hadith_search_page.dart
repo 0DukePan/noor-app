@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/data/data_sources/local_hadith_data_source.dart';
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/theme/noor_theme.dart';
 import '../providers/hadith_providers.dart';

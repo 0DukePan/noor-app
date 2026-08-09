@@ -5,7 +5,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'location_service.dart';
 import 'location_trust_engine.dart';
-import 'prayer_calculation_service.dart';
 
 /// 🕌 خدمة جدولة الأذان الاحترافية - Professional Adhan Scheduler
 /// 

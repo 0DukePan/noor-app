@@ -1,6 +1,5 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_flutter/hive_flutter.dart'; // kept for Hive box usage if needed or legacy
 
 // Entities
 import '../../../../core/domain/entities/surah.dart';
@@ -16,7 +15,6 @@ import '../../domain/repositories/quran_repository.dart';
 import '../../data/repositories/quran_repository_impl.dart';
 import '../../data/datasources/local_quran_data_source.dart'; // Impl
 import '../../data/datasources/remote_quran_data_source.dart'; // Stub
-import '../../data/datasources/quran_datasources.dart'; // Abstract Classes
 import '../../../../core/domain/policies/offline_policy.dart';
 import '../../../../core/utils/arabic_text.dart';
 

@@ -9,7 +9,6 @@ class SilentUIController extends ChangeNotifier {
   bool _isReadingMode = false;
   bool _isQuranReading = false;
   bool _isPrayerTime = false;
-  DateTime? _lastInteraction;
   
   // Settings
   static const Duration _readingModeDelay = Duration(seconds: 30);
@@ -88,8 +87,6 @@ class SilentUIController extends ChangeNotifier {
 
   /// Record user interaction
   void recordInteraction() {
-    _lastInteraction = DateTime.now();
-    
     // Reset reading mode timer
     _readingModeTimer?.cancel();
     _readingModeTimer = Timer(_readingModeDelay, () {

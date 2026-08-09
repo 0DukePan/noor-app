@@ -1,4 +1,3 @@
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:noor_app/core/utils/isolate_parser.dart';
 import 'dart:convert';

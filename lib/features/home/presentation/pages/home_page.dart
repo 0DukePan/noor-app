@@ -106,7 +106,6 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   Widget _buildContent(BuildContext context, HomeData data, bool isDark) {
     final greeting = ref.watch(smartGreetingProvider);
-    final suggestion = ref.watch(smartSuggestionProvider);
     
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
