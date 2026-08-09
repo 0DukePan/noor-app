@@ -207,6 +207,27 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
           const SizedBox(height: 32),
 
+          // Privacy
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(NoorDesignSystem.radiusLarge),
+              boxShadow: NoorDesignSystem.shadowSmall,
+            ),
+            child: Column(
+              children: [
+                _buildListTile(
+                  title: 'الخصوصية والبيانات',
+                  subtitle: 'لا نجمع أي بيانات شخصية',
+                  icon: Icons.privacy_tip_outlined,
+                  onTap: () => _showPrivacySheet(context),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
           // About
          Container(
             decoration: BoxDecoration(
@@ -219,7 +240,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                  _buildListTile(
                   title: 'حول التطبيق',
                   icon: Icons.info_outline_rounded,
-                  onTap: () {},
+                  onTap: () => _showAboutSheet(context),
                 ),
               ],
             ),
@@ -234,6 +255,95 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
           const SizedBox(height: 20),
         ],
+      ),
+    );
+  }
+
+  /// Honest privacy statement — what the app collects and what it does not.
+  void _showPrivacySheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'الخصوصية والبيانات',
+                style: NoorDesignSystem.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const _PrivacyRow(
+                icon: Icons.check_circle_outline,
+                text: 'التطبيق يعمل دون إنترنت للمحتوى الأساسي (القرآن، الحديث، التفسير، الأذكار).',
+              ),
+              const _PrivacyRow(
+                icon: Icons.check_circle_outline,
+                text: 'لا نستخدم أدوات تتبع أو تحليلات، ولا نشارك بياناتك مع أي طرف ثالث.',
+              ),
+              const _PrivacyRow(
+                icon: Icons.location_on_outlined,
+                text: 'يُستخدم موقعك على الجهاز فقط لحساب مواقيت الصلاة واتجاه القبلة، ولا يُرسل لأي خادم.',
+              ),
+              const _PrivacyRow(
+                icon: Icons.bug_report_outlined,
+                text: 'عند حدوث خلل تقني فقط، تُرسل بيانات الخطأ إلى Sentry دون أي معلومات تعريف شخصية.',
+              ),
+              const _PrivacyRow(
+                icon: Icons.lock_outline,
+                text: 'ملاحظاتك الشخصية (محراب التدبر) تُشفَّر وتُحفظ على جهازك فقط.',
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'المزامنة السحابية اختيارية وتتطلب تسجيل دخولاً صريحاً منك.',
+                style: NoorDesignSystem.textTheme.bodySmall?.copyWith(
+                  color: NoorDesignSystem.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAboutSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'نور',
+                style: NoorDesignSystem.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: NoorDesignSystem.emeraldGreen,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'تطبيق إسلامي شامل — القرآن، الحديث، مواقيت الصلاة، الأذكار والتفسير',
+                textAlign: TextAlign.center,
+                style: NoorDesignSystem.textTheme.bodyMedium?.copyWith(
+                  color: NoorDesignSystem.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'الإصدار 1.0.0',
+                style: NoorDesignSystem.textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -350,6 +460,35 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             },
             style: FilledButton.styleFrom(backgroundColor: NoorDesignSystem.error),
             child: const Text('مسح'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Row used in the privacy sheet.
+class _PrivacyRow extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _PrivacyRow({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: NoorDesignSystem.emeraldGreen),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: NoorDesignSystem.textTheme.bodyMedium,
+              textDirection: TextDirection.rtl,
+            ),
           ),
         ],
       ),

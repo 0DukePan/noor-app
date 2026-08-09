@@ -293,11 +293,11 @@ class _NoorAppState extends ConsumerState<NoorApp> with WidgetsBindingObserver {
       darkTheme: NoorTheme.dark,
       themeMode: ThemeMode.system,
       
-      // Localization
+      // Localization — the app's UI is Arabic-only by design; English is not
+      // advertised as supported until real English strings exist.
       locale: const Locale('ar'),
       supportedLocales: const [
         Locale('ar'),
-        Locale('en'),
       ],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

@@ -9,17 +9,15 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
-    <!-- LOCATION (for Prayer Times & Qibla) -->
+    <!-- LOCATION (for Prayer Times & Qibla) — foreground only -->
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
     
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
     <!-- ADHAN EXACT ALARMS (Critical) -->
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     
@@ -37,18 +35,9 @@
     <uses-permission android:name="android.permission.VIBRATE"/>
     
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
-    <!-- BATTERY OPTIMIZATION BYPASS -->
+    <!-- BATTERY OPTIMIZATION BYPASS (adhan alarms must not be deferred) -->
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
-    
-    <!-- ═══════════════════════════════════════════════════════════════════════ -->
-    <!-- STORAGE (for Offline Data) -->
-    <!-- ═══════════════════════════════════════════════════════════════════════ -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
-        android:maxSdkVersion="32"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
-        android:maxSdkVersion="32"
-        tools:ignore="ScopedStorage"/>
 
     <application
         android:label="نور"
@@ -57,7 +46,6 @@
         android:allowBackup="true"
         android:supportsRtl="true"
         android:enableOnBackInvokedCallback="true"
-        android:usesCleartextTraffic="true"
         tools:targetApi="tiramisu">
 
         <!-- Main Activity -->
