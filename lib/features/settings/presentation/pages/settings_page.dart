@@ -427,12 +427,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     IconData? icon,
     VoidCallback? onTap,
   }) {
-    return ListTile(
-      onTap: onTap,
-      title: Text(title, style: NoorDesignSystem.textTheme.labelLarge),
-      subtitle: subtitle != null ? Text(subtitle, style: NoorDesignSystem.textTheme.bodySmall) : null,
-      leading: icon != null ? Icon(icon, color: NoorDesignSystem.textSecondary, size: 20) : null,
-      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: NoorDesignSystem.textSecondary),
+    // Wrapped in a Material so the ListTile paints its ink on its own surface
+    // (the surrounding white DecoratedBox would otherwise hide it and trip the
+    // framework's debug assertion).
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        onTap: onTap,
+        title: Text(title, style: NoorDesignSystem.textTheme.labelLarge),
+        subtitle: subtitle != null ? Text(subtitle, style: NoorDesignSystem.textTheme.bodySmall) : null,
+        leading: icon != null ? Icon(icon, color: NoorDesignSystem.textSecondary, size: 20) : null,
+        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: NoorDesignSystem.textSecondary),
+      ),
     );
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -30,7 +32,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       icon: '📖',
       title: 'القرآن الكريم',
       subtitle: 'تلاوة وتدبر',
-      description: 'قراءة بالخط العثماني، تفسير، أسباب النزول، وصوت أكثر من 9 قراء',
+      description: 'قراءة بالخط العثماني، تفسير، وأصوات لعدة قراء',
       color: const Color(0xFF2E7D32),
     ),
     OnboardingStep(
@@ -78,8 +80,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
   void _completeOnboarding() async {
     HapticFeedback.mediumImpact();
     
-    // Save onboarding complete flag using the HiveService
-    await HiveService.saveSetting('onboarding_complete', true);
+    // Save onboarding complete flag (same key the router redirect reads).
+    // Fire-and-forget: never block navigation on a disk write.
+    unawaited(HiveService.setOnboardingSeen());
     
     widget.onComplete();
   }

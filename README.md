@@ -167,7 +167,7 @@ graph TB
 
     subgraph Data["💾 Data Layer"]
         SQLite["SQLite DB\n(sqflite)"]
-        Hive["Hive Boxes\n(17 stores)"]
+        Hive["Hive Boxes\n(10 stores)"]
         JSON["Bundled JSON\n(25K+ assets)"]
         Supabase["Supabase\n(Optional Cloud)"]
     end
@@ -509,7 +509,7 @@ graph LR
         DartVM["Dart VM / JS"]
         Assets["Bundled Assets\n(25K+ files)"]
         SQLiteDB["SQLite DB\n(sqflite)"]
-        HiveDB["Hive Storage\n(17 boxes)"]
+        HiveDB["Hive Storage\n(10 boxes)"]
     end
 
     subgraph OptionalCloud["☁️ Optional Cloud Services"]
@@ -616,7 +616,7 @@ lib/
 │   │   └── repositories/             # Abstract repository contracts
 │   ├── router/
 │   │   └── app_router.dart           # GoRouter configuration (30+ routes)
-│   ├── services/                     # 37 core services
+│   ├── services/                     # 33 core services
 │   │   ├── prayer_time_engine.dart   # GPS-based prayer calculation
 │   │   ├── qibla_engine.dart         # Spherical geodesy for Qibla
 │   │   ├── isnad_parser_service.dart  # Arabic Isnad chain extraction
@@ -716,7 +716,7 @@ flutter run -d windows         # Windows desktop
 
 On first launch, the app initializes the following services in order:
 
-1. **Hive** — Opens 17 local storage boxes (bookmarks, progress, statistics, etc.)
+1. **Hive** — Opens 10 local storage boxes (bookmarks, progress, statistics, settings, etc.)
 2. **SQLite** — Creates or migrates the hadith database from bundled assets
 3. **Statistics Service** — Initializes engagement tracking
 4. **Day State Machine** — Sets up the daily worship FSM
