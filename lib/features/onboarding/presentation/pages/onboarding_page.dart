@@ -254,7 +254,7 @@ class OnboardingStep {
   });
 }
 
-/// Check if onboarding is complete
+/// Check if onboarding is complete (reads the same flag the router redirects on)
 Future<bool> isOnboardingComplete() async {
-  return HiveService.getSetting<bool>('onboarding_complete', defaultValue: false) ?? false;
+  return HiveService.isOnboardingSeen;
 }
