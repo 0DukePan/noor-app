@@ -1,8 +1,8 @@
 import 'package:home_widget/home_widget.dart';
 
-import '../../core/services/prayer_calculation_service.dart';
 import '../../core/services/offline_data_service.dart';
-import '../../features/prayer/domain/entities/prayer_entities.dart';
+import '../../core/services/location_trust_engine.dart';
+import '../../core/services/prayer_time_engine.dart';
 
 /// خدمة الويدجت - Widget Service for iOS & Android Home Screen
 class WidgetService {
@@ -42,35 +42,42 @@ class WidgetService {
   /// Update prayer times widget
   static Future<void> updatePrayerWidget() async {
     try {
-      final service = PrayerCalculationService();
-      // Default to Makkah location
-      const defaultLocation = Location(
-        latitude: 21.4225,
-        longitude: 39.8262,
-        cityName: 'مكة المكرمة',
-        countryName: 'السعودية',
+      // Use the trusted (cached) location so the widget matches the app;
+      // falls back to Makkah when no location is available yet.
+      final locationResult = await LocationTrustEngine.getTrustedLocation(
+        timeout: const Duration(seconds: 3),
       );
-      final times = service.calculatePrayerTimes(
+      final lat = locationResult.location?.latitude ?? 21.4225;
+      final lng = locationResult.location?.longitude ?? 39.8262;
+
+      final times = PrayerTimeEngine.calculate(
+        latitude: lat,
+        longitude: lng,
         date: DateTime.now(),
-        location: defaultLocation,
+        method: CalculationMethod.ummAlQura,
+        utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
       );
 
       // Find next prayer
-      final nextPrayer = [
-        times.fajr,
-        times.dhuhr,
-        times.asr,
-        times.maghrib,
-        times.isha,
-      ].firstWhere((p) => p.isNext, orElse: () => times.fajr);
+      PrayerType? nextType;
+      DateTime? nextTime;
+      for (final entry in times.all) {
+        if (entry.value.isAfter(DateTime.now())) {
+          nextType = entry.key;
+          nextTime = entry.value;
+          break;
+        }
+      }
+      nextType ??= PrayerType.fajr;
+      nextTime ??= times.fajr;
 
       // Format time
-      final timeStr = '${nextPrayer.time.hour}:${nextPrayer.time.minute.toString().padLeft(2, '0')}';
+      final timeStr = '${nextTime.hour}:${nextTime.minute.toString().padLeft(2, '0')}';
 
       // Update widget data
-      await HomeWidget.saveWidgetData<String>('prayer_name', nextPrayer.nameArabic);
+      await HomeWidget.saveWidgetData<String>('prayer_name', nextType.arabicName);
       await HomeWidget.saveWidgetData<String>('prayer_time', timeStr);
-      await HomeWidget.saveWidgetData<String>('prayer_icon', _getPrayerIcon(nextPrayer.name));
+      await HomeWidget.saveWidgetData<String>('prayer_icon', _getPrayerIcon(nextType.name));
 
       // Update the widget
       await HomeWidget.updateWidget(

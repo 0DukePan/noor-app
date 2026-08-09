@@ -213,6 +213,15 @@ class HiveService {
     return data != null ? data['value'] as T? : defaultValue;
   }
 
+  /// Whether the first-run onboarding has been completed.
+  static bool get isOnboardingSeen =>
+      getSetting<bool>('onboarding_seen', defaultValue: false) ?? false;
+
+  /// Mark onboarding as completed.
+  static Future<void> setOnboardingSeen() async {
+    await saveSetting('onboarding_seen', true);
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // QADA RECORDS
   // ═══════════════════════════════════════════════════════════════════════════

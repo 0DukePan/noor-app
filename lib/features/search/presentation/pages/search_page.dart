@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,11 +22,22 @@ class SearchPage extends ConsumerStatefulWidget {
 
 class _SearchPageState extends ConsumerState<SearchPage> {
   final _controller = TextEditingController();
+  Timer? _debounce;
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onQueryChanged(String value) {
+    _debounce?.cancel();
+    // Debounce so the (Quran+hadith+adhkar) FTS query only runs after the
+    // user pauses typing.
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      ref.read(searchResultsProvider.notifier).search(value);
+    });
   }
 
   @override
@@ -44,10 +57,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
             border: InputBorder.none,
           ),
           style: GoogleFonts.cairo(fontSize: 18),
-          onChanged: (val) {
-            // Debounce could be added here
-            ref.read(searchResultsProvider.notifier).search(val);
-          },
+          onChanged: _onQueryChanged,
         ),
         backgroundColor: Colors.white,
         elevation: 1,

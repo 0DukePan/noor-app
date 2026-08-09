@@ -31,7 +31,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
   // UI State
   bool _isLocked = false;
   double _lockedDirection = 0;
-  bool _mosqueMode = false;
+  bool _isDirectionLocked = false;
   bool _showDebug = false;
   
   // Timers
@@ -131,11 +131,11 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
   }
 
   void _startAutoTimeout() {
-    if (_mosqueMode) return;
+    if (_isDirectionLocked) return;
     
     _autoTimeoutTimer?.cancel();
     _autoTimeoutTimer = Timer(const Duration(seconds: 60), () {
-      if (mounted && !_isLocked && !_mosqueMode) {
+      if (mounted && !_isLocked && !_isDirectionLocked) {
         _showTimeoutDialog();
       }
     });
@@ -187,8 +187,8 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
     if (!mounted) return;
 
     setState(() {
-      _mosqueMode = !_mosqueMode;
-      if (_mosqueMode) {
+      _isDirectionLocked = !_isDirectionLocked;
+      if (_isDirectionLocked) {
         _isLocked = true;
         _lockedDirection = _currentHeading;
         _autoTimeoutTimer?.cancel();
@@ -201,10 +201,10 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          _mosqueMode ? '🕌 تم تفعيل وضع المسجد' : 'تم إلغاء وضع المسجد',
+          _isDirectionLocked ? '🔒 تم تثبيت اتجاه القبلة' : 'تم إلغاء التثبيت',
           style: GoogleFonts.cairo(),
         ),
-        backgroundColor: _mosqueMode ? Colors.green : null,
+        backgroundColor: _isDirectionLocked ? Colors.green : null,
       ),
     );
   }
@@ -439,7 +439,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
           Expanded(
             child: Text(
               _isLocked 
-                  ? (_mosqueMode ? '🕌 وضع المسجد' : '🔒 تم التثبيت')
+                  ? (_isDirectionLocked ? '🔒 اتجاه مثبت' : '🔒 تم التثبيت')
                   : alignment.message,
               style: GoogleFonts.cairo(
                 color: alignment.isAligned ? Colors.green : Colors.white,
@@ -550,14 +550,14 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: _mosqueMode ? Colors.green.withValues(alpha: 0.2) : Colors.blue.withValues(alpha: 0.2),
+                color: _isDirectionLocked ? Colors.green.withValues(alpha: 0.2) : Colors.blue.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: _mosqueMode ? Colors.green : Colors.blue,
+                  color: _isDirectionLocked ? Colors.green : Colors.blue,
                 ),
               ),
               child: Icon(
-                _mosqueMode ? Icons.mosque : Icons.lock,
+                _isDirectionLocked ? Icons.mosque : Icons.lock,
                 color: Colors.white,
                 size: 24,
               ),
@@ -631,7 +631,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
           FilledButton.tonal(
             onPressed: _toggleMosqueMode,
             style: FilledButton.styleFrom(
-              backgroundColor: _mosqueMode 
+              backgroundColor: _isDirectionLocked 
                   ? Colors.green.withValues(alpha: 0.3)
                   : Colors.white.withValues(alpha: 0.1),
               padding: const EdgeInsets.all(16),
@@ -639,7 +639,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
             ),
             child: Icon(
               Icons.mosque_rounded,
-              color: _mosqueMode ? Colors.green : Colors.white,
+              color: _isDirectionLocked ? Colors.green : Colors.white,
             ),
           ),
           

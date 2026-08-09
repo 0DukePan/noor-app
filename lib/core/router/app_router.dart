@@ -34,18 +34,31 @@ import '../../features/tools/presentation/pages/tasbih_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../widgets/main_shell.dart';
 import '../../core/domain/entities/hadith.dart';
+import '../services/hive_service.dart';
 
 /// App Router Provider
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
+    redirect: (context, state) {
+      // First-run experience: show onboarding until the user completes it.
+      if (!HiveService.isOnboardingSeen && state.uri.path != '/onboarding') {
+        return '/onboarding';
+      }
+      return null;
+    },
     routes: [
       // Onboarding route (outside shell)
       GoRoute(
         path: '/onboarding',
         name: 'onboarding',
         pageBuilder: (context, state) => _buildPage(
-          OnboardingPage(onComplete: () => GoRouter.of(context).go('/')),
+          OnboardingPage(
+            onComplete: () {
+              HiveService.setOnboardingSeen();
+              GoRouter.of(context).go('/');
+            },
+          ),
           state,
         ),
       ),
