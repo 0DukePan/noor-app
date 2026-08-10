@@ -275,7 +275,7 @@ extension AdhkarTypeInfo on AdhkarType {
       case AdhkarType.evening: return 'assets/adhkar/evening.json';
       case AdhkarType.afterPrayer: return 'assets/adhkar/after_prayer.json';
       case AdhkarType.sleep: return 'assets/adhkar/sleep.json';
-      case AdhkarType.wakeUp: return 'assets/adhkar/morning.json';
+      case AdhkarType.wakeUp: return 'assets/adhkar/wakeup.json';
       case AdhkarType.general: return 'assets/adhkar/general.json';
     }
   }

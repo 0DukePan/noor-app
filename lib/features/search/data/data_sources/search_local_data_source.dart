@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart'; // for compute
 
 import '../../../../core/utils/arabic_text.dart';
@@ -35,7 +36,21 @@ class SearchLocalDataSource {
     );
   }
 
-  Future<void> ensureIndexed(List<String> quranPaths, List<String> hadithPaths) async {
+  /// Deletes the search index so it is rebuilt lazily on the next search
+  /// (used by the "clear cache" action).
+  static Future<void> clearIndex() async {
+    final dbPath = await getDatabasesPath();
+    final file = File(join(dbPath, _dbName));
+    if (await file.exists()) {
+      await file.delete();
+    }
+  }
+
+  Future<void> ensureIndexed(
+    List<String> quranPaths,
+    List<String> hadithPaths, {
+    Database? hadithDb,
+  }) async {
     if (_db == null) await init();
 
     // Index each source independently so installs that already have a
@@ -52,7 +67,7 @@ class SearchLocalDataSource {
       await _indexQuran(quranPaths);
     }
     if (!await hasSource('hadith')) {
-      await _indexHadith();
+      await _indexHadith(hadithDb);
     }
     if (!await hasSource('adhkar')) {
       await _indexAdhkar();
@@ -72,8 +87,8 @@ class SearchLocalDataSource {
 
   /// Index all hadiths from the SQLite hadith corpus (same data the reader
   /// uses), so the unified search finds hadith too.
-  Future<void> _indexHadith() async {
-    final db = await HadithDatabase.database;
+  Future<void> _indexHadith([Database? overrideDb]) async {
+    final db = overrideDb ?? await HadithDatabase.database;
     final rows = await db.query('hadiths', columns: [
       'id',
       'collection_id',

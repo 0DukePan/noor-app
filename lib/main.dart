@@ -20,6 +20,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   HijriCalendar.setLocal('ar');
 
+  // Fonts are bundled (Cairo/Amiri) — never fetch them at runtime. This keeps
+  // the app fully offline and deterministic.
+  GoogleFonts.config.allowRuntimeFetching = false;
+
   // Set preferred orientations (Mobile only)
   if (!kIsWeb) {
     await SystemChrome.setPreferredOrientations([

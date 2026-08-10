@@ -244,14 +244,41 @@ class QuranPage extends ConsumerWidget {
         ],
       ),
 
-      // Mushaf FAB
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/quran/mushaf'),
-        backgroundColor: NoorDesignSystem.emeraldGreen,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        icon: const Icon(Icons.auto_stories_rounded),
-        label: const Text('المصحف'),
+      // Mushaf FAB + khatmah & tafsir shortcuts
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          FloatingActionButton.extended(
+            onPressed: () => context.push('/quran/mushaf'),
+            backgroundColor: NoorDesignSystem.emeraldGreen,
+            foregroundColor: Colors.white,
+            elevation: 4,
+            heroTag: 'mushaf_fab',
+            icon: const Icon(Icons.auto_stories_rounded),
+            label: const Text('المصحف'),
+          ),
+          const SizedBox(height: 10),
+          FloatingActionButton.extended(
+            onPressed: () => context.push('/quran/khatmah'),
+            backgroundColor: NoorDesignSystem.goldAccent,
+            foregroundColor: Colors.white,
+            elevation: 3,
+            heroTag: 'khatmah_fab',
+            icon: const Icon(Icons.flag_rounded),
+            label: const Text('خطة الختمة'),
+          ),
+          const SizedBox(height: 10),
+          FloatingActionButton.extended(
+            onPressed: () => context.push('/tafsir'),
+            backgroundColor: NoorDesignSystem.deepTeal,
+            foregroundColor: Colors.white,
+            elevation: 3,
+            heroTag: 'tafsir_fab',
+            icon: const Icon(Icons.menu_book_rounded),
+            label: const Text('التفسير'),
+          ),
+        ],
       ),
     );
   }

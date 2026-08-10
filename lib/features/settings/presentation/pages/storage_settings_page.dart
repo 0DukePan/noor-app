@@ -4,10 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/design_system.dart';
 import '../../../../core/services/hive_service.dart';
+import '../../../../core/services/quran_audio_engine.dart';
 import '../../../../core/services/silent_ui_controller.dart';
+import '../../../search/data/data_sources/search_local_data_source.dart';
 
 /// 🗄️ إعدادات التخزين والأداء — Storage & Performance Settings
-/// Wires CacheManager and SilentUIController
 class StorageSettingsPage extends StatefulWidget {
   const StorageSettingsPage({super.key});
 
@@ -131,7 +132,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
 
           const Divider(height: 24),
 
-          // Background sync
+          // Refresh statistics (there is no cloud to sync with)
           ListTile(
             leading: Container(
               padding: const EdgeInsets.all(8),
@@ -139,14 +140,14 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
                 color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.sync_rounded, color: NoorDesignSystem.primaryGreen, size: 20),
+              child: const Icon(Icons.refresh_rounded, color: NoorDesignSystem.primaryGreen, size: 20),
             ),
-            title: Text('مزامنة البيانات', style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
-            subtitle: Text('تحديث جميع البيانات في الخلفية', style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey)),
+            title: Text('تحديث الإحصائيات', style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
+            subtitle: Text('إعادة قراءة البيانات المعروضة', style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey)),
             trailing: _syncing
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.arrow_forward_ios_rounded, size: 16),
-            onTap: _syncing ? null : () => _backgroundSync(),
+            onTap: _syncing ? null : () => _refreshStats(),
             contentPadding: EdgeInsets.zero,
           ),
         ],
@@ -224,6 +225,10 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
     setState(() => _clearing = true);
     try {
       await HiveService.clearAll();
+      // Clear the downloaded recitation cache too.
+      await QuranAudioEngine.clearCache();
+      // Clear the unified search index (rebuilds lazily on next search).
+      await SearchLocalDataSource.clearIndex();
       _loadStats();
       if (mounted) {
         SilentUIController.showSuccess(context, 'تم مسح التخزين المؤقت');
@@ -233,13 +238,12 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
     }
   }
 
-  Future<void> _backgroundSync() async {
+  Future<void> _refreshStats() async {
     setState(() => _syncing = true);
     try {
-      // Background sync not available without API fetcher — just refresh stats
       _loadStats();
       if (mounted) {
-        SilentUIController.showSuccess(context, 'تمت المزامنة بنجاح');
+        SilentUIController.showSuccess(context, 'تم تحديث الإحصائيات');
       }
     } finally {
       if (mounted) setState(() => _syncing = false);

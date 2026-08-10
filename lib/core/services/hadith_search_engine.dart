@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/data_sources/hadith_database.dart';
@@ -28,21 +29,21 @@ class HadithSearchEngine {
   // INITIALIZATION
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static Future<void> init({SupabaseClient? supabase}) async {
+  static Future<void> init({SupabaseClient? supabase, Database? forTesting}) async {
     _indexBox = await Hive.openBox('hadith_search_index');
     _cacheBox = await Hive.openBox('hadith_search_cache');
     _supabase = supabase;
     
-    // Build search index if not cached
-    if (_indexBox?.get('index_built') != true) {
-      await _buildSearchIndex();
+    // Build search index if not cached (or always when a test DB is passed)
+    if (forTesting != null || _indexBox?.get('index_built') != true) {
+      await _buildSearchIndex(forTesting);
     } else {
       _loadIndexFromCache();
     }
   }
 
   /// بناء فهرس البحث
-  static Future<void> _buildSearchIndex() async {
+  static Future<void> _buildSearchIndex([Database? overrideDb]) async {
     debugPrint('Building hadith search index...');
 
     _searchIndex = [];
@@ -51,7 +52,7 @@ class HadithSearchEngine {
 
     // Build the index from the SQLite corpus (the same data the reader uses),
     // rather than re-parsing the per-chapter JSON assets.
-    final db = await HadithDatabase.database;
+    final db = overrideDb ?? await HadithDatabase.database;
     final rows = await db.query('hadiths', columns: [
       'rowid',
       'collection_id',

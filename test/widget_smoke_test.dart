@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:noor_app/core/services/day_state_machine.dart';
@@ -16,6 +17,8 @@ void main() {
   late Directory tempDir;
 
   setUp(() async {
+    // Fonts are bundled — never hit the network in tests.
+    GoogleFonts.config.allowRuntimeFetching = false;
     tempDir = await Directory.systemTemp.createTemp('noor_widget_test');
     Hive.init(tempDir.path);
   });

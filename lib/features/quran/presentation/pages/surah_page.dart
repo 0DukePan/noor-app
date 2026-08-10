@@ -304,16 +304,23 @@ class _SurahPageState extends ConsumerState<SurahPage>
             _OptionTile(
               icon: Icons.bookmark_outline_rounded,
               title: 'إضافة علامة',
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                ref.read(quranRepositoryProvider).saveReadingProgress(
-                  surahNumber: widget.surahNumber,
-                  verseNumber: verse.numberInSurah,
-                  page: verse.page,
-                );
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('تم حفظ العلامة')),
-                );
+                // quran_uthmani.json has no page field; map it via quran_pages.
+                final page = await ref
+                        .read(localQuranDataSourceProvider)
+                        .getPageForAyah(widget.surahNumber, verse.numberInSurah) ??
+                    0;
+                await ref.read(quranRepositoryProvider).saveReadingProgress(
+                      surahNumber: widget.surahNumber,
+                      verseNumber: verse.numberInSurah,
+                      page: page,
+                    );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('تم حفظ العلامة')),
+                  );
+                }
               },
             ),
             _OptionTile(

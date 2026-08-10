@@ -30,6 +30,11 @@ class PrayerPage extends ConsumerWidget {
         elevation: 0,
         actions: [
           IconButton(
+            icon: const Icon(Icons.event_note_rounded),
+            tooltip: 'قضاء الصلوات',
+            onPressed: () => context.go('/tools/prayer/qada'),
+          ),
+          IconButton(
             icon: const Icon(Icons.settings_rounded),
             onPressed: () => context.go('/tools/prayer/settings'),
           ),

@@ -274,6 +274,63 @@ class _HadithPageState extends ConsumerState<HadithPage> {
             ),
           ),
 
+          // ─── Study Tools ───
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'أدوات الدراسة',
+                    style: GoogleFonts.cairo(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: NoorDesignSystem.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      _StudyToolTile(
+                        icon: Icons.psychology_rounded,
+                        label: 'الحفظ بالتكرار',
+                        color: NoorDesignSystem.primaryGreen,
+                        onTap: () => context.go('/hadith/memorization'),
+                      ),
+                      _StudyToolTile(
+                        icon: Icons.insights_rounded,
+                        label: 'الإحصائيات',
+                        color: NoorDesignSystem.goldAccent,
+                        onTap: () => context.go('/hadith/stats'),
+                      ),
+                      _StudyToolTile(
+                        icon: Icons.label_outline_rounded,
+                        label: 'الوسوم',
+                        color: NoorDesignSystem.deepTeal,
+                        onTap: () => context.go('/hadith/tags'),
+                      ),
+                      _StudyToolTile(
+                        icon: Icons.account_tree_outlined,
+                        label: 'شجرة المواضيع',
+                        color: const Color(0xFF5D4037),
+                        onTap: () => context.go('/hadith/topics'),
+                      ),
+                      _StudyToolTile(
+                        icon: Icons.travel_explore_rounded,
+                        label: 'المتصفح المتقدم',
+                        color: const Color(0xFF6A1B9A),
+                        onTap: () => context.go('/hadith/advanced'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
@@ -512,6 +569,62 @@ class _HadithOfTheDayCard extends StatelessWidget {
                       ],
                     ),
                   ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Compact tile used in the hadith page "study tools" section.
+class _StudyToolTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _StudyToolTile({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      elevation: 1,
+      shadowColor: Colors.black.withValues(alpha: 0.05),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          width: (MediaQuery.of(context).size.width - 60) / 2,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  style: GoogleFonts.cairo(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: NoorDesignSystem.textPrimary,
+                  ),
                 ),
               ),
             ],

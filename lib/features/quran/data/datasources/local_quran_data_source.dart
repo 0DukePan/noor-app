@@ -82,6 +82,25 @@ class LocalQuranDataSourceImpl implements QuranLocalDataSource {
     }).toList();
   }
 
+  /// Returns the mushaf page for a given (surah, ayah), or null if unknown.
+  /// `quran_uthmani.json` has no page field, so this maps via quran_pages.json.
+  Future<int?> getPageForAyah(int surah, int ayah) async {
+    _pagesMap ??= await IsolateParser.parseInBackground(
+      assetPath: 'assets/quran/quran_pages.json',
+      parser: (json) => jsonDecode(json) as Map<String, dynamic>,
+    );
+    for (final entry in _pagesMap!.entries) {
+      final verses = entry.value as List? ?? [];
+      for (final v in verses) {
+        final map = v as Map;
+        if (map['surah'] == surah && map['ayah'] == ayah) {
+          return int.tryParse(entry.key);
+        }
+      }
+    }
+    return null;
+  }
+
   @override
   Future<TafsirModel?> getTafsir(int surahNumber, int verseNumber) async {
     // Implementation for local tafsir

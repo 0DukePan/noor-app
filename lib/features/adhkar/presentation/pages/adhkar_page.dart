@@ -169,32 +169,29 @@ class _AdhkarPageState extends State<AdhkarPage> {
                 ),
                 _ModernCategoryCard(
                   title: 'أذكار النوم',
-                  subtitle: 'قريباً',
+                  subtitle: _getCountLabel(AdhkarType.sleep, 'ذكر'),
                   emoji: '🌙',
                   gradient: const LinearGradient(
                     colors: [Color(0xFF5C6BC0), Color(0xFF3949AB)],
                   ),
-                  isAvailable: false,
                   onTap: () => _openAdhkar(context, AdhkarType.sleep),
                 ),
                 _ModernCategoryCard(
                   title: 'الاستيقاظ',
-                  subtitle: 'قريباً',
+                  subtitle: _getCountLabel(AdhkarType.wakeUp, 'ذكر'),
                   emoji: '☀️',
                   gradient: const LinearGradient(
                     colors: [Color(0xFF29B6F6), Color(0xFF0288D1)],
                   ),
-                  isAvailable: false,
                   onTap: () => _openAdhkar(context, AdhkarType.wakeUp),
                 ),
                 _ModernCategoryCard(
                   title: 'أدعية قرآنية',
-                  subtitle: 'قريباً',
+                  subtitle: _getCountLabel(AdhkarType.general, 'دعاء'),
                   emoji: '📖',
                   gradient: const LinearGradient(
                     colors: [Color(0xFF9C27B0), Color(0xFF7B1FA2)],
                   ),
-                  isAvailable: false,
                   onTap: () => _openAdhkar(context, AdhkarType.general),
                 ),
               ],
@@ -398,10 +395,6 @@ class _ModernCategoryCard extends StatelessWidget {
 
   // FIX 2: Default changed from true → false so non-time-based cards are NOT highlighted
   final bool isHighlighted;
-
-  /// Whether the collection is bundled yet. Unavailable cards show a
-  /// "coming soon" message instead of opening an empty page.
-  final bool isAvailable;
   final VoidCallback onTap;
 
   const _ModernCategoryCard({
@@ -410,7 +403,6 @@ class _ModernCategoryCard extends StatelessWidget {
     required this.emoji,
     required this.gradient,
     this.isHighlighted = false, // ✅ was: true (wrong)
-    this.isAvailable = true,
     required this.onTap,
   });
 
@@ -419,24 +411,11 @@ class _ModernCategoryCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: isAvailable
-            ? onTap
-            : () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('هذا القسم قريباً بإذن الله')),
-                );
-              },
+        onTap: onTap,
         borderRadius: BorderRadius.circular(20),
         child: Ink(
           decoration: BoxDecoration(
-            gradient: isAvailable
-                ? gradient
-                : LinearGradient(
-                    colors: [
-                      Colors.grey.shade400,
-                      Colors.grey.shade500,
-                    ],
-                  ),
+            gradient: gradient,
             borderRadius: BorderRadius.circular(20),
             border: isHighlighted
                 ? Border.all(

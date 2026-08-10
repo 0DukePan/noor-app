@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/design_system.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/services/location_trust_engine.dart';
+import '../../../../core/services/statistics_service.dart';
 
 /// ☁️ إعدادات السحابة والموقع — Cloud & Location Settings
 /// Wires SupabaseService and LocationTrustEngine
@@ -178,11 +179,13 @@ class _CloudSettingsPageState extends State<CloudSettingsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isAuth ? 'متصل بالسحابة' : 'غير متصل',
+                      isAuth ? 'متصل بالسحابة' : 'المزامنة غير مفعّلة',
                       style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     Text(
-                      isAuth ? 'بيانات القراءة والمفضلة متزامنة' : 'سجّل دخولك لمزامنة البيانات',
+                      isAuth
+                          ? 'بيانات القراءة والمفضلة متزامنة'
+                          : 'المزامنة السحابية ميزة اختيارية غير مفعّلة حالياً',
                       style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey),
                     ),
                   ],
@@ -203,10 +206,12 @@ class _CloudSettingsPageState extends State<CloudSettingsPage> {
               trailing: FilledButton(
                 onPressed: () async {
                   HapticFeedback.mediumImpact();
+                  // Sync the real last-read position (not a hardcoded one).
+                  final last = StatisticsService.getLastReadPosition();
                   await SupabaseService.syncReadingProgress(
-                    surahNumber: 1,
-                    verseNumber: 1,
-                    page: 1,
+                    surahNumber: last?['surah'] as int? ?? 1,
+                    verseNumber: last?['ayah'] as int? ?? 1,
+                    page: 0,
                   );
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(

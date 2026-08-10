@@ -100,12 +100,6 @@ class OfflineDataService {
         await _hadithBox!.put('40_nawawi', jsonDecode(nawawiJson));
       } catch (_) {}
 
-      // Load popular hadiths (May be missing)
-      try {
-        final popularJson = await rootBundle.loadString('assets/hadith/popular.json');
-        await _hadithBox!.put('popular', jsonDecode(popularJson));
-      } catch (_) {}
-
       // Load collection metadata (May be missing)
       try {
         final collectionsJson = await rootBundle.loadString('assets/hadith/collections.json');

@@ -51,9 +51,16 @@ class HadithDatabase {
     }
   }
 
+  /// Test hook: point the database at a writable directory so tests can avoid
+  /// path_provider (which needs platform channels).
+  static String _dbDirectory = '';
+  static void debugSetDatabaseDirectory(String directory) => _dbDirectory = directory;
+
   static Future<Database> _initDatabase() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final dbPath = p.join(dir.path, _dbName);
+    final dir = _dbDirectory.isNotEmpty
+        ? _dbDirectory
+        : (await getApplicationDocumentsDirectory()).path;
+    final dbPath = p.join(dir, _dbName);
     _wasCached = await File(dbPath).exists();
 
     return openDatabase(
@@ -68,6 +75,26 @@ class HadithDatabase {
       onUpgrade: (db, oldVersion, newVersion) async {
         debugPrint('🗄️ Upgrading Hadith database $oldVersion → $newVersion');
         // Add future migrations here as _dbVersion is bumped.
+      },
+    );
+  }
+
+  /// Opens a FRESH database importing only [bookIds] — used by tests so the
+  /// suite doesn't re-import the full 17-book corpus on every run.
+  static Future<Database> openWithBooks(
+    List<String> bookIds, {
+    String? directory,
+  }) async {
+    final dir = directory ??
+        (_dbDirectory.isNotEmpty ? _dbDirectory : (await getApplicationDocumentsDirectory()).path);
+    final dbPath = p.join(dir, 'hadith_test_${bookIds.join('_')}.db');
+    return openDatabase(
+      dbPath,
+      version: _dbVersion,
+      onCreate: (db, version) async {
+        await _createTables(db);
+        await _importBooks(db, bookIds);
+        await _rebuildFts(db);
       },
     );
   }
@@ -142,23 +169,24 @@ class HadithDatabase {
   static bool _wasCached = false;
   static bool get isDbCached => _wasCached;
 
-  static Future<void> _importAllBooks(Database db) async {
-    final totalBooks = _nineBooks.length + _otherBooks.length;
+  static Future<void> _importAllBooks(Database db) {
+    final all = [..._nineBooks, ..._otherBooks.map((b) => b['id']!)];
+    return _importBooks(db, all);
+  }
+
+  /// Imports the given books (by id) into [db], updating import progress.
+  static Future<void> _importBooks(Database db, List<String> bookIds) async {
+    final totalBooks = bookIds.length;
     var completed = 0;
 
-    // Import the 9 major books
-    for (final bookId in _nineBooks) {
-      final path = 'assets/hadith/by_book/the_9_books/$bookId.json';
+    for (final bookId in bookIds) {
+      final book = _otherBooks.where((b) => b['id'] == bookId).firstOrNull;
+      final path = book != null
+          ? 'assets/hadith/by_book/${book['path']}'
+          : 'assets/hadith/by_book/the_9_books/$bookId.json';
       await _importBook(db, bookId, path);
       completed++;
-      importProgress.value = completed / totalBooks;
-    }
-    // Import forties and other books
-    for (final book in _otherBooks) {
-      final path = 'assets/hadith/by_book/${book['path']}';
-      await _importBook(db, book['id']!, path);
-      completed++;
-      importProgress.value = completed / totalBooks;
+      importProgress.value = totalBooks == 0 ? 1 : completed / totalBooks;
     }
 
     // Rebuild the FTS5 index from the content table. External-content FTS
@@ -315,9 +343,17 @@ class HadithDatabase {
     return {for (final r in results) r['chapter_id'] as int: r['cnt'] as int};
   }
 
-  /// Full-text search across the entire corpus
-  static Future<List<Map<String, dynamic>>> search(String query, {String? collectionId, int limit = 50}) async {
-    final db = await database;
+  /// Full-text search across the entire corpus.
+  ///
+  /// [db] is for tests (a subset database via [openWithBooks]); production
+  /// callers use the singleton [database].
+  static Future<List<Map<String, dynamic>>> search(
+    String query, {
+    String? collectionId,
+    int limit = 50,
+    Database? db,
+  }) async {
+    final database = db ?? await HadithDatabase.database;
 
     if (query.trim().isEmpty) return [];
 
@@ -344,7 +380,7 @@ class HadithDatabase {
         args = ['"$query"', limit];
       }
 
-      final results = await db.rawQuery(sql, args);
+      final results = await database.rawQuery(sql, args);
       if (results.isNotEmpty) return results;
 
       // FTS found nothing (e.g. an unusual tokenization) → fall through to LIKE.
@@ -362,7 +398,7 @@ class HadithDatabase {
       args.add(collectionId);
     }
 
-    return db.query('hadiths', where: where, whereArgs: args, limit: limit);
+    return database.query('hadiths', where: where, whereArgs: args, limit: limit);
   }
 
   /// Strips characters that are useless for LIKE matching (diacritics, hamza

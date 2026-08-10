@@ -26,7 +26,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
   // Location & Qibla
   QiblaResult? _qiblaResult;
   bool _isLoadingLocation = true;
-  String? _locationError;
+  String? _locationWarning;
   
   // UI State
   bool _isLocked = false;
@@ -71,7 +71,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
   Future<void> _getLocation() async {
     setState(() {
       _isLoadingLocation = true;
-      _locationError = null;
+      _locationWarning = null;
     });
 
     try {
@@ -82,10 +82,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
       }
       
       if (permission == LocationPermission.deniedForever) {
-        setState(() {
-          _locationError = 'الرجاء تفعيل صلاحية الموقع من الإعدادات';
-          _isLoadingLocation = false;
-        });
+        _useFallbackLocation('الرجاء تفعيل صلاحية الموقع من الإعدادات');
         return;
       }
 
@@ -106,17 +103,22 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
         _isLoadingLocation = false;
       });
     } catch (e) {
-      setState(() {
-        _locationError = 'فشل تحديد الموقع: $e';
-        _isLoadingLocation = false;
-        
-        // Fallback to default location (Riyadh)
-        _qiblaResult = QiblaResult.calculate(
-          latitude: 24.7136,
-          longitude: 46.6753,
-        );
-      });
+      // Location unavailable — show the fallback city's qibla with a warning
+      // instead of blocking the whole screen on an error.
+      _useFallbackLocation('تعذّر تحديد موقعك، عرض الاتجاه من مدينة الرياض');
     }
+  }
+
+  /// Sets a fallback Qibla (Riyadh) and shows a warning banner.
+  void _useFallbackLocation(String warning) {
+    setState(() {
+      _locationWarning = warning;
+      _qiblaResult = QiblaResult.calculate(
+        latitude: 24.7136,
+        longitude: 46.6753,
+      );
+      _isLoadingLocation = false;
+    });
   }
 
   void _startCompass() {
@@ -322,27 +324,51 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
         child: SafeArea(
           child: _isLoadingLocation
               ? _buildLoadingView()
-              : _locationError != null
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.location_off_rounded, size: 64, color: Colors.amber),
-                          const SizedBox(height: 16),
-                          Text(
-                            _locationError!,
-                            style: GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 16),
-                          FilledButton(
-                            onPressed: _getLocation,
-                            child: const Text('إعادة المحاولة'),
-                          ),
-                        ],
-                      ),
-                    )
-                  : _buildQiblaView(theme, accuracy, qiblaDeviation, alignment),
+              : Column(
+                  children: [
+                    if (_locationWarning != null)
+                      _buildLocationWarning(),
+                    Expanded(
+                      child: _buildQiblaView(theme, accuracy, qiblaDeviation, alignment),
+                    ),
+                  ],
+                ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLocationWarning() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.amber.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline_rounded, color: Colors.amber, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              _locationWarning!,
+              style: GoogleFonts.cairo(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: _getLocation,
+            child: const Text(
+              'إعادة المحاولة',
+              style: TextStyle(color: Colors.amber, fontSize: 12),
+            ),
+          ),
+        ],
       ),
     );
   }
