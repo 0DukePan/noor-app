@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white" alt="Flutter" />
   <img src="https://img.shields.io/badge/Dart-%3E%3D3.0-0175C2?logo=dart&logoColor=white" alt="Dart" />
-  <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Web%20%7C%20Desktop-green" alt="Platforms" />
+  <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-blue" alt="Platforms" />
   <img src="https://img.shields.io/badge/Architecture-Clean%20Architecture-blueviolet" alt="Architecture" />
   <img src="https://img.shields.io/badge/State-Riverpod-FF6F00" alt="Riverpod" />
   <img src="https://img.shields.io/badge/License-Proprietary-red" alt="License" />
@@ -500,13 +500,11 @@ graph LR
     subgraph ClientDevices["📱 Client Devices"]
         Android["Android\n(API 21+)"]
         iOS["iOS\n(14+)"]
-        Web["Web Browser\n(Chrome/Safari)"]
-        Desktop["Desktop\n(macOS/Win/Linux)"]
     end
 
     subgraph FlutterApp["🦋 Flutter App Bundle"]
         Engine["Flutter Engine"]
-        DartVM["Dart VM / JS"]
+        DartVM["Dart VM"]
         Assets["Bundled Assets\n(25K+ files)"]
         SQLiteDB["SQLite DB\n(sqflite)"]
         HiveDB["Hive Storage\n(10 boxes)"]
@@ -524,7 +522,7 @@ graph LR
         Camera["Camera\n(AR Qibla)"]
     end
 
-    Android & iOS & Web & Desktop --> FlutterApp
+    Android & iOS --> FlutterApp
     FlutterApp --> OptionalCloud
     FlutterApp --> DeviceSensors
 
@@ -692,8 +690,7 @@ assets/                               # 25,000+ bundled files
 | Flutter SDK | ≥ 3.0.0 |
 | Dart SDK | ≥ 3.0.0 |
 | Android SDK | API 21+ (Lollipop) |
-| Xcode | 14+ (for iOS/macOS) |
-| Chrome | Latest (for web) |
+| Xcode | 14+ (for iOS) |
 
 ### Installation
 
@@ -707,10 +704,12 @@ flutter pub get
 
 # Run on your preferred platform
 flutter run                    # Default connected device
-flutter run -d chrome          # Web
-flutter run -d macos           # macOS desktop
-flutter run -d windows         # Windows desktop
+flutter run -d macos           # macOS desktop (debug only)
+flutter run -d windows         # Windows desktop (debug only)
 ```
+
+> **Note:** Web is not supported — the app depends on native plugins
+> (SQLite, adhan, audio, compass, camera) that have no web implementation.
 
 ### First Run
 
@@ -831,9 +830,6 @@ flutter test
 # Static analysis (should be 0 errors)
 flutter analyze
 
-# Build for production (web)
-flutter build web --release
-
 # Build for production (Android)
 flutter build apk --release
 
@@ -855,12 +851,6 @@ flutter build appbundle --release
 ```bash
 flutter build ipa --release
 # Upload via Xcode or Transporter
-```
-
-### Web
-```bash
-flutter build web --release --web-renderer html
-# Deploy build/web/ to any static host (Firebase Hosting, Vercel, Netlify)
 ```
 
 ---

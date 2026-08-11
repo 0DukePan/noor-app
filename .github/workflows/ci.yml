@@ -50,3 +50,44 @@ jobs:
         with:
           name: noor-app-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+
+  # Runs only when the signing secrets are configured (Settings > Secrets).
+  build-appbundle:
+    name: Build signed release AAB
+    runs-on: ubuntu-latest
+    needs: analyze-test
+    if: secrets.KEYSTORE_BASE64 != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Configure signing key
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/noor-release.jks
+          cat > android/key.properties <<EOF
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=../app/noor-release.jks
+          EOF
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+
+      - name: Build signed release AAB
+        run: flutter build appbundle --release
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: noor-app-aab
+          path: build/app/outputs/bundle/release/app-release.aab

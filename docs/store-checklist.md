@@ -50,29 +50,37 @@ Declared permissions and their justifications (required by Play review):
 
 ## 4. Signing & build
 
-1. Create the release keystore (needs a JDK; keep the file and passwords safe —
-   you cannot update the app without them):
+1. Create the release keystore (keep the file and passwords safe — you cannot
+   update the app without them). Windows/PowerShell:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File tools\create_keystore.ps1
+   ```
+   or manually (needs a JDK):
    ```bash
    keytool -genkey -v -keystore android/app/noor-release.jks \
-     -keyalg RSA -keysize 2048 -validity 10000 -alias noor
+     -keyalg RSA -keysize 4096 -validity 10000 -alias noor
    ```
-2. Create `android/key.properties` (never commit it):
+2. `tools\create_keystore.ps1` writes `android/key.properties` for you
+   (never commit it). Manual shape:
    ```
    storePassword=<password>
    keyPassword=<password>
    keyAlias=noor
    storeFile=../app/noor-release.jks
    ```
-   (`android/key.properties.example` shows the shape; `key.properties` is
-   gitignored.)
+   (`android/key.properties.example` shows the shape; `key.properties` and
+   `*.jks` are gitignored.)
 3. Build locally or via CI:
    ```bash
    flutter build appbundle --release    # Play
    flutter build apk --release          # sideload/CI artifact
    ```
-   The GitHub Actions workflow (.github/workflows/ci.yml) builds the APK on
-   every push. Push the repo to GitHub to get a signed-debug APK; add the
-   keystore as a GitHub secret to sign release builds in CI.
+   The GitHub Actions workflow builds a debug-signed APK on every push. To get
+   a properly signed release AAB from CI, add these repository secrets
+   (Settings > Secrets and variables > Actions): `KEYSTORE_BASE64` (base64 of
+   `noor-release.jks`, e.g. `[Convert]::ToBase64String([IO.File]::ReadAllBytes('...'))`),
+   `KEYSTORE_PASSWORD`, `KEY_PASSWORD`, `KEY_ALIAS=noor` — the
+   `build-appbundle` job then runs automatically on push.
 
 ## 5. iOS (requires a Mac)
 
