@@ -106,3 +106,9 @@ flutter build ipa --release   # after signing setup in Xcode
 
 - `pubspec.yaml` version: `1.0.0+1` — bump `+N` per release build.
 - CHANGELOG.md exists — keep it updated.
+
+## 8. On-device QA
+
+- Run the full manual checklist in **`docs/qa-checklist.md`** on a real phone
+  (automated checks — analyze, tests, goldens, emulator integration test —
+  run on every push via CI).

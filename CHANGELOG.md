@@ -2,6 +2,25 @@
 
 All notable changes to Noor (نور) are documented in this file.
 
+## [Unreleased]
+
+### Added
+- On-device integration test (boots the real app on an Android emulator in CI:
+  first-launch DB import, onboarding, all five tabs) — the first automated
+  "the app runs on Android" evidence
+- Golden (visual regression) tests for the day-state card and onboarding
+- `tools/create_keystore.ps1` — one-command release keystore generator
+- CI job that produces a properly signed release AAB when signing secrets are
+  configured
+- `docs/qa-checklist.md` — manual on-device QA checklist for the store run
+
+### Fixed
+- Quran search missed matches containing the alef-wasla (ٱ) — e.g. «الرحمن»
+  never matched «ٱلرحمن»; all three normalizers now map it to ا
+- Hadith database v2 migration: searches are normalized (de-diacritized) and
+  the FTS index is rebuilt over the normalized text
+- Clearing the search cache could fail with a locked database file
+
 ## [1.0.0] - 2026-08-09
 
 First public release.
