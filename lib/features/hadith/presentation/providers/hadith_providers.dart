@@ -322,6 +322,11 @@ class QuizNotifier extends StateNotifier<QuizState> {
       showResult: true,
       score: newScore,
     );
+
+    // Persist the finished quiz to the history box (read by the stats page).
+    if (isComplete) {
+      _saveQuizResult(newScore, state.questions.length);
+    }
     
     // Move to next after a delay (handled in UI)
     Future.delayed(const Duration(seconds: 1), () {
@@ -339,6 +344,25 @@ class QuizNotifier extends StateNotifier<QuizState> {
 
   void reset() {
     state = const QuizState();
+  }
+
+  /// Append the finished quiz result to the `quiz_history` Hive box so the
+  /// learning-statistics page can show real quiz data.
+  Future<void> _saveQuizResult(int score, int total) async {
+    try {
+      final box = await Hive.openBox('quiz_history');
+      final now = DateTime.now();
+      await box.put(
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
+        {
+          'score': score,
+          'total': total,
+          'date': now.toIso8601String(),
+        },
+      );
+    } catch (_) {
+      // Best-effort persistence; the stats page degrades gracefully.
+    }
   }
 }
 

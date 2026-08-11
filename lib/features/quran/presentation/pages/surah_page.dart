@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../../../../core/theme/noor_theme.dart';
 import '../../../../core/theme/design_system.dart';
 import '../../../../core/services/services.dart';
@@ -582,6 +582,27 @@ class _DynamicTafsirPanel extends ConsumerWidget {
                         'الآية $verseNumber',
                         style: theme.textTheme.bodySmall,
                       ),
+                      const SizedBox(height: 4),
+                      // Open the standalone tafsir page
+                      TextButton.icon(
+                        onPressed: () => context.push(
+                          '/tafsir?surah=$surahNumber&ayah=$verseNumber',
+                        ),
+                        icon: const Icon(Icons.open_in_new_rounded, size: 14),
+                        label: Text(
+                          'التفسير الكامل',
+                          style: GoogleFonts.cairo(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size(0, 28),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -646,17 +667,9 @@ class _AudioPlayerSheet extends StatefulWidget {
 }
 
 class _AudioPlayerSheetState extends State<_AudioPlayerSheet> {
-  // QuranAudioService is static
-  String _selectedReciter = 'Abdul_Basit_Mujawwad_128kbps';
-  
-  // Mapping for UI display
-  final Map<String, String> _reciters = {
-    'Abdul_Basit_Mujawwad_128kbps': 'عبد الباسط عبد الصمد (مجود)',
-    'Alafasy_128kbps': 'مشاري العفاسي',
-    'MaherAlMuaiqly_128kbps': 'ماهر المعيقلي',
-    'Husary_128kbps': 'محمود خليل الحصري',
-  };
-  
+  // Shared with the full player (single engine catalog)
+  String _selectedReciter = 'ar.alafasy';
+
   @override
   Widget build(BuildContext context) {
     return Consumer(
@@ -696,14 +709,14 @@ class _AudioPlayerSheetState extends State<_AudioPlayerSheet> {
                         color: theme.colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: DropdownButtonHideUnderline(
+                          child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _selectedReciter,
                           isExpanded: true,
                           icon: Icon(Icons.keyboard_arrow_down_rounded, color: theme.colorScheme.primary),
                           dropdownColor: theme.colorScheme.surface,
-                          items: _reciters.entries.map((e) => 
-                            DropdownMenuItem(value: e.key, child: Text(e.value)),
+                          items: QuranAudioService.reciters.map((r) =>
+                            DropdownMenuItem(value: r.id, child: Text(r.nameArabic)),
                           ).toList(),
                           onChanged: (value) {
                              if (value != null) {
@@ -718,7 +731,24 @@ class _AudioPlayerSheetState extends State<_AudioPlayerSheet> {
                       ),
                     ),
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 12),
+
+                    // Open the full player
+                    TextButton.icon(
+                      onPressed: () => context.push(
+                        '/audio-player?surah=${widget.surahNumber}&ayah=1',
+                      ),
+                      icon: const Icon(Icons.open_in_full_rounded, size: 18),
+                      label: Text(
+                        'فتح المشغل الكامل',
+                        style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+                      ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: theme.colorScheme.primary,
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
                     
                     // Controls
                     Row(

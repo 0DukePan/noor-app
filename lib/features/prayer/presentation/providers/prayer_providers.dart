@@ -8,6 +8,7 @@ import '../../../../core/services/prayer_time_engine.dart';
 import '../../../../core/services/adhan_scheduler_service.dart';
 import '../../../../core/services/mosque_mode_service.dart';
 import '../../../../core/services/prayer_health_check.dart';
+import '../../../../core/services/hive_service.dart';
 import '../../domain/entities/prayer_entities.dart' hide CalculationMethod;
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -61,7 +62,7 @@ final prayerDataProvider = FutureProvider<PrayerPageData>((ref) async {
     latitude: lat,
     longitude: lng,
     date: DateTime.now(),
-    method: CalculationMethod.ummAlQura,
+    method: HiveService.getCalculationMethod() ?? CalculationMethod.ummAlQura,
     utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
   );
 

@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'prayer_time_engine.dart';
+import 'hive_service.dart';
 
 /// 🔔 خدمة الإشعارات الاحترافية - Professional Notification Service
 /// 
@@ -131,7 +132,7 @@ class SmartNotificationEngine {
       latitude: latitude,
       longitude: longitude,
       date: DateTime.now(),
-      method: CalculationMethod.ummAlQura,
+      method: HiveService.getCalculationMethod() ?? CalculationMethod.ummAlQura,
       utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
     );
     
@@ -199,7 +200,7 @@ class SmartNotificationEngine {
       latitude: latitude,
       longitude: longitude,
       date: DateTime.now(),
-      method: CalculationMethod.ummAlQura,
+      method: HiveService.getCalculationMethod() ?? CalculationMethod.ummAlQura,
       utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
     );
     

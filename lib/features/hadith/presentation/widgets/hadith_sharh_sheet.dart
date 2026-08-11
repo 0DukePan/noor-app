@@ -10,6 +10,7 @@ import '../hadith_book_names.dart';
 import '../pages/isnad_chain_page.dart';
 import '../pages/isnad_graph_page.dart';
 import '../pages/narration_comparison_page.dart';
+import '../pages/tags_management_page.dart';
 
 /// 📖 شرح الحديث — Scholarly Explanation Bottom Sheet
 /// Stage 7: Provides contextual explanation, grade analysis, benefits, and user notes
@@ -382,6 +383,21 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                               Navigator.push(context, MaterialPageRoute(
                                 builder: (_) => NarrationComparisonPage(
                                   hadithKeyword: widget.hadith.arabic.split(' ').take(4).join(' '),
+                                ),
+                              ),);
+                            },
+                          ),
+                          // Add to a personal tag
+                          _StudyToolButton(
+                            icon: Icons.label_outline_rounded,
+                            label: 'إضافة إلى وسم',
+                            subtitle: 'تنظيم الحديث في قوائمك الخاصة',
+                            color: Colors.brown,
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.push(context, MaterialPageRoute(
+                                builder: (_) => TagsManagementPage(
+                                  hadithId: widget.hadith.id.toString(),
                                 ),
                               ),);
                             },

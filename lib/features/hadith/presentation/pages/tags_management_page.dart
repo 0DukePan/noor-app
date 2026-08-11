@@ -92,7 +92,11 @@ class PersonalTag {
 
 /// صفحة إدارة الوسوم - Tags Management Page
 class TagsManagementPage extends StatefulWidget {
-  const TagsManagementPage({super.key});
+  /// When set, the page shows an "add this hadith to a tag" flow and tracks
+  /// which tags already contain it.
+  final String? hadithId;
+
+  const TagsManagementPage({super.key, this.hadithId});
 
   @override
   State<TagsManagementPage> createState() => _TagsManagementPageState();
@@ -323,15 +327,14 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
               itemCount: _tags.length,
               itemBuilder: (context, index) {
                 final tag = _tags[index];
+                final isTagged = _isTagged(tag);
                 return Container(
                   margin: const EdgeInsets.only(bottom: NoorTheme.spacingSm),
                   child: Material(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
                     child: InkWell(
-                      onTap: () {
-                        // Open tag details
-                      },
+                      onTap: () => _toggleHadithInTag(tag),
                       borderRadius: BorderRadius.circular(NoorTheme.radiusMd),
                       child: Padding(
                         padding: const EdgeInsets.all(NoorTheme.spacingMd),
@@ -370,6 +373,15 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
                                 ],
                               ),
                             ),
+                            if (isTagged)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: Icon(
+                                  Icons.check_circle_rounded,
+                                  color: tag.color,
+                                  size: 20,
+                                ),
+                              ),
                             Container(
                               width: 8,
                               height: 32,
@@ -392,5 +404,34 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
         label: const Text('وسم جديد'),
       ),
     );
+  }
+
+  bool _isTagged(PersonalTag tag) {
+    final hadithId = widget.hadithId;
+    return hadithId != null && tag.hadithIds.contains(hadithId);
+  }
+
+  /// Adds/removes the current hadith (if this page was opened from a hadith)
+  /// to/from the tapped tag.
+  Future<void> _toggleHadithInTag(PersonalTag tag) async {
+    final hadithId = widget.hadithId;
+    if (hadithId == null) return;
+
+    if (tag.hadithIds.contains(hadithId)) {
+      await PersonalTagsService.removeHadithFromTag(tag.id, hadithId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تمت إزالة الحديث من الوسم')),
+        );
+      }
+    } else {
+      await PersonalTagsService.addHadithToTag(tag.id, hadithId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تمت إضافة الحديث إلى الوسم ✓')),
+        );
+      }
+    }
+    await _loadTags();
   }
 }

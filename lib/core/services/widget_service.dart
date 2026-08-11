@@ -3,6 +3,7 @@ import 'package:home_widget/home_widget.dart';
 import '../../core/services/offline_data_service.dart';
 import '../../core/services/location_trust_engine.dart';
 import '../../core/services/prayer_time_engine.dart';
+import '../../core/services/hive_service.dart';
 
 /// خدمة الويدجت - Widget Service for iOS & Android Home Screen
 class WidgetService {
@@ -54,7 +55,7 @@ class WidgetService {
         latitude: lat,
         longitude: lng,
         date: DateTime.now(),
-        method: CalculationMethod.ummAlQura,
+        method: HiveService.getCalculationMethod() ?? CalculationMethod.ummAlQura,
         utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
       );
 

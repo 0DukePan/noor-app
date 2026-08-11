@@ -1,5 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'prayer_time_engine.dart';
+
 /// خدمة Hive للتخزين المحلي - Hive Storage Service
 class HiveService {
   static const String _surahsBox = 'surahs';
@@ -221,6 +223,20 @@ class HiveService {
   static Future<void> setOnboardingSeen() async {
     await saveSetting('onboarding_seen', true);
   }
+
+  /// The user-selected prayer calculation method (null = engine default).
+  static CalculationMethod? getCalculationMethod() {
+    final name = getSetting<String>('calculation_method');
+    if (name == null) return null;
+    for (final method in CalculationMethod.values) {
+      if (method.name == name) return method;
+    }
+    return null;
+  }
+
+  /// Persist the user-selected prayer calculation method.
+  static Future<void> setCalculationMethod(CalculationMethod method) =>
+      saveSetting('calculation_method', method.name);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // QADA RECORDS

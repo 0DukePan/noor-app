@@ -10,6 +10,7 @@ import '../../../../core/services/hadith_data_source.dart';
 import '../../../../core/services/adhkar_data_source.dart';
 import '../../../../core/services/statistics_service.dart';
 import '../../../../core/services/quran_data_source.dart';
+import '../../../../core/services/hive_service.dart';
 import '../../../../core/models/adhkar_models.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -74,7 +75,7 @@ final homeDataProvider = FutureProvider<HomeData>((ref) async {
     latitude: lat,
     longitude: lng,
     date: DateTime.now(),
-    method: CalculationMethod.ummAlQura,
+    method: HiveService.getCalculationMethod() ?? CalculationMethod.ummAlQura,
     utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
   );
 

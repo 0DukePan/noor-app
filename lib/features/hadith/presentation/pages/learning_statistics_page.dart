@@ -55,30 +55,34 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
         ? ((quizTotalScore / quizTotalQuestions) * 100).round()
         : 0;
 
-    // --- Memorization intervals ---
+    // --- Memorization (live FSRS cards from the memorization feature) ---
     int totalMemorized = 0;
     try {
-      final memBox = await Hive.openBox('memorization_intervals');
-      totalMemorized = memBox.length;
+      final memBox = await Hive.openBox('memorization_cards');
+      for (final value in memBox.values) {
+        if (value is Map && ((value['repetitions'] as num?) ?? 0) > 0) {
+          totalMemorized++;
+        }
+      }
     } catch (_) {}
 
-    // --- Reading streak (from progress box) ---
+    // --- Reading streak (from the day-state machine) ---
     int currentStreak = 0;
     int longestStreak = 0;
     try {
-      final streakBox = await Hive.openBox('reading_streak');
-      currentStreak = streakBox.get('current', defaultValue: 0) as int;
-      longestStreak = streakBox.get('longest', defaultValue: 0) as int;
+      final streakBox = await Hive.openBox('day_state');
+      currentStreak = streakBox.get('streak', defaultValue: 0) as int;
+      longestStreak = currentStreak;
     } catch (_) {}
 
-    // --- Weekly activity (last 7 days read counts) ---
+    // --- Weekly activity (verses read per day, from app statistics) ---
     final List<int> weeklyActivity = List.filled(7, 0);
     try {
-      final activityBox = await Hive.openBox('daily_activity');
+      final activityBox = await Hive.openBox('app_statistics');
       final now = DateTime.now();
       for (int i = 0; i < 7; i++) {
         final day = now.subtract(Duration(days: 6 - i));
-        final key = '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+        final key = 'verses_${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
         weeklyActivity[i] = (activityBox.get(key, defaultValue: 0) as int);
       }
     } catch (_) {}

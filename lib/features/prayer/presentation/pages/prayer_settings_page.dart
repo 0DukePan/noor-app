@@ -8,6 +8,8 @@ import '../../../../core/theme/design_system.dart';
 import '../../../../core/services/mosque_mode_service.dart';
 import '../../../../core/services/seasonal_offsets_engine.dart';
 import '../../../../core/services/prayer_health_check.dart';
+import '../../../../core/services/prayer_time_engine.dart';
+import '../../../../core/services/hive_service.dart';
 import '../providers/prayer_providers.dart';
 
 /// ⚙️ إعدادات الصلاة المتقدمة — Advanced Prayer Settings
@@ -56,17 +58,74 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
           _buildMosqueModeSection(theme, isDark),
           const SizedBox(height: 24),
 
-          // ── Section 3: Seasonal Offsets ──
+          // ── Section 3: Calculation Method ──
+          const _SectionHeader(icon: Icons.calculate_rounded, title: 'طريقة حساب المواقيت'),
+          const SizedBox(height: 8),
+          _buildMethodSection(theme, isDark),
+          const SizedBox(height: 24),
+
+          // ── Section 4: Seasonal Offsets ──
           const _SectionHeader(icon: Icons.tune_rounded, title: 'الإزاحات الموسمية'),
           const SizedBox(height: 8),
           _buildOffsetsSection(theme, isDark),
           const SizedBox(height: 24),
 
-          // ── Section 4: Prayer Health Check ──
+          // ── Section 5: Prayer Health Check ──
           const _SectionHeader(icon: Icons.health_and_safety_rounded, title: 'فحص النظام'),
           const SizedBox(height: 8),
           _buildHealthSection(theme, isDark),
           const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMethodSection(ThemeData theme, bool isDark) {
+    final selected = HiveService.getCalculationMethod() ?? CalculationMethod.ummAlQura;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? NoorDesignSystem.surfaceDark : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: NoorDesignSystem.shadowSmall,
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'الطريقة المستخدمة لحساب جميع المواقيت',
+            style: GoogleFonts.cairo(
+              fontSize: 13,
+              color: NoorDesignSystem.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<CalculationMethod>(
+            initialValue: selected,
+            isExpanded: true,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            ),
+            items: PrayerTimeEngine.methods.entries.map((entry) {
+              return DropdownMenuItem(
+                value: entry.key,
+                child: Text(
+                  entry.value.name,
+                  style: GoogleFonts.cairo(fontSize: 14),
+                  textDirection: TextDirection.rtl,
+                ),
+              );
+            }).toList(),
+            onChanged: (method) {
+              if (method == null) return;
+              HiveService.setCalculationMethod(method);
+              setState(() {});
+            },
+          ),
         ],
       ),
     );
