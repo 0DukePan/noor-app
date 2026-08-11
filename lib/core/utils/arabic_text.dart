@@ -7,6 +7,7 @@ String normalizeArabic(String text) {
   return text
       .replaceAll(RegExp(r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]'), '')
       .replaceAll(RegExp(r'[أإآ]'), 'ا')
+      .replaceAll('ٱ', 'ا') // alef-wasla (common in Quranic text)
       .replaceAll('ة', 'ه')
       .replaceAll('ى', 'ي')
       .replaceAll(RegExp(r'\s+'), ' ')

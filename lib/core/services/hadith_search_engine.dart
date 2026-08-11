@@ -214,6 +214,7 @@ class HadithSearchEngine {
         .replaceAll('آ', 'ا')                        // Alef with madda
         .replaceAll('أ', 'ا')                        // Alef with hamza above
         .replaceAll('إ', 'ا')                        // Alef with hamza below
+        .replaceAll('ٱ', 'ا')                        // Alef-wasla
         .replaceAll('ؤ', 'و')                        // Waw with hamza
         .replaceAll('ئ', 'ي')                        // Ya with hamza
         .replaceAll('ة', 'ه')                        // Ta marbuta

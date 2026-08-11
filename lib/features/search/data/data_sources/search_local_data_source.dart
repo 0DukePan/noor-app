@@ -12,12 +12,15 @@ class SearchLocalDataSource {
   static const String _dbName = 'noor_search.db';
   Database? _db;
 
-  Future<void> init() async {
+  /// Path of the index database (used by tests and the clear-cache action).
+  static Future<String> _path() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, _dbName);
+    return join(dbPath, _dbName);
+  }
 
+  Future<void> init() async {
     _db = await openDatabase(
-      path,
+      await _path(),
       version: 1,
       onCreate: (db, version) async {
         // Create FTS5 virtual table
@@ -37,14 +40,24 @@ class SearchLocalDataSource {
   }
 
   /// Deletes the search index so it is rebuilt lazily on the next search
-  /// (used by the "clear cache" action).
+  /// (used by the "clear cache" action). Uses [deleteDatabase] so any open
+  /// connection is closed first.
   static Future<void> clearIndex() async {
-    final dbPath = await getDatabasesPath();
-    final file = File(join(dbPath, _dbName));
-    if (await file.exists()) {
-      await file.delete();
+    final path = await _path();
+    if (await File(path).exists() ||
+        await databaseFactory.databaseExists(path)) {
+      await databaseFactory.deleteDatabase(path);
     }
   }
+
+  /// The open index database (initializing it if needed) — used by tests.
+  Future<Database> get db async {
+    if (_db == null) await init();
+    return _db!;
+  }
+
+  /// Path of the index database — used by tests.
+  Future<String> get databasePath => _path();
 
   Future<void> ensureIndexed(
     List<String> quranPaths,

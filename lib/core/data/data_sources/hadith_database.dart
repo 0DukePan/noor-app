@@ -12,7 +12,7 @@ import 'package:sqflite/sqflite.dart';
 /// Builds and caches an SQLite database from JSON assets on first launch.
 /// Subsequent launches use the pre-built database for instant queries.
 class HadithDatabase {
-  static const int _dbVersion = 1;
+  static const int _dbVersion = 2;
   static const String _dbName = 'hadith_v1.db';
 
   /// Book IDs that map to `assets/hadith/by_book/the_9_books/`
@@ -74,9 +74,61 @@ class HadithDatabase {
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         debugPrint('🗄️ Upgrading Hadith database $oldVersion → $newVersion');
-        // Add future migrations here as _dbVersion is bumped.
+        if (oldVersion < 2) {
+          // v1 → v2: add the normalized Arabic column (diacritics stripped)
+          // and rebuild the FTS index over it so de-diacritized searches work.
+          await _migrateToV2(db);
+        }
       },
     );
+  }
+
+  /// v1 → v2: `arabic_norm` holds the de-diacritized text for FTS indexing.
+  static Future<void> _migrateToV2(Database db) async {
+    try {
+      await db.execute('ALTER TABLE hadiths ADD COLUMN arabic_norm TEXT');
+    } catch (_) {
+      // Column may already exist on partially migrated databases.
+    }
+
+    // Backfill normalized text in batches.
+    const batchSize = 1000;
+    int offset = 0;
+    while (true) {
+      final rows = await db.query(
+        'hadiths',
+        columns: ['rowid', 'arabic'],
+        limit: batchSize,
+        offset: offset,
+      );
+      if (rows.isEmpty) break;
+      final batch = db.batch();
+      for (final row in rows) {
+        batch.update(
+          'hadiths',
+          {'arabic_norm': normalizeForSearch(row['arabic'] as String? ?? '')},
+          where: 'rowid = ?',
+          whereArgs: [row['rowid']],
+        );
+      }
+      await batch.commit(noResult: true);
+      offset += rows.length;
+    }
+
+    // Recreate the FTS table over arabic_norm and rebuild it.
+    try {
+      await db.execute('DROP TABLE hadiths_fts');
+    } catch (_) {}
+    await db.execute('''
+      CREATE VIRTUAL TABLE hadiths_fts USING fts5(
+        arabic_norm,
+        english_text,
+        english_narrator,
+        content='hadiths',
+        content_rowid='rowid'
+      )
+    ''');
+    await _rebuildFts(db);
   }
 
   /// Opens a FRESH database importing only [bookIds] — used by tests so the
@@ -134,6 +186,7 @@ class HadithDatabase {
         collection_id TEXT NOT NULL,
         chapter_id INTEGER,
         arabic TEXT NOT NULL,
+        arabic_norm TEXT,
         english_narrator TEXT,
         english_text TEXT,
         PRIMARY KEY (id, collection_id),
@@ -146,10 +199,12 @@ class HadithDatabase {
     await db.execute('CREATE INDEX IF NOT EXISTS idx_hadiths_chapter ON hadiths(collection_id, chapter_id)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_chapters_collection ON chapters(collection_id)');
 
-    // FTS5 virtual table for full-text search
+    // FTS5 virtual table for full-text search.
+    // arabic_norm is the de-diacritized Arabic text (see _importBook), so
+    // searches work whether or not the user types diacritics.
     await db.execute('''
       CREATE VIRTUAL TABLE IF NOT EXISTS hadiths_fts USING fts5(
-        arabic, 
+        arabic_norm, 
         english_text, 
         english_narrator,
         content='hadiths',
@@ -260,6 +315,7 @@ class HadithDatabase {
             'collection_id': bookId,
             'chapter_id': h['chapterId'] ?? 0,
             'arabic': h['arabic'] ?? '',
+            'arabic_norm': normalizeForSearch(h['arabic'] ?? ''),
             'english_narrator': engMap['narrator'] ?? '',
             'english_text': engMap['text'] ?? '',
           }, conflictAlgorithm: ConflictAlgorithm.replace,);
@@ -388,9 +444,12 @@ class HadithDatabase {
       // Invalid FTS syntax (special characters) → fall through to LIKE.
     }
 
-    // Fallback: normalized LIKE search across Arabic and English text.
+    // Fallback: normalized LIKE search against the de-diacritized text (the
+    // raw arabic column keeps tashkeel, so a plain LIKE could never match a
+    // user's un-diacritized query).
     final normalizedQuery = normalizeForSearch(query);
-    String where = '(arabic LIKE ? OR english_text LIKE ? OR english_narrator LIKE ?)';
+    String where =
+        '(arabic_norm LIKE ? OR english_text LIKE ? OR english_narrator LIKE ?)';
     final List<dynamic> args = ['%$normalizedQuery%', '%$normalizedQuery%', '%$normalizedQuery%'];
 
     if (collectionId != null) {
@@ -409,8 +468,9 @@ class HadithDatabase {
         '\u064B\u064C\u064D\u064E\u064F\u0650\u0651\u0652\u0653\u0654\u0655\u0656';
     final buffer = StringBuffer();
     for (final rune in input.runes) {
-      final ch = String.fromCharCode(rune);
+      var ch = String.fromCharCode(rune);
       if (diacritics.contains(ch)) continue;
+      if (ch == 'ٱ') ch = 'ا'; // alef-wasla
       if (ch == ' ') {
         if (buffer.isEmpty || buffer.toString().endsWith(' ')) continue;
         buffer.write(' ');
