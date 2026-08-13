@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/design_system.dart';
 import '../../../../core/services/statistics_service.dart';
+import '../../../../core/theme/design_system.dart';
 import '../providers/profile_providers.dart';
 
 /// 📊 صفحة الملف الشخصي — User Profile Dashboard
@@ -291,7 +292,7 @@ class ProfilePage extends ConsumerWidget {
                               width: double.infinity,
                               child: OutlinedButton.icon(
                                 onPressed: () async {
-                                  HapticFeedback.mediumImpact();
+                                  unawaited(HapticFeedback.mediumImpact());
                                   await StatisticsService.startNewKhatmah();
                                   ref.invalidate(profileStatsProvider);
                                 },
@@ -459,12 +460,6 @@ class ProfilePage extends ConsumerWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String value;
-  final String subtitle;
-  final List<Color> gradient;
-  final bool isDark;
 
   const _StatCard({
     required this.icon,
@@ -474,6 +469,12 @@ class _StatCard extends StatelessWidget {
     required this.gradient,
     required this.isDark,
   });
+  final IconData icon;
+  final String title;
+  final String value;
+  final String subtitle;
+  final List<Color> gradient;
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
@@ -547,10 +548,6 @@ class _StatCard extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _AdhkarCheckItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isComplete;
-  final Color color;
 
   const _AdhkarCheckItem({
     required this.icon,
@@ -558,6 +555,10 @@ class _AdhkarCheckItem extends StatelessWidget {
     required this.isComplete,
     required this.color,
   });
+  final IconData icon;
+  final String label;
+  final bool isComplete;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -594,10 +595,6 @@ class _AdhkarCheckItem extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _WeeklyRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
 
   const _WeeklyRow({
     required this.icon,
@@ -605,6 +602,10 @@ class _WeeklyRow extends StatelessWidget {
     required this.value,
     required this.color,
   });
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -639,10 +640,6 @@ class _WeeklyRow extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _TotalStatBubble extends StatelessWidget {
-  final String value;
-  final String label;
-  final IconData icon;
-  final Color color;
 
   const _TotalStatBubble({
     required this.value,
@@ -650,6 +647,10 @@ class _TotalStatBubble extends StatelessWidget {
     required this.icon,
     required this.color,
   });
+  final String value;
+  final String label;
+  final IconData icon;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {

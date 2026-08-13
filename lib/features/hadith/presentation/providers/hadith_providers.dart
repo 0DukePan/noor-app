@@ -1,12 +1,12 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../../../core/algorithms/fsrs_algorithm.dart';
 import '../../../../core/data/data_sources/local_hadith_data_source.dart';
 import '../../../../core/data/repositories/hadith_repository_impl.dart';
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/domain/repositories/hadith_repository.dart';
-import '../../../../core/algorithms/fsrs_algorithm.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // REPOSITORY & DATA SOURCES
@@ -54,11 +54,6 @@ final hadithChapterCountsProvider =
 // ═══════════════════════════════════════════════════════════════════════════
 
 class PaginatedHadithsState extends Equatable {
-  final List<Hadith> hadiths;
-  final bool isLoading;
-  final String? error;
-  final int currentPage;
-  final bool hasMore;
 
   const PaginatedHadithsState({
     this.hadiths = const [],
@@ -67,6 +62,11 @@ class PaginatedHadithsState extends Equatable {
     this.currentPage = 1,
     this.hasMore = true,
   });
+  final List<Hadith> hadiths;
+  final bool isLoading;
+  final String? error;
+  final int currentPage;
+  final bool hasMore;
 
   PaginatedHadithsState copyWith({
     List<Hadith>? hadiths,
@@ -89,14 +89,14 @@ class PaginatedHadithsState extends Equatable {
 }
 
 class PaginatedHadithsNotifier extends StateNotifier<PaginatedHadithsState> {
-  final HadithRepository _repository;
-  final String _bookId;
-  static const int _limit = 50;
 
   PaginatedHadithsNotifier(this._repository, this._bookId)
       : super(const PaginatedHadithsState()) {
     loadFirstPage();
   }
+  final HadithRepository _repository;
+  final String _bookId;
+  static const int _limit = 50;
 
   Future<void> loadFirstPage() async {
     state = state.copyWith(isLoading: true);
@@ -108,7 +108,7 @@ class PaginatedHadithsNotifier extends StateNotifier<PaginatedHadithsState> {
         currentPage: 1,
         hasMore: hadiths.length == _limit,
       );
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -131,7 +131,7 @@ class PaginatedHadithsNotifier extends StateNotifier<PaginatedHadithsState> {
         currentPage: nextPage,
         hasMore: newHadiths.length == _limit,
       );
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -167,10 +167,6 @@ enum QuizType {
 }
 
 class QuizQuestion extends Equatable {
-  final String question;
-  final List<String> options;
-  final String correctAnswer;
-  final Hadith hadith;
 
   const QuizQuestion({
     required this.question,
@@ -178,19 +174,16 @@ class QuizQuestion extends Equatable {
     required this.correctAnswer,
     required this.hadith,
   });
+  final String question;
+  final List<String> options;
+  final String correctAnswer;
+  final Hadith hadith;
 
   @override
   List<Object?> get props => [question, options, correctAnswer, hadith];
 }
 
 class QuizState extends Equatable {
-  final QuizType type;
-  final List<QuizQuestion> questions;
-  final int currentIndex;
-  final int score;
-  final bool isComplete;
-  final String? selectedAnswer;
-  final bool showResult;
 
   const QuizState({
     this.type = QuizType.completeHadith,
@@ -201,6 +194,13 @@ class QuizState extends Equatable {
     this.selectedAnswer,
     this.showResult = false,
   });
+  final QuizType type;
+  final List<QuizQuestion> questions;
+  final int currentIndex;
+  final int score;
+  final bool isComplete;
+  final String? selectedAnswer;
+  final bool showResult;
 
   QuizQuestion? get currentQuestion =>
       questions.isNotEmpty && currentIndex < questions.length 
@@ -232,9 +232,9 @@ class QuizState extends Equatable {
 }
 
 class QuizNotifier extends StateNotifier<QuizState> {
-  final List<Hadith> hadiths;
 
   QuizNotifier(this.hadiths) : super(const QuizState());
+  final List<Hadith> hadiths;
 
   void startQuiz(QuizType type, {int questionCount = 10}) {
     // Generate questions from hadiths
@@ -329,13 +329,12 @@ class QuizNotifier extends StateNotifier<QuizState> {
     }
     
     // Move to next after a delay (handled in UI)
-    Future.delayed(const Duration(seconds: 1), () {
+    Future<void>.delayed(const Duration(seconds: 1), () {
       if (isComplete) {
         state = state.copyWith(isComplete: true, showResult: false);
       } else {
         state = state.copyWith(
           currentIndex: nextIndex,
-          selectedAnswer: null,
           showResult: false,
         );
       }
@@ -350,7 +349,7 @@ class QuizNotifier extends StateNotifier<QuizState> {
   /// learning-statistics page can show real quiz data.
   Future<void> _saveQuizResult(int score, int total) async {
     try {
-      final box = await Hive.openBox('quiz_history');
+      final box = await Hive.openBox<dynamic>('quiz_history');
       final now = DateTime.now();
       await box.put(
         '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
@@ -360,7 +359,7 @@ class QuizNotifier extends StateNotifier<QuizState> {
           'date': now.toIso8601String(),
         },
       );
-    } catch (_) {
+    } on Exception catch (_) {
       // Best-effort persistence; the stats page degrades gracefully.
     }
   }
@@ -375,19 +374,18 @@ final quizProvider = StateNotifierProvider.family<QuizNotifier, QuizState, List<
 // ═══════════════════════════════════════════════════════════════════════════
 
 class MemorizationState extends Equatable {
+
+  const MemorizationState({
+    required this.streak, this.deck = const [],
+    this.fsrsCards = const {},
+    this.currentIndex = 0,
+    this.isComplete = false,
+  });
   final List<Hadith> deck;
   final Map<String, MemorizationCard> fsrsCards;
   final int currentIndex;
   final bool isComplete;
   final StreakTracker streak;
-
-  const MemorizationState({
-    this.deck = const [],
-    this.fsrsCards = const {},
-    this.currentIndex = 0,
-    this.isComplete = false,
-    required this.streak,
-  });
 
   Hadith? get currentCard =>
       deck.isNotEmpty && currentIndex < deck.length ? deck[currentIndex] : null;
@@ -439,10 +437,10 @@ class MemorizationNotifier extends StateNotifier<MemorizationState> {
   MemorizationNotifier() : super(MemorizationState(streak: StreakTracker()));
 
   static const _boxName = 'memorization_cards';
-  Box? _box;
+  Box<dynamic>? _box;
 
   Future<void> _ensureBox() async {
-    _box ??= await Hive.openBox(_boxName);
+    _box ??= await Hive.openBox<dynamic>(_boxName);
   }
 
   /// Load the deck of hadiths to memorize, restoring persisted FSRS state.
@@ -453,13 +451,13 @@ class MemorizationNotifier extends StateNotifier<MemorizationState> {
       final key = h.id.toString();
       final raw = _box!.get(key);
       fsrsCards[key] = raw != null
-          ? MemorizationCard.fromJson(Map<String, dynamic>.from(raw))
+          ? MemorizationCard.fromJson(Map<String, dynamic>.from(raw as Map))
           : MemorizationCard(id: key, hadithId: key);
     }
-    StreakTracker streak = StreakTracker();
+    var streak = StreakTracker();
     final streakRaw = _box!.get('_streak');
     if (streakRaw != null) {
-      streak = StreakTracker.fromJson(Map<String, dynamic>.from(streakRaw));
+      streak = StreakTracker.fromJson(Map<String, dynamic>.from(streakRaw as Map));
     }
     state = MemorizationState(
       deck: hadiths,
@@ -531,5 +529,3 @@ class MemorizationNotifier extends StateNotifier<MemorizationState> {
 final memorizationProvider = StateNotifierProvider<MemorizationNotifier, MemorizationState>((ref) {
   return MemorizationNotifier();
 });
-
-

@@ -50,7 +50,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
     
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+    _pulseAnimation = Tween<double>(begin: 1, end: 1.1).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
     
@@ -76,7 +76,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
 
     try {
       // Check permission
-      LocationPermission permission = await Geolocator.checkPermission();
+      var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
@@ -102,7 +102,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
         _qiblaResult = result;
         _isLoadingLocation = false;
       });
-    } catch (e) {
+    } on Exception {
       // Location unavailable — show the fallback city's qibla with a warning
       // instead of blocking the whole screen on an error.
       _useFallbackLocation('تعذّر تحديد موقعك، عرض الاتجاه من مدينة الرياض');
@@ -144,7 +144,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
   }
 
   void _showTimeoutDialog() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         icon: const Icon(Icons.battery_saver),
@@ -170,7 +170,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
     );
   }
 
-  void _toggleLock() async {
+  Future<void> _toggleLock() async {
     await HapticFeedback.mediumImpact();
     
     setState(() {
@@ -184,7 +184,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
     });
   }
 
-  void _toggleMosqueMode() async {
+  Future<void> _toggleMosqueMode() async {
     await HapticFeedback.heavyImpact();
     if (!mounted) return;
 
@@ -212,7 +212,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
   }
 
   void _showCalibrationHelp() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         icon: const Icon(Icons.help_outline, size: 48),
@@ -274,7 +274,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
     
     // Calculate Qibla deviation
     double qiblaDeviation = 0;
-    QiblaAlignment alignment = QiblaAlignment.far;
+    var alignment = QiblaAlignment.far;
     
     if (_qiblaResult != null) {
       final heading = _isLocked ? _lockedDirection : _currentHeading;
@@ -511,7 +511,6 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
             ),
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.1),
-              width: 1,
             ),
           ),
           child: CustomPaint(
@@ -527,7 +526,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
         Transform.rotate(
           angle: _safeAngle(qiblaAngle, heading),
           child: ScaleTransition(
-            scale: alignment.isAligned ? _pulseAnimation : const AlwaysStoppedAnimation(1.0),
+            scale: alignment.isAligned ? _pulseAnimation : const AlwaysStoppedAnimation(1),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -728,15 +727,15 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _InfoItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
 
   const _InfoItem({
     required this.icon,
     required this.label,
     required this.value,
   });
+  final IconData icon;
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
@@ -766,15 +765,15 @@ class _InfoItem extends StatelessWidget {
 }
 
 class _CompassPainter extends CustomPainter {
-  final double heading;
-  final double qiblaDirection;
-  final bool isAligned;
 
   _CompassPainter({
     required this.heading,
     required this.qiblaDirection,
     required this.isAligned,
   });
+  final double heading;
+  final double qiblaDirection;
+  final bool isAligned;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -796,10 +795,11 @@ class _CompassPainter extends CustomPainter {
       final x2 = center.dx + innerRadius * math.cos(angle);
       final y2 = center.dy + innerRadius * math.sin(angle);
       
-      tickPaint.strokeWidth = isCardinal ? 2 : 1;
-      tickPaint.color = isCardinal 
-          ? Colors.white.withValues(alpha: 0.6)
-          : Colors.white.withValues(alpha: 0.2);
+      tickPaint
+        ..strokeWidth = isCardinal ? 2 : 1
+        ..color = isCardinal 
+            ? Colors.white.withValues(alpha: 0.6)
+            : Colors.white.withValues(alpha: 0.2);
       
       canvas.drawLine(Offset(x1, y1), Offset(x2, y2), tickPaint);
     }
@@ -813,19 +813,20 @@ class _CompassPainter extends CustomPainter {
       final x = center.dx + (radius - 35) * math.cos(angle);
       final y = center.dy + (radius - 35) * math.sin(angle);
 
-      textPainter.text = TextSpan(
-        text: directions[i],
-        style: TextStyle(
-          color: i == 0 ? const Color(0xFFFFD700) : Colors.white.withValues(alpha: 0.6),
-          fontSize: i == 0 ? 18 : 14,
-          fontWeight: i == 0 ? FontWeight.bold : FontWeight.normal,
-        ),
-      );
-      textPainter.layout();
-      textPainter.paint(
-        canvas,
-        Offset(x - textPainter.width / 2, y - textPainter.height / 2),
-      );
+      textPainter
+        ..text = TextSpan(
+          text: directions[i],
+          style: TextStyle(
+            color: i == 0 ? const Color(0xFFFFD700) : Colors.white.withValues(alpha: 0.6),
+            fontSize: i == 0 ? 18 : 14,
+            fontWeight: i == 0 ? FontWeight.bold : FontWeight.normal,
+          ),
+        )
+        ..layout()
+        ..paint(
+          canvas,
+          Offset(x - textPainter.width / 2, y - textPainter.height / 2),
+        );
     }
   }
 

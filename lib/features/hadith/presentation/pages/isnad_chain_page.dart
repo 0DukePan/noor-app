@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/design_system.dart';
 import '../../../../core/services/isnad_parser_service.dart';
 import '../../../../core/services/narrator_database_service.dart';
+import '../../../../core/theme/design_system.dart';
 import '../widgets/narrator_profile_body.dart';
 import 'isnad_graph_page.dart';
 
@@ -17,14 +18,12 @@ import 'isnad_graph_page.dart';
 /// - Narrator biography from database lookup
 /// - Animated connectors with link-word labels
 class IsnadChainPage extends StatefulWidget {
-  final String hadithId;
-  final String hadithText;
 
   const IsnadChainPage({
-    super.key,
-    required this.hadithId,
-    required this.hadithText,
+    required this.hadithId, required this.hadithText, super.key,
   });
+  final String hadithId;
+  final String hadithText;
 
   @override
   State<IsnadChainPage> createState() => _IsnadChainPageState();
@@ -68,7 +67,7 @@ class _IsnadChainPageState extends State<IsnadChainPage>
         _chain = parsed;
         _isLoading = false;
       });
-      _animController.forward();
+      unawaited(_animController.forward());
     }
   }
 
@@ -103,7 +102,7 @@ class _IsnadChainPageState extends State<IsnadChainPage>
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (_) => IsnadGraphPage(
                     hadithText: widget.hadithText,
                   ),
@@ -318,11 +317,6 @@ class _IsnadChainPageState extends State<IsnadChainPage>
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _NarratorCard extends StatelessWidget {
-  final NarratorInfo narrator;
-  final int index;
-  final int total;
-  final ValueNotifier<String?> selectedNotifier;
-  final VoidCallback onTap;
 
   const _NarratorCard({
     required this.narrator,
@@ -331,6 +325,11 @@ class _NarratorCard extends StatelessWidget {
     required this.selectedNotifier,
     required this.onTap,
   });
+  final NarratorInfo narrator;
+  final int index;
+  final int total;
+  final ValueNotifier<String?> selectedNotifier;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -510,9 +509,9 @@ class _NarratorCard extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _IsnadConnector extends StatelessWidget {
-  final String linkWord;
 
   const _IsnadConnector({required this.linkWord});
+  final String linkWord;
 
   @override
   Widget build(BuildContext context) {
@@ -529,7 +528,7 @@ class _IsnadConnector extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  NoorDesignSystem.primaryGreen.withValues(alpha: 0.0),
+                  NoorDesignSystem.primaryGreen.withValues(alpha: 0),
                   NoorDesignSystem.primaryGreen.withValues(alpha: 0.3),
                 ],
               ),
@@ -575,7 +574,7 @@ class _IsnadConnector extends StatelessWidget {
               gradient: LinearGradient(
                 colors: [
                   NoorDesignSystem.primaryGreen.withValues(alpha: 0.3),
-                  NoorDesignSystem.primaryGreen.withValues(alpha: 0.0),
+                  NoorDesignSystem.primaryGreen.withValues(alpha: 0),
                 ],
               ),
             ),
@@ -591,13 +590,13 @@ class _IsnadConnector extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _NarratorDetailPanel extends StatelessWidget {
-  final NarratorInfo narrator;
-  final VoidCallback onClose;
 
   const _NarratorDetailPanel({
     required this.narrator,
     required this.onClose,
   });
+  final NarratorInfo narrator;
+  final VoidCallback onClose;
 
   @override
   Widget build(BuildContext context) {
@@ -652,11 +651,9 @@ class _NarratorDetailPanel extends StatelessWidget {
           NarratorProfileBody(
             narrator: narrator,
             profile: profile,
-            accentColor: NoorDesignSystem.primaryGreen,
           ),
         ],
       ),
     );
   }
 }
-

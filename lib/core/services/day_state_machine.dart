@@ -18,7 +18,7 @@ import 'prayer_time_engine.dart';
 /// - العشاء
 /// - النوم
 class DayStateMachine {
-  static Box? _stateBox;
+  static Box<dynamic>? _stateBox;
   static Timer? _stateTimer;
   static PrayerTimes? _todayTimes;
   
@@ -80,7 +80,7 @@ class DayStateMachine {
   }
 
   /// Consecutive days on which all five prayers were completed.
-  static int get streak => _stateBox?.get(_streakKey) ?? 0;
+  static int get streak => (_stateBox?.get(_streakKey) ?? 0) as int;
 
   static Future<void> markPrayerCompleted(PrayerType prayer) async {
     if (prayer == PrayerType.sunrise) return;
@@ -119,7 +119,7 @@ class DayStateMachine {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static Future<void> init() async {
-    _stateBox = await Hive.openBox('day_state');
+    _stateBox = await Hive.openBox<dynamic>('day_state');
     
     // Start state checking
     _startStateMonitoring();
@@ -172,7 +172,7 @@ class DayStateMachine {
   static DayState _determineState(DateTime now, PrayerTimes times) {
     // Calculate last third of night (for Tahajjud)
     final midnightToFajr = times.fajr.difference(
-      DateTime(now.year, now.month, now.day, 0, 0),
+      DateTime(now.year, now.month, now.day),
     );
     final lastThird = times.fajr.subtract(midnightToFajr ~/ 3);
     
@@ -277,9 +277,11 @@ class DayStateMachine {
       case DayState.maghrib:
         return times.isha.difference(now);
       case DayState.isha:
-        final sleep = DateTime(now.year, now.month, now.day, 23, 0);
+        final sleep = DateTime(now.year, now.month, now.day, 23);
         return sleep.difference(now);
-      default:
+      case DayState.unknown:
+      case DayState.lateNight:
+      case DayState.sleep:
         return Duration.zero;
     }
   }
@@ -352,7 +354,11 @@ extension DayStateInfo on DayState {
       case DayState.maghrib: return 'أذكار المساء';
       case DayState.isha: return 'أذكار النوم';
       case DayState.sleep: return 'أذكار النوم';
-      default: return '';
+      case DayState.unknown:
+      case DayState.lateNight:
+      case DayState.sunrise:
+      case DayState.dhuhr:
+        return '';
     }
   }
 
@@ -367,7 +373,9 @@ extension DayStateInfo on DayState {
       case DayState.maghrib: return 'صلِّ المغرب';
       case DayState.isha: return 'صلِّ العشاء';
       case DayState.sleep: return 'نم مبكرًا للفجر';
-      default: return '';
+      case DayState.unknown:
+      case DayState.lateNight:
+        return '';
     }
   }
 
@@ -389,11 +397,6 @@ extension DayStateInfo on DayState {
 
 /// معلومات الحالة الكاملة
 class StateInfo {
-  final DayState state;
-  final DayState nextState;
-  final Duration timeToNextState;
-  final String suggestedAdhkar;
-  final String suggestedAction;
 
   const StateInfo({
     required this.state,
@@ -402,6 +405,11 @@ class StateInfo {
     required this.suggestedAdhkar,
     required this.suggestedAction,
   });
+  final DayState state;
+  final DayState nextState;
+  final Duration timeToNextState;
+  final String suggestedAdhkar;
+  final String suggestedAction;
 
   String get formattedTimeToNext {
     final hours = timeToNextState.inHours;

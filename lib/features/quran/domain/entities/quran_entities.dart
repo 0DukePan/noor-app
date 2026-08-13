@@ -5,6 +5,13 @@ export '../../../../core/domain/entities/surah.dart';
 
 /// تفسير - Tafsir Entity
 class Tafsir extends Equatable {
+
+  const Tafsir({
+    required this.surahNumber,
+    required this.verseNumber,
+    required this.briefText,
+    required this.source, required this.author, this.detailedText,
+  });
   final int surahNumber;
   final int verseNumber;
   final String briefText;
@@ -12,21 +19,20 @@ class Tafsir extends Equatable {
   final String source;
   final String author;
 
-  const Tafsir({
-    required this.surahNumber,
-    required this.verseNumber,
-    required this.briefText,
-    this.detailedText,
-    required this.source,
-    required this.author,
-  });
-
   @override
   List<Object?> get props => [surahNumber, verseNumber, source];
 }
 
 /// سبب النزول - Revelation Cause Entity
 class RevelationCause extends Equatable {
+
+  const RevelationCause({
+    required this.surahNumber,
+    required this.verseNumber,
+    required this.briefSummary,
+    required this.causeType, required this.source, this.fullStory,
+    this.historicalContext,
+  });
   final int surahNumber;
   final int verseNumber;
   final String briefSummary;
@@ -34,16 +40,6 @@ class RevelationCause extends Equatable {
   final CauseType causeType;
   final String source;
   final String? historicalContext;
-
-  const RevelationCause({
-    required this.surahNumber,
-    required this.verseNumber,
-    required this.briefSummary,
-    this.fullStory,
-    required this.causeType,
-    required this.source,
-    this.historicalContext,
-  });
 
   @override
   List<Object?> get props => [surahNumber, verseNumber, causeType];
@@ -66,12 +62,6 @@ enum CauseType {
 
 /// تدبر - Tadabbur (Personal Reflection)
 class Tadabbur extends Equatable {
-  final String id;
-  final int surahNumber;
-  final int verseNumber;
-  final String encryptedNote;
-  final DateTime createdAt;
-  final DateTime? updatedAt;
 
   const Tadabbur({
     required this.id,
@@ -81,6 +71,12 @@ class Tadabbur extends Equatable {
     required this.createdAt,
     this.updatedAt,
   });
+  final String id;
+  final int surahNumber;
+  final int verseNumber;
+  final String encryptedNote;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
 
   @override
   List<Object?> get props => [id, surahNumber, verseNumber];

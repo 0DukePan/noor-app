@@ -15,9 +15,9 @@ import 'scholar_mode_page.dart';
 /// - Easy navigation between layers
 /// - Copy/Share each layer separately
 class LayeredHadithPage extends StatefulWidget {
-  final HadithIndexEntry hadith;
 
-  const LayeredHadithPage({super.key, required this.hadith});
+  const LayeredHadithPage({required this.hadith, super.key});
+  final HadithIndexEntry hadith;
 
   @override
   State<LayeredHadithPage> createState() => _LayeredHadithPageState();
@@ -307,8 +307,8 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
     // Split by common patterns
     final patterns = ['عن', 'حدثنا', 'أخبرنا', 'قال'];
     
-    List<String> narrators = [];
-    final String current = sanad;
+    var narrators = <String>[];
+    final current = sanad;
     
     for (final pattern in patterns) {
       if (current.contains(pattern)) {
@@ -673,7 +673,7 @@ ${widget.hadith.text}
   void _openScholarMode(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (_) => ScholarModePage(hadith: widget.hadith),
       ),
     );
@@ -682,7 +682,7 @@ ${widget.hadith.text}
   void _openHadith(HadithIndexEntry hadith) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (_) => LayeredHadithPage(hadith: hadith),
       ),
     );
@@ -746,27 +746,27 @@ ${widget.hadith.text}
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _GradeInfo {
-  final Color color;
-  final IconData icon;
-  final String explanation;
 
   const _GradeInfo({
     required this.color,
     required this.icon,
     required this.explanation,
   });
+  final Color color;
+  final IconData icon;
+  final String explanation;
 }
 
 class _NarratorCard extends StatelessWidget {
-  final String name;
-  final int level;
-  final bool isCompanion;
 
   const _NarratorCard({
     required this.name,
     required this.level,
     required this.isCompanion,
   });
+  final String name;
+  final int level;
+  final bool isCompanion;
 
   @override
   Widget build(BuildContext context) {

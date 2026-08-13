@@ -3,9 +3,9 @@ import '../../domain/repositories/hadith_repository.dart';
 import '../data_sources/local_hadith_data_source.dart';
 
 class HadithRepositoryImpl implements HadithRepository {
-  final LocalHadithDataSource _dataSource;
 
   HadithRepositoryImpl(this._dataSource);
+  final LocalHadithDataSource _dataSource;
 
   @override
   Future<List<HadithCollection>> getCollections() async {

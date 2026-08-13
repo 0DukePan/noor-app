@@ -76,7 +76,7 @@ class SilentUIController extends ChangeNotifier {
   }
 
   /// Set prayer time status
-  void setPrayerTime(bool active) {
+  void setPrayerTime({required bool active}) {
     _isPrayerTime = active;
     notifyListeners();
   }
@@ -163,7 +163,9 @@ class SilentUIController extends ChangeNotifier {
         return 'وقت أذكار المساء 🌙';
       case AdhkarType.afterPrayer:
         return 'لا تنسَ أذكار ما بعد الصلاة';
-      default:
+      case AdhkarType.sleep:
+      case AdhkarType.wakeUp:
+      case AdhkarType.general:
         return null;
     }
   }
@@ -184,17 +186,15 @@ class SilentUIController extends ChangeNotifier {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _GentleNotificationWidget extends StatefulWidget {
+
+  const _GentleNotificationWidget({
+    required this.message,
+    required this.duration, required this.onDismiss, this.icon,
+  });
   final String message;
   final IconData? icon;
   final Duration duration;
   final VoidCallback onDismiss;
-
-  const _GentleNotificationWidget({
-    required this.message,
-    this.icon,
-    required this.duration,
-    required this.onDismiss,
-  });
 
   @override
   State<_GentleNotificationWidget> createState() => _GentleNotificationWidgetState();
@@ -227,7 +227,7 @@ class _GentleNotificationWidgetState extends State<_GentleNotificationWidget>
     _controller.forward();
     
     // Auto dismiss
-    Future.delayed(widget.duration, () {
+    Future<void>.delayed(widget.duration, () {
       if (mounted) {
         _dismiss();
       }
@@ -311,14 +311,13 @@ class _GentleNotificationWidgetState extends State<_GentleNotificationWidget>
 
 /// Wrap pages that should be in "reading mode"
 class ReadingModeWrapper extends StatefulWidget {
-  final Widget child;
-  final bool isQuranPage;
 
   const ReadingModeWrapper({
-    super.key,
-    required this.child,
+    required this.child, super.key,
     this.isQuranPage = false,
   });
+  final Widget child;
+  final bool isQuranPage;
 
   @override
   State<ReadingModeWrapper> createState() => _ReadingModeWrapperState();

@@ -11,13 +11,6 @@ enum TafsirSourceId {
 
 /// معلومات مصدر التفسير
 class TafsirSource {
-  final TafsirSourceId id;
-  final String arabicName;
-  final String englishName;
-  final String author;
-  final String assetPath;
-  final bool isFullyBundled;
-  final String? apiEndpoint;
 
   const TafsirSource({
     required this.id,
@@ -28,6 +21,13 @@ class TafsirSource {
     this.isFullyBundled = true,
     this.apiEndpoint,
   });
+  final TafsirSourceId id;
+  final String arabicName;
+  final String englishName;
+  final String author;
+  final String assetPath;
+  final bool isFullyBundled;
+  final String? apiEndpoint;
 
   /// المصادر المتاحة
   static const Map<TafsirSourceId, TafsirSource> sources = {
@@ -37,7 +37,6 @@ class TafsirSource {
       englishName: 'Al-Muyassar',
       author: 'مجمع الملك فهد',
       assetPath: 'assets/tafsir/muyassar/ar-tafsir-muyassar',
-      isFullyBundled: true,
     ),
     TafsirSourceId.saadi: TafsirSource(
       id: TafsirSourceId.saadi,
@@ -45,7 +44,6 @@ class TafsirSource {
       englishName: 'As-Saadi',
       author: 'الشيخ عبد الرحمن السعدي',
       assetPath: 'assets/tafsir/saadi/ar-tafseer-al-saddi',
-      isFullyBundled: true,
     ),
     TafsirSourceId.tabari: TafsirSource(
       id: TafsirSourceId.tabari,
@@ -53,7 +51,6 @@ class TafsirSource {
       englishName: 'At-Tabari',
       author: 'الإمام ابن جرير الطبري',
       assetPath: 'assets/tafsir/tabari/ar-tafsir-al-tabari',
-      isFullyBundled: true,
     ),
     TafsirSourceId.ibnKathir: TafsirSource(
       id: TafsirSourceId.ibnKathir,
@@ -61,7 +58,6 @@ class TafsirSource {
       englishName: 'Ibn Kathir',
       author: 'الإمام ابن كثير',
       assetPath: 'assets/tafsir/ibn_kathir/full/ar-tafsir-ibn-kathir',
-      isFullyBundled: true,
     ),
   };
 
@@ -71,12 +67,6 @@ class TafsirSource {
 
 /// تفسير آية واحدة
 class TafsirEntry {
-  final int surah;
-  final int ayah;
-  final String text;
-  final TafsirSourceId source;
-  final List<TafsirReference>? references;
-  final DateTime? cachedAt;
 
   const TafsirEntry({
     required this.surah,
@@ -86,12 +76,6 @@ class TafsirEntry {
     this.references,
     this.cachedAt,
   });
-
-  /// المفتاح الفريد
-  String get key => '${source.name}:$surah:$ayah';
-  
-  /// معرف الآية
-  String get verseId => '$surah:$ayah';
 
   factory TafsirEntry.fromJson(
     Map<String, dynamic> json,
@@ -104,6 +88,18 @@ class TafsirEntry {
       source: source,
     );
   }
+  final int surah;
+  final int ayah;
+  final String text;
+  final TafsirSourceId source;
+  final List<TafsirReference>? references;
+  final DateTime? cachedAt;
+
+  /// المفتاح الفريد
+  String get key => '${source.name}:$surah:$ayah';
+  
+  /// معرف الآية
+  String get verseId => '$surah:$ayah';
 
   Map<String, dynamic> toJson() => {
     'surah': surah,
@@ -126,9 +122,6 @@ class TafsirEntry {
 
 /// تفسير سورة كاملة
 class SurahTafsir {
-  final int surah;
-  final TafsirSourceId source;
-  final List<TafsirEntry> entries;
 
   const SurahTafsir({
     required this.surah,
@@ -136,39 +129,38 @@ class SurahTafsir {
     required this.entries,
   });
 
+  factory SurahTafsir.fromJson(
+    Map<String, dynamic> json,
+    TafsirSourceId source,
+  ) {
+    final ayahs = json['ayahs'] as List;
+    final surah = ayahs.isNotEmpty ? (ayahs.first as Map)['surah'] as int : 0;
+    
+    return SurahTafsir(
+      surah: surah,
+      source: source,
+      entries: ayahs.map((a) => TafsirEntry.fromJson(Map<String, dynamic>.from(a as Map), source)).toList(),
+    );
+  }
+  final int surah;
+  final TafsirSourceId source;
+  final List<TafsirEntry> entries;
+
   /// الحصول على تفسير آية
   TafsirEntry? getAyah(int ayah) {
     try {
       return entries.firstWhere((e) => e.ayah == ayah);
-    } catch (_) {
+    } on Exception catch (_) {
       return null;
     }
   }
 
   /// عدد الآيات
   int get length => entries.length;
-
-  factory SurahTafsir.fromJson(
-    Map<String, dynamic> json,
-    TafsirSourceId source,
-  ) {
-    final ayahs = json['ayahs'] as List;
-    final surah = ayahs.isNotEmpty ? ayahs.first['surah'] as int : 0;
-    
-    return SurahTafsir(
-      surah: surah,
-      source: source,
-      entries: ayahs.map((a) => TafsirEntry.fromJson(a, source)).toList(),
-    );
-  }
 }
 
 /// مرجع في التفسير
 class TafsirReference {
-  final TafsirReferenceType type;
-  final String text;
-  final String? source;
-  final String? link;
 
   const TafsirReference({
     required this.type,
@@ -176,6 +168,10 @@ class TafsirReference {
     this.source,
     this.link,
   });
+  final TafsirReferenceType type;
+  final String text;
+  final String? source;
+  final String? link;
 }
 
 /// نوع المرجع
@@ -188,11 +184,6 @@ enum TafsirReferenceType {
 
 /// إعدادات عرض التفسير
 class TafsirDisplaySettings {
-  final TafsirSourceId primarySource;
-  final List<TafsirSourceId> compareSources;
-  final bool showReferences;
-  final double fontSize;
-  final TafsirDisplayMode displayMode;
 
   const TafsirDisplaySettings({
     this.primarySource = TafsirSourceId.muyassar,
@@ -201,6 +192,11 @@ class TafsirDisplaySettings {
     this.fontSize = 18.0,
     this.displayMode = TafsirDisplayMode.inline,
   });
+  final TafsirSourceId primarySource;
+  final List<TafsirSourceId> compareSources;
+  final bool showReferences;
+  final double fontSize;
+  final TafsirDisplayMode displayMode;
 
   TafsirDisplaySettings copyWith({
     TafsirSourceId? primarySource,
@@ -228,11 +224,6 @@ enum TafsirDisplayMode {
 
 /// علامة تفسير محفوظة
 class TafsirBookmark {
-  final int surah;
-  final int ayah;
-  final TafsirSourceId source;
-  final DateTime createdAt;
-  final String? note;
 
   const TafsirBookmark({
     required this.surah,
@@ -242,8 +233,6 @@ class TafsirBookmark {
     this.note,
   });
 
-  String get key => '${source.name}:$surah:$ayah';
-
   factory TafsirBookmark.fromJson(Map<String, dynamic> json) {
     return TafsirBookmark(
       surah: json['surah'] as int,
@@ -252,10 +241,17 @@ class TafsirBookmark {
         (e) => e.name == json['source'],
         orElse: () => TafsirSourceId.muyassar,
       ),
-      createdAt: DateTime.parse(json['createdAt']),
-      note: json['note'],
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      note: json['note'] as String?,
     );
   }
+  final int surah;
+  final int ayah;
+  final TafsirSourceId source;
+  final DateTime createdAt;
+  final String? note;
+
+  String get key => '${source.name}:$surah:$ayah';
 
   Map<String, dynamic> toJson() => {
     'surah': surah,
@@ -268,11 +264,6 @@ class TafsirBookmark {
 
 /// سجل قراءة التفسير
 class TafsirReadingHistory {
-  final int surah;
-  final int ayah;
-  final TafsirSourceId source;
-  final DateTime lastRead;
-  final int readCount;
 
   const TafsirReadingHistory({
     required this.surah,
@@ -281,6 +272,11 @@ class TafsirReadingHistory {
     required this.lastRead,
     this.readCount = 1,
   });
+  final int surah;
+  final int ayah;
+  final TafsirSourceId source;
+  final DateTime lastRead;
+  final int readCount;
 
   String get key => '${source.name}:$surah:$ayah';
 
@@ -308,13 +304,6 @@ enum HighlightColor {
 
 /// تظليل نص في التفسير
 class TafsirHighlight {
-  final String id;
-  final int surah;
-  final int ayah;
-  final TafsirSourceId source;
-  final String highlightedText;
-  final HighlightColor color;
-  final DateTime createdAt;
 
   const TafsirHighlight({
     required this.id,
@@ -322,11 +311,8 @@ class TafsirHighlight {
     required this.ayah,
     required this.source,
     required this.highlightedText,
-    this.color = HighlightColor.yellow,
-    required this.createdAt,
+    required this.createdAt, this.color = HighlightColor.yellow,
   });
-
-  String get key => 'hl:${source.name}:$surah:$ayah:$id';
 
   factory TafsirHighlight.fromJson(Map<String, dynamic> json) {
     return TafsirHighlight(
@@ -342,9 +328,18 @@ class TafsirHighlight {
         (e) => e.name == json['color'],
         orElse: () => HighlightColor.yellow,
       ),
-      createdAt: DateTime.parse(json['createdAt']),
+      createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
+  final String id;
+  final int surah;
+  final int ayah;
+  final TafsirSourceId source;
+  final String highlightedText;
+  final HighlightColor color;
+  final DateTime createdAt;
+
+  String get key => 'hl:${source.name}:$surah:$ayah:$id';
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -359,13 +354,6 @@ class TafsirHighlight {
 
 /// ملاحظة تدبر مرتبطة بالتفسير
 class TafsirAnnotation {
-  final String id;
-  final int surah;
-  final int ayah;
-  final TafsirSourceId source;
-  final String noteText;
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   const TafsirAnnotation({
     required this.id,
@@ -377,8 +365,6 @@ class TafsirAnnotation {
     required this.updatedAt,
   });
 
-  String get key => 'ann:${source.name}:$surah:$ayah:$id';
-
   factory TafsirAnnotation.fromJson(Map<String, dynamic> json) {
     return TafsirAnnotation(
       id: json['id'] as String,
@@ -389,10 +375,19 @@ class TafsirAnnotation {
         orElse: () => TafsirSourceId.muyassar,
       ),
       noteText: json['noteText'] as String,
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
     );
   }
+  final String id;
+  final int surah;
+  final int ayah;
+  final TafsirSourceId source;
+  final String noteText;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  String get key => 'ann:${source.name}:$surah:$ayah:$id';
 
   Map<String, dynamic> toJson() => {
     'id': id,

@@ -1,9 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/design_system.dart';
 import '../../../../core/services/smart_notification_engine.dart';
+import '../../../../core/theme/design_system.dart';
 
 /// 🔔 إعدادات الإشعارات — Notification Settings
 /// Wires SmartNotificationEngine settings into a toggle-based UI
@@ -140,7 +141,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                     Text('وقت التذكير', style: GoogleFonts.cairo(fontSize: 14)),
                     const Spacer(),
                     OutlinedButton(
-                      onPressed: () => _pickTime(),
+                      onPressed: _pickTime,
                       style: OutlinedButton.styleFrom(
                         foregroundColor: NoorDesignSystem.goldAccent,
                         side: const BorderSide(color: NoorDesignSystem.goldAccent),
@@ -182,7 +183,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
             width: double.infinity,
             child: FilledButton.icon(
               onPressed: () async {
-                HapticFeedback.mediumImpact();
+                unawaited(HapticFeedback.mediumImpact());
                 // Apply all notification schedules
                 if (_settings.adhkarMorningEnabled || _settings.adhkarEveningEnabled) {
                   await SmartNotificationEngine.scheduleAdhkarNotifications(
@@ -240,10 +241,14 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
       initialTime: TimeOfDay(hour: _settings.khatmahReminderHour, minute: _settings.khatmahReminderMinute),
     );
     if (picked != null) {
-      _updateSettings(_settings.copyWith(
-        khatmahReminderHour: picked.hour,
-        khatmahReminderMinute: picked.minute,
-      ),);
+      unawaited(
+        _updateSettings(
+          _settings.copyWith(
+            khatmahReminderHour: picked.hour,
+            khatmahReminderMinute: picked.minute,
+          ),
+        ),
+      );
     }
   }
 }
@@ -253,9 +258,9 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.icon, required this.title});
   final IconData icon;
   final String title;
-  const _SectionHeader({required this.icon, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -274,12 +279,6 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _SettingsTile extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
 
   const _SettingsTile({
     required this.icon,
@@ -289,6 +288,12 @@ class _SettingsTile extends StatelessWidget {
     required this.value,
     required this.onChanged,
   });
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {

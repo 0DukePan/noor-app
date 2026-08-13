@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/design_system.dart';
 import '../../../../core/services/prayer_time_engine.dart';
+import '../../../../core/theme/design_system.dart';
 import '../providers/home_provider.dart';
 
 /// Premium Next Prayer Card with gradient, depth, and progress bar
 class NextPrayerCard extends ConsumerWidget {
-  final PrayerTimes? prayerTimes;
 
   const NextPrayerCard({super.key, this.prayerTimes});
+  final PrayerTimes? prayerTimes;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -79,7 +79,7 @@ class NextPrayerCard extends ConsumerWidget {
               const SizedBox(height: 18),
               // Prayer name
               Text(
-                nextInfo?['name'] ?? 'جاري التحميل...',
+                (nextInfo?['name'] ?? 'جاري التحميل...') as String,
                 style: GoogleFonts.cairo(
                   fontSize: 34,
                   color: Colors.white,
@@ -105,7 +105,7 @@ class NextPrayerCard extends ConsumerWidget {
                       ],
                     ),
                     child: Text(
-                      nextInfo?['time'] ?? '--:--',
+                      (nextInfo?['time'] ?? '--:--') as String,
                       style: GoogleFonts.outfit(
                         fontSize: 26,
                         color: NoorDesignSystem.primaryGreen,
@@ -169,12 +169,12 @@ class NextPrayerCard extends ConsumerWidget {
       {'name': 'العشاء', 'time': prayerTimes!.isha},
     ];
 
-    for (int i = 0; i < schedule.length; i++) {
-      final time = schedule[i]['time'] as DateTime;
+    for (var i = 0; i < schedule.length; i++) {
+      final time = schedule[i]['time']! as DateTime;
       if (time.isAfter(now)) {
         final previousTime = i > 0 
-            ? schedule[i - 1]['time'] as DateTime 
-            : (schedule.last['time'] as DateTime).subtract(const Duration(days: 1));
+            ? schedule[i - 1]['time']! as DateTime 
+            : (schedule.last['time']! as DateTime).subtract(const Duration(days: 1));
             
         final totalDuration = time.difference(previousTime).inSeconds;
         final elapsed = now.difference(previousTime).inSeconds;
@@ -185,7 +185,7 @@ class NextPrayerCard extends ConsumerWidget {
         final minutes = diff.inMinutes % 60;
 
         return {
-          'name': schedule[i]['name'] as String,
+          'name': schedule[i]['name']! as String,
           'time': '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
           'remaining': hours > 0 ? '$hours ساعة و ${minutes.toString().padLeft(2, '0')} د' : '$minutes دقيقة',
           'progress': progress,

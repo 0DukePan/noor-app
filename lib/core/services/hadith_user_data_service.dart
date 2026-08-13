@@ -9,13 +9,13 @@ class HadithUserDataService {
   static const String _progressBoxName = 'hadith_progress';
   static const String _bookmarksBoxName = 'hadith_bookmarks';
 
-  static Box? _progressBox;
-  static Box? _bookmarksBox;
+  static Box<dynamic>? _progressBox;
+  static Box<dynamic>? _bookmarksBox;
 
   /// Initialize Hive boxes
   static Future<void> init() async {
-    _progressBox = await Hive.openBox(_progressBoxName);
-    _bookmarksBox = await Hive.openBox(_bookmarksBoxName);
+    _progressBox = await Hive.openBox<dynamic>(_progressBoxName);
+    _bookmarksBox = await Hive.openBox<dynamic>(_bookmarksBoxName);
   }
 
   // ═══════════════════════════════════════════════════════════════════
@@ -48,7 +48,7 @@ class HadithUserDataService {
     if (box == null) return null;
     final data = box.get('lastRead');
     if (data == null) return null;
-    return Map<String, dynamic>.from(data);
+    return Map<String, dynamic>.from(data as Map);
   }
 
   // ═══════════════════════════════════════════════════════════════════
@@ -121,7 +121,7 @@ class HadithUserDataService {
     for (final key in box.keys) {
       final data = box.get(key);
       if (data != null) {
-        bookmarks.add(Map<String, dynamic>.from(data));
+        bookmarks.add(Map<String, dynamic>.from(data as Map));
       }
     }
     // Sort by most recently added

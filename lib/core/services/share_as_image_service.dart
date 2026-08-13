@@ -1,3 +1,4 @@
+﻿import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -74,10 +75,12 @@ class ShareAsImageService {
   ) async {
     try {
       // Show loading
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const Center(child: CircularProgressIndicator()),
+      unawaited(
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const Center(child: CircularProgressIndicator()),
+        ),
       );
 
       // Create image
@@ -98,7 +101,7 @@ class ShareAsImageService {
         [XFile(file.path)],
         text: 'من تطبيق نور الإسلامي',
       );
-    } catch (e) {
+    } on Exception catch (e) {
       if (context.mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -115,7 +118,6 @@ class ShareAsImageService {
     final renderView = RenderView(
       view: view,
       child: RenderPositionedBox(
-        alignment: Alignment.center,
         child: repaintBoundary,
       ),
       configuration: const ViewConfiguration(
@@ -123,12 +125,12 @@ class ShareAsImageService {
           maxWidth: 1080,
           maxHeight: 1920,
         ),
-        devicePixelRatio: 3.0,
+        devicePixelRatio: 3,
       ),
     );
 
-    final pipelineOwner = PipelineOwner();
-    pipelineOwner.rootNode = renderView;
+    final pipelineOwner = PipelineOwner()
+      ..rootNode = renderView;
     renderView.prepareInitialFrame();
 
     final buildOwner = BuildOwner(focusManager: FocusManager());
@@ -144,11 +146,12 @@ class ShareAsImageService {
     ).attachToRenderTree(buildOwner);
 
     buildOwner.buildScope(rootElement);
-    pipelineOwner.flushLayout();
-    pipelineOwner.flushCompositingBits();
-    pipelineOwner.flushPaint();
+    pipelineOwner
+      ..flushLayout()
+      ..flushCompositingBits()
+      ..flushPaint();
 
-    final image = await repaintBoundary.toImage(pixelRatio: 3.0);
+    final image = await repaintBoundary.toImage(pixelRatio: 3);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     
     return byteData!.buffer.asUint8List();
@@ -178,11 +181,6 @@ enum HadithDesign {
 
 /// صورة الآية القرآنية
 class _QuranVerseImage extends StatelessWidget {
-  final String verseText;
-  final int surah;
-  final int ayah;
-  final String surahName;
-  final VerseDesign design;
 
   const _QuranVerseImage({
     required this.verseText,
@@ -191,6 +189,11 @@ class _QuranVerseImage extends StatelessWidget {
     required this.surahName,
     required this.design,
   });
+  final String verseText;
+  final int surah;
+  final int ayah;
+  final String surahName;
+  final VerseDesign design;
 
   @override
   Widget build(BuildContext context) {
@@ -305,7 +308,9 @@ class _QuranVerseImage extends StatelessWidget {
     switch (design) {
       case VerseDesign.minimal:
         return Colors.black87;
-      default:
+      case VerseDesign.classic:
+      case VerseDesign.golden:
+      case VerseDesign.night:
         return Colors.white;
     }
   }
@@ -316,7 +321,8 @@ class _QuranVerseImage extends StatelessWidget {
         return const Color(0xFFFFD700);
       case VerseDesign.minimal:
         return Colors.green;
-      default:
+      case VerseDesign.classic:
+      case VerseDesign.night:
         return Colors.white;
     }
   }
@@ -349,19 +355,18 @@ class _QuranVerseImage extends StatelessWidget {
 
 /// صورة الحديث
 class _HadithImage extends StatelessWidget {
-  final String hadithText;
-  final String source;
-  final String narrator;
-  final String? grade;
-  final HadithDesign design;
 
   const _HadithImage({
     required this.hadithText,
     required this.source,
     required this.narrator,
-    this.grade,
-    required this.design,
+    required this.design, this.grade,
   });
+  final String hadithText;
+  final String source;
+  final String narrator;
+  final String? grade;
+  final HadithDesign design;
 
   @override
   Widget build(BuildContext context) {
@@ -412,7 +417,7 @@ class _HadithImage extends StatelessWidget {
             hadithText,
             style: const TextStyle(
               fontSize: 32,
-              height: 2.0,
+              height: 2,
               color: Colors.white,
               fontFamily: 'Amiri',
             ),

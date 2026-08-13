@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -14,14 +15,13 @@ import '../widgets/narrator_profile_body.dart';
 /// - Color-coded nodes by narrator type
 /// - Tap node → narrator detail bottom sheet
 class IsnadGraphPage extends StatefulWidget {
-  final String hadithText;
-  final String hadithSource;
 
   const IsnadGraphPage({
-    super.key,
-    required this.hadithText,
+    required this.hadithText, super.key,
     this.hadithSource = '',
   });
+  final String hadithText;
+  final String hadithSource;
 
   @override
   State<IsnadGraphPage> createState() => _IsnadGraphPageState();
@@ -83,7 +83,7 @@ class _IsnadGraphPageState extends State<IsnadGraphPage>
       _nodes = nodes;
       _loading = false;
     });
-    _animController.forward();
+    unawaited(_animController.forward());
   }
 
   @override
@@ -185,7 +185,7 @@ class _IsnadGraphPageState extends State<IsnadGraphPage>
             constrained: false,
             boundaryMargin: const EdgeInsets.all(100),
             minScale: 0.5,
-            maxScale: 3.0,
+            maxScale: 3,
             child: AnimatedBuilder(
               animation: _animProgress,
               builder: (context, _) {
@@ -263,7 +263,7 @@ class _IsnadGraphPageState extends State<IsnadGraphPage>
 
   void _showNodeDetail(_GraphNode node) {
     final color = _getNodeColor(node.narrator.role);
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
@@ -311,10 +311,10 @@ class _IsnadGraphPageState extends State<IsnadGraphPage>
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _IsnadGraphPainter extends CustomPainter {
-  final List<_GraphNode> nodes;
-  final double progress;
 
   _IsnadGraphPainter({required this.nodes, required this.progress});
+  final List<_GraphNode> nodes;
+  final double progress;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -415,7 +415,7 @@ class _IsnadGraphPainter extends CustomPainter {
     canvas.drawRRect(stripRect, Paint()..color = color);
 
     // Node number
-    final numPainter = TextPainter(
+    TextPainter(
       text: TextSpan(
         text: '${index + 1}',
         style: TextStyle(
@@ -425,8 +425,9 @@ class _IsnadGraphPainter extends CustomPainter {
         ),
       ),
       textDirection: TextDirection.ltr,
-    )..layout();
-    numPainter.paint(canvas, Offset(rect.left + 12, rect.top + 4));
+    )
+      ..layout()
+      ..paint(canvas, Offset(rect.left + 12, rect.top + 4));
 
     // Name
     final namePainter = TextPainter(
@@ -466,11 +467,12 @@ class _IsnadGraphPainter extends CustomPainter {
 
     // Verified icon if profile exists
     if (node.profile != null) {
-      final iconPainter = TextPainter(
+      TextPainter(
         text: const TextSpan(text: '✓', style: TextStyle(fontSize: 12)),
         textDirection: TextDirection.ltr,
-      )..layout();
-      iconPainter.paint(canvas, Offset(rect.left + 12, rect.bottom - 18));
+      )
+        ..layout()
+        ..paint(canvas, Offset(rect.left + 12, rect.bottom - 18));
     }
   }
 
@@ -491,13 +493,12 @@ class _IsnadGraphPainter extends CustomPainter {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _GraphNode {
-  final NarratorInfo narrator;
-  final NarratorProfile? profile;
-  final Rect rect;
 
   const _GraphNode({
     required this.narrator,
-    this.profile,
-    required this.rect,
+    required this.rect, this.profile,
   });
+  final NarratorInfo narrator;
+  final NarratorProfile? profile;
+  final Rect rect;
 }

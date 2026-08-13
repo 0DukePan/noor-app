@@ -30,18 +30,18 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
     final totalBookmarked = bookmarks.length;
 
     // --- Notes ---
-    int totalNotes = 0;
+    var totalNotes = 0;
     try {
-      final notesBox = await Hive.openBox('hadith_notes');
+      final notesBox = await Hive.openBox<dynamic>('hadith_notes');
       totalNotes = notesBox.length;
-    } catch (_) {}
+    } on Exception catch (_) {}
 
     // --- Quiz history ---
-    int quizzesTaken = 0;
-    int quizTotalScore = 0;
-    int quizTotalQuestions = 0;
+    var quizzesTaken = 0;
+    var quizTotalScore = 0;
+    var quizTotalQuestions = 0;
     try {
-      final quizBox = await Hive.openBox('quiz_history');
+      final quizBox = await Hive.openBox<dynamic>('quiz_history');
       for (final key in quizBox.keys) {
         final entry = quizBox.get(key);
         if (entry is Map) {
@@ -50,45 +50,45 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
           quizTotalQuestions += (entry['total'] as int?) ?? 0;
         }
       }
-    } catch (_) {}
+    } on Exception catch (_) {}
     final quizAverage = quizTotalQuestions > 0
         ? ((quizTotalScore / quizTotalQuestions) * 100).round()
         : 0;
 
     // --- Memorization (live FSRS cards from the memorization feature) ---
-    int totalMemorized = 0;
+    var totalMemorized = 0;
     try {
-      final memBox = await Hive.openBox('memorization_cards');
+      final memBox = await Hive.openBox<dynamic>('memorization_cards');
       for (final value in memBox.values) {
         if (value is Map && ((value['repetitions'] as num?) ?? 0) > 0) {
           totalMemorized++;
         }
       }
-    } catch (_) {}
+    } on Exception catch (_) {}
 
     // --- Reading streak (from the day-state machine) ---
-    int currentStreak = 0;
-    int longestStreak = 0;
+    var currentStreak = 0;
+    var longestStreak = 0;
     try {
-      final streakBox = await Hive.openBox('day_state');
+      final streakBox = await Hive.openBox<dynamic>('day_state');
       currentStreak = streakBox.get('streak', defaultValue: 0) as int;
       longestStreak = currentStreak;
-    } catch (_) {}
+    } on Exception catch (_) {}
 
     // --- Weekly activity (verses read per day, from app statistics) ---
-    final List<int> weeklyActivity = List.filled(7, 0);
+    final weeklyActivity = List<int>.filled(7, 0);
     try {
-      final activityBox = await Hive.openBox('app_statistics');
+      final activityBox = await Hive.openBox<dynamic>('app_statistics');
       final now = DateTime.now();
-      for (int i = 0; i < 7; i++) {
+      for (var i = 0; i < 7; i++) {
         final day = now.subtract(Duration(days: 6 - i));
         final key = 'verses_${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
-        weeklyActivity[i] = (activityBox.get(key, defaultValue: 0) as int);
+        weeklyActivity[i] = activityBox.get(key, defaultValue: 0) as int;
       }
-    } catch (_) {}
+    } on Exception catch (_) {}
 
     // --- Books progress (bookmarks per book) ---
-    final Map<String, _BookProg> booksProgress = {};
+    final booksProgress = <String, _BookProg>{};
     for (final bm in bookmarks) {
       final coll = bm['collectionId'] as String? ?? '';
       if (coll.isNotEmpty) {
@@ -383,15 +383,6 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
 }
 
 class _RealStats {
-  final int totalBookmarked;
-  final int totalNotes;
-  final int totalMemorized;
-  final int currentStreak;
-  final int longestStreak;
-  final int quizzesTaken;
-  final int quizAverageScore;
-  final List<int> weeklyActivity;
-  final Map<String, _BookProg> booksProgress;
 
   const _RealStats({
     required this.totalBookmarked,
@@ -404,11 +395,20 @@ class _RealStats {
     required this.weeklyActivity,
     required this.booksProgress,
   });
+  final int totalBookmarked;
+  final int totalNotes;
+  final int totalMemorized;
+  final int currentStreak;
+  final int longestStreak;
+  final int quizzesTaken;
+  final int quizAverageScore;
+  final List<int> weeklyActivity;
+  final Map<String, _BookProg> booksProgress;
 }
 
 class _BookProg {
-  final int read;
-  final int total;
 
   const _BookProg({required this.read, required this.total});
+  final int read;
+  final int total;
 }

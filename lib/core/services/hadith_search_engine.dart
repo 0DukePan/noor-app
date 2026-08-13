@@ -1,7 +1,6 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/data_sources/hadith_database.dart';
 
@@ -14,25 +13,20 @@ import '../data/data_sources/hadith_database.dart';
 /// - Search in Sanad only
 /// - Search by Companion (Sahabi)
 /// - Search by topic
-/// - Supabase cloud sync
 class HadithSearchEngine {
-  static Box? _indexBox;
-  static Box? _cacheBox;
+  static Box<dynamic>? _indexBox;
+  static Box<dynamic>? _cacheBox;
   static List<HadithIndexEntry>? _searchIndex;
   static Map<String, List<String>>? _companionIndex;
   static Map<String, List<String>>? _topicIndex;
-  
-  // Supabase client
-  static SupabaseClient? _supabase;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // INITIALIZATION
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static Future<void> init({SupabaseClient? supabase, Database? forTesting}) async {
-    _indexBox = await Hive.openBox('hadith_search_index');
-    _cacheBox = await Hive.openBox('hadith_search_cache');
-    _supabase = supabase;
+  static Future<void> init({Database? forTesting}) async {
+    _indexBox = await Hive.openBox<dynamic>('hadith_search_index');
+    _cacheBox = await Hive.openBox<dynamic>('hadith_search_cache');
     
     // Build search index if not cached (or always when a test DB is passed)
     if (forTesting != null || _indexBox?.get('index_built') != true) {
@@ -184,16 +178,16 @@ class HadithSearchEngine {
     final indexData = _indexBox?.get('search_index') as List?;
     if (indexData != null) {
       _searchIndex = indexData
-          .map((e) => HadithIndexEntry.fromMap(Map<String, dynamic>.from(e)))
+          .map((e) => HadithIndexEntry.fromMap(Map<String, dynamic>.from(e as Map)))
           .toList();
     }
     
     _companionIndex = Map<String, List<String>>.from(
-      _indexBox?.get('companion_index') ?? {},
+      Map<String, dynamic>.from((_indexBox?.get('companion_index') ?? <dynamic, dynamic>{}) as Map),
     );
     
     _topicIndex = Map<String, List<String>>.from(
-      _indexBox?.get('topic_index') ?? {},
+      Map<String, dynamic>.from((_indexBox?.get('topic_index') ?? <dynamic, dynamic>{}) as Map),
     );
     
     debugPrint('Loaded ${_searchIndex?.length ?? 0} hadiths from cache');
@@ -206,7 +200,7 @@ class HadithSearchEngine {
   /// إزالة التشكيل والتطبيع
   static String _normalize(String text) {
     // Remove Arabic diacritics
-    var normalized = text
+    final normalized = text
         .replaceAll(RegExp(r'[\u064B-\u0652]'), '') // Tashkeel
         .replaceAll(RegExp(r'[\u0670]'), '')        // Alef superscript
         .replaceAll(RegExp(r'[\u06D6-\u06ED]'), '') // Extended diacritics
@@ -223,9 +217,7 @@ class HadithSearchEngine {
         .trim();
     
     // Remove extra spaces
-    normalized = normalized.replaceAll(RegExp(r'\s+'), ' ');
-    
-    return normalized;
+    return normalized.replaceAll(RegExp(r'\s+'), ' ');
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -251,7 +243,7 @@ class HadithSearchEngine {
     final cached = _cacheBox?.get(cacheKey);
     if (cached != null) {
       return (cached as List)
-          .map((e) => HadithSearchResult.fromMap(Map<String, dynamic>.from(e)))
+          .map((e) => HadithSearchResult.fromMap(Map<String, dynamic>.from(e as Map)))
           .toList();
     }
     
@@ -274,15 +266,12 @@ class HadithSearchEngine {
         switch (target) {
           case SearchTarget.matn:
             score = _calculateScore(normalizedQuery, entry.normalizedText);
-            break;
           case SearchTarget.sanad:
             score = _calculateScore(normalizedQuery, entry.normalizedNarrator);
-            break;
           case SearchTarget.all:
             final matnScore = _calculateScore(normalizedQuery, entry.normalizedText);
             final sanadScore = _calculateScore(normalizedQuery, entry.normalizedNarrator);
             score = matnScore > sanadScore ? matnScore : sanadScore;
-            break;
         }
         
         if (score == 0) continue;
@@ -318,12 +307,12 @@ class HadithSearchEngine {
     
     // Exact match
     if (text.contains(query)) {
-      return 1.0;
+      return 1;
     }
     
     // Word-by-word match
     final queryWords = query.split(' ');
-    int matchedWords = 0;
+    var matchedWords = 0;
     
     for (final word in queryWords) {
       if (word.length > 2 && text.contains(word)) {
@@ -371,14 +360,14 @@ class HadithSearchEngine {
     if (s1.isEmpty) return s2.length;
     if (s2.isEmpty) return s1.length;
     
-    List<int> prev = List.generate(s2.length + 1, (i) => i);
-    List<int> curr = List.filled(s2.length + 1, 0);
+    var prev = List<int>.generate(s2.length + 1, (i) => i);
+    var curr = List<int>.filled(s2.length + 1, 0);
     
-    for (int i = 0; i < s1.length; i++) {
+    for (var i = 0; i < s1.length; i++) {
       curr[0] = i + 1;
       
-      for (int j = 0; j < s2.length; j++) {
-        final int cost = s1[i] == s2[j] ? 0 : 1;
+      for (var j = 0; j < s2.length; j++) {
+        final cost = s1[i] == s2[j] ? 0 : 1;
         curr[j + 1] = [
           curr[j] + 1,
           prev[j + 1] + 1,
@@ -454,7 +443,7 @@ class HadithSearchEngine {
       
       // Same topic
       final commonTopics = hadith.topics
-          .where((t) => entry.topics.contains(t))
+          .where(entry.topics.contains)
           .length;
       score += commonTopics * 0.2;
       
@@ -477,50 +466,6 @@ class HadithSearchEngine {
     results.sort((a, b) => b.score.compareTo(a.score));
     return results.take(limit).toList();
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // SUPABASE SYNC
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /// مزامنة المفضلة والملاحظات
-  static Future<void> syncToCloud({
-    required String userId,
-    required List<String> favorites,
-    required Map<String, String> notes,
-  }) async {
-    if (_supabase == null) return;
-    
-    try {
-      await _supabase!.from('hadith_user_data').upsert({
-        'user_id': userId,
-        'favorites': favorites,
-        'notes': notes,
-        'updated_at': DateTime.now().toIso8601String(),
-      });
-      
-      debugPrint('Hadith data synced to Supabase');
-    } catch (e) {
-      debugPrint('Sync error: $e');
-    }
-  }
-
-  /// استرجاع من السحابة
-  static Future<Map<String, dynamic>?> syncFromCloud(String userId) async {
-    if (_supabase == null) return null;
-    
-    try {
-      final response = await _supabase!
-          .from('hadith_user_data')
-          .select()
-          .eq('user_id', userId)
-          .maybeSingle();
-      
-      return response;
-    } catch (e) {
-      debugPrint('Fetch error: $e');
-      return null;
-    }
-  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -536,17 +481,6 @@ enum SearchTarget {
 
 /// مدخل فهرس الحديث
 class HadithIndexEntry {
-  final String id;
-  final String book;
-  final int chapter;
-  final int number;
-  final String text;
-  final String normalizedText;
-  final String narrator;
-  final String normalizedNarrator;
-  final String companion;
-  final String grade;
-  final List<String> topics;
 
   const HadithIndexEntry({
     required this.id,
@@ -562,6 +496,33 @@ class HadithIndexEntry {
     required this.topics,
   });
 
+  factory HadithIndexEntry.fromMap(Map<String, dynamic> map) {
+    return HadithIndexEntry(
+      id: (map['id'] ?? '') as String,
+      book: (map['book'] ?? '') as String,
+      chapter: (map['chapter'] ?? 0) as int,
+      number: (map['number'] ?? 0) as int,
+      text: (map['text'] ?? '') as String,
+      normalizedText: (map['normalizedText'] ?? '') as String,
+      narrator: (map['narrator'] ?? '') as String,
+      normalizedNarrator: (map['normalizedNarrator'] ?? '') as String,
+      companion: (map['companion'] ?? '') as String,
+      grade: (map['grade'] ?? '') as String,
+      topics: List<String>.from(map['topics'] as List? ?? []),
+    );
+  }
+  final String id;
+  final String book;
+  final int chapter;
+  final int number;
+  final String text;
+  final String normalizedText;
+  final String narrator;
+  final String normalizedNarrator;
+  final String companion;
+  final String grade;
+  final List<String> topics;
+
   Map<String, dynamic> toMap() => {
     'id': id,
     'book': book,
@@ -575,29 +536,10 @@ class HadithIndexEntry {
     'grade': grade,
     'topics': topics,
   };
-
-  factory HadithIndexEntry.fromMap(Map<String, dynamic> map) {
-    return HadithIndexEntry(
-      id: map['id'] ?? '',
-      book: map['book'] ?? '',
-      chapter: map['chapter'] ?? 0,
-      number: map['number'] ?? 0,
-      text: map['text'] ?? '',
-      normalizedText: map['normalizedText'] ?? '',
-      narrator: map['narrator'] ?? '',
-      normalizedNarrator: map['normalizedNarrator'] ?? '',
-      companion: map['companion'] ?? '',
-      grade: map['grade'] ?? '',
-      topics: List<String>.from(map['topics'] ?? []),
-    );
-  }
 }
 
 /// نتيجة البحث
 class HadithSearchResult {
-  final HadithIndexEntry entry;
-  final double score;
-  final SearchTarget matchType;
 
   const HadithSearchResult({
     required this.entry,
@@ -605,17 +547,20 @@ class HadithSearchResult {
     required this.matchType,
   });
 
+  factory HadithSearchResult.fromMap(Map<String, dynamic> map) {
+    return HadithSearchResult(
+      entry: HadithIndexEntry.fromMap(Map<String, dynamic>.from(map['entry'] as Map)),
+      score: (map['score'] ?? 0) as double,
+      matchType: SearchTarget.values[(map['matchType'] ?? 0) as int],
+    );
+  }
+  final HadithIndexEntry entry;
+  final double score;
+  final SearchTarget matchType;
+
   Map<String, dynamic> toMap() => {
     'entry': entry.toMap(),
     'score': score,
     'matchType': matchType.index,
   };
-
-  factory HadithSearchResult.fromMap(Map<String, dynamic> map) {
-    return HadithSearchResult(
-      entry: HadithIndexEntry.fromMap(Map<String, dynamic>.from(map['entry'])),
-      score: map['score'] ?? 0,
-      matchType: SearchTarget.values[map['matchType'] ?? 0],
-    );
-  }
 }

@@ -8,10 +8,10 @@ import 'noor_theme.dart';
 /// Manages app themes and user preferences
 class ThemeService {
   static const _boxName = 'theme_settings';
-  static Box? _box;
+  static Box<dynamic>? _box;
 
   static Future<void> init() async {
-    _box = await Hive.openBox(_boxName);
+    _box = await Hive.openBox<dynamic>(_boxName);
   }
 
   // Available Khushu color palettes
@@ -68,7 +68,7 @@ class ThemeService {
 
   /// Get current palette ID
   static String getCurrentPaletteId() {
-    return _box?.get('palette_id', defaultValue: 'default') ?? 'default';
+    return (_box?.get('palette_id', defaultValue: 'default') ?? 'default') as String;
   }
 
   /// Get current palette
@@ -93,9 +93,10 @@ class ThemeService {
         return ThemeMode.light;
       case 'dark':
         return ThemeMode.dark;
-      default:
+      case 'system':
         return ThemeMode.system;
     }
+    return ThemeMode.system;
   }
 
   /// Set theme mode
@@ -104,11 +105,9 @@ class ThemeService {
     switch (mode) {
       case ThemeMode.light:
         value = 'light';
-        break;
       case ThemeMode.dark:
         value = 'dark';
-        break;
-      default:
+      case ThemeMode.system:
         value = 'system';
     }
     await _box?.put('theme_mode', value);
@@ -116,17 +115,17 @@ class ThemeService {
 
   /// Get haptic enabled
   static bool isHapticEnabled() {
-    return _box?.get('haptic_enabled', defaultValue: true) ?? true;
+    return (_box?.get('haptic_enabled', defaultValue: true) ?? true) as bool;
   }
 
   /// Set haptic enabled
-  static Future<void> setHapticEnabled(bool enabled) async {
+  static Future<void> setHapticEnabled({required bool enabled}) async {
     await _box?.put('haptic_enabled', enabled);
   }
 
   /// Get font scale
   static double getFontScale() {
-    return _box?.get('font_scale', defaultValue: 1.0) ?? 1.0;
+    return (_box?.get('font_scale', defaultValue: 1.0) ?? 1.0) as double;
   }
 
   /// Set font scale
@@ -144,7 +143,6 @@ class ThemeService {
       colorScheme: ColorScheme.light(
         primary: palette.primary,
         secondary: palette.accent,
-        surface: Colors.white,
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: palette.background,
@@ -211,12 +209,6 @@ class ThemeService {
 
 /// Theme palette model
 class ThemePalette {
-  final String id;
-  final String nameArabic;
-  final String nameEnglish;
-  final Color primary;
-  final Color accent;
-  final Color background;
 
   ThemePalette({
     required this.id,
@@ -226,6 +218,12 @@ class ThemePalette {
     required this.accent,
     required this.background,
   });
+  final String id;
+  final String nameArabic;
+  final String nameEnglish;
+  final Color primary;
+  final Color accent;
+  final Color background;
 }
 
 /// Riverpod providers for theme

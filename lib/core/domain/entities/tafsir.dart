@@ -1,10 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-class TafsirVerse extends Equatable {
-  final int surahId;
-  final int verseId;
-  final String text; // The actual Tafsir
-  final String source; // e.g., 'muyassar', 'ibn_kathir'
+class TafsirVerse extends Equatable { // e.g., 'muyassar', 'ibn_kathir'
 
   const TafsirVerse({
     required this.surahId,
@@ -12,6 +8,10 @@ class TafsirVerse extends Equatable {
     required this.text,
     required this.source,
   });
+  final int surahId;
+  final int verseId;
+  final String text; // The actual Tafsir
+  final String source;
 
   @override
   List<Object?> get props => [surahId, verseId, text, source];
@@ -44,15 +44,15 @@ enum TafsirBook {
     folderName: 'ar-tafsir-al-tabari',
   );
 
-  final String id;
-  final String nameArabic;
-  final String nameEnglish;
-  final String folderName;
-
   const TafsirBook({
     required this.id,
     required this.nameArabic,
     required this.nameEnglish,
     required this.folderName,
   });
+
+  final String id;
+  final String nameArabic;
+  final String nameEnglish;
+  final String folderName;
 }

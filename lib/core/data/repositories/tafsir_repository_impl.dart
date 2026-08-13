@@ -3,9 +3,9 @@ import '../../domain/repositories/tafsir_repository.dart';
 import '../data_sources/local_tafsir_data_source.dart';
 
 class TafsirRepositoryImpl implements TafsirRepository {
-  final LocalTafsirDataSource _dataSource;
 
   TafsirRepositoryImpl(this._dataSource);
+  final LocalTafsirDataSource _dataSource;
 
   @override
   Future<TafsirVerse?> getTafsir(

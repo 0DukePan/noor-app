@@ -54,7 +54,7 @@ class NoorTheme {
   static const double radiusSm = NoorDesignSystem.radiusSmall;
   static const double radiusMd = NoorDesignSystem.radiusMedium;
   static const double radiusLg = NoorDesignSystem.radiusLarge;
-  static const double radiusXl = 24.0;
+  static const double radiusXl = 24;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // HADITH GRADING (kept for backward compat)
@@ -75,15 +75,12 @@ class NoorTheme {
     scaffoldBackgroundColor: NoorDesignSystem.bgLight,
     colorScheme: const ColorScheme.light(
       primary: NoorDesignSystem.primaryGreen,
-      onPrimary: Colors.white,
       primaryContainer: NoorDesignSystem.primaryContainer,
       onPrimaryContainer: NoorDesignSystem.deepTeal,
       secondary: NoorDesignSystem.goldAccent,
       onSecondary: Colors.white,
-      surface: NoorDesignSystem.surfaceLight,
       onSurface: NoorDesignSystem.textPrimary,
       surfaceContainerHighest: Color(0xFFF2F0EB),
-      error: NoorDesignSystem.error,
     ),
     textTheme: NoorDesignSystem.textTheme,
     appBarTheme: const AppBarTheme(
@@ -153,7 +150,6 @@ class NoorTheme {
       primaryContainer: NoorDesignSystem.surfaceElevatedDark,
       onPrimaryContainer: NoorDesignSystem.textPrimaryDark,
       secondary: NoorDesignSystem.goldAccent,
-      onSecondary: Colors.black,
       surface: NoorDesignSystem.surfaceDark,
       onSurface: NoorDesignSystem.textPrimaryDark,
       surfaceContainerHighest: NoorDesignSystem.surfaceElevatedDark,
@@ -226,7 +222,6 @@ class NoorTheme {
     scaffoldBackgroundColor: NoorDesignSystem.bgSepia,
     colorScheme: const ColorScheme.light(
       primary: NoorDesignSystem.primaryGreen,
-      onPrimary: Colors.white,
       primaryContainer: NoorDesignSystem.primaryContainer,
       onPrimaryContainer: NoorDesignSystem.deepTeal,
       secondary: NoorDesignSystem.goldAccent,
@@ -234,7 +229,6 @@ class NoorTheme {
       surface: Color(0xFFF0E5D3),
       onSurface: Color(0xFF3D3226),
       surfaceContainerHighest: Color(0xFFE8DDC8),
-      error: NoorDesignSystem.error,
     ),
     textTheme: _buildTextTheme(Brightness.light, baseColor: const Color(0xFF3D3226)),
     appBarTheme: const AppBarTheme(
@@ -264,7 +258,7 @@ class NoorTheme {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static TextTheme _buildTextTheme(Brightness brightness, {Color? baseColor}) {
-    final Color color = baseColor ??
+    final color = baseColor ??
         (brightness == Brightness.light
             ? NoorDesignSystem.textPrimary
             : NoorDesignSystem.textPrimaryDark);
@@ -281,7 +275,7 @@ class NoorTheme {
       ),
       displaySmall: GoogleFonts.amiri(
         fontSize: 24, fontWeight: FontWeight.normal,
-        color: color, height: 2.0,
+        color: color, height: 2,
       ),
       // Headlines — Section titles (Cairo)
       headlineLarge: GoogleFonts.cairo(

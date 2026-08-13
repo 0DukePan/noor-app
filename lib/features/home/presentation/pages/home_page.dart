@@ -1,21 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/design_system.dart';
-
-import '../providers/home_provider.dart';
-import '../widgets/next_prayer_card.dart';
-import '../widgets/day_state_card.dart';
-import '../widgets/continue_reading_card.dart';
-import '../widgets/adhkar_status_card.dart';
-import '../widgets/hadith_of_day_card.dart';
-import '../widgets/smart_suggestion_box.dart';
-import '../widgets/favorites_section.dart';
 import 'package:hijri/hijri_calendar.dart';
-import 'dart:async';
+
+import '../../../../core/theme/design_system.dart';
+import '../providers/home_provider.dart';
+import '../widgets/adhkar_status_card.dart';
+import '../widgets/continue_reading_card.dart';
+import '../widgets/day_state_card.dart';
+import '../widgets/favorites_section.dart';
+import '../widgets/hadith_of_day_card.dart';
+import '../widgets/next_prayer_card.dart';
+import '../widgets/smart_suggestion_box.dart';
 
 /// 📱 الصفحة الرئيسية - Premium Home Dashboard
 class HomePage extends ConsumerStatefulWidget {
@@ -32,9 +33,10 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _handleRefresh() async {
-    HapticFeedback.mediumImpact();
-    ref.invalidate(homeDataProvider);
-    ref.invalidate(smartGreetingProvider);
+    unawaited(HapticFeedback.mediumImpact());
+    ref
+      ..invalidate(homeDataProvider)
+      ..invalidate(smartGreetingProvider);
   }
   @override
   Widget build(BuildContext context) {
@@ -283,17 +285,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                               color: isDark ? Colors.white : NoorDesignSystem.textPrimary,
                             ),
                           ),
-                          TextButton(
-                            onPressed: () {}, // TODO: Navigate to all favorites
-                            style: TextButton.styleFrom(
-                              foregroundColor: NoorDesignSystem.primaryGreen,
-                              padding: const EdgeInsets.symmetric(horizontal: 0),
-                            ),
-                            child: Text(
-                              'عرض الكل',
-                              style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -374,6 +365,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   String _getHijriDate() {
     HijriCalendar.setLocal('ar');
     final today = HijriCalendar.now();
-    return today.toFormat("dd MMMM yyyy");
+    return today.toFormat('dd MMMM yyyy');
   }
 }

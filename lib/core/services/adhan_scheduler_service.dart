@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'package:flutter/services.dart';
+
 import 'package:adhan/adhan.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'location_service.dart';
@@ -17,7 +18,7 @@ import 'location_trust_engine.dart';
 class AdhanSchedulerService {
   static const _methodChannel = MethodChannel('com.noor.app/adhan');
   static const _settingsBox = 'adhan_settings';
-  static Box? _settings;
+  static Box<dynamic>? _settings;
 
   // Available Adhan sounds
   static const List<AdhanSound> adhanSounds = [
@@ -32,7 +33,7 @@ class AdhanSchedulerService {
 
   /// Initialize service
   static Future<void> init() async {
-    _settings = await Hive.openBox(_settingsBox);
+    _settings = await Hive.openBox<dynamic>(_settingsBox);
     
     // Request exact alarm permission (Android 12+)
     await _requestExactAlarmPermission();
@@ -59,31 +60,31 @@ class AdhanSchedulerService {
     
     // Prefer the last trusted location to avoid a GPS permission prompt
     // on every cold start; only fall back to live GPS when no cache exists.
-    latitude ??= LocationTrustEngine.cachedLocation?.latitude;
-    longitude ??= LocationTrustEngine.cachedLocation?.longitude;
+    var lat = latitude ?? LocationTrustEngine.cachedLocation?.latitude;
+    var lng = longitude ?? LocationTrustEngine.cachedLocation?.longitude;
 
     // Get location
     final locationService = LocationService();
     final location = await locationService.getCurrentLocation();
-    latitude ??= location?.latitude ?? 21.4225;
-    longitude ??= location?.longitude ?? 39.8262;
+    lat ??= location?.latitude ?? 21.4225;
+    lng ??= location?.longitude ?? 39.8262;
     elevation ??= 0;
 
     // Get calculation method from settings
     final methodName = _settings?.get('calculation_method', defaultValue: 'muslim_world_league');
     final madhab = _settings?.get('madhab', defaultValue: 'shafi');
     
-    final calculationMethod = _getCalculationMethod(methodName);
-    final params = calculationMethod.getParameters();
-    params.madhab = madhab == 'hanafi' ? Madhab.hanafi : Madhab.shafi;
+    final calculationMethod = _getCalculationMethod(methodName as String);
+    final params = calculationMethod.getParameters()
+      ..madhab = madhab == 'hanafi' ? Madhab.hanafi : Madhab.shafi;
     
     // High latitude adjustment
     final highLatRule = _settings?.get('high_latitude_rule', defaultValue: 'middle_of_night');
-    if (latitude.abs() > 48) {
-      params.highLatitudeRule = _getHighLatitudeRule(highLatRule);
+    if (lat.abs() > 48) {
+      params.highLatitudeRule = _getHighLatitudeRule(highLatRule as String);
     }
 
-    final coordinates = Coordinates(latitude, longitude);
+    final coordinates = Coordinates(lat, lng);
     final prayerTimes = PrayerTimes(
       coordinates,
       DateComponents.from(date),
@@ -141,7 +142,7 @@ class AdhanSchedulerService {
       );
 
       // Schedule pre-adhan reminder if enabled
-      final preReminderMinutes = _settings?.get('pre_reminder_minutes', defaultValue: 0) ?? 0;
+      final preReminderMinutes = (_settings?.get('pre_reminder_minutes', defaultValue: 0) ?? 0) as int;
       if (preReminderMinutes > 0) {
         final reminderTime = prayerTime.subtract(Duration(minutes: preReminderMinutes));
         if (reminderTime.isAfter(now)) {
@@ -180,7 +181,7 @@ class AdhanSchedulerService {
         'vibrate': vibrate,
         'overrideDnd': overrideDnd,
       });
-    } catch (e) {
+    } on Exception {
       // Fallback to Flutter notifications
       await _scheduleFallbackNotification(prayerId, prayerName, scheduledTime);
     }
@@ -201,7 +202,7 @@ class AdhanSchedulerService {
         'scheduledTimeMillis': reminderTime.millisecondsSinceEpoch,
         'minutesBefore': minutesBefore,
       });
-    } catch (e) {
+    } on Exception {
       // Fallback handled separately
     }
   }
@@ -214,7 +215,7 @@ class AdhanSchedulerService {
   static Future<void> stopAdhan() async {
     try {
       await _methodChannel.invokeMethod('stopAdhan');
-    } catch (e) {
+    } on Exception {
       // Ignore
     }
   }
@@ -248,7 +249,7 @@ class AdhanSchedulerService {
         'prayerNameArabic': _getPrayerNameArabic(prayerName),
         'scheduledTimeMillis': scheduledTime.millisecondsSinceEpoch,
       });
-    } catch (e) {
+    } on Exception {
       // Log error
     }
   }
@@ -262,7 +263,7 @@ class AdhanSchedulerService {
     try {
       final result = await _methodChannel.invokeMethod<bool>('requestExactAlarmPermission');
       return result ?? false;
-    } catch (e) {
+    } on Exception {
       return false;
     }
   }
@@ -272,7 +273,7 @@ class AdhanSchedulerService {
     try {
       final result = await _methodChannel.invokeMethod<bool>('requestBatteryOptimization');
       return result ?? false;
-    } catch (e) {
+    } on Exception {
       return false;
     }
   }
@@ -282,7 +283,7 @@ class AdhanSchedulerService {
     try {
       final result = await _methodChannel.invokeMethod<bool>('isExactAlarmAllowed');
       return result ?? false;
-    } catch (e) {
+    } on Exception {
       return false;
     }
   }
@@ -292,7 +293,7 @@ class AdhanSchedulerService {
     try {
       final result = await _methodChannel.invokeMethod<bool>('isBatteryOptimizationDisabled');
       return result ?? false;
-    } catch (e) {
+    } on Exception {
       return false;
     }
   }
@@ -303,11 +304,11 @@ class AdhanSchedulerService {
 
   /// Get adhan enabled for prayer
   static bool isAdhanEnabled(String prayerName) {
-    return _settings?.get('adhan_${prayerName}_enabled', defaultValue: true) ?? true;
+    return (_settings?.get('adhan_${prayerName}_enabled', defaultValue: true) ?? true) as bool;
   }
 
   /// Set adhan enabled for prayer  
-  static Future<void> setAdhanEnabled(String prayerName, bool enabled) async {
+  static Future<void> setAdhanEnabled(String prayerName, {required bool enabled}) async {
     await _settings?.put('adhan_${prayerName}_enabled', enabled);
     await scheduleAllPrayers(); // Re-schedule
   }
@@ -315,9 +316,9 @@ class AdhanSchedulerService {
   /// Get adhan sound for prayer
   static String _getAdhanSoundForPrayer(String prayerName) {
     if (prayerName == 'fajr') {
-      return _settings?.get('fajr_adhan_sound', defaultValue: 'fajr_special') ?? 'fajr_special';
+      return (_settings?.get('fajr_adhan_sound', defaultValue: 'fajr_special') ?? 'fajr_special') as String;
     }
-    return _settings?.get('regular_adhan_sound', defaultValue: 'makkah') ?? 'makkah';
+    return (_settings?.get('regular_adhan_sound', defaultValue: 'makkah') ?? 'makkah') as String;
   }
 
   /// Set adhan sound
@@ -332,12 +333,12 @@ class AdhanSchedulerService {
   /// Get manual adjustments
   static Map<String, int> _getManualAdjustments() {
     return {
-      'fajr': _settings?.get('adjust_fajr', defaultValue: 0) ?? 0,
-      'sunrise': _settings?.get('adjust_sunrise', defaultValue: 0) ?? 0,
-      'dhuhr': _settings?.get('adjust_dhuhr', defaultValue: 0) ?? 0,
-      'asr': _settings?.get('adjust_asr', defaultValue: 0) ?? 0,
-      'maghrib': _settings?.get('adjust_maghrib', defaultValue: 0) ?? 0,
-      'isha': _settings?.get('adjust_isha', defaultValue: 0) ?? 0,
+      'fajr': (_settings?.get('adjust_fajr', defaultValue: 0) ?? 0) as int,
+      'sunrise': (_settings?.get('adjust_sunrise', defaultValue: 0) ?? 0) as int,
+      'dhuhr': (_settings?.get('adjust_dhuhr', defaultValue: 0) ?? 0) as int,
+      'asr': (_settings?.get('adjust_asr', defaultValue: 0) ?? 0) as int,
+      'maghrib': (_settings?.get('adjust_maghrib', defaultValue: 0) ?? 0) as int,
+      'isha': (_settings?.get('adjust_isha', defaultValue: 0) ?? 0) as int,
     };
   }
 
@@ -412,7 +413,7 @@ class AdhanSchedulerService {
   static Future<void> cancelAllAdhans() async {
     try {
       await _methodChannel.invokeMethod('cancelAllAdhans');
-    } catch (e) {
+    } on Exception {
       // Ignore
     }
   }
@@ -420,9 +421,9 @@ class AdhanSchedulerService {
   /// Get adhan log (for debugging)
   static Future<List<Map<String, dynamic>>> getAdhanLog() async {
     try {
-      final result = await _methodChannel.invokeMethod<List>('getAdhanLog');
-      return result?.map((e) => Map<String, dynamic>.from(e)).toList() ?? [];
-    } catch (e) {
+      final result = await _methodChannel.invokeMethod<List<dynamic>>('getAdhanLog');
+      return result?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
+    } on Exception {
       return [];
     }
   }
@@ -430,13 +431,13 @@ class AdhanSchedulerService {
 
 /// Adhan sound model
 class AdhanSound {
-  final String id;
-  final String nameArabic;
-  final String nameEnglish;
 
   const AdhanSound({
     required this.id,
     required this.nameArabic,
     required this.nameEnglish,
   });
+  final String id;
+  final String nameArabic;
+  final String nameEnglish;
 }

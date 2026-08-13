@@ -25,16 +25,16 @@ abstract class KhushuPolicy {
     if (withHaptic) {
       await HapticFeedback.lightImpact();
     }
-    await Future.delayed(getBreathingDelayDuration());
+    await Future<void>.delayed(getBreathingDelayDuration());
   }
 }
 
 /// Default implementation of Khushu Policy
 class DefaultKhushuPolicy implements KhushuPolicy {
-  final bool _isKhushuModeActive;
 
   const DefaultKhushuPolicy({bool isKhushuModeActive = false})
       : _isKhushuModeActive = isKhushuModeActive;
+  final bool _isKhushuModeActive;
 
   @override
   bool canShowNotification(BuildContext context) {
@@ -63,7 +63,7 @@ class DefaultKhushuPolicy implements KhushuPolicy {
     if (withHaptic) {
       await HapticFeedback.lightImpact();
     }
-    await Future.delayed(getBreathingDelayDuration());
+    await Future<void>.delayed(getBreathingDelayDuration());
   }
 }
 
@@ -88,6 +88,6 @@ class KhushuModePolicy implements KhushuPolicy {
     if (withHaptic) {
       await HapticFeedback.lightImpact();
     }
-    await Future.delayed(getBreathingDelayDuration());
+    await Future<void>.delayed(getBreathingDelayDuration());
   }
 }

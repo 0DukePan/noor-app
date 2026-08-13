@@ -27,7 +27,7 @@ class IsnadParserService {
 
     // Arabic commas separate names; turn them into plain spaces so the
     // "next transmission keyword" lookahead can see across name boundaries.
-    final spaced = normalized.replaceAll(RegExp(r'[،,؛]'), ' ');
+    final spaced = normalized.replaceAll(RegExp('[،,؛]'), ' ');
     final narrators = <NarratorInfo>[];
 
     // Transmission keywords. The leading `(?:^|\s)` requires each keyword to
@@ -97,7 +97,7 @@ class IsnadParserService {
     // Split by "عن" which is the most universal connector
     final parts = normalized.split(RegExp(r'\s+عن\s+'));
 
-    for (int i = 0; i < parts.length; i++) {
+    for (var i = 0; i < parts.length; i++) {
       final part = parts[i].trim();
       if (part.isEmpty) continue;
 
@@ -121,7 +121,6 @@ class IsnadParserService {
         isProphet: _isProphet(name),
         isCompanion: _isCompanion(name, arabicText),
         level: narrators.length,
-        linkWord: 'عن',
       ),);
 
       // Stop at the Prophet/Companion — everything after is matn.
@@ -155,10 +154,10 @@ class IsnadParserService {
   /// Clean a raw narrator name
   static String _cleanNarratorName(String name) {
     var cleaned = name
-        .replaceAll(RegExp(r'رضي الله عنه(ما|م|ا)?'), '')
-        .replaceAll(RegExp(r'صلى الله عليه وسلم'), '')
-        .replaceAll(RegExp(r'عليه(ما)? السلام'), '')
-        .replaceAll(RegExp(r'رحمه الله'), '')
+        .replaceAll(RegExp('رضي الله عنه(ما|م|ا)?'), '')
+        .replaceAll(RegExp('صلى الله عليه وسلم'), '')
+        .replaceAll(RegExp('عليه(ما)? السلام'), '')
+        .replaceAll(RegExp('رحمه الله'), '')
         .replaceAll('ﷺ', '') // U+FDFA, the "Sallallahu Alayhi Wasallam" ligature
         .replaceAll(RegExp(r'[،,:\.]'), '')
         .replaceAll(RegExp(r'^\s*(ان|انه|انها)\s+'), '')
@@ -192,9 +191,9 @@ class IsnadParserService {
 
     // Walk the original text rune-by-rune, counting visible characters until
     // we reach the start of the name (visible index `idx`).
-    int origStart = 0;
-    int visibleCount = 0;
-    for (int i = 0; i < origChars.length; i++) {
+    var origStart = 0;
+    var visibleCount = 0;
+    for (var i = 0; i < origChars.length; i++) {
       final ch = String.fromCharCode(origChars[i]);
       if (_isVisibleChar(ch)) {
         if (visibleCount == idx) {
@@ -206,9 +205,9 @@ class IsnadParserService {
     }
 
     // Walk forward the same way for the length of the (diacritic-free) name.
-    int remaining = normalizedName.length;
-    int origEnd = origStart;
-    for (int i = origStart; i < origChars.length && remaining > 0; i++) {
+    var remaining = normalizedName.length;
+    var origEnd = origStart;
+    for (var i = origStart; i < origChars.length && remaining > 0; i++) {
       final ch = String.fromCharCode(origChars[i]);
       if (_isVisibleChar(ch)) {
         remaining--;
@@ -219,7 +218,7 @@ class IsnadParserService {
     if (origStart < origEnd && origEnd <= originalText.length) {
       try {
         return originalText.substring(origStart, origEnd).trim();
-      } catch (_) {
+      } on Exception catch (_) {
         return normalizedName;
       }
     }
@@ -269,7 +268,7 @@ class IsnadParserService {
       'النبي', 'الرسول', 'رسول الله', 'نبي الله', 'صلى الله عليه وسلم',
     ];
     final normalized = _stripDiacritics(name);
-    return prophetMarkers.any((p) => normalized.contains(p));
+    return prophetMarkers.any(normalized.contains);
   }
 
   /// Check if narrator is a Companion (Sahabi)
@@ -298,7 +297,7 @@ class IsnadParserService {
     ];
 
     final normalizedName = _stripDiacritics(name);
-    return companionNames.any((c) => normalizedName.contains(c));
+    return companionNames.any(normalizedName.contains);
   }
 }
 
@@ -307,14 +306,7 @@ class IsnadParserService {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// معلومات الراوي - Narrator information extracted from the isnad
-class NarratorInfo {
-  final String name;
-  final String normalizedName;
-  final String role;
-  final bool isProphet;
-  final bool isCompanion;
-  final int level;
-  final String linkWord; // عن, حدثنا, etc.
+class NarratorInfo { // عن, حدثنا, etc.
 
   const NarratorInfo({
     required this.name,
@@ -325,6 +317,13 @@ class NarratorInfo {
     required this.level,
     this.linkWord = 'عن',
   });
+  final String name;
+  final String normalizedName;
+  final String role;
+  final bool isProphet;
+  final bool isCompanion;
+  final int level;
+  final String linkWord;
 
   @override
   String toString() => 'NarratorInfo($name, $role, level=$level)';

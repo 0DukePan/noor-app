@@ -1,20 +1,22 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/noor_theme.dart';
-import '../../../../core/theme/design_system.dart';
-import '../../../../core/services/services.dart';
-import '../../../../core/domain/policies/khushu_policy.dart';
-import '../providers/quran_providers.dart';
+
 import '../../../../core/domain/entities/surah.dart';
+import '../../../../core/domain/policies/khushu_policy.dart';
+import '../../../../core/services/services.dart';
+import '../../../../core/theme/design_system.dart';
+import '../../../../core/theme/noor_theme.dart';
+import '../providers/quran_providers.dart';
 
 /// صفحة السورة الديناميكية - Dynamic Surah Reading Page
 class SurahPage extends ConsumerStatefulWidget {
-  final int surahNumber;
 
-  const SurahPage({super.key, required this.surahNumber});
+  const SurahPage({required this.surahNumber, super.key});
+  final int surahNumber;
 
   @override
   ConsumerState<SurahPage> createState() => _SurahPageState();
@@ -53,9 +55,9 @@ class _SurahPageState extends ConsumerState<SurahPage>
 
     if (!isKhushu) {
       await HapticFeedback.lightImpact();
-      _khushuController.forward();
+      unawaited(_khushuController.forward());
     } else {
-      _khushuController.reverse();
+      unawaited(_khushuController.reverse());
     }
     ref.read(readingSettingsProvider.notifier).toggleKhushuMode();
   }
@@ -77,7 +79,6 @@ class _SurahPageState extends ConsumerState<SurahPage>
     return Scaffold(
       backgroundColor: backgroundColor,
       extendBodyBehindAppBar: true,
-      appBar: null,
       body: GestureDetector(
         onTap: settings.isKhushuMode ? _toggleKhushuMode : null,
         child: Stack(
@@ -246,7 +247,7 @@ class _SurahPageState extends ConsumerState<SurahPage>
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          backgroundColor.withValues(alpha: 0.0),
+                          backgroundColor.withValues(alpha: 0),
                           backgroundColor.withValues(alpha: 0.1),
                         ],
                       ),
@@ -261,7 +262,7 @@ class _SurahPageState extends ConsumerState<SurahPage>
   }
 
   void _showAudioPlayer(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => _AudioPlayerSheet(surahNumber: widget.surahNumber),
@@ -270,7 +271,7 @@ class _SurahPageState extends ConsumerState<SurahPage>
 
   void _showVerseOptions(BuildContext context, Verse verse) {
     HapticFeedback.mediumImpact();
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -363,9 +364,9 @@ class _SurahPageState extends ConsumerState<SurahPage>
 }
 
 class _BismillahHeader extends StatelessWidget {
-  final int surahNumber;
 
   const _BismillahHeader({required this.surahNumber});
+  final int surahNumber;
 
   @override
   Widget build(BuildContext context) {
@@ -414,11 +415,6 @@ class _BismillahHeader extends StatelessWidget {
 }
 
 class _DynamicVerseCard extends StatelessWidget {
-  final Verse verse;
-  final bool isKhushuMode;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final VoidCallback onLongPress;
 
   const _DynamicVerseCard({
     required this.verse,
@@ -427,6 +423,11 @@ class _DynamicVerseCard extends StatelessWidget {
     required this.onTap,
     required this.onLongPress,
   });
+  final Verse verse;
+  final bool isKhushuMode;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -488,15 +489,15 @@ class _DynamicVerseCard extends StatelessWidget {
 }
 
 class _DynamicTafsirPanel extends ConsumerWidget {
-  final int surahNumber;
-  final int verseNumber;
-  final VoidCallback onClose;
 
   const _DynamicTafsirPanel({
     required this.surahNumber,
     required this.verseNumber,
     required this.onClose,
   });
+  final int surahNumber;
+  final int verseNumber;
+  final VoidCallback onClose;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -658,9 +659,9 @@ class _DynamicTafsirPanel extends ConsumerWidget {
 }
 
 class _AudioPlayerSheet extends StatefulWidget {
-  final int surahNumber;
 
   const _AudioPlayerSheet({required this.surahNumber});
+  final int surahNumber;
 
   @override
   State<_AudioPlayerSheet> createState() => _AudioPlayerSheetState();
@@ -758,7 +759,7 @@ class _AudioPlayerSheetState extends State<_AudioPlayerSheet> {
                           icon: const Icon(Icons.stop_rounded),
                           iconSize: 32,
                           color: theme.colorScheme.onSurfaceVariant,
-                          onPressed: () => QuranAudioService.stop(),
+                          onPressed: QuranAudioService.stop,
                         ),
                         const SizedBox(width: 24),
                         Container(
@@ -818,15 +819,15 @@ class _AudioPlayerSheetState extends State<_AudioPlayerSheet> {
 }
 
 class _OptionTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
 
   const _OptionTile({
     required this.icon,
     required this.title,
     required this.onTap,
   });
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -847,13 +848,13 @@ class _OptionTile extends StatelessWidget {
 }
 
 class _MiniAudioPlayer extends ConsumerWidget {
-  final int surahNumber;
-  final bool isKhushuMode;
 
   const _MiniAudioPlayer({
     required this.surahNumber,
     required this.isKhushuMode,
   });
+  final int surahNumber;
+  final bool isKhushuMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -929,7 +930,7 @@ class _MiniAudioPlayer extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.close_rounded),
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                onPressed: () => QuranAudioService.stop(),
+                onPressed: QuranAudioService.stop,
               ),
             ],
           ),
@@ -938,4 +939,3 @@ class _MiniAudioPlayer extends ConsumerWidget {
     );
   }
 }
-

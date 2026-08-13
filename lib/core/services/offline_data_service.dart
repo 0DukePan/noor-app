@@ -13,14 +13,14 @@ class OfflineDataService {
   static const _hadithBoxName = 'hadith_offline';
   static const _lastSyncKey = 'last_sync';
 
-  static Box? _quranBox;
-  static Box? _hadithBox;
+  static Box<dynamic>? _quranBox;
+  static Box<dynamic>? _hadithBox;
   static final ApiFetcherService _api = ApiFetcherService();
 
   /// Initialize offline storage
   static Future<void> init() async {
-    _quranBox = await Hive.openBox(_quranBoxName);
-    _hadithBox = await Hive.openBox(_hadithBoxName);
+    _quranBox = await Hive.openBox<dynamic>(_quranBoxName);
+    _hadithBox = await Hive.openBox<dynamic>(_hadithBoxName);
 
     // Load bundled data on first run
     if (!_quranBox!.containsKey('initialized')) {
@@ -43,7 +43,7 @@ class OfflineDataService {
     try {
       // Load surahs metadata
       final surahsJson = await rootBundle.loadString('assets/quran/surahs.json');
-      final surahs = List<Map<String, dynamic>>.from(jsonDecode(surahsJson));
+      final surahs = List<Map<String, dynamic>>.from(jsonDecode(surahsJson) as List);
       await _quranBox!.put('surahs', surahs);
 
       // Load full Quran text (Uthmani)
@@ -68,7 +68,7 @@ class OfflineDataService {
             final surahData = {
               ...metadata,
               'verses': verses.map((v) => {
-                'number': v['verse'],
+                'number': (v as Map)['verse'],
                 'text': v['text'],
                 'numberInSurah': v['verse'],
                 'juz': 0, // Placeholder
@@ -83,10 +83,10 @@ class OfflineDataService {
             await _quranBox!.put('surah_$i', surahData);
           }
         }
-      } catch (e) {
+      } on Exception catch (e) {
         debugPrint('Failed to load quran_uthmani.json: $e');
       }
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('Failed to load bundled Quran: $e');
     }
   }
@@ -98,16 +98,16 @@ class OfflineDataService {
       try {
         final nawawiJson = await rootBundle.loadString('assets/hadith/40_nawawi.json');
         await _hadithBox!.put('40_nawawi', jsonDecode(nawawiJson));
-      } catch (_) {}
+      } on Exception catch (_) {}
 
       // Load collection metadata (May be missing)
       try {
         final collectionsJson = await rootBundle.loadString('assets/hadith/collections.json');
         await _hadithBox!.put('collections', jsonDecode(collectionsJson));
-      } catch (_) {
+      } on Exception catch (_) {
         await _hadithBox!.put('collections', _getDefaultCollections());
       }
-    } catch (e) {
+    } on Exception {
       // Assets not found, will use API
     }
   }
@@ -121,7 +121,7 @@ class OfflineDataService {
     // Try cache first
     final cached = _quranBox?.get('surahs');
     if (cached != null) {
-      return List<Map<String, dynamic>>.from(cached);
+      return List<Map<String, dynamic>>.from(cached as List);
     }
 
     // Fetch from API
@@ -129,7 +129,7 @@ class OfflineDataService {
       final surahs = await _api.fetchAllSurahs();
       await _quranBox?.put('surahs', surahs);
       return surahs;
-    } catch (e) {
+    } on Exception {
       return _getDefaultSurahs();
     }
   }
@@ -139,7 +139,7 @@ class OfflineDataService {
     // Try cache first
     final cached = _quranBox?.get('surah_$surahNumber');
     if (cached != null) {
-      return Map<String, dynamic>.from(cached);
+      return Map<String, dynamic>.from(cached as Map);
     }
 
     // Fetch from API
@@ -147,7 +147,7 @@ class OfflineDataService {
       final surah = await _api.fetchSurah(surahNumber);
       await _quranBox?.put('surah_$surahNumber', surah);
       return surah;
-    } catch (e) {
+    } on Exception {
       return null;
     }
   }
@@ -158,7 +158,7 @@ class OfflineDataService {
     final cached = _quranBox?.get(key);
 
     if (cached != null) {
-      return Map<String, dynamic>.from(cached);
+      return Map<String, dynamic>.from(cached as Map);
     }
 
     try {
@@ -168,7 +168,7 @@ class OfflineDataService {
       );
       await _quranBox?.put(key, tafsir);
       return tafsir;
-    } catch (e) {
+    } on Exception {
       return null;
     }
   }
@@ -181,14 +181,14 @@ class OfflineDataService {
   static Future<List<Map<String, dynamic>>> getCollections() async {
     final cached = _hadithBox?.get('collections');
     if (cached != null) {
-      return List<Map<String, dynamic>>.from(cached);
+      return List<Map<String, dynamic>>.from(cached as List);
     }
 
     try {
       final collections = await _api.fetchHadithCollections();
       await _hadithBox?.put('collections', collections);
       return collections;
-    } catch (e) {
+    } on Exception {
       return _getDefaultCollections();
     }
   }
@@ -202,14 +202,14 @@ class OfflineDataService {
     final cached = _hadithBox?.get(key);
 
     if (cached != null) {
-      return List<Map<String, dynamic>>.from(cached);
+      return List<Map<String, dynamic>>.from(cached as List);
     }
 
     try {
       final hadiths = await _api.fetchHadithsByCollection(collection, page: page);
       await _hadithBox?.put(key, hadiths);
       return hadiths;
-    } catch (e) {
+    } on Exception {
       return [];
     }
   }
@@ -218,7 +218,7 @@ class OfflineDataService {
   static Future<List<Map<String, dynamic>>> get40Nawawi() async {
     final cached = _hadithBox?.get('40_nawawi');
     if (cached != null) {
-      return List<Map<String, dynamic>>.from(cached);
+      return List<Map<String, dynamic>>.from(cached as List);
     }
     return [];
   }
@@ -249,7 +249,7 @@ class OfflineDataService {
       await _hadithBox?.put('collections', collections);
 
       await _quranBox?.put(_lastSyncKey, DateTime.now());
-    } catch (e) {
+    } on Exception {
       // Sync failed, will retry later
     }
   }

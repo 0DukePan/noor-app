@@ -1,14 +1,15 @@
-import 'dart:async';
+﻿import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../../../core/services/location_trust_engine.dart';
-import '../../../../core/services/prayer_time_engine.dart';
 import '../../../../core/services/adhan_scheduler_service.dart';
+import '../../../../core/services/hive_service.dart';
+import '../../../../core/services/location_trust_engine.dart';
 import '../../../../core/services/mosque_mode_service.dart';
 import '../../../../core/services/prayer_health_check.dart';
-import '../../../../core/services/hive_service.dart';
+import '../../../../core/services/prayer_time_engine.dart';
 import '../../domain/entities/prayer_entities.dart' hide CalculationMethod;
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -16,15 +17,15 @@ import '../../domain/entities/prayer_entities.dart' hide CalculationMethod;
 // ═══════════════════════════════════════════════════════════════════════════
 
 class PrayerPageData {
-  final PrayerTimes prayerTimes;
-  final String cityName;
-  final String countryName;
 
   const PrayerPageData({
     required this.prayerTimes,
     required this.cityName,
     required this.countryName,
   });
+  final PrayerTimes prayerTimes;
+  final String cityName;
+  final String countryName;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -46,8 +47,8 @@ final prayerDataProvider = FutureProvider<PrayerPageData>((ref) async {
   final lat = locationResult.location?.latitude ?? 21.4225;
   final lng = locationResult.location?.longitude ?? 39.8262;
 
-  String city = "موقعك الحالي";
-  String country = "";
+  var city = 'موقعك الحالي';
+  var country = '';
   try {
     // Try geocoding
     final placemarks = await placemarkFromCoordinates(lat, lng);
@@ -56,7 +57,7 @@ final prayerDataProvider = FutureProvider<PrayerPageData>((ref) async {
       city = mark.locality ?? mark.subAdministrativeArea ?? city;
       country = mark.country ?? '';
     }
-  } catch (_) {}
+  } on Exception catch (_) {}
 
   final prayerTimes = PrayerTimeEngine.calculate(
     latitude: lat,
@@ -78,13 +79,13 @@ final prayerDataProvider = FutureProvider<PrayerPageData>((ref) async {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class QadaState {
-  final List<QadaRecord> prayerRecords;
-  final List<QadaRecord> fastingRecords;
 
   const QadaState({
     this.prayerRecords = const [],
     this.fastingRecords = const [],
   });
+  final List<QadaRecord> prayerRecords;
+  final List<QadaRecord> fastingRecords;
 
   QadaState copyWith({
     List<QadaRecord>? prayerRecords,
@@ -106,13 +107,13 @@ class QadaNotifier extends StateNotifier<QadaState> {
 
   Future<void> _loadFromHive() async {
     try {
-      final box = await Hive.openBox(_boxName);
-      final prayerList = (box.get('prayer_records', defaultValue: []) as List)
-          .cast<Map>()
+      final box = await Hive.openBox<dynamic>(_boxName);
+      final prayerList = (box.get('prayer_records', defaultValue: <dynamic>[]) as List)
+          .cast<Map<dynamic, dynamic>>()
           .map((m) => _mapToRecord(m, QadaType.prayer))
           .toList();
-      final fastingList = (box.get('fasting_records', defaultValue: []) as List)
-          .cast<Map>()
+      final fastingList = (box.get('fasting_records', defaultValue: <dynamic>[]) as List)
+          .cast<Map<dynamic, dynamic>>()
           .map((m) => _mapToRecord(m, QadaType.fasting))
           .toList();
 
@@ -120,7 +121,7 @@ class QadaNotifier extends StateNotifier<QadaState> {
         prayerRecords: prayerList,
         fastingRecords: fastingList,
       );
-    } catch (e) {
+    } on Exception {
       // Start fresh if Hive fails
       state = const QadaState();
     }
@@ -128,10 +129,10 @@ class QadaNotifier extends StateNotifier<QadaState> {
 
   Future<void> _saveToHive() async {
     try {
-      final box = await Hive.openBox(_boxName);
+      final box = await Hive.openBox<dynamic>(_boxName);
       await box.put('prayer_records', state.prayerRecords.map(_recordToMap).toList());
       await box.put('fasting_records', state.fastingRecords.map(_recordToMap).toList());
-    } catch (_) {}
+    } on Exception catch (_) {}
   }
 
   void addRecord(QadaType type, String name, int totalCount, String? notes) {
@@ -154,7 +155,7 @@ class QadaNotifier extends StateNotifier<QadaState> {
 
   /// Returns true if the record is now complete
   bool incrementRecord(String id) {
-    bool isComplete = false;
+    var isComplete = false;
     
     state = state.copyWith(
       prayerRecords: state.prayerRecords.map((r) {
@@ -192,7 +193,7 @@ class QadaNotifier extends StateNotifier<QadaState> {
     _saveToHive();
   }
 
-  QadaRecord _mapToRecord(Map m, QadaType type) {
+  QadaRecord _mapToRecord(Map<dynamic, dynamic> m, QadaType type) {
     return QadaRecord(
       id: m['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
       type: type,
@@ -223,11 +224,6 @@ final qadaProvider = StateNotifierProvider<QadaNotifier, QadaState>((ref) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class PrayerSettingsState {
-  final Map<String, bool> adhanEnabled;
-  final bool mosqueModeGlobal;
-  final int mosqueDuration;
-  final HealthReport? healthReport;
-  final bool healthLoading;
 
   const PrayerSettingsState({
     this.adhanEnabled = const {},
@@ -236,6 +232,11 @@ class PrayerSettingsState {
     this.healthReport,
     this.healthLoading = false,
   });
+  final Map<String, bool> adhanEnabled;
+  final bool mosqueModeGlobal;
+  final int mosqueDuration;
+  final HealthReport? healthReport;
+  final bool healthLoading;
 
   PrayerSettingsState copyWith({
     Map<String, bool>? adhanEnabled,
@@ -274,14 +275,14 @@ class PrayerSettingsNotifier extends StateNotifier<PrayerSettingsState> {
     );
   }
 
-  Future<void> toggleAdhan(String prayer, bool enabled) async {
-    await AdhanSchedulerService.setAdhanEnabled(prayer, enabled);
+  Future<void> toggleAdhan(String prayer, {required bool enabled}) async {
+    await AdhanSchedulerService.setAdhanEnabled(prayer, enabled: enabled);
     state = state.copyWith(
       adhanEnabled: {...state.adhanEnabled, prayer: enabled},
     );
   }
 
-  Future<void> setMosqueMode(bool enabled) async {
+  Future<void> setMosqueMode({required bool enabled}) async {
     if (enabled) {
       await MosqueModeService.enable();
     } else {
@@ -300,7 +301,7 @@ class PrayerSettingsNotifier extends StateNotifier<PrayerSettingsState> {
     try {
       final report = await PrayerHealthCheck.runHealthCheck();
       state = state.copyWith(healthReport: report, healthLoading: false);
-    } catch (e) {
+    } on Exception {
       state = state.copyWith(healthLoading: false);
     }
   }

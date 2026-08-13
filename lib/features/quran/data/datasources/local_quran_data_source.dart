@@ -1,7 +1,9 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
-import '../../../../core/utils/isolate_parser.dart';
+
 import '../../../../core/utils/arabic_text.dart';
+import '../../../../core/utils/isolate_parser.dart';
 import 'quran_datasources.dart'; // Abstract class and Models
 
 class LocalQuranDataSourceImpl implements QuranLocalDataSource {
@@ -22,10 +24,10 @@ class LocalQuranDataSourceImpl implements QuranLocalDataSource {
   Future<void> _loadMetadata() async {
      final jsonList = await IsolateParser.parseInBackground(
         assetPath: 'assets/quran/surahs.json',
-        parser: (json) => List<Map<String, dynamic>>.from(jsonDecode(json)),
+        parser: (json) => List<Map<String, dynamic>>.from(jsonDecode(json) as List),
       );
       
-      _surahMetadata = jsonList.map((json) => SurahModel.fromJson(json)).toList();
+      _surahMetadata = jsonList.map(SurahModel.fromJson).toList();
   }
 
   @override
@@ -124,14 +126,15 @@ class LocalQuranDataSourceImpl implements QuranLocalDataSource {
     
     // Normalize query for Arabic search (remove diacritics)
     final normalizedQuery = normalizeArabic(query);
-    final List<VerseModel> results = [];
+    final results = <VerseModel>[];
     
     _fullQuranMap!.forEach((surahNum, verses) {
       for (final v in (verses as List)) {
-        final text = v['text'] as String? ?? v['text_uthmani'] as String? ?? '';
+        final map = v as Map;
+        final text = map['text'] as String? ?? map['text_uthmani'] as String? ?? '';
         final normalizedText = normalizeArabic(text);
         if (normalizedText.contains(normalizedQuery)) {
-          results.add(VerseModel.fromJson(v));
+          results.add(VerseModel.fromJson(Map<String, dynamic>.from(map)));
         }
       }
     });
@@ -150,7 +153,7 @@ class LocalQuranDataSourceImpl implements QuranLocalDataSource {
     final meta = args.metadata.firstWhere((m) => m.number == args.surahNumber);
     final versesRaw = args.fullText[args.surahNumber.toString()] as List;
 
-    final verses = versesRaw.map((v) => VerseModel.fromJson(v)).toList();
+    final verses = versesRaw.map((v) => VerseModel.fromJson(Map<String, dynamic>.from(v as Map))).toList();
 
     // Reconstruct SurahModel with verses
     return SurahModel(
@@ -168,13 +171,13 @@ class LocalQuranDataSourceImpl implements QuranLocalDataSource {
 }
 
 class _BuildSurahArgs {
-  final int surahNumber;
-  final Map<String, dynamic> fullText;
-  final List<SurahModel> metadata;
 
   _BuildSurahArgs({
     required this.surahNumber,
     required this.fullText,
     required this.metadata,
   });
+  final int surahNumber;
+  final Map<String, dynamic> fullText;
+  final List<SurahModel> metadata;
 }

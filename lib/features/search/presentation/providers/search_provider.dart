@@ -17,11 +17,11 @@ final searchResultsProvider = StateNotifierProvider<SearchNotifier, AsyncValue<L
 });
 
 class SearchNotifier extends StateNotifier<AsyncValue<List<SearchResult>>> {
-  final SearchRepository _repository;
 
   SearchNotifier(this._repository) : super(const AsyncValue.data([])) {
     _init();
   }
+  final SearchRepository _repository;
 
   Future<void> _init() async {
     // Background init
@@ -38,7 +38,7 @@ class SearchNotifier extends StateNotifier<AsyncValue<List<SearchResult>>> {
     try {
       final results = await _repository.search(query);
       state = AsyncValue.data(results);
-    } catch (e, s) {
+    } on Exception catch (e, s) {
       state = AsyncValue.error(e, s);
     }
   }

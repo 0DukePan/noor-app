@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/design_system.dart';
 import '../../../../core/models/adhkar_models.dart';
+import '../../../../core/theme/design_system.dart';
 
 class AdhkarStatusCard extends StatelessWidget {
+
+  const AdhkarStatusCard({required this.stats, required this.onTap, super.key});
   final DailyAdhkarStats stats;
   final VoidCallback onTap;
-
-  const AdhkarStatusCard({super.key, required this.stats, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

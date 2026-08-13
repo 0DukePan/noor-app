@@ -1,8 +1,10 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 /// خدمة جلب البيانات من المصادر الخارجية - API Fetcher Service
 class ApiFetcherService {
+
+  ApiFetcherService({http.Client? client}) : _client = client ?? http.Client();
   static const _quranBaseUrl = 'https://api.alquran.cloud/v1';
   static const _quranBackupUrl = 'https://cdn.jsdelivr.net/gh/fawazahmed0/quran-api@1';
   static const _hadithBaseUrl = 'https://api.sunnah.com/v1';
@@ -10,11 +12,7 @@ class ApiFetcherService {
   static const _mosqueBaseUrl = 'https://masjidnear.me/api/v1';
 
   final http.Client _client;
-  String? _hadithApiKey;
-
-  ApiFetcherService({http.Client? client}) : _client = client ?? http.Client();
-
-  void setHadithApiKey(String key) => _hadithApiKey = key;
+  String? hadithApiKey;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // QURAN APIs
@@ -24,9 +22,9 @@ class ApiFetcherService {
   Future<List<Map<String, dynamic>>> fetchAllSurahs() async {
     try {
       final response = await _get('$_quranBaseUrl/surah');
-      final data = jsonDecode(response.body);
-      return List<Map<String, dynamic>>.from(data['data']);
-    } catch (e) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return List<Map<String, dynamic>>.from(data['data'] as List);
+    } on Exception {
       // Fallback to backup API
       return _fetchSurahsFromBackup();
     }
@@ -34,16 +32,16 @@ class ApiFetcherService {
 
   Future<List<Map<String, dynamic>>> _fetchSurahsFromBackup() async {
     final response = await _get('$_quranBackupUrl/chapters.json');
-    return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+    return List<Map<String, dynamic>>.from(jsonDecode(response.body) as List);
   }
 
   /// Fetch Surah with verses
   Future<Map<String, dynamic>> fetchSurah(int surahNumber, {String edition = 'quran-uthmani'}) async {
     try {
       final response = await _get('$_quranBaseUrl/surah/$surahNumber/$edition');
-      final data = jsonDecode(response.body);
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
       return data['data'] as Map<String, dynamic>;
-    } catch (e) {
+    } on Exception {
       return _fetchSurahFromBackup(surahNumber);
     }
   }
@@ -59,8 +57,8 @@ class ApiFetcherService {
         ? '$_quranBaseUrl/edition/type/$type'
         : '$_quranBaseUrl/edition';
     final response = await _get(url);
-    final data = jsonDecode(response.body);
-    return List<Map<String, dynamic>>.from(data['data']);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return List<Map<String, dynamic>>.from(data['data'] as List);
   }
 
   /// Fetch Tafsir for a verse
@@ -71,7 +69,7 @@ class ApiFetcherService {
   }) async {
     final ref = '$surahNumber:$verseNumber';
     final response = await _get('$_quranBaseUrl/ayah/$ref/$tafsirEdition');
-    final data = jsonDecode(response.body);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
     return data['data'] as Map<String, dynamic>;
   }
 
@@ -83,8 +81,8 @@ class ApiFetcherService {
   }) async {
     final ref = '$surahNumber:$verseNumber';
     final response = await _get('$_quranBaseUrl/ayah/$ref/$reciter');
-    final data = jsonDecode(response.body);
-    return data['data']['audio'] as String?;
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return (data['data'] as Map)['audio'] as String?;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -97,8 +95,8 @@ class ApiFetcherService {
       '$_hadithBaseUrl/collections',
       headers: _hadithHeaders,
     );
-    final data = jsonDecode(response.body);
-    return List<Map<String, dynamic>>.from(data['data']);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return List<Map<String, dynamic>>.from(data['data'] as List);
   }
 
   /// Fetch hadiths by collection
@@ -111,8 +109,8 @@ class ApiFetcherService {
       '$_hadithBaseUrl/hadiths?collection=$collection&page=$page&limit=$limit',
       headers: _hadithHeaders,
     );
-    final data = jsonDecode(response.body);
-    return List<Map<String, dynamic>>.from(data['data']);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return List<Map<String, dynamic>>.from(data['data'] as List);
   }
 
   /// Fetch single hadith by URN
@@ -121,12 +119,12 @@ class ApiFetcherService {
       '$_hadithBaseUrl/hadiths/$urn',
       headers: _hadithHeaders,
     );
-    final data = jsonDecode(response.body);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
     return data['data'] as Map<String, dynamic>?;
   }
 
   Map<String, String> get _hadithHeaders => {
-        if (_hadithApiKey != null) 'X-API-Key': _hadithApiKey!,
+        if (hadithApiKey != null) 'X-API-Key': hadithApiKey!,
       };
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -144,7 +142,7 @@ class ApiFetcherService {
     final response = await _get(
       '$_prayerBaseUrl/timings/$dateStr?latitude=$latitude&longitude=$longitude&method=$method',
     );
-    final data = jsonDecode(response.body);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
     return data['data'] as Map<String, dynamic>;
   }
 
@@ -159,8 +157,8 @@ class ApiFetcherService {
     final response = await _get(
       '$_prayerBaseUrl/calendar/$year/$month?latitude=$latitude&longitude=$longitude&method=$method',
     );
-    final data = jsonDecode(response.body);
-    return List<Map<String, dynamic>>.from(data['data']);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return List<Map<String, dynamic>>.from(data['data'] as List);
   }
 
   /// Fetch Qibla direction
@@ -171,14 +169,14 @@ class ApiFetcherService {
     final response = await _get(
       '$_prayerBaseUrl/qibla/$latitude/$longitude',
     );
-    final data = jsonDecode(response.body);
-    return (data['data']['direction'] as num).toDouble();
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return ((data['data'] as Map)['direction'] as num).toDouble();
   }
 
   /// Fetch available calculation methods
   Future<Map<String, dynamic>> fetchCalculationMethods() async {
     final response = await _get('$_prayerBaseUrl/methods');
-    final data = jsonDecode(response.body);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
     return data['data'] as Map<String, dynamic>;
   }
 
@@ -196,9 +194,9 @@ class ApiFetcherService {
       final response = await _get(
         '$_mosqueBaseUrl/masjid?lat=$latitude&long=$longitude&radius=$radiusMeters',
       );
-      final data = jsonDecode(response.body);
-      return List<Map<String, dynamic>>.from(data['masjids'] ?? []);
-    } catch (e) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return List<Map<String, dynamic>>.from((data['masjids'] ?? <dynamic>[]) as List);
+    } on Exception {
       // Fallback to empty list
       return [];
     }
@@ -231,10 +229,10 @@ class ApiFetcherService {
 
 /// API Exception
 class ApiException implements Exception {
-  final String message;
-  final String url;
 
   ApiException(this.message, this.url);
+  final String message;
+  final String url;
 
   @override
   String toString() => 'ApiException: $message (URL: $url)';

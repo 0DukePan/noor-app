@@ -10,8 +10,8 @@ class PrayerTimeEngine {
   static const Map<CalculationMethod, CalculationParams> methods = {
     CalculationMethod.muslimWorldLeague: CalculationParams(
       name: 'رابطة العالم الإسلامي',
-      fajrAngle: 18.0,
-      ishaAngle: 17.0,
+      fajrAngle: 18,
+      ishaAngle: 17,
     ),
     CalculationMethod.egyptian: CalculationParams(
       name: 'الهيئة المصرية',
@@ -20,13 +20,13 @@ class PrayerTimeEngine {
     ),
     CalculationMethod.karachi: CalculationParams(
       name: 'جامعة كراتشي',
-      fajrAngle: 18.0,
-      ishaAngle: 18.0,
+      fajrAngle: 18,
+      ishaAngle: 18,
     ),
     CalculationMethod.ummAlQura: CalculationParams(
       name: 'أم القرى',
       fajrAngle: 18.5,
-      ishaAngle: 0.0,
+      ishaAngle: 0,
       ishaInterval: 90,
     ),
     CalculationMethod.dubai: CalculationParams(
@@ -36,79 +36,79 @@ class PrayerTimeEngine {
     ),
     CalculationMethod.qatar: CalculationParams(
       name: 'قطر',
-      fajrAngle: 18.0,
-      ishaAngle: 0.0,
+      fajrAngle: 18,
+      ishaAngle: 0,
       ishaInterval: 90,
     ),
     CalculationMethod.kuwait: CalculationParams(
       name: 'الكويت',
-      fajrAngle: 18.0,
+      fajrAngle: 18,
       ishaAngle: 17.5,
     ),
     CalculationMethod.singapore: CalculationParams(
       name: 'سنغافورة',
-      fajrAngle: 20.0,
-      ishaAngle: 18.0,
+      fajrAngle: 20,
+      ishaAngle: 18,
     ),
     CalculationMethod.turkey: CalculationParams(
       name: 'تركيا',
-      fajrAngle: 18.0,
-      ishaAngle: 17.0,
+      fajrAngle: 18,
+      ishaAngle: 17,
     ),
     CalculationMethod.tehran: CalculationParams(
       name: 'طهران',
       fajrAngle: 17.7,
-      ishaAngle: 14.0,
+      ishaAngle: 14,
       maghribAngle: 4.5,
     ),
     CalculationMethod.northAmerica: CalculationParams(
       name: 'ISNA أمريكا الشمالية',
-      fajrAngle: 15.0,
-      ishaAngle: 15.0,
+      fajrAngle: 15,
+      ishaAngle: 15,
     ),
     
     // 🇪🇺 أوروبا - الطرق الرسمية
     CalculationMethod.europeanCouncil: CalculationParams(
       name: 'المجلس الأوروبي للإفتاء',
-      fajrAngle: 18.0,
-      ishaAngle: 18.0,
+      fajrAngle: 18,
+      ishaAngle: 18,
     ),
     CalculationMethod.moonsightingCommittee: CalculationParams(
       name: 'Moonsighting Committee',
-      fajrAngle: 18.0,
-      ishaAngle: 18.0,
+      fajrAngle: 18,
+      ishaAngle: 18,
     ),
     CalculationMethod.france: CalculationParams(
       name: 'فرنسا (UOIF)',
-      fajrAngle: 12.0,
-      ishaAngle: 12.0,
+      fajrAngle: 12,
+      ishaAngle: 12,
     ),
     CalculationMethod.germany: CalculationParams(
       name: 'ألمانيا (IGMG)',
-      fajrAngle: 18.0,
-      ishaAngle: 17.0,
+      fajrAngle: 18,
+      ishaAngle: 17,
     ),
     CalculationMethod.uk: CalculationParams(
       name: 'بريطانيا (London Fatwa Council)',
-      fajrAngle: 18.0,
-      ishaAngle: 18.0,
+      fajrAngle: 18,
+      ishaAngle: 18,
     ),
     
     // 🇲🇦 شمال إفريقيا - الطرق الرسمية
     CalculationMethod.morocco: CalculationParams(
       name: 'وزارة الأوقاف المغربية',
-      fajrAngle: 19.0,
-      ishaAngle: 17.0,
+      fajrAngle: 19,
+      ishaAngle: 17,
     ),
     CalculationMethod.algeriaTunisia: CalculationParams(
       name: 'الجزائر / تونس',
-      fajrAngle: 18.0,
-      ishaAngle: 18.0,
+      fajrAngle: 18,
+      ishaAngle: 18,
     ),
     CalculationMethod.libya: CalculationParams(
       name: 'ليبيا',
       fajrAngle: 18.5,
-      ishaAngle: 18.0,
+      ishaAngle: 18,
     ),
   };
 
@@ -218,8 +218,8 @@ class PrayerTimeEngine {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static double _julianDay(DateTime date) {
-    int year = date.year;
-    int month = date.month;
+    var year = date.year;
+    var month = date.month;
     final d = date.day;
     
     // تصحيح الشهر (بدون recursion)
@@ -430,7 +430,7 @@ class PrayerTimeEngine {
     final preset = RegionPresets.getPreset(region);
     
     // 🔄 Auto-switch للمناطق الباردة
-    HighLatitudeRule effectiveRule = preset.highLatitudeRule;
+    var effectiveRule = preset.highLatitudeRule;
     if (latitude.abs() > 48) {
       effectiveRule = HighLatitudeRule.seventhOfNight;
     }
@@ -495,7 +495,7 @@ class PrayerTimeEngine {
     final preset = CountryPresets.getPreset(countryCode);
     
     // 🔄 Auto-switch للمناطق الباردة
-    HighLatitudeRule effectiveRule = preset.highLatitudeRule;
+    var effectiveRule = preset.highLatitudeRule;
     if (latitude.abs() > 48) {
       effectiveRule = HighLatitudeRule.seventhOfNight;
     }
@@ -535,13 +535,6 @@ class PrayerTimeEngine {
 
 /// Prayer times for a day
 class PrayerTimes {
-  final DateTime fajr;
-  final DateTime sunrise;
-  final DateTime dhuhr;
-  final DateTime asr;
-  final DateTime maghrib;
-  final DateTime isha;
-  final DateTime date;
 
   const PrayerTimes({
     required this.fajr,
@@ -552,6 +545,13 @@ class PrayerTimes {
     required this.isha,
     required this.date,
   });
+  final DateTime fajr;
+  final DateTime sunrise;
+  final DateTime dhuhr;
+  final DateTime asr;
+  final DateTime maghrib;
+  final DateTime isha;
+  final DateTime date;
 
   /// Get next prayer
   PrayerType? getNextPrayer() {
@@ -590,11 +590,6 @@ class PrayerTimes {
 
 /// Calculation method parameters
 class CalculationParams {
-  final String name;
-  final double fajrAngle;
-  final double ishaAngle;
-  final int? ishaInterval; // Minutes after Maghrib
-  final double? maghribAngle;
 
   const CalculationParams({
     required this.name,
@@ -603,16 +598,15 @@ class CalculationParams {
     this.ishaInterval,
     this.maghribAngle,
   });
+  final String name;
+  final double fajrAngle;
+  final double ishaAngle;
+  final int? ishaInterval; // Minutes after Maghrib
+  final double? maghribAngle;
 }
 
 /// Manual time adjustments
 class PrayerAdjustments {
-  final int fajr;
-  final int sunrise;
-  final int dhuhr;
-  final int asr;
-  final int maghrib;
-  final int isha;
 
   const PrayerAdjustments({
     this.fajr = 0,
@@ -622,6 +616,12 @@ class PrayerAdjustments {
     this.maghrib = 0,
     this.isha = 0,
   });
+  final int fajr;
+  final int sunrise;
+  final int dhuhr;
+  final int asr;
+  final int maghrib;
+  final int isha;
 }
 
 /// Prayer types
@@ -693,12 +693,6 @@ enum PrayerRegion {
 
 /// إعداد المنطقة الجغرافية
 class RegionPreset {
-  final String arabicName;
-  final String englishName;
-  final CalculationMethod method;
-  final HighLatitudeRule highLatitudeRule;
-  final PrayerAdjustments adjustments;
-  final Madhab defaultMadhab;
 
   const RegionPreset({
     required this.arabicName,
@@ -708,6 +702,12 @@ class RegionPreset {
     this.adjustments = const PrayerAdjustments(),
     this.defaultMadhab = Madhab.shafi,
   });
+  final String arabicName;
+  final String englishName;
+  final CalculationMethod method;
+  final HighLatitudeRule highLatitudeRule;
+  final PrayerAdjustments adjustments;
+  final Madhab defaultMadhab;
 }
 
 /// إعدادات المناطق الجاهزة
@@ -718,7 +718,6 @@ class RegionPresets {
       arabicName: 'الخليج العربي',
       englishName: 'Gulf Region',
       method: CalculationMethod.ummAlQura,
-      highLatitudeRule: HighLatitudeRule.middleOfNight,
     ),
     
     // 🇪🇬 مصر
@@ -744,7 +743,6 @@ class RegionPresets {
       arabicName: 'أوروبا',
       englishName: 'Europe',
       method: CalculationMethod.muslimWorldLeague,
-      highLatitudeRule: HighLatitudeRule.middleOfNight,
       adjustments: PrayerAdjustments(
         fajr: 1,
         isha: 1,
@@ -756,7 +754,6 @@ class RegionPresets {
       arabicName: 'تركيا',
       englishName: 'Turkey',
       method: CalculationMethod.turkey,
-      highLatitudeRule: HighLatitudeRule.middleOfNight,
     ),
     
     // 🇵🇰 جنوب آسيا
@@ -779,7 +776,6 @@ class RegionPresets {
       arabicName: 'أمريكا الشمالية',
       englishName: 'North America',
       method: CalculationMethod.northAmerica,
-      highLatitudeRule: HighLatitudeRule.middleOfNight,
     ),
     
     // 🇮🇷 إيران
@@ -846,13 +842,6 @@ class RegionPresets {
 
 /// إعداد الدولة
 class CountryPreset {
-  final String countryCode;
-  final String arabicName;
-  final String englishName;
-  final CalculationMethod method;
-  final Madhab madhab;
-  final HighLatitudeRule highLatitudeRule;
-  final PrayerAdjustments adjustments;
 
   const CountryPreset({
     required this.countryCode,
@@ -863,6 +852,13 @@ class CountryPreset {
     this.highLatitudeRule = HighLatitudeRule.middleOfNight,
     this.adjustments = const PrayerAdjustments(),
   });
+  final String countryCode;
+  final String arabicName;
+  final String englishName;
+  final CalculationMethod method;
+  final Madhab madhab;
+  final HighLatitudeRule highLatitudeRule;
+  final PrayerAdjustments adjustments;
 }
 
 /// قاعدة بيانات الدول
@@ -1056,14 +1052,12 @@ class CountryPresets {
       arabicName: 'السويد',
       englishName: 'Sweden',
       method: CalculationMethod.europeanCouncil,
-      highLatitudeRule: HighLatitudeRule.middleOfNight, // خط عرض عالي جداً
     ),
     'NO': CountryPreset(
       countryCode: 'NO',
       arabicName: 'النرويج',
       englishName: 'Norway',
       method: CalculationMethod.europeanCouncil,
-      highLatitudeRule: HighLatitudeRule.middleOfNight,
     ),
     'DK': CountryPreset(
       countryCode: 'DK',
@@ -1208,4 +1202,3 @@ class CountryPresets {
   /// عدد الدول المدعومة
   static int get count => _presets.length;
 }
-

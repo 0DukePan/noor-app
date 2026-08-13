@@ -8,16 +8,16 @@ import 'package:hive_flutter/hive_flutter.dart';
 /// - Streaks (daily consistency)
 /// - Time-based analytics
 class StatisticsService {
-  static Box? _statsBox;
-  static Box? _historyBox;
+  static Box<dynamic>? _statsBox;
+  static Box<dynamic>? _historyBox;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // INITIALIZATION
   // ═══════════════════════════════════════════════════════════════════════════
 
   static Future<void> init() async {
-    _statsBox = await Hive.openBox('app_statistics');
-    _historyBox = await Hive.openBox('activity_history');
+    _statsBox = await Hive.openBox<dynamic>('app_statistics');
+    _historyBox = await Hive.openBox<dynamic>('activity_history');
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -29,11 +29,11 @@ class StatisticsService {
     final today = _getTodayKey();
     
     // Update today's count
-    final todayVerses = _statsBox?.get('verses_$today', defaultValue: 0) ?? 0;
+    final todayVerses = (_statsBox?.get('verses_$today', defaultValue: 0) ?? 0) as int;
     await _statsBox?.put('verses_$today', todayVerses + 1);
     
     // Update total count
-    final totalVerses = _statsBox?.get('total_verses', defaultValue: 0) ?? 0;
+    final totalVerses = (_statsBox?.get('total_verses', defaultValue: 0) ?? 0) as int;
     await _statsBox?.put('total_verses', totalVerses + 1);
     
     // Save last read position
@@ -49,11 +49,11 @@ class StatisticsService {
     final today = _getTodayKey();
     
     // Update today's reading time
-    final todaySeconds = _statsBox?.get('reading_time_$today', defaultValue: 0) ?? 0;
+    final todaySeconds = (_statsBox?.get('reading_time_$today', defaultValue: 0) ?? 0) as int;
     await _statsBox?.put('reading_time_$today', todaySeconds + duration.inSeconds);
     
     // Update total reading time
-    final totalSeconds = _statsBox?.get('total_reading_time', defaultValue: 0) ?? 0;
+    final totalSeconds = (_statsBox?.get('total_reading_time', defaultValue: 0) ?? 0) as int;
     await _statsBox?.put('total_reading_time', totalSeconds + duration.inSeconds);
   }
 
@@ -61,23 +61,23 @@ class StatisticsService {
   static Map<String, dynamic>? getLastReadPosition() {
     final data = _statsBox?.get('last_read');
     if (data == null) return null;
-    return Map<String, dynamic>.from(data);
+    return Map<String, dynamic>.from(data as Map);
   }
 
   /// إحصائيات القراءة اليوم
   static ReadingStats getTodayReadingStats() {
     final today = _getTodayKey();
     return ReadingStats(
-      versesRead: _statsBox?.get('verses_$today', defaultValue: 0) ?? 0,
-      readingTimeSeconds: _statsBox?.get('reading_time_$today', defaultValue: 0) ?? 0,
+      versesRead: (_statsBox?.get('verses_$today', defaultValue: 0) ?? 0) as int,
+      readingTimeSeconds: (_statsBox?.get('reading_time_$today', defaultValue: 0) ?? 0) as int,
     );
   }
 
   /// إحصائيات القراءة الكلية
   static ReadingStats getTotalReadingStats() {
     return ReadingStats(
-      versesRead: _statsBox?.get('total_verses', defaultValue: 0) ?? 0,
-      readingTimeSeconds: _statsBox?.get('total_reading_time', defaultValue: 0) ?? 0,
+      versesRead: (_statsBox?.get('total_verses', defaultValue: 0) ?? 0) as int,
+      readingTimeSeconds: (_statsBox?.get('total_reading_time', defaultValue: 0) ?? 0) as int,
     );
   }
 
@@ -94,7 +94,7 @@ class StatisticsService {
     
     // Update total
     final totalKey = 'total_adhkar_$type';
-    final total = _statsBox?.get(totalKey, defaultValue: 0) ?? 0;
+    final total = (_statsBox?.get(totalKey, defaultValue: 0) ?? 0) as int;
     await _statsBox?.put(totalKey, total + 1);
     
     // Update streak
@@ -105,15 +105,15 @@ class StatisticsService {
   static AdhkarDayStatus getTodayAdhkarStatus() {
     final today = _getTodayKey();
     return AdhkarDayStatus(
-      morningComplete: _statsBox?.get('adhkar_morning_$today', defaultValue: false) ?? false,
-      eveningComplete: _statsBox?.get('adhkar_evening_$today', defaultValue: false) ?? false,
-      afterPrayerCount: _statsBox?.get('adhkar_after_prayer_$today', defaultValue: 0) ?? 0,
+      morningComplete: (_statsBox?.get('adhkar_morning_$today', defaultValue: false) ?? false) as bool,
+      eveningComplete: (_statsBox?.get('adhkar_evening_$today', defaultValue: false) ?? false) as bool,
+      afterPrayerCount: (_statsBox?.get('adhkar_after_prayer_$today', defaultValue: 0) ?? 0) as int,
     );
   }
 
   /// سلسلة الأذكار
   static int getAdhkarStreak() {
-    return _statsBox?.get('adhkar_streak', defaultValue: 0) ?? 0;
+    return (_statsBox?.get('adhkar_streak', defaultValue: 0) ?? 0) as int;
   }
 
   static Future<void> _updateAdhkarStreak(String type) async {
@@ -121,17 +121,17 @@ class StatisticsService {
     final yesterday = _getDateKey(DateTime.now().subtract(const Duration(days: 1)));
     
     // Check if both morning and evening are complete today
-    final morningComplete = _statsBox?.get('adhkar_morning_$today', defaultValue: false) ?? false;
-    final eveningComplete = _statsBox?.get('adhkar_evening_$today', defaultValue: false) ?? false;
+    final morningComplete = (_statsBox?.get('adhkar_morning_$today', defaultValue: false) ?? false) as bool;
+    final eveningComplete = (_statsBox?.get('adhkar_evening_$today', defaultValue: false) ?? false) as bool;
     
     if (morningComplete && eveningComplete) {
       // Check yesterday
-      final yesterdayMorning = _statsBox?.get('adhkar_morning_$yesterday', defaultValue: false) ?? false;
-      final yesterdayEvening = _statsBox?.get('adhkar_evening_$yesterday', defaultValue: false) ?? false;
+      final yesterdayMorning = (_statsBox?.get('adhkar_morning_$yesterday', defaultValue: false) ?? false) as bool;
+      final yesterdayEvening = (_statsBox?.get('adhkar_evening_$yesterday', defaultValue: false) ?? false) as bool;
       
       if (yesterdayMorning && yesterdayEvening) {
         // Continue streak
-        final streak = _statsBox?.get('adhkar_streak', defaultValue: 0) ?? 0;
+        final streak = (_statsBox?.get('adhkar_streak', defaultValue: 0) ?? 0) as int;
         await _statsBox?.put('adhkar_streak', streak + 1);
       } else {
         // Reset streak
@@ -154,15 +154,15 @@ class StatisticsService {
     final today = _getTodayKey();
     
     // Update listening time
-    final todaySeconds = _statsBox?.get('listening_time_$today', defaultValue: 0) ?? 0;
+    final todaySeconds = (_statsBox?.get('listening_time_$today', defaultValue: 0) ?? 0) as int;
     await _statsBox?.put('listening_time_$today', todaySeconds + duration.inSeconds);
     
     // Update total
-    final totalSeconds = _statsBox?.get('total_listening_time', defaultValue: 0) ?? 0;
+    final totalSeconds = (_statsBox?.get('total_listening_time', defaultValue: 0) ?? 0) as int;
     await _statsBox?.put('total_listening_time', totalSeconds + duration.inSeconds);
     
     // Update verses listened
-    final todayVerses = _statsBox?.get('verses_listened_$today', defaultValue: 0) ?? 0;
+    final todayVerses = (_statsBox?.get('verses_listened_$today', defaultValue: 0) ?? 0) as int;
     await _statsBox?.put('verses_listened_$today', todayVerses + 1);
   }
 
@@ -170,9 +170,9 @@ class StatisticsService {
   static ListeningStats getListeningStats() {
     final today = _getTodayKey();
     return ListeningStats(
-      todayTimeSeconds: _statsBox?.get('listening_time_$today', defaultValue: 0) ?? 0,
-      totalTimeSeconds: _statsBox?.get('total_listening_time', defaultValue: 0) ?? 0,
-      todayVerses: _statsBox?.get('verses_listened_$today', defaultValue: 0) ?? 0,
+      todayTimeSeconds: (_statsBox?.get('listening_time_$today', defaultValue: 0) ?? 0) as int,
+      totalTimeSeconds: (_statsBox?.get('total_listening_time', defaultValue: 0) ?? 0) as int,
+      todayVerses: (_statsBox?.get('verses_listened_$today', defaultValue: 0) ?? 0) as int,
     );
   }
 
@@ -198,21 +198,21 @@ class StatisticsService {
 
   /// تقدم الختمة
   static KhatmahProgress getKhatmahProgress() {
-    final data = _statsBox?.get('khatmah_progress');
+    final data = _statsBox?.get('khatmah_progress') as Map<dynamic, dynamic>?;
     if (data == null) {
       return const KhatmahProgress(surah: 1, ayah: 1, percentage: 0);
     }
     
     return KhatmahProgress(
-      surah: data['surah'] ?? 1,
-      ayah: data['ayah'] ?? 1,
-      percentage: _statsBox?.get('khatmah_percentage', defaultValue: 0.0) ?? 0.0,
+      surah: (data['surah'] ?? 1) as int,
+      ayah: (data['ayah'] ?? 1) as int,
+      percentage: (_statsBox?.get('khatmah_percentage', defaultValue: 0.0) ?? 0.0) as double,
     );
   }
 
   /// بدء ختمة جديدة
   static Future<void> startNewKhatmah() async {
-    final completedCount = _statsBox?.get('completed_khatmah_count', defaultValue: 0) ?? 0;
+    final completedCount = (_statsBox?.get('completed_khatmah_count', defaultValue: 0) ?? 0) as int;
     await _statsBox?.put('completed_khatmah_count', completedCount + 1);
     
     await _statsBox?.put('khatmah_progress', {
@@ -225,7 +225,7 @@ class StatisticsService {
 
   /// عدد الختمات المكتملة
   static int getCompletedKhatmahCount() {
-    return _statsBox?.get('completed_khatmah_count', defaultValue: 0) ?? 0;
+    return (_statsBox?.get('completed_khatmah_count', defaultValue: 0) ?? 0) as int;
   }
 
   static double _calculateKhatmahPercentage(int surah, int ayah) {
@@ -240,8 +240,8 @@ class StatisticsService {
       5, 8, 8, 11, 11, 8, 3, 9, 5, 4, 7, 3, 6, 3, 5, 4, 5, 6,
     ];
     
-    int completedVerses = 0;
-    for (int i = 0; i < surah - 1; i++) {
+    var completedVerses = 0;
+    for (var i = 0; i < surah - 1; i++) {
       completedVerses += verseCounts[i];
     }
     completedVerses += ayah;
@@ -256,12 +256,12 @@ class StatisticsService {
   /// ملخص الأسبوع
   static WeeklySummary getWeeklySummary() {
     final now = DateTime.now();
-    int totalVerses = 0;
-    int totalReadingSeconds = 0;
-    int totalListeningSeconds = 0;
-    int adhkarDays = 0;
+    var totalVerses = 0;
+    var totalReadingSeconds = 0;
+    var totalListeningSeconds = 0;
+    var adhkarDays = 0;
     
-    for (int i = 0; i < 7; i++) {
+    for (var i = 0; i < 7; i++) {
       final date = now.subtract(Duration(days: i));
       final key = _getDateKey(date);
       
@@ -269,8 +269,8 @@ class StatisticsService {
       totalReadingSeconds += (_statsBox?.get('reading_time_$key', defaultValue: 0) ?? 0) as int;
       totalListeningSeconds += (_statsBox?.get('listening_time_$key', defaultValue: 0) ?? 0) as int;
       
-      final morning = _statsBox?.get('adhkar_morning_$key', defaultValue: false) ?? false;
-      final evening = _statsBox?.get('adhkar_evening_$key', defaultValue: false) ?? false;
+      final morning = (_statsBox?.get('adhkar_morning_$key', defaultValue: false) ?? false) as bool;
+      final evening = (_statsBox?.get('adhkar_evening_$key', defaultValue: false) ?? false) as bool;
       if (morning && evening) adhkarDays++;
     }
     
@@ -304,13 +304,13 @@ class StatisticsService {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class ReadingStats {
-  final int versesRead;
-  final int readingTimeSeconds;
 
   const ReadingStats({
     required this.versesRead,
     required this.readingTimeSeconds,
   });
+  final int versesRead;
+  final int readingTimeSeconds;
 
   Duration get readingTime => Duration(seconds: readingTimeSeconds);
   
@@ -324,53 +324,49 @@ class ReadingStats {
 }
 
 class ListeningStats {
-  final int todayTimeSeconds;
-  final int totalTimeSeconds;
-  final int todayVerses;
 
   const ListeningStats({
     required this.todayTimeSeconds,
     required this.totalTimeSeconds,
     required this.todayVerses,
   });
+  final int todayTimeSeconds;
+  final int totalTimeSeconds;
+  final int todayVerses;
 
   Duration get todayTime => Duration(seconds: todayTimeSeconds);
   Duration get totalTime => Duration(seconds: totalTimeSeconds);
 }
 
 class AdhkarDayStatus {
-  final bool morningComplete;
-  final bool eveningComplete;
-  final int afterPrayerCount;
 
   const AdhkarDayStatus({
     required this.morningComplete,
     required this.eveningComplete,
     required this.afterPrayerCount,
   });
+  final bool morningComplete;
+  final bool eveningComplete;
+  final int afterPrayerCount;
 
   bool get isComplete => morningComplete && eveningComplete;
 }
 
 class KhatmahProgress {
-  final int surah;
-  final int ayah;
-  final double percentage;
 
   const KhatmahProgress({
     required this.surah,
     required this.ayah,
     required this.percentage,
   });
+  final int surah;
+  final int ayah;
+  final double percentage;
 
   String get formattedPercentage => '${percentage.toStringAsFixed(1)}%';
 }
 
 class WeeklySummary {
-  final int versesRead;
-  final int readingTimeSeconds;
-  final int listeningTimeSeconds;
-  final int completeAdhkarDays;
 
   const WeeklySummary({
     required this.versesRead,
@@ -378,6 +374,10 @@ class WeeklySummary {
     required this.listeningTimeSeconds,
     required this.completeAdhkarDays,
   });
+  final int versesRead;
+  final int readingTimeSeconds;
+  final int listeningTimeSeconds;
+  final int completeAdhkarDays;
 
   Duration get readingTime => Duration(seconds: readingTimeSeconds);
   Duration get listeningTime => Duration(seconds: listeningTimeSeconds);

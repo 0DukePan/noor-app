@@ -39,21 +39,22 @@ class LocalTafsirDataSource {
       );
 
       _cache['$bookId-$surahId'] = tafsirMap;
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('Error loading tafsir ($bookId) for surah $surahId: $e');
       _cache['$bookId-$surahId'] = {};
     }
   }
 
   static Map<int, TafsirVerse> _parseTafsirJson(String jsonString, int surahId, String bookId) {
-    final Map<String, dynamic> json = jsonDecode(jsonString);
-    final Map<int, TafsirVerse> result = {};
+    final json = Map<String, dynamic>.from(jsonDecode(jsonString) as Map);
+    final result = <int, TafsirVerse>{};
 
     if (json.containsKey('ayahs')) {
       final ayahs = json['ayahs'] as List;
-      for (var item in ayahs) {
-        final verseId = item['ayah'] as int;
-        final text = item['text'] as String;
+      for (final item in ayahs) {
+        final map = item as Map;
+        final verseId = map['ayah'] as int;
+        final text = map['text'] as String;
         
         result[verseId] = TafsirVerse(
           surahId: surahId,
@@ -72,4 +73,3 @@ class LocalTafsirDataSource {
     _cache.clear();
   }
 }
-

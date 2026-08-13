@@ -7,9 +7,9 @@ import '../../../../core/theme/design_system.dart';
 import '../providers/home_provider.dart';
 
 class ContinueReadingCard extends StatelessWidget {
-  final LastReadData? lastRead;
 
   const ContinueReadingCard({super.key, this.lastRead});
+  final LastReadData? lastRead;
 
   @override
   Widget build(BuildContext context) {

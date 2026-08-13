@@ -2,15 +2,15 @@ part of 'quran_mushaf_page.dart';
 
 
 class _FullTafsirReaderPage extends StatefulWidget {
-  final int surahNumber;
-  final int ayahNumber;
-  final String surahName;
 
   const _FullTafsirReaderPage({
     required this.surahNumber,
     required this.ayahNumber,
     required this.surahName,
   });
+  final int surahNumber;
+  final int ayahNumber;
+  final String surahName;
 
   @override
   State<_FullTafsirReaderPage> createState() => _FullTafsirReaderPageState();
@@ -23,7 +23,7 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
   TafsirSourceId _currentSource = TafsirSourceId.muyassar;
   final ScrollController _scrollController = ScrollController();
   final Map<int, GlobalKey> _ayahKeys = {};
-  double _fontSize = 16.0;
+  double _fontSize = 16;
 
   // ── Phase 3: Comparative Mode ──
   bool _comparativeMode = false;
@@ -146,7 +146,7 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
             ),
         ],
       ),
-      body: Container(
+      body: ColoredBox(
         color: TafsirTheme.readingBackground(theme.brightness),
         child: Column(
           children: [
@@ -515,7 +515,7 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
   }
 
   void _showFontSizeSheet(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheetState) => Padding(
@@ -544,7 +544,7 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
 
   // Phase 6: Tadabbur notes
   void _showTadabburSheet(BuildContext context, int surah, int ayah) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -562,15 +562,15 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _WordAnalysisButton extends StatelessWidget {
-  final int surah;
-  final int ayah;
-  final ThemeData theme;
 
   const _WordAnalysisButton({
     required this.surah,
     required this.ayah,
     required this.theme,
   });
+  final int surah;
+  final int ayah;
+  final ThemeData theme;
 
   @override
   Widget build(BuildContext context) {
@@ -589,7 +589,7 @@ class _WordAnalysisButton extends StatelessWidget {
   }
 
   void _showWordAnalysis(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -603,10 +603,10 @@ class _WordAnalysisButton extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _WordAnalysisSheet extends StatefulWidget {
-  final int surah;
-  final int ayah;
 
   const _WordAnalysisSheet({required this.surah, required this.ayah});
+  final int surah;
+  final int ayah;
 
   @override
   State<_WordAnalysisSheet> createState() => _WordAnalysisSheetState();
@@ -642,7 +642,7 @@ class _WordAnalysisSheetState extends State<_WordAnalysisSheet> {
             .map((w) => _WordData(w.trim(), '', '', '', '', ''))
             .toList();
       });
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('Failed to load verse words: $e');
     }
   }
@@ -837,27 +837,27 @@ class _WordAnalysisSheetState extends State<_WordAnalysisSheet> {
 
 // ── Data class for word analysis ──
 class _WordData {
+
+  const _WordData(this.arabic, this.root, this.meaning, this.irab, this.transliteration, this.morphology);
   final String arabic;
   final String root;
   final String meaning;
   final String irab;
   final String transliteration;
   final String morphology;
-
-  const _WordData(this.arabic, this.root, this.meaning, this.irab, this.transliteration, this.morphology);
 }
 
 // ── Detail row widget ──
 class _DetailRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final ThemeData theme;
 
   const _DetailRow({
     required this.icon, required this.label,
     required this.value, required this.theme,
   });
+  final IconData icon;
+  final String label;
+  final String value;
+  final ThemeData theme;
 
   @override
   Widget build(BuildContext context) {
@@ -898,11 +898,6 @@ class _DetailRow extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _InlineAnnotationsPanel extends StatelessWidget {
-  final int surah;
-  final int ayah;
-  final TafsirSourceId source;
-  final ThemeData theme;
-  final VoidCallback onAddNote;
 
   const _InlineAnnotationsPanel({
     required this.surah,
@@ -911,6 +906,11 @@ class _InlineAnnotationsPanel extends StatelessWidget {
     required this.theme,
     required this.onAddNote,
   });
+  final int surah;
+  final int ayah;
+  final TafsirSourceId source;
+  final ThemeData theme;
+  final VoidCallback onAddNote;
 
   @override
   Widget build(BuildContext context) {
@@ -980,15 +980,15 @@ class _InlineAnnotationsPanel extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _TadabburNoteSheet extends StatefulWidget {
-  final int surah;
-  final int ayah;
-  final TafsirSourceId source;
 
   const _TadabburNoteSheet({
     required this.surah,
     required this.ayah,
     required this.source,
   });
+  final int surah;
+  final int ayah;
+  final TafsirSourceId source;
 
   @override
   State<_TadabburNoteSheet> createState() => _TadabburNoteSheetState();
@@ -1205,4 +1205,3 @@ class _TadabburNoteSheetState extends State<_TadabburNoteSheet> {
     );
   }
 }
-

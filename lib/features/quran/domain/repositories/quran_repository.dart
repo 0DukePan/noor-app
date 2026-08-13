@@ -12,9 +12,6 @@ abstract class QuranRepository {
   /// Get verses by page number
   Future<Either<Failure, List<Verse>>> getVersesByPage(int pageNumber);
 
-  /// Get verses by Juz
-  Future<Either<Failure, List<Verse>>> getVersesByJuz(int juzNumber);
-
   /// Get Tafsir for a verse
   Future<Either<Failure, Tafsir>> getTafsir({
     required int surahNumber,
@@ -66,8 +63,8 @@ abstract class TadabburRepository {
 
 /// Failure class for error handling
 abstract class Failure {
-  final String message;
   const Failure(this.message);
+  final String message;
 }
 
 class ServerFailure extends Failure {

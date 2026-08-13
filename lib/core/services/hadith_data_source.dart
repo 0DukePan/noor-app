@@ -9,7 +9,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 /// 3️⃣ API ← بحث + توسع
 class HadithDataSource {
   static const _cacheBoxName = 'hadith_cache';
-  static Box? _cacheBox;
+  static Box<dynamic>? _cacheBox;
 
   // The 9 Major Books of Hadith
   static const Map<String, HadithBookInfo> majorBooks = {
@@ -58,7 +58,7 @@ class HadithDataSource {
     'malik': HadithBookInfo(
       id: 'malik',
       arabicName: 'موطأ مالك',
-      englishName: "Muwatta Malik",
+      englishName: 'Muwatta Malik',
       author: 'الإمام مالك بن أنس',
       hadithCount: 1832,
     ),
@@ -83,7 +83,7 @@ class HadithDataSource {
   
   /// Initialize data source
   static Future<void> init() async {
-    _cacheBox = await Hive.openBox(_cacheBoxName);
+    _cacheBox = await Hive.openBox<dynamic>(_cacheBoxName);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -99,8 +99,8 @@ class HadithDataSource {
   /// Priority: Memory → Assets → Cache
   static Future<Map<String, dynamic>> getBook(String bookId) async {
     // 1️⃣ Check in-memory cache first (instant)
-    if (_booksInMemory?.containsKey(bookId) == true) {
-      return _booksInMemory![bookId]!;
+    if (_booksInMemory?.containsKey(bookId) ?? false) {
+      return _booksInMemory![bookId]! as Map<String, dynamic>;
     }
 
     // 2️⃣ Load from assets (PRIMARY - always available)
@@ -115,7 +115,7 @@ class HadithDataSource {
       _booksInMemory![bookId] = data;
       
       return data;
-    } catch (e) {
+    } on Exception {
       // Book not found in assets
       throw HadithDataException('كتاب الحديث غير موجود: $bookId');
     }
@@ -137,7 +137,7 @@ class HadithDataSource {
     final book = await getBook(bookId);
     final chapters = book['chapters'] as List?;
     if (chapters == null) return [];
-    return chapters.map((c) => Map<String, dynamic>.from(c)).toList();
+    return chapters.map((c) => Map<String, dynamic>.from(c as Map)).toList();
   }
 
   /// Get all hadiths for a specific chapter
@@ -150,8 +150,8 @@ class HadithDataSource {
     if (hadiths == null) return [];
     
     return hadiths
-        .where((h) => h['chapterId'] == chapterId)
-        .map((h) => Map<String, dynamic>.from(h))
+        .where((h) => (h as Map)['chapterId'] == chapterId)
+        .map((h) => Map<String, dynamic>.from(h as Map))
         .toList();
   }
 
@@ -165,11 +165,11 @@ class HadithDataSource {
     if (hadiths == null) return null;
     
     final hadith = hadiths.firstWhere(
-      (h) => h['id'] == hadithId,
+      (h) => (h as Map)['id'] == hadithId,
       orElse: () => null,
     );
     
-    return hadith != null ? Map<String, dynamic>.from(hadith) : null;
+    return hadith != null ? Map<String, dynamic>.from(hadith as Map) : null;
   }
 
   /// Get hadith by number in book
@@ -182,11 +182,11 @@ class HadithDataSource {
     if (hadiths == null) return null;
     
     final hadith = hadiths.firstWhere(
-      (h) => h['idInBook'] == hadithNumber,
+      (h) => (h as Map)['idInBook'] == hadithNumber,
       orElse: () => null,
     );
     
-    return hadith != null ? Map<String, dynamic>.from(hadith) : null;
+    return hadith != null ? Map<String, dynamic>.from(hadith as Map) : null;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -201,10 +201,10 @@ class HadithDataSource {
       );
       final data = jsonDecode(jsonString);
       if (data is List) {
-        return data.map((h) => Map<String, dynamic>.from(h)).toList();
+        return data.map((h) => Map<String, dynamic>.from(h as Map)).toList();
       }
       return [];
-    } catch (e) {
+    } on Exception {
       return [];
     }
   }
@@ -230,21 +230,23 @@ class HadithDataSource {
     final queryLower = query.toLowerCase();
     final results = <Map<String, dynamic>>[];
     
-    for (final hadith in hadiths) {
+    for (final raw in hadiths) {
       if (results.length >= limit) break;
+      final hadith = raw as Map;
       
-      bool matches = false;
+      var matches = false;
       
       if (searchArabic) {
-        final arabicText = hadith['arabic']?.toString() ?? '';
+        final arabicText = hadith['arabic'] as String? ?? '';
         if (arabicText.contains(query)) {
           matches = true;
         }
       }
       
       if (!matches && searchEnglish) {
-        final englishText = hadith['english']?['text']?.toString().toLowerCase() ?? '';
-        final narrator = hadith['english']?['narrator']?.toString().toLowerCase() ?? '';
+        final englishMap = hadith['english'] as Map<dynamic, dynamic>?;
+        final englishText = (englishMap?['text'] as String? ?? '').toLowerCase();
+        final narrator = (englishMap?['narrator'] as String? ?? '').toLowerCase();
         if (englishText.contains(queryLower) || narrator.contains(queryLower)) {
           matches = true;
         }
@@ -362,7 +364,7 @@ class HadithDataSource {
     
     final index = DateTime.now().millisecondsSinceEpoch % hadiths.length;
     return {
-      ...Map<String, dynamic>.from(hadiths[index]),
+      ...Map<String, dynamic>.from(hadiths[index] as Map),
       'bookId': targetBook,
       'bookName': majorBooks[targetBook]?.arabicName ?? targetBook,
     };
@@ -371,7 +373,7 @@ class HadithDataSource {
   /// Get daily hadith (same for entire day)
   static Future<Map<String, dynamic>?> getDailyHadith() async {
     final today = DateTime.now();
-    final dayOfYear = today.difference(DateTime(today.year, 1, 1)).inDays;
+    final dayOfYear = today.difference(DateTime(today.year)).inDays;
     
     // Rotate through Bukhari
     final book = await getBook('bukhari');
@@ -380,7 +382,7 @@ class HadithDataSource {
     
     final index = dayOfYear % hadiths.length;
     return {
-      ...Map<String, dynamic>.from(hadiths[index]),
+      ...Map<String, dynamic>.from(hadiths[index] as Map),
       'bookId': 'bukhari',
       'bookName': 'صحيح البخاري',
     };
@@ -403,11 +405,6 @@ class HadithDataSource {
 
 /// Hadith book info
 class HadithBookInfo {
-  final String id;
-  final String arabicName;
-  final String englishName;
-  final String author;
-  final int hadithCount;
 
   const HadithBookInfo({
     required this.id,
@@ -416,12 +413,17 @@ class HadithBookInfo {
     required this.author,
     required this.hadithCount,
   });
+  final String id;
+  final String arabicName;
+  final String englishName;
+  final String author;
+  final int hadithCount;
 }
 
 /// Hadith data exception
 class HadithDataException implements Exception {
-  final String message;
   HadithDataException(this.message);
+  final String message;
 
   @override
   String toString() => 'HadithDataException: $message';

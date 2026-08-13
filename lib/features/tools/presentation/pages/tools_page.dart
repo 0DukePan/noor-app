@@ -110,8 +110,8 @@ class ToolsPage extends StatelessWidget {
                     title: 'الإعدادات',
                     subtitle: 'المظهر واللغة',
                     gradient: [
-                      isDark ? const Color(0xFF37474F) : const Color(0xFF546E7A),
-                      isDark ? const Color(0xFF455A64) : const Color(0xFF78909C),
+                      if (isDark) const Color(0xFF37474F) else const Color(0xFF546E7A),
+                      if (isDark) const Color(0xFF455A64) else const Color(0xFF78909C),
                     ],
                     onTap: () {
                       HapticFeedback.selectionClick();
@@ -123,7 +123,6 @@ class ToolsPage extends StatelessWidget {
                   crossAxisCount: 2,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 1.0,
                 ),
               ),
             ),
@@ -140,11 +139,6 @@ class ToolsPage extends StatelessWidget {
 }
 
 class _ToolCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final List<Color> gradient;
-  final VoidCallback onTap;
 
   const _ToolCard({
     required this.icon,
@@ -153,6 +147,11 @@ class _ToolCard extends StatelessWidget {
     required this.gradient,
     required this.onTap,
   });
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final List<Color> gradient;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {

@@ -9,9 +9,9 @@ class AdhkarDataSource {
   static const String _statsBoxName = 'adhkar_stats';
   static const String _settingsBoxName = 'adhkar_settings';
 
-  static Box? _progressBox;
-  static Box? _statsBox;
-  static Box? _settingsBox;
+  static Box<dynamic>? _progressBox;
+  static Box<dynamic>? _statsBox;
+  static Box<dynamic>? _settingsBox;
 
   // Cache للأذكار المحملة
   static final Map<AdhkarType, AdhkarCollection> _cache = {};
@@ -21,9 +21,9 @@ class AdhkarDataSource {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static Future<void> init() async {
-    _progressBox = await Hive.openBox(_progressBoxName);
-    _statsBox = await Hive.openBox(_statsBoxName);
-    _settingsBox = await Hive.openBox(_settingsBoxName);
+    _progressBox = await Hive.openBox<dynamic>(_progressBoxName);
+    _statsBox = await Hive.openBox<dynamic>(_statsBoxName);
+    _settingsBox = await Hive.openBox<dynamic>(_settingsBoxName);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -43,7 +43,7 @@ class AdhkarDataSource {
       final collection = AdhkarCollection.fromJson(json, type);
       _cache[type] = collection;
       return collection;
-    } catch (e) {
+    } on Exception {
       return null;
     }
   }
@@ -66,7 +66,7 @@ class AdhkarDataSource {
     final json = _progressBox?.get(key);
     
     if (json != null) {
-      return AdhkarProgress.fromJson(Map<String, dynamic>.from(json));
+      return AdhkarProgress.fromJson(Map<String, dynamic>.from(json as Map));
     }
     
     return AdhkarProgress(type: type);
@@ -116,7 +116,7 @@ class AdhkarDataSource {
     final json = _statsBox?.get(today);
     
     if (json != null) {
-      return DailyAdhkarStats.fromJson(Map<String, dynamic>.from(json));
+      return DailyAdhkarStats.fromJson(Map<String, dynamic>.from(json as Map));
     }
     
     return DailyAdhkarStats(date: DateTime.now());
@@ -158,7 +158,7 @@ class AdhkarDataSource {
 
   /// سلسلة الأيام المتتالية
   static int getStreak() {
-    int streak = 0;
+    var streak = 0;
     var date = DateTime.now();
     
     while (true) {
@@ -167,7 +167,7 @@ class AdhkarDataSource {
       
       if (json == null) break;
       
-      final stats = DailyAdhkarStats.fromJson(Map<String, dynamic>.from(json));
+      final stats = DailyAdhkarStats.fromJson(Map<String, dynamic>.from(json as Map));
       if (!stats.isComplete) break;
       
       streak++;
@@ -184,7 +184,7 @@ class AdhkarDataSource {
   static AdhkarDisplaySettings getSettings() {
     final json = _settingsBox?.get('display');
     if (json != null) {
-      return AdhkarDisplaySettings.fromJson(Map<String, dynamic>.from(json));
+      return AdhkarDisplaySettings.fromJson(Map<String, dynamic>.from(json as Map));
     }
     return const AdhkarDisplaySettings();
   }

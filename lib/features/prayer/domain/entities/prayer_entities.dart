@@ -2,11 +2,6 @@ import 'package:equatable/equatable.dart';
 
 /// وقت صلاة - Prayer Time Entity
 class PrayerTime extends Equatable {
-  final String name;
-  final String nameArabic;
-  final DateTime time;
-  final bool isPassed;
-  final bool isNext;
 
   const PrayerTime({
     required this.name,
@@ -15,6 +10,11 @@ class PrayerTime extends Equatable {
     this.isPassed = false,
     this.isNext = false,
   });
+  final String name;
+  final String nameArabic;
+  final DateTime time;
+  final bool isPassed;
+  final bool isNext;
 
   @override
   List<Object?> get props => [name, time];
@@ -22,15 +22,6 @@ class PrayerTime extends Equatable {
 
 /// مواقيت اليوم - Daily Prayer Times
 class DailyPrayerTimes extends Equatable {
-  final DateTime date;
-  final PrayerTime fajr;
-  final PrayerTime sunrise;
-  final PrayerTime dhuhr;
-  final PrayerTime asr;
-  final PrayerTime maghrib;
-  final PrayerTime isha;
-  final Location location;
-  final CalculationMethod method;
 
   const DailyPrayerTimes({
     required this.date,
@@ -43,6 +34,15 @@ class DailyPrayerTimes extends Equatable {
     required this.location,
     required this.method,
   });
+  final DateTime date;
+  final PrayerTime fajr;
+  final PrayerTime sunrise;
+  final PrayerTime dhuhr;
+  final PrayerTime asr;
+  final PrayerTime maghrib;
+  final PrayerTime isha;
+  final Location location;
+  final CalculationMethod method;
 
   List<PrayerTime> get allPrayers => [fajr, sunrise, dhuhr, asr, maghrib, isha];
 
@@ -60,12 +60,6 @@ class DailyPrayerTimes extends Equatable {
 
 /// الموقع - Location
 class Location extends Equatable {
-  final double latitude;
-  final double longitude;
-  final double? altitude;
-  final String? cityName;
-  final String? countryName;
-  final String? timezone;
 
   const Location({
     required this.latitude,
@@ -75,6 +69,12 @@ class Location extends Equatable {
     this.countryName,
     this.timezone,
   });
+  final double latitude;
+  final double longitude;
+  final double? altitude;
+  final String? cityName;
+  final String? countryName;
+  final String? timezone;
 
   @override
   List<Object?> get props => [latitude, longitude];
@@ -115,11 +115,6 @@ enum CalculationMethod {
 
 /// بيانات القبلة - Qibla Data
 class QiblaData extends Equatable {
-  final double qiblaDirection;
-  final double currentHeading;
-  final double distanceToKaaba;
-  final bool isLocked;
-  final bool isCalibrated;
 
   const QiblaData({
     required this.qiblaDirection,
@@ -128,6 +123,11 @@ class QiblaData extends Equatable {
     this.isLocked = false,
     this.isCalibrated = true,
   });
+  final double qiblaDirection;
+  final double currentHeading;
+  final double distanceToKaaba;
+  final bool isLocked;
+  final bool isCalibrated;
 
   double get offset => qiblaDirection - currentHeading;
 
@@ -139,12 +139,6 @@ class QiblaData extends Equatable {
 
 /// سجل القضاء - Qada Record
 class QadaRecord extends Equatable {
-  final String id;
-  final QadaType type;
-  final int totalCount;
-  final int completedCount;
-  final DateTime? startDate;
-  final String? notes;
 
   const QadaRecord({
     required this.id,
@@ -154,6 +148,12 @@ class QadaRecord extends Equatable {
     this.startDate,
     this.notes,
   });
+  final String id;
+  final QadaType type;
+  final int totalCount;
+  final int completedCount;
+  final DateTime? startDate;
+  final String? notes;
 
   int get remainingCount => totalCount - completedCount;
   double get progressPercentage => totalCount > 0 ? completedCount / totalCount : 0;

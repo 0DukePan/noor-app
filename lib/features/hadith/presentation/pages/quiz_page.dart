@@ -2,20 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/noor_theme.dart';
 import '../../../../core/domain/entities/hadith.dart'; // Use the core entity
+import '../../../../core/theme/noor_theme.dart';
 import '../providers/hadith_providers.dart';
 
 /// صفحة الاختبارات - Quiz Page
 class QuizPage extends ConsumerStatefulWidget {
-  final List<Hadith> hadiths;
-  final QuizType quizType;
 
   const QuizPage({
-    super.key,
-    required this.hadiths,
+    required this.hadiths, super.key,
     this.quizType = QuizType.completeHadith,
   });
+  final List<Hadith> hadiths;
+  final QuizType quizType;
 
   @override
   ConsumerState<QuizPage> createState() => _QuizPageState();
@@ -28,7 +27,6 @@ class _QuizPageState extends ConsumerState<QuizPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(quizProvider(widget.hadiths).notifier).startQuiz(
             widget.quizType,
-            questionCount: 10,
           );
     });
   }
@@ -312,7 +310,6 @@ class _QuizPageState extends ConsumerState<QuizPage> {
               onPressed: () {
                 ref.read(quizProvider(widget.hadiths).notifier).startQuiz(
                   widget.quizType,
-                  questionCount: 10,
                 );
               },
               icon: const Icon(Icons.refresh_rounded),

@@ -11,7 +11,7 @@ import 'api_fetcher_service.dart';
 /// 3️⃣ API ← تفسير / روايات / تحديث
 class QuranDataSource {
   static const _cacheBoxName = 'quran_cache';
-  static Box? _cacheBox;
+  static Box<dynamic>? _cacheBox;
   static final ApiFetcherService _api = ApiFetcherService();
 
   // Complete Quran in memory (all 114 surahs)
@@ -20,7 +20,7 @@ class QuranDataSource {
 
   /// Initialize data source - loads complete Quran into memory
   static Future<void> init() async {
-    _cacheBox = await Hive.openBox(_cacheBoxName);
+    _cacheBox = await Hive.openBox<dynamic>(_cacheBoxName);
     
     // Load complete Quran on app start (always available)
     await _loadCompleteQuran();
@@ -38,12 +38,12 @@ class QuranDataSource {
       // Convert to proper format
       _quranData = {};
       data.forEach((key, value) {
-        _quranData![key] = List<dynamic>.from(value);
+        _quranData![key] = List<dynamic>.from(value as List);
       });
       
       // Load surahs metadata
       _surahsMetadata = await getSurahsList();
-    } catch (e) {
+    } on Exception catch (e) {
       throw QuranDataException('فشل تحميل القرآن الكريم: $e');
     }
   }
@@ -60,10 +60,10 @@ class QuranDataSource {
 
     try {
       final jsonString = await rootBundle.loadString('assets/quran/surahs.json');
-      final surahs = List<Map<String, dynamic>>.from(jsonDecode(jsonString));
+      final surahs = List<Map<String, dynamic>>.from(jsonDecode(jsonString) as List);
       _surahsMetadata = surahs;
       return surahs;
-    } catch (e) {
+    } on Exception catch (e) {
       throw QuranDataException('فشل تحميل فهرس السور: $e');
     }
   }
@@ -89,11 +89,14 @@ class QuranDataSource {
     );
 
     // Convert verses to expected format
-    final ayahs = verses.map((v) => {
-      'numberInSurah': v['verse'],
-      'text': v['text'],
-      'page': 1, // Can be enhanced with page data
-      'juz': 1,  // Can be enhanced with juz data
+    final ayahs = verses.map((v) {
+      final map = v as Map;
+      return {
+        'numberInSurah': map['verse'],
+        'text': map['text'],
+        'page': 1, // Can be enhanced with page data
+        'juz': 1,  // Can be enhanced with juz data
+      };
     },).toList();
 
     return {
@@ -117,7 +120,7 @@ class QuranDataSource {
     if (verses == null) return null;
 
     final verse = verses.firstWhere(
-      (v) => v['verse'] == verseNumber,
+      (v) => (v as Map)['verse'] == verseNumber,
       orElse: () => null,
     );
 
@@ -126,7 +129,7 @@ class QuranDataSource {
     return {
       'surah': surahNumber,
       'verse': verseNumber,
-      'text': verse['text'],
+      'text': (verse as Map)['text'],
     };
   }
 
@@ -151,7 +154,7 @@ class QuranDataSource {
     // Check cache first
     final cached = _cacheBox?.get(cacheKey);
     if (cached != null) {
-      return Map<String, dynamic>.from(cached);
+      return Map<String, dynamic>.from(cached as Map);
     }
 
     // Fetch from API
@@ -163,7 +166,7 @@ class QuranDataSource {
       );
       await _cacheBox?.put(cacheKey, data);
       return data;
-    } catch (e) {
+    } on Exception {
       return null; // Tafsir is optional
     }
   }
@@ -180,7 +183,7 @@ class QuranDataSource {
         verseNumber: verseNumber,
         reciter: reciter,
       );
-    } catch (e) {
+    } on Exception {
       return null; // Audio is optional
     }
   }
@@ -199,10 +202,9 @@ class QuranDataSource {
 
 /// Quran data exception
 class QuranDataException implements Exception {
-  final String message;
   QuranDataException(this.message);
+  final String message;
 
   @override
   String toString() => 'QuranDataException: $message';
 }
-

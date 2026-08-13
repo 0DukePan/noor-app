@@ -4,9 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/design_system.dart';
 
 class HadithOfDayCard extends StatelessWidget {
-  final Map<String, dynamic> hadith;
 
-  const HadithOfDayCard({super.key, required this.hadith});
+  const HadithOfDayCard({required this.hadith, super.key});
+  final Map<String, dynamic> hadith;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,6 @@ class HadithOfDayCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: NoorDesignSystem.primaryGreen.withValues(alpha: isDark ? 0.15 : 0.1),
-          width: 1,
         ),
         boxShadow: [
           BoxShadow(

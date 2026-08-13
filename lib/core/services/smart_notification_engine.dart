@@ -1,13 +1,14 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:timezone/data/latest.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
 
-import 'prayer_time_engine.dart';
 import 'hive_service.dart';
+import 'prayer_time_engine.dart';
 
 /// 🔔 خدمة الإشعارات الاحترافية - Professional Notification Service
 /// 
@@ -20,7 +21,7 @@ import 'hive_service.dart';
 class SmartNotificationEngine {
   static final FlutterLocalNotificationsPlugin _plugin = 
       FlutterLocalNotificationsPlugin();
-  static Box? _settingsBox;
+  static Box<dynamic>? _settingsBox;
   
   // Notification channels
   static const String _adhkarChannelId = 'adhkar_notifications';
@@ -37,7 +38,7 @@ class SmartNotificationEngine {
     tz_data.initializeTimeZones();
     
     // Initialize Hive
-    _settingsBox = await Hive.openBox('notification_settings');
+    _settingsBox = await Hive.openBox<dynamic>('notification_settings');
     
     // Android settings
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -76,7 +77,6 @@ class SmartNotificationEngine {
           'أذكار الصباح والمساء',
           description: 'تذكيرات الأذكار اليومية',
           importance: Importance.high,
-          playSound: true,
         ),
       );
       
@@ -87,7 +87,6 @@ class SmartNotificationEngine {
           'مواعيد الصلاة',
           description: 'تنبيهات مواعيد الصلاة',
           importance: Importance.max,
-          playSound: true,
         ),
       );
       
@@ -97,8 +96,6 @@ class SmartNotificationEngine {
           _reminderChannelId,
           'تذكيرات عامة',
           description: 'تذكيرات متنوعة',
-          importance: Importance.defaultImportance,
-          playSound: true,
         ),
       );
     }
@@ -226,7 +223,7 @@ class SmartNotificationEngine {
 
   /// إلغاء إشعارات الصلاة
   static Future<void> cancelPrayerNotifications() async {
-    for (int i = 0; i < 6; i++) {
+    for (var i = 0; i < 6; i++) {
       await _plugin.cancel(200 + i);
     }
   }
@@ -440,7 +437,7 @@ class SmartNotificationEngine {
   static NotificationSettings getSettings() {
     final data = _settingsBox?.get('settings');
     if (data == null) return const NotificationSettings();
-    return NotificationSettings.fromMap(Map<String, dynamic>.from(data));
+    return NotificationSettings.fromMap(Map<String, dynamic>.from(data as Map));
   }
 
   /// إلغاء جميع الإشعارات
@@ -450,7 +447,7 @@ class SmartNotificationEngine {
 
   /// الإشعارات المعلقة
   static Future<List<PendingNotificationRequest>> getPendingNotifications() async {
-    return await _plugin.pendingNotificationRequests();
+    return _plugin.pendingNotificationRequests();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -472,16 +469,6 @@ class SmartNotificationEngine {
 
 /// إعدادات الإشعارات
 class NotificationSettings {
-  final bool adhkarMorningEnabled;
-  final bool adhkarEveningEnabled;
-  final bool prayerNotificationsEnabled;
-  final int prayerNotificationMinutesBefore;
-  final bool khatmahReminderEnabled;
-  final int khatmahReminderHour;
-  final int khatmahReminderMinute;
-  final bool quietHoursEnabled;
-  final int quietHoursStart;
-  final int quietHoursEnd;
 
   const NotificationSettings({
     this.adhkarMorningEnabled = true,
@@ -496,6 +483,31 @@ class NotificationSettings {
     this.quietHoursEnd = 6,
   });
 
+  factory NotificationSettings.fromMap(Map<String, dynamic> map) {
+    return NotificationSettings(
+      adhkarMorningEnabled: map['adhkarMorningEnabled'] as bool? ?? true,
+      adhkarEveningEnabled: map['adhkarEveningEnabled'] as bool? ?? true,
+      prayerNotificationsEnabled: map['prayerNotificationsEnabled'] as bool? ?? true,
+      prayerNotificationMinutesBefore: (map['prayerNotificationMinutesBefore'] as num?)?.toInt() ?? 10,
+      khatmahReminderEnabled: map['khatmahReminderEnabled'] as bool? ?? false,
+      khatmahReminderHour: (map['khatmahReminderHour'] as num?)?.toInt() ?? 20,
+      khatmahReminderMinute: (map['khatmahReminderMinute'] as num?)?.toInt() ?? 0,
+      quietHoursEnabled: map['quietHoursEnabled'] as bool? ?? false,
+      quietHoursStart: (map['quietHoursStart'] as num?)?.toInt() ?? 23,
+      quietHoursEnd: (map['quietHoursEnd'] as num?)?.toInt() ?? 6,
+    );
+  }
+  final bool adhkarMorningEnabled;
+  final bool adhkarEveningEnabled;
+  final bool prayerNotificationsEnabled;
+  final int prayerNotificationMinutesBefore;
+  final bool khatmahReminderEnabled;
+  final int khatmahReminderHour;
+  final int khatmahReminderMinute;
+  final bool quietHoursEnabled;
+  final int quietHoursStart;
+  final int quietHoursEnd;
+
   Map<String, dynamic> toMap() => {
     'adhkarMorningEnabled': adhkarMorningEnabled,
     'adhkarEveningEnabled': adhkarEveningEnabled,
@@ -508,21 +520,6 @@ class NotificationSettings {
     'quietHoursStart': quietHoursStart,
     'quietHoursEnd': quietHoursEnd,
   };
-
-  factory NotificationSettings.fromMap(Map<String, dynamic> map) {
-    return NotificationSettings(
-      adhkarMorningEnabled: map['adhkarMorningEnabled'] ?? true,
-      adhkarEveningEnabled: map['adhkarEveningEnabled'] ?? true,
-      prayerNotificationsEnabled: map['prayerNotificationsEnabled'] ?? true,
-      prayerNotificationMinutesBefore: map['prayerNotificationMinutesBefore'] ?? 10,
-      khatmahReminderEnabled: map['khatmahReminderEnabled'] ?? false,
-      khatmahReminderHour: map['khatmahReminderHour'] ?? 20,
-      khatmahReminderMinute: map['khatmahReminderMinute'] ?? 0,
-      quietHoursEnabled: map['quietHoursEnabled'] ?? false,
-      quietHoursStart: map['quietHoursStart'] ?? 23,
-      quietHoursEnd: map['quietHoursEnd'] ?? 6,
-    );
-  }
 
   NotificationSettings copyWith({
     bool? adhkarMorningEnabled,

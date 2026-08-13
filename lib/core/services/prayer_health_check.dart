@@ -1,8 +1,9 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:geolocator/geolocator.dart';
 
 /// ✅ نظام الفحص الذاتي - Self Health Check System
 /// 
@@ -12,7 +13,7 @@ import 'package:geolocator/geolocator.dart';
 /// - Check permissions
 /// - Warn user about issues
 class PrayerHealthCheck {
-  static Box? _healthBox;
+  static Box<dynamic>? _healthBox;
   static Timer? _dailyCheckTimer;
   
   // Health status stream
@@ -27,7 +28,7 @@ class PrayerHealthCheck {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static Future<void> init() async {
-    _healthBox = await Hive.openBox('health_check');
+    _healthBox = await Hive.openBox<dynamic>('health_check');
     
     // Schedule daily check at 3 AM
     _scheduleDailyCheck();
@@ -38,7 +39,7 @@ class PrayerHealthCheck {
 
   static void _scheduleDailyCheck() {
     final now = DateTime.now();
-    var nextCheck = DateTime(now.year, now.month, now.day, 3, 0);
+    var nextCheck = DateTime(now.year, now.month, now.day, 3);
     if (nextCheck.isBefore(now)) {
       nextCheck = nextCheck.add(const Duration(days: 1));
     }
@@ -238,7 +239,7 @@ class PrayerHealthCheck {
     DateTime? lastUpdateTime;
     
     if (lastUpdate != null) {
-      lastUpdateTime = DateTime.tryParse(lastUpdate);
+      lastUpdateTime = DateTime.tryParse(lastUpdate as String);
     }
     
     final isRecent = lastUpdateTime != null && 
@@ -290,7 +291,7 @@ class PrayerHealthCheck {
   static Future<int> attemptFixAll() async {
     if (_lastReport == null) return 0;
     
-    int fixed = 0;
+    var fixed = 0;
     for (final issue in _lastReport!.issues) {
       if (issue.canAutoFix) {
         final success = await attemptFix(issue);
@@ -364,25 +365,19 @@ enum IssueSeverity {
 
 /// نتيجة فحص
 class CheckResult {
-  final String name;
-  final bool passed;
-  final HealthIssue? issue;
 
   const CheckResult({
     required this.name,
     required this.passed,
     this.issue,
   });
+  final String name;
+  final bool passed;
+  final HealthIssue? issue;
 }
 
 /// مشكلة صحية
 class HealthIssue {
-  final String code;
-  final String title;
-  final String description;
-  final IssueSeverity severity;
-  final String action;
-  final bool canAutoFix;
 
   const HealthIssue({
     required this.code,
@@ -392,14 +387,16 @@ class HealthIssue {
     required this.action,
     required this.canAutoFix,
   });
+  final String code;
+  final String title;
+  final String description;
+  final IssueSeverity severity;
+  final String action;
+  final bool canAutoFix;
 }
 
 /// تقرير الصحة
 class HealthReport {
-  final DateTime timestamp;
-  final List<CheckResult> checks;
-  final List<HealthIssue> issues;
-  final HealthStatus overallStatus;
 
   const HealthReport({
     required this.timestamp,
@@ -407,6 +404,10 @@ class HealthReport {
     required this.issues,
     required this.overallStatus,
   });
+  final DateTime timestamp;
+  final List<CheckResult> checks;
+  final List<HealthIssue> issues;
+  final HealthStatus overallStatus;
 
   int get passedChecks => checks.where((c) => c.passed).length;
   int get totalChecks => checks.length;

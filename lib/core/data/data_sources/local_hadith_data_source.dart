@@ -33,7 +33,6 @@ class LocalHadithDataSource {
       englishText: row['english_text'] as String? ?? '',
       narratorEnglish: row['english_narrator'] as String? ?? '',
       chapterId: row['chapter_id'] as int? ?? 0,
-      bookId: null,
       collectionId: row['collection_id'] as String? ?? defaultCollectionId,
     );
   }
@@ -131,7 +130,7 @@ class LocalHadithDataSource {
   /// Search by narrator
   Future<List<Hadith>> searchByNarrator(String narrator) async {
     final rows = await HadithDatabase.searchByNarrator(narrator);
-    return rows.map((h) => _mapRowToHadith(h)).toList();
+    return rows.map(_mapRowToHadith).toList();
   }
 
   /// Get a random hadith (Hadith of the Day)

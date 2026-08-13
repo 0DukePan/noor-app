@@ -2,30 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/design_system.dart';
 import '../../../../core/domain/entities/hadith.dart';
+import '../../../../core/theme/design_system.dart';
 import '../providers/hadith_providers.dart';
 import 'hadith_reader_page.dart';
 
 /// صفحة أحاديث باب معين - Hadiths within a specific Chapter
 ///
-/// Loads hadiths lazily in pages of [pageSize] instead of loading the whole
+/// Loads hadiths lazily in pages of `pageSize` instead of loading the whole
 /// book into memory (important for large collections).
 class HadithChapterHadithsPage extends ConsumerStatefulWidget {
+
+  const HadithChapterHadithsPage({
+    required this.bookId, required this.bookTitle, required this.chapterId, required this.chapterTitle, required this.bookColor, super.key,
+  });
   final String bookId;
   final String bookTitle;
   final int? chapterId; // null = show all
   final String chapterTitle;
   final Color bookColor;
-
-  const HadithChapterHadithsPage({
-    super.key,
-    required this.bookId,
-    required this.bookTitle,
-    required this.chapterId,
-    required this.chapterTitle,
-    required this.bookColor,
-  });
 
   @override
   ConsumerState<HadithChapterHadithsPage> createState() =>
@@ -79,7 +74,7 @@ class _HadithChapterHadithsPageState
         _page++;
         _isLoading = false;
       });
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('Failed to load hadith page: $e');
       if (mounted) setState(() => _isLoading = false);
     }
@@ -129,7 +124,7 @@ class _HadithChapterHadithsPageState
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
+                          MaterialPageRoute<void>(
                             builder: (_) => HadithReaderPage(
                               hadith: hadith,
                               bookTitle: widget.bookTitle,
@@ -150,11 +145,6 @@ class _HadithChapterHadithsPageState
 
 /// بطاقة معاينة حديث - Hadith preview card in list
 class _HadithPreviewCard extends StatelessWidget {
-  final Hadith hadith;
-  final int index;
-  final Color bookColor;
-  final String bookTitle;
-  final VoidCallback onTap;
 
   const _HadithPreviewCard({
     required this.hadith,
@@ -163,11 +153,16 @@ class _HadithPreviewCard extends StatelessWidget {
     required this.bookTitle,
     required this.onTap,
   });
+  final Hadith hadith;
+  final int index;
+  final Color bookColor;
+  final String bookTitle;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final cleanText = hadith.arabic
-        .replaceAll(RegExp(r'<[^>]*>'), '')
+        .replaceAll(RegExp('<[^>]*>'), '')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
     final preview =

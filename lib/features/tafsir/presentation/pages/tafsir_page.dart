@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../../../core/domain/entities/surah_names.dart';
 import '../../../../core/models/tafsir_models.dart';
 import '../../../../core/services/tafsir_data_source.dart';
 import '../../../../core/theme/tafsir_theme.dart';
-import '../../../../core/domain/entities/surah_names.dart';
 
 /// 📖 TafsirPage - صفحة التفسير الرئيسية
 class TafsirPage extends StatefulWidget {
-  final int? initialSurah;
-  final int? initialAyah;
 
   const TafsirPage({
     super.key,
     this.initialSurah,
     this.initialAyah,
   });
+  final int? initialSurah;
+  final int? initialAyah;
 
   @override
   State<TafsirPage> createState() => _TafsirPageState();
@@ -116,7 +117,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
 
   Widget _buildTafsirTab(ThemeData theme) {
     final brightness = theme.brightness;
-    return Container(
+    return ColoredBox(
       color: TafsirTheme.readingBackground(brightness),
       child: Column(
         children: [
@@ -344,13 +345,13 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
 
 /// بطاقة التفسير — Premium scholar-grade card
 class _TafsirCard extends StatelessWidget {
-  final TafsirEntry entry;
-  final VoidCallback onBookmark;
 
   const _TafsirCard({
     required this.entry,
     required this.onBookmark,
   });
+  final TafsirEntry entry;
+  final VoidCallback onBookmark;
 
   @override
   Widget build(BuildContext context) {
@@ -455,12 +456,12 @@ class _TafsirCard extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
-  final TafsirSourceId source;
   
   _TafsirSearchDelegate(this.source) : super(
     searchFieldLabel: 'ابحث في التفسير (جذر، كلمة، أو موضوع)...',
     textInputAction: TextInputAction.search,
   );
+  final TafsirSourceId source;
 
   // ── Thematic Topics (Mawdu'at) ──
   final List<Map<String, String>> _topics = [
@@ -621,15 +622,15 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
 
 // ── Search Result Card with Highlighting ──
 class _SearchResultCard extends StatelessWidget {
-  final TafsirEntry entry;
-  final String query;
-  final VoidCallback onTap;
 
   const _SearchResultCard({
     required this.entry,
     required this.query,
     required this.onTap,
   });
+  final TafsirEntry entry;
+  final String query;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -640,7 +641,7 @@ class _SearchResultCard extends StatelessWidget {
     final lowerQuery = query.toLowerCase();
     final idx = lowerText.indexOf(lowerQuery);
     
-    String snippet = entry.text;
+    var snippet = entry.text;
     if (idx != -1) {
       final start = (idx - 60).clamp(0, entry.text.length);
       final end = (idx + query.length + 80).clamp(0, entry.text.length);
@@ -700,7 +701,7 @@ class _SearchResultCard extends StatelessWidget {
     if (matches.isEmpty) return TextSpan(text: text, style: _normStyle(theme));
 
     final spans = <TextSpan>[];
-    int start = 0;
+    var start = 0;
     for (final match in matches) {
       if (match.start > start) {
         spans.add(TextSpan(text: text.substring(start, match.start), style: _normStyle(theme)));
@@ -728,4 +729,3 @@ class _SearchResultCard extends StatelessWidget {
     color: theme.colorScheme.onSurface,
   );
 }
-

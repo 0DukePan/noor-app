@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// خدمة التصدير والمشاركة - Export & Share Service
@@ -112,7 +113,7 @@ class ExportShareService {
             style: pw.TextStyle(
               font: font,
               fontSize: 18,
-              height: 2.0,
+              height: 2,
             ),
             textDirection: pw.TextDirection.rtl,
             textAlign: pw.TextAlign.justify,
@@ -209,10 +210,10 @@ class ExportShareService {
       final boundary = key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (boundary == null) return null;
 
-      final image = await boundary.toImage(pixelRatio: 3.0);
+      final image = await boundary.toImage(pixelRatio: 3);
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       return byteData?.buffer.asUint8List();
-    } catch (e) {
+    } on Exception {
       return null;
     }
   }
@@ -238,11 +239,6 @@ class ExportShareService {
 
 /// Export item model
 class ExportItem {
-  final String arabicText;
-  final String source;
-  final String? translation;
-  final String? grade;
-  final int? number;
 
   ExportItem({
     required this.arabicText,
@@ -251,4 +247,9 @@ class ExportItem {
     this.grade,
     this.number,
   });
+  final String arabicText;
+  final String source;
+  final String? translation;
+  final String? grade;
+  final int? number;
 }

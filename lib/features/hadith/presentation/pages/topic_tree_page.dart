@@ -63,7 +63,7 @@ class _TopicTreePageState extends ConsumerState<TopicTreePage> {
     setState(() {
       _topics = sorted.map((e) {
         // Pick an icon if we have a match, otherwise use a bookmark icon
-        IconData icon = Icons.bookmark_rounded;
+        var icon = Icons.bookmark_rounded;
         for (final entry in _topicIcons.entries) {
           if (e.key.contains(entry.key)) {
             icon = entry.value;
@@ -203,13 +203,13 @@ class _TopicTreePageState extends ConsumerState<TopicTreePage> {
 }
 
 class _TopicItem {
-  final String name;
-  final int hadithCount;
-  final IconData icon;
 
   const _TopicItem({
     required this.name,
     required this.hadithCount,
     required this.icon,
   });
+  final String name;
+  final int hadithCount;
+  final IconData icon;
 }

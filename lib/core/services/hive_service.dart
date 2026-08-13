@@ -1,4 +1,4 @@
-import 'package:hive_flutter/hive_flutter.dart';
+﻿import 'package:hive_flutter/hive_flutter.dart';
 
 import 'prayer_time_engine.dart';
 
@@ -21,16 +21,16 @@ class HiveService {
 
     // Open all boxes
     await Future.wait([
-      Hive.openBox<Map>(_surahsBox),
-      Hive.openBox<Map>(_versesBox),
-      Hive.openBox<Map>(_tafsirBox),
-      Hive.openBox<Map>(_hadithsBox),
-      Hive.openBox<Map>(_adhkarBox),
-      Hive.openBox<Map>(_progressBox),
-      Hive.openBox<Map>(_bookmarksBox),
-      Hive.openBox<Map>(_tadabburBox),
-      Hive.openBox<Map>(_settingsBox),
-      Hive.openBox<Map>(_qadaBox),
+      Hive.openBox<Map<dynamic, dynamic>>(_surahsBox),
+      Hive.openBox<Map<dynamic, dynamic>>(_versesBox),
+      Hive.openBox<Map<dynamic, dynamic>>(_tafsirBox),
+      Hive.openBox<Map<dynamic, dynamic>>(_hadithsBox),
+      Hive.openBox<Map<dynamic, dynamic>>(_adhkarBox),
+      Hive.openBox<Map<dynamic, dynamic>>(_progressBox),
+      Hive.openBox<Map<dynamic, dynamic>>(_bookmarksBox),
+      Hive.openBox<Map<dynamic, dynamic>>(_tadabburBox),
+      Hive.openBox<Map<dynamic, dynamic>>(_settingsBox),
+      Hive.openBox<Map<dynamic, dynamic>>(_qadaBox),
     ]);
   }
 
@@ -38,9 +38,9 @@ class HiveService {
   // QURAN STORAGE
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static Box<Map> get surahsBox => Hive.box<Map>(_surahsBox);
-  static Box<Map> get versesBox => Hive.box<Map>(_versesBox);
-  static Box<Map> get tafsirBox => Hive.box<Map>(_tafsirBox);
+  static Box<Map<dynamic, dynamic>> get surahsBox => Hive.box<Map<dynamic, dynamic>>(_surahsBox);
+  static Box<Map<dynamic, dynamic>> get versesBox => Hive.box<Map<dynamic, dynamic>>(_versesBox);
+  static Box<Map<dynamic, dynamic>> get tafsirBox => Hive.box<Map<dynamic, dynamic>>(_tafsirBox);
 
   /// Cache all surahs
   static Future<void> cacheSurahs(List<Map<String, dynamic>> surahs) async {
@@ -53,7 +53,7 @@ class HiveService {
 
   /// Get all cached surahs
   static List<Map<String, dynamic>> getCachedSurahs() {
-    return surahsBox.values.map((e) => Map<String, dynamic>.from(e)).toList()
+    return surahsBox.values.map(Map<String, dynamic>.from).toList()
       ..sort((a, b) => (a['number'] as int).compareTo(b['number'] as int));
   }
 
@@ -86,7 +86,7 @@ class HiveService {
   // HADITH STORAGE
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static Box<Map> get hadithsBox => Hive.box<Map>(_hadithsBox);
+  static Box<Map<dynamic, dynamic>> get hadithsBox => Hive.box<Map<dynamic, dynamic>>(_hadithsBox);
 
   /// Cache hadiths by category
   static Future<void> cacheHadiths(String categoryId, List<Map<String, dynamic>> hadiths) async {
@@ -104,7 +104,7 @@ class HiveService {
   // ADHKAR STORAGE
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static Box<Map> get adhkarBox => Hive.box<Map>(_adhkarBox);
+  static Box<Map<dynamic, dynamic>> get adhkarBox => Hive.box<Map<dynamic, dynamic>>(_adhkarBox);
 
   /// Cache adhkar by category
   static Future<void> cacheAdhkar(String category, List<Map<String, dynamic>> adhkar) async {
@@ -122,11 +122,11 @@ class HiveService {
   // USER DATA STORAGE
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static Box<Map> get progressBox => Hive.box<Map>(_progressBox);
-  static Box<Map> get bookmarksBox => Hive.box<Map>(_bookmarksBox);
-  static Box<Map> get tadabburBox => Hive.box<Map>(_tadabburBox);
-  static Box<Map> get settingsBox => Hive.box<Map>(_settingsBox);
-  static Box<Map> get qadaBox => Hive.box<Map>(_qadaBox);
+  static Box<Map<dynamic, dynamic>> get progressBox => Hive.box<Map<dynamic, dynamic>>(_progressBox);
+  static Box<Map<dynamic, dynamic>> get bookmarksBox => Hive.box<Map<dynamic, dynamic>>(_bookmarksBox);
+  static Box<Map<dynamic, dynamic>> get tadabburBox => Hive.box<Map<dynamic, dynamic>>(_tadabburBox);
+  static Box<Map<dynamic, dynamic>> get settingsBox => Hive.box<Map<dynamic, dynamic>>(_settingsBox);
+  static Box<Map<dynamic, dynamic>> get qadaBox => Hive.box<Map<dynamic, dynamic>>(_qadaBox);
 
   /// Save reading progress
   static Future<void> saveReadingProgress(Map<String, dynamic> progress) async {
@@ -165,7 +165,7 @@ class HiveService {
   static List<Map<String, dynamic>> getBookmarksByType(String type) {
     return bookmarksBox.values
         .where((e) => e['type'] == type)
-        .map((e) => Map<String, dynamic>.from(e))
+        .map(Map<String, dynamic>.from)
         .toList();
   }
 
@@ -186,7 +186,7 @@ class HiveService {
 
   /// Get all tadabbur
   static List<Map<String, dynamic>> getAllTadabbur() {
-    return tadabburBox.values.map((e) => Map<String, dynamic>.from(e)).toList();
+    return tadabburBox.values.map(Map<String, dynamic>.from).toList();
   }
 
   /// Delete tadabbur
@@ -249,7 +249,7 @@ class HiveService {
 
   /// Get all qada records
   static List<Map<String, dynamic>> getAllQadaRecords() {
-    return qadaBox.values.map((e) => Map<String, dynamic>.from(e)).toList();
+    return qadaBox.values.map(Map<String, dynamic>.from).toList();
   }
 
   /// Delete qada record

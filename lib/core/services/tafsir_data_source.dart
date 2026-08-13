@@ -16,10 +16,10 @@ class TafsirDataSource {
   static const String _bookmarksBoxName = 'tafsir_bookmarks';
   static const String _historyBoxName = 'tafsir_history';
 
-  static Box? _cacheBox;
-  static Box? _settingsBox;
-  static Box? _bookmarksBox;
-  static Box? _historyBox;
+  static Box<dynamic>? _cacheBox;
+  static Box<dynamic>? _settingsBox;
+  static Box<dynamic>? _bookmarksBox;
+  static Box<dynamic>? _historyBox;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // INITIALIZATION
@@ -27,10 +27,10 @@ class TafsirDataSource {
 
   /// تهيئة المصدر
   static Future<void> init() async {
-    _cacheBox = await Hive.openBox(_cacheBoxName);
-    _settingsBox = await Hive.openBox(_settingsBoxName);
-    _bookmarksBox = await Hive.openBox(_bookmarksBoxName);
-    _historyBox = await Hive.openBox(_historyBoxName);
+    _cacheBox = await Hive.openBox<dynamic>(_cacheBoxName);
+    _settingsBox = await Hive.openBox<dynamic>(_settingsBoxName);
+    _bookmarksBox = await Hive.openBox<dynamic>(_bookmarksBoxName);
+    _historyBox = await Hive.openBox<dynamic>(_historyBoxName);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -72,15 +72,6 @@ class TafsirDataSource {
     // 2. جرب من Cache
     final fromCache = _getCachedSurah(surah, source);
     if (fromCache != null) return fromCache;
-
-    // 3. جرب من API (لابن كثير)
-    if (sourceInfo.apiEndpoint != null) {
-      final fromApi = await _loadFromApi(surah, source);
-      if (fromApi != null) {
-        await _cacheSurah(fromApi);
-        return fromApi;
-      }
-    }
 
     return null;
   }
@@ -130,7 +121,7 @@ class TafsirDataSource {
       final json = jsonDecode(jsonString) as Map<String, dynamic>;
       
       return SurahTafsir.fromJson(json, source);
-    } catch (e) {
+    } on Exception {
       // File not found or parse error
       return null;
     }
@@ -142,15 +133,15 @@ class TafsirDataSource {
 
   static TafsirEntry? _getCachedEntry(int surah, int ayah, TafsirSourceId source) {
     final key = '${source.name}:$surah:$ayah';
-    final cached = _cacheBox?.get(key);
+    final cached = _cacheBox?.get(key) as Map<dynamic, dynamic>?;
     
     if (cached != null) {
       return TafsirEntry(
         surah: surah,
         ayah: ayah,
-        text: cached['text'],
+        text: (cached['text'] ?? '') as String,
         source: source,
-        cachedAt: DateTime.tryParse(cached['cachedAt'] ?? ''),
+        cachedAt: DateTime.tryParse((cached['cachedAt'] ?? '') as String),
       );
     }
     return null;
@@ -158,15 +149,18 @@ class TafsirDataSource {
 
   static SurahTafsir? _getCachedSurah(int surah, TafsirSourceId source) {
     final key = 'surah:${source.name}:$surah';
-    final cached = _cacheBox?.get(key);
+    final cached = _cacheBox?.get(key) as Map<dynamic, dynamic>?;
     
     if (cached != null) {
-      final entries = (cached['entries'] as List).map((e) => TafsirEntry(
-        surah: e['surah'],
-        ayah: e['ayah'],
-        text: e['text'],
-        source: source,
-      ),).toList();
+      final entries = (cached['entries'] as List).map((e) {
+        final map = e as Map;
+        return TafsirEntry(
+          surah: (map['surah'] ?? 0) as int,
+          ayah: (map['ayah'] ?? 0) as int,
+          text: (map['text'] ?? '') as String,
+          source: source,
+        );
+      },).toList();
       
       return SurahTafsir(surah: surah, source: source, entries: entries);
     }
@@ -192,19 +186,6 @@ class TafsirDataSource {
         'text': e.text,
       },).toList(),
     });
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // API LOADING (for Ibn Kathir)
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  static Future<SurahTafsir?> _loadFromApi(
-    int surah,
-    TafsirSourceId source,
-  ) async {
-    // TODO: Implement API fetching for Ibn Kathir
-    // For now, return null (offline only)
-    return null;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -254,7 +235,7 @@ class TafsirDataSource {
     _bookmarksBox?.keys.forEach((key) {
       final json = _bookmarksBox?.get(key);
       if (json != null) {
-        all.add(TafsirBookmark.fromJson(Map<String, dynamic>.from(json)));
+        all.add(TafsirBookmark.fromJson(Map<String, dynamic>.from(json as Map)));
       }
     });
     return all..sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -271,14 +252,14 @@ class TafsirDataSource {
     TafsirSourceId source = TafsirSourceId.muyassar,
   }) async {
     final key = '${source.name}:$surah:$ayah';
-    final existing = _historyBox?.get(key);
+    final existing = _historyBox?.get(key) as Map<dynamic, dynamic>?;
     
     final history = TafsirReadingHistory(
       surah: surah,
       ayah: ayah,
       source: source,
       lastRead: DateTime.now(),
-      readCount: existing != null ? (existing['readCount'] ?? 0) + 1 : 1,
+      readCount: existing != null ? ((existing['readCount'] ?? 0) as int) + 1 : 1,
     );
     
     await _historyBox?.put(key, {
@@ -297,19 +278,20 @@ class TafsirDataSource {
     TafsirReadingHistory? latest;
     DateTime? latestTime;
     
-    for (var json in _historyBox!.values) {
-      final lastRead = DateTime.tryParse(json['lastRead'] ?? '');
+    for (final raw in _historyBox!.values) {
+      final json = raw as Map;
+      final lastRead = DateTime.tryParse((json['lastRead'] ?? '') as String);
       if (lastRead != null && (latestTime == null || lastRead.isAfter(latestTime))) {
         latestTime = lastRead;
         latest = TafsirReadingHistory(
-          surah: json['surah'],
-          ayah: json['ayah'],
+          surah: (json['surah'] ?? 0) as int,
+          ayah: (json['ayah'] ?? 0) as int,
           source: TafsirSourceId.values.firstWhere(
             (e) => e.name == json['source'],
             orElse: () => TafsirSourceId.muyassar,
           ),
           lastRead: lastRead,
-          readCount: json['readCount'] ?? 1,
+          readCount: (json['readCount'] ?? 1) as int,
         );
       }
     }
@@ -321,16 +303,17 @@ class TafsirDataSource {
   static List<TafsirReadingHistory> getRecentHistory({int limit = 20}) {
     final all = <TafsirReadingHistory>[];
     
-    _historyBox?.values.forEach((json) {
+    _historyBox?.values.forEach((raw) {
+      final json = raw as Map;
       all.add(TafsirReadingHistory(
-        surah: json['surah'],
-        ayah: json['ayah'],
+        surah: (json['surah'] ?? 0) as int,
+        ayah: (json['ayah'] ?? 0) as int,
         source: TafsirSourceId.values.firstWhere(
           (e) => e.name == json['source'],
           orElse: () => TafsirSourceId.muyassar,
         ),
-        lastRead: DateTime.parse(json['lastRead']),
-        readCount: json['readCount'] ?? 1,
+        lastRead: DateTime.parse(json['lastRead'] as String),
+        readCount: (json['readCount'] ?? 1) as int,
       ),);
     });
     
@@ -355,7 +338,7 @@ class TafsirDataSource {
 
   /// تحميل الإعدادات
   static TafsirDisplaySettings getSettings() {
-    final json = _settingsBox?.get('display_settings');
+    final json = _settingsBox?.get('display_settings') as Map<dynamic, dynamic>?;
     if (json == null) return const TafsirDisplaySettings();
     
     return TafsirDisplaySettings(
@@ -369,8 +352,8 @@ class TafsirDataSource {
           orElse: () => TafsirSourceId.muyassar,
         ),
       ).toList() ?? [],
-      showReferences: json['showReferences'] ?? true,
-      fontSize: (json['fontSize'] ?? 18.0).toDouble(),
+      showReferences: json['showReferences'] as bool? ?? true,
+      fontSize: ((json['fontSize'] ?? 18.0) as num).toDouble(),
       displayMode: TafsirDisplayMode.values.firstWhere(
         (e) => e.name == json['displayMode'],
         orElse: () => TafsirDisplayMode.inline,
@@ -396,7 +379,7 @@ class TafsirDataSource {
     final startSurah = surah ?? 1;
     final endSurah = surah ?? 114;
     
-    for (int s = startSurah; s <= endSurah && results.length < limit; s++) {
+    for (var s = startSurah; s <= endSurah && results.length < limit; s++) {
       final surahTafsir = await getSurahTafsir(surah: s, source: source);
       if (surahTafsir != null) {
         for (final entry in surahTafsir.entries) {
@@ -432,13 +415,13 @@ class TafsirDataSource {
 
   static const String _highlightsBoxName = 'tafsir_highlights';
   static const String _annotationsBoxName = 'tafsir_annotations';
-  static Box? _highlightsBox;
-  static Box? _annotationsBox;
+  static Box<dynamic>? _highlightsBox;
+  static Box<dynamic>? _annotationsBox;
 
   /// تهيئة Phase 6 boxes (call from init)
   static Future<void> initPhase6() async {
-    _highlightsBox = await Hive.openBox(_highlightsBoxName);
-    _annotationsBox = await Hive.openBox(_annotationsBoxName);
+    _highlightsBox = await Hive.openBox<dynamic>(_highlightsBoxName);
+    _annotationsBox = await Hive.openBox<dynamic>(_annotationsBoxName);
   }
 
   // ── Highlights ──
@@ -464,7 +447,7 @@ class TafsirDataSource {
     _highlightsBox?.keys.where((k) => k.toString().startsWith(prefix)).forEach((key) {
       final json = _highlightsBox?.get(key);
       if (json != null) {
-        results.add(TafsirHighlight.fromJson(Map<String, dynamic>.from(json)));
+        results.add(TafsirHighlight.fromJson(Map<String, dynamic>.from(json as Map)));
       }
     });
     return results;
@@ -498,7 +481,7 @@ class TafsirDataSource {
     _annotationsBox?.keys.where((k) => k.toString().startsWith(prefix)).forEach((key) {
       final json = _annotationsBox?.get(key);
       if (json != null) {
-        results.add(TafsirAnnotation.fromJson(Map<String, dynamic>.from(json)));
+        results.add(TafsirAnnotation.fromJson(Map<String, dynamic>.from(json as Map)));
       }
     });
     return results..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
@@ -509,11 +492,10 @@ class TafsirDataSource {
     final all = <TafsirAnnotation>[];
     _annotationsBox?.values.forEach((json) {
       try {
-        all.add(TafsirAnnotation.fromJson(Map<String, dynamic>.from(json)));
-      } catch (_) {}
+        all.add(TafsirAnnotation.fromJson(Map<String, dynamic>.from(json as Map)));
+      } on Exception catch (_) {}
     });
     all.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     return all.take(limit).toList();
   }
 }
-

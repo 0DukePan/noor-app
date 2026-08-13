@@ -25,7 +25,7 @@ class _TasbihPageState extends State<TasbihPage> with SingleTickerProviderStateM
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+    _pulseAnimation = Tween<double>(begin: 1, end: 0.95).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
   }
@@ -92,7 +92,7 @@ class _TasbihPageState extends State<TasbihPage> with SingleTickerProviderStateM
           children: [
             // Presets
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
@@ -200,7 +200,7 @@ class _TasbihPageState extends State<TasbihPage> with SingleTickerProviderStateM
             
             // Helpful text
             Padding(
-              padding: const EdgeInsets.only(bottom: 40.0),
+              padding: const EdgeInsets.only(bottom: 40),
               child: Text(
                 'اضغط في أي مكان للشاشة للعد',
                 style: GoogleFonts.cairo(
@@ -217,10 +217,6 @@ class _TasbihPageState extends State<TasbihPage> with SingleTickerProviderStateM
 }
 
 class _PresetChip extends StatelessWidget {
-  final String label;
-  final int value;
-  final int selectedValue;
-  final VoidCallback onTap;
 
   const _PresetChip({
     required this.label,
@@ -228,6 +224,10 @@ class _PresetChip extends StatelessWidget {
     required this.selectedValue,
     required this.onTap,
   });
+  final String label;
+  final int value;
+  final int selectedValue;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {

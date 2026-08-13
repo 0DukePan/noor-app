@@ -2,11 +2,10 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-
 import 'package:noor_app/core/data/data_sources/hadith_database.dart';
 import 'package:noor_app/features/search/data/data_sources/search_local_data_source.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
   late Directory tempDir;
@@ -29,7 +28,7 @@ void main() {
     await Hive.deleteFromDisk();
     try {
       await tempDir.delete(recursive: true);
-    } catch (_) {}
+    } on Exception catch (_) {}
   });
 
   test('indexes quran, hadith and adhkar; query returns all sources',

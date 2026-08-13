@@ -8,12 +8,11 @@ import '../hadith_book_names.dart';
 /// مقارنة الروايات المتعددة - Multi-Narration Comparison Page
 /// Uses HadithSearchEngine to find real narrations matching the keyword.
 class NarrationComparisonPage extends StatefulWidget {
-  final String hadithKeyword;
 
   const NarrationComparisonPage({
-    super.key,
-    required this.hadithKeyword,
+    required this.hadithKeyword, super.key,
   });
+  final String hadithKeyword;
 
   @override
   State<NarrationComparisonPage> createState() => _NarrationComparisonPageState();
@@ -329,7 +328,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
         style: const TextStyle(
           fontFamily: 'AmiriQuran',
           fontSize: 22,
-          height: 2.0,
+          height: 2,
           color: NoorTheme.textArabic,
         ),
         textAlign: TextAlign.justify,
@@ -345,7 +344,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
         style: const TextStyle(
           fontFamily: 'AmiriQuran',
           fontSize: 22,
-          height: 2.0,
+          height: 2,
           color: NoorTheme.textArabic,
         ),
         children: _buildHighlightedSpans(narration.text, narration.differences),
@@ -355,7 +354,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
 
   List<TextSpan> _buildHighlightedSpans(String text, List<String> diffs) {
     final spans = <TextSpan>[];
-    String remaining = text;
+    var remaining = text;
 
     for (final diff in diffs) {
       final index = remaining.indexOf(diff);
@@ -382,7 +381,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
   }
 
   void _showSideBySideComparison() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -504,13 +503,6 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
 
 /// Internal model for comparison narrations, built from search results.
 class _ComparisonNarration {
-  final String source;
-  final int hadithNumber;
-  final String narrator;
-  final String text;
-  final String grade;
-  final double score;
-  final List<String> differences;
 
   const _ComparisonNarration({
     required this.source,
@@ -521,6 +513,13 @@ class _ComparisonNarration {
     this.score = 0,
     this.differences = const [],
   });
+  final String source;
+  final int hadithNumber;
+  final String narrator;
+  final String text;
+  final String grade;
+  final double score;
+  final List<String> differences;
 
   _ComparisonNarration copyWith({List<String>? differences}) {
     return _ComparisonNarration(

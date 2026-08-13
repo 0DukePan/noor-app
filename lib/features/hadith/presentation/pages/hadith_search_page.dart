@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,8 +7,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/theme/noor_theme.dart';
-import '../providers/hadith_providers.dart';
 import '../hadith_book_names.dart';
+import '../providers/hadith_providers.dart';
 import 'hadith_reader_page.dart';
 
 /// صفحة البحث المتقدم - Advanced Hadith Search (SQLite FTS5)
@@ -39,7 +40,7 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
     if (query.isEmpty) return;
 
     FocusScope.of(context).unfocus();
-    HapticFeedback.lightImpact();
+    unawaited(HapticFeedback.lightImpact());
     setState(() {
       _isSearching = true;
       _hasSearched = true;
@@ -52,17 +53,15 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
       switch (_searchMode) {
         case _SearchMode.text:
           results = await dataSource.searchHadiths(query, bookId: _selectedCollectionId);
-          break;
         case _SearchMode.narrator:
           results = await dataSource.searchByNarrator(query);
-          break;
       }
 
       setState(() {
         _results = results;
         _isSearching = false;
       });
-    } catch (e) {
+    } on Exception {
       setState(() {
         _results = [];
         _isSearching = false;
@@ -200,7 +199,6 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
                       hint: Text('جميع الكتب', style: GoogleFonts.cairo()),
                       items: [
                         DropdownMenuItem<String?>(
-                          value: null,
                           child: Text('جميع الكتب', style: GoogleFonts.cairo()),
                         ),
                         ...kHadithBookNames.entries
@@ -330,7 +328,7 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (_) => HadithReaderPage(
                         hadith: hadith,
                         bookTitle: hadithBookName(hadith.collectionId ?? ''),
@@ -392,15 +390,15 @@ enum _SearchMode {
 // ═══════════════════════════════════════════════════════════════════
 
 class _SearchResultCard extends StatelessWidget {
-  final Hadith hadith;
-  final String collectionName;
-  final VoidCallback onTap;
 
   const _SearchResultCard({
     required this.hadith,
     required this.collectionName,
     required this.onTap,
   });
+  final Hadith hadith;
+  final String collectionName;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {

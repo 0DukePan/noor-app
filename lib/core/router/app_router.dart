@@ -2,39 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/home/presentation/pages/home_page.dart';
-import '../../features/quran/presentation/pages/quran_page.dart';
-import '../../features/quran/presentation/pages/surah_page.dart';
-import '../../features/quran/presentation/pages/quran_mushaf_page.dart';
-import '../../features/quran/presentation/pages/khatmah_page.dart';
-import '../../features/quran/presentation/pages/tadabbur_page.dart';
-import '../../features/hadith/presentation/pages/hadith_page.dart';
+import '../../core/domain/entities/hadith.dart';
+import '../../features/adhkar/presentation/pages/adhkar_page.dart';
+import '../../features/audio/presentation/pages/audio_player_page.dart';
 import '../../features/hadith/presentation/pages/advanced_hadith_browser_page.dart';
-import '../../features/hadith/presentation/pages/memorization_page.dart';
-import '../../features/hadith/presentation/pages/quiz_page.dart';
-import '../../features/hadith/presentation/pages/topic_tree_page.dart';
+import '../../features/hadith/presentation/pages/hadith_page.dart';
 import '../../features/hadith/presentation/pages/hadith_search_page.dart';
 import '../../features/hadith/presentation/pages/learning_statistics_page.dart';
+import '../../features/hadith/presentation/pages/memorization_page.dart';
+import '../../features/hadith/presentation/pages/quiz_page.dart';
 import '../../features/hadith/presentation/pages/tags_management_page.dart';
+import '../../features/hadith/presentation/pages/topic_tree_page.dart';
+import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/prayer/presentation/pages/prayer_page.dart';
 import '../../features/prayer/presentation/pages/prayer_settings_page.dart';
 import '../../features/prayer/presentation/pages/qada_page.dart';
-import '../../features/qibla/presentation/pages/qibla_page.dart';
-import '../../features/adhkar/presentation/pages/adhkar_page.dart';
-import '../../features/settings/presentation/pages/settings_page.dart';
-import '../../features/settings/presentation/pages/notifications_settings_page.dart';
-import '../../features/settings/presentation/pages/storage_settings_page.dart';
-import '../../features/settings/presentation/pages/cloud_settings_page.dart';
-import '../../features/onboarding/presentation/pages/onboarding_page.dart';
-import '../../features/audio/presentation/pages/audio_player_page.dart';
-import '../../features/tafsir/presentation/pages/tafsir_page.dart';
-import '../../features/search/presentation/pages/search_page.dart';
-import '../../features/tools/presentation/pages/tools_page.dart';
-import '../../features/tools/presentation/pages/tasbih_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
-import '../widgets/main_shell.dart';
-import '../../core/domain/entities/hadith.dart';
+import '../../features/qibla/presentation/pages/qibla_page.dart';
+import '../../features/quran/presentation/pages/khatmah_page.dart';
+import '../../features/quran/presentation/pages/quran_mushaf_page.dart';
+import '../../features/quran/presentation/pages/quran_page.dart';
+import '../../features/quran/presentation/pages/surah_page.dart';
+import '../../features/quran/presentation/pages/tadabbur_page.dart';
+import '../../features/search/presentation/pages/search_page.dart';
+import '../../features/settings/presentation/pages/notifications_settings_page.dart';
+import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/settings/presentation/pages/storage_settings_page.dart';
+import '../../features/tafsir/presentation/pages/tafsir_page.dart';
+import '../../features/tools/presentation/pages/tasbih_page.dart';
+import '../../features/tools/presentation/pages/tools_page.dart';
 import '../services/hive_service.dart';
+import '../widgets/main_shell.dart';
 
 /// App Router Provider
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -341,14 +340,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       state,
                     ),
                   ),
-                  GoRoute(
-                    path: 'cloud',
-                    name: 'cloud-settings',
-                    pageBuilder: (context, state) => _buildPage(
-                      const CloudSettingsPage(),
-                      state,
-                    ),
-                  ),
                 ],
               ),
             ],
@@ -365,7 +356,6 @@ CustomTransitionPage<void> _buildPage(Widget child, GoRouterState state) {
     key: state.pageKey,
     child: child,
     transitionDuration: const Duration(milliseconds: 350),
-    reverseTransitionDuration: const Duration(milliseconds: 300),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       // Gentle fade transition - Khushu style
       return FadeTransition(
@@ -378,4 +368,3 @@ CustomTransitionPage<void> _buildPage(Widget child, GoRouterState state) {
     },
   );
 }
-

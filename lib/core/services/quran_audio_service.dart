@@ -84,21 +84,17 @@ class QuranAudioService {
   static Future<void> setLoopMode(LoopMode mode) async {
     switch (mode) {
       case LoopMode.off:
-        QuranAudioEngine.setRepeatMode(RepeatMode.none);
+        QuranAudioEngine.repeatMode = RepeatMode.none;
       case LoopMode.all:
-        QuranAudioEngine.setRepeatMode(RepeatMode.surah);
+        QuranAudioEngine.repeatMode = RepeatMode.surah;
       case LoopMode.one:
-        QuranAudioEngine.setRepeatMode(RepeatMode.ayah);
+        QuranAudioEngine.repeatMode = RepeatMode.ayah;
     }
   }
 }
 
 /// Reciter model
 class Reciter {
-  final String id;
-  final String nameArabic;
-  final String nameEnglish;
-  final String? photoUrl;
 
   Reciter({
     required this.id,
@@ -106,4 +102,8 @@ class Reciter {
     required this.nameEnglish,
     this.photoUrl,
   });
+  final String id;
+  final String nameArabic;
+  final String nameEnglish;
+  final String? photoUrl;
 }

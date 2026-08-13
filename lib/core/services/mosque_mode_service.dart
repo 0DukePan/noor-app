@@ -10,7 +10,7 @@ class MosqueModeService {
   static const _cacheBoxName = 'mosque_mode';
   
   static const _channel = MethodChannel(_channelName);
-  static Box? _cacheBox;
+  static Box<dynamic>? _cacheBox;
   
   // Settings
   static bool _isEnabled = false;
@@ -34,21 +34,21 @@ class MosqueModeService {
 
   /// Initialize mosque mode
   static Future<void> init() async {
-    _cacheBox = await Hive.openBox(_cacheBoxName);
+    _cacheBox = await Hive.openBox<dynamic>(_cacheBoxName);
     await _loadSettings();
   }
 
   /// Load saved settings
   static Future<void> _loadSettings() async {
-    _isEnabled = _cacheBox?.get('enabled', defaultValue: false) ?? false;
-    _durationMinutes = _cacheBox?.get('duration', defaultValue: 20) ?? 20;
+    _isEnabled = (_cacheBox?.get('enabled', defaultValue: false) ?? false) as bool;
+    _durationMinutes = (_cacheBox?.get('duration', defaultValue: 20) ?? 20) as int;
     
     for (final prayer in PrayerType.values) {
       if (prayer == PrayerType.sunrise) continue;
-      _enabledPrayers[prayer] = _cacheBox?.get(
+      _enabledPrayers[prayer] = (_cacheBox?.get(
         'prayer_${prayer.name}', 
         defaultValue: true,
-      ) ?? true;
+      ) ?? true) as bool;
     }
   }
 
@@ -110,7 +110,7 @@ class MosqueModeService {
   static int get durationMinutes => _durationMinutes;
 
   /// Enable/disable for specific prayer
-  static Future<void> setPrayerEnabled(PrayerType prayer, bool enabled) async {
+  static Future<void> setPrayerEnabled(PrayerType prayer, {required bool enabled}) async {
     _enabledPrayers[prayer] = enabled;
     await _saveSettings();
   }
@@ -141,11 +141,9 @@ class MosqueModeService {
       
       // Schedule deactivation
       _deactivateTimer?.cancel();
-      _deactivateTimer = Timer(Duration(minutes: duration), () {
-        deactivate();
-      });
+      _deactivateTimer = Timer(Duration(minutes: duration), deactivate);
       
-    } catch (e) {
+    } on Exception {
       // Native call failed, but we can still track state
       _isCurrentlyActive = true;
       _activeUntil = DateTime.now().add(Duration(minutes: duration));
@@ -156,7 +154,7 @@ class MosqueModeService {
   static Future<void> deactivate() async {
     try {
       await _channel.invokeMethod('disableMosqueMode');
-    } catch (e) {
+    } on Exception {
       // Native call failed
     }
     

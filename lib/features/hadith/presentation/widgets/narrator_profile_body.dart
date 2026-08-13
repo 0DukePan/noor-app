@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/design_system.dart';
 import '../../../../core/services/isnad_parser_service.dart';
 import '../../../../core/services/narrator_database_service.dart';
+import '../../../../core/theme/design_system.dart';
 
 /// Shared narrator profile content used by the isnad chain, isnad graph, and
 /// scholar-mode panels/sheets (was copy-pasted in three places).
 class NarratorProfileBody extends StatelessWidget {
-  final NarratorInfo narrator;
-  final NarratorProfile? profile;
-  final Color accentColor;
 
   const NarratorProfileBody({
-    super.key,
-    required this.narrator,
+    required this.narrator, super.key,
     this.profile,
     this.accentColor = NoorDesignSystem.primaryGreen,
   });
+  final NarratorInfo narrator;
+  final NarratorProfile? profile;
+  final Color accentColor;
 
   @override
   Widget build(BuildContext context) {

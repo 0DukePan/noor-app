@@ -1,4 +1,4 @@
-import 'package:hive_flutter/hive_flutter.dart';
+﻿import 'package:hive_flutter/hive_flutter.dart';
 
 /// ⏱️ نظام الإزاحات الموسمية - Seasonal Offsets System
 /// 
@@ -8,16 +8,16 @@ import 'package:hive_flutter/hive_flutter.dart';
 /// - Mosque-specific offsets
 /// - Automatic seasonal detection
 class SeasonalOffsetsEngine {
-  static Box? _offsetsBox;
+  static Box<dynamic>? _offsetsBox;
   
   // Default offsets (minutes)
   static final Map<String, PrayerOffsets> _defaultOffsets = {
-    'fajr': const PrayerOffsets(summer: 0, winter: 2),
-    'sunrise': const PrayerOffsets(summer: 0, winter: 0),
+    'fajr': const PrayerOffsets(winter: 2),
+    'sunrise': const PrayerOffsets(),
     'dhuhr': const PrayerOffsets(summer: 5, winter: 5),
-    'asr': const PrayerOffsets(summer: 0, winter: 0),
+    'asr': const PrayerOffsets(),
     'maghrib': const PrayerOffsets(summer: 3, winter: 3),
-    'isha': const PrayerOffsets(summer: 0, winter: 5),
+    'isha': const PrayerOffsets(winter: 5),
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -25,7 +25,7 @@ class SeasonalOffsetsEngine {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static Future<void> init() async {
-    _offsetsBox = await Hive.openBox('prayer_offsets');
+    _offsetsBox = await Hive.openBox<dynamic>('prayer_offsets');
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -70,7 +70,7 @@ class SeasonalOffsetsEngine {
     
     PrayerOffsets offsets;
     if (customData != null) {
-      offsets = PrayerOffsets.fromMap(Map<String, dynamic>.from(customData));
+      offsets = PrayerOffsets.fromMap(Map<String, dynamic>.from(customData as Map));
     } else {
       offsets = _defaultOffsets[prayer.toLowerCase()] ?? const PrayerOffsets();
     }
@@ -136,13 +136,13 @@ class SeasonalOffsetsEngine {
 
   /// استرجاع إزاحات مسجد
   static MosqueOffsets? getMosqueOffsets(String mosqueId) {
-    final data = _offsetsBox?.get('mosque_$mosqueId');
+    final data = _offsetsBox?.get('mosque_$mosqueId') as Map<dynamic, dynamic>?;
     if (data == null) return null;
     
     return MosqueOffsets(
       id: mosqueId,
-      name: data['name'] ?? '',
-      offsets: Map<String, int>.from(data['offsets'] ?? {}),
+      name: (data['name'] ?? '') as String,
+      offsets: Map<String, int>.from((data['offsets'] ?? <dynamic, dynamic>{}) as Map),
     );
   }
 
@@ -163,7 +163,7 @@ class SeasonalOffsetsEngine {
   }
 
   /// المسجد النشط
-  static String? get activeMosqueId => _offsetsBox?.get('active_mosque');
+  static String? get activeMosqueId => _offsetsBox?.get('active_mosque') as String?;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // TIME ADJUSTMENT
@@ -220,36 +220,36 @@ extension SeasonInfo on Season {
 
 /// إزاحات الصلاة
 class PrayerOffsets {
-  final int summer;
-  final int winter;
 
   const PrayerOffsets({
     this.summer = 0,
     this.winter = 0,
   });
 
+  factory PrayerOffsets.fromMap(Map<String, dynamic> map) {
+    return PrayerOffsets(
+      summer: (map['summer'] ?? 0) as int,
+      winter: (map['winter'] ?? 0) as int,
+    );
+  }
+  final int summer;
+  final int winter;
+
   Map<String, dynamic> toMap() => {
     'summer': summer,
     'winter': winter,
   };
-
-  factory PrayerOffsets.fromMap(Map<String, dynamic> map) {
-    return PrayerOffsets(
-      summer: map['summer'] ?? 0,
-      winter: map['winter'] ?? 0,
-    );
-  }
 }
 
 /// إزاحات المسجد
 class MosqueOffsets {
-  final String id;
-  final String name;
-  final Map<String, int> offsets;
 
   const MosqueOffsets({
     required this.id,
     required this.name,
     required this.offsets,
   });
+  final String id;
+  final String name;
+  final Map<String, int> offsets;
 }

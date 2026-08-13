@@ -383,7 +383,6 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        childAspectRatio: 1,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
       ),
@@ -473,7 +472,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
   // ═══════════════════════════════════════════════════════════════════════════
 
   void _showBookFilter() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (context) => Column(
         mainAxisSize: MainAxisSize.min,
@@ -503,7 +502,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
   void _openScholarMode(HadithIndexEntry hadith) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (_) => LayeredHadithPage(hadith: hadith),
       ),
     );
@@ -518,13 +517,13 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _HadithResultCard extends StatelessWidget {
-  final HadithSearchResult result;
-  final VoidCallback onTap;
 
   const _HadithResultCard({
     required this.result,
     required this.onTap,
   });
+  final HadithSearchResult result;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -617,7 +616,6 @@ class _HadithResultCard extends StatelessWidget {
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
-                  direction: Axis.horizontal,
                   textDirection: TextDirection.rtl,
                   children: [
                     if (hadith.grade.isNotEmpty)
@@ -651,15 +649,15 @@ class _HadithResultCard extends StatelessWidget {
 }
 
 class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onSelected;
 
   const _FilterChip({
     required this.label,
     required this.isSelected,
     required this.onSelected,
   });
+  final String label;
+  final bool isSelected;
+  final VoidCallback onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -693,10 +691,10 @@ class _FilterChip extends StatelessWidget {
 }
 
 class _TagChip extends StatelessWidget {
-  final String label;
-  final Color color;
 
   const _TagChip({required this.label, required this.color});
+  final String label;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {

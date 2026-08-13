@@ -75,7 +75,9 @@ class FSRSAlgorithm {
             pow(difficulty, -_w12).toDouble() *
             (pow(stability + 1, _w13).toDouble() - 1) *
             exp((1 - retrievability) * _w14);
-      default:
+      case Rating.hard:
+      case Rating.good:
+      case Rating.easy:
         // Stability increases on successful recall
         return stability *
             (exp(_w8) *
@@ -99,8 +101,8 @@ class FSRSAlgorithm {
     final delta = difficulty - _w6 * (rating.index - 2);
     return _clamp(
       _w7 * initialDifficulty(Rating.easy) + (1 - _w7) * delta,
-      1.0,
-      10.0,
+      1,
+      10,
     );
   }
 
@@ -148,15 +150,7 @@ extension RatingExtension on Rating {
 }
 
 /// Card state for spaced repetition
-class MemorizationCard {
-  final String id;
-  final String hadithId;
-  double difficulty;
-  double stability;
-  DateTime lastReview;
-  DateTime nextReview;
-  int repetitions;
-  int lapses; // Number of times "Again" was pressed
+class MemorizationCard { // Number of times "Again" was pressed
 
   MemorizationCard({
     required this.id,
@@ -169,6 +163,28 @@ class MemorizationCard {
     this.lapses = 0,
   })  : lastReview = lastReview ?? DateTime.now(),
         nextReview = nextReview ?? DateTime.now();
+
+  /// Create from JSON
+  factory MemorizationCard.fromJson(Map<String, dynamic> json) {
+    return MemorizationCard(
+      id: json['id'] as String,
+      hadithId: json['hadithId'] as String,
+      difficulty: (json['difficulty'] as num).toDouble(),
+      stability: (json['stability'] as num).toDouble(),
+      lastReview: DateTime.parse(json['lastReview'] as String),
+      nextReview: DateTime.parse(json['nextReview'] as String),
+      repetitions: json['repetitions'] as int,
+      lapses: json['lapses'] as int,
+    );
+  }
+  final String id;
+  final String hadithId;
+  double difficulty;
+  double stability;
+  DateTime lastReview;
+  DateTime nextReview;
+  int repetitions;
+  int lapses;
 
   /// Check if card is due for review
   bool get isDue => DateTime.now().isAfter(nextReview);
@@ -257,33 +273,30 @@ class MemorizationCard {
         'repetitions': repetitions,
         'lapses': lapses,
       };
-
-  /// Create from JSON
-  factory MemorizationCard.fromJson(Map<String, dynamic> json) {
-    return MemorizationCard(
-      id: json['id'] as String,
-      hadithId: json['hadithId'] as String,
-      difficulty: (json['difficulty'] as num).toDouble(),
-      stability: (json['stability'] as num).toDouble(),
-      lastReview: DateTime.parse(json['lastReview'] as String),
-      nextReview: DateTime.parse(json['nextReview'] as String),
-      repetitions: json['repetitions'] as int,
-      lapses: json['lapses'] as int,
-    );
-  }
 }
 
 /// Streak tracker for daily practice
 class StreakTracker {
-  int currentStreak;
-  int longestStreak;
-  DateTime? lastPracticeDate;
 
   StreakTracker({
     this.currentStreak = 0,
     this.longestStreak = 0,
     this.lastPracticeDate,
   });
+
+  /// Create from JSON
+  factory StreakTracker.fromJson(Map<String, dynamic> json) {
+    return StreakTracker(
+      currentStreak: json['currentStreak'] as int? ?? 0,
+      longestStreak: json['longestStreak'] as int? ?? 0,
+      lastPracticeDate: json['lastPracticeDate'] != null
+          ? DateTime.parse(json['lastPracticeDate'] as String)
+          : null,
+    );
+  }
+  int currentStreak;
+  int longestStreak;
+  DateTime? lastPracticeDate;
 
   /// Record a practice session
   void recordPractice() {
@@ -346,15 +359,4 @@ class StreakTracker {
         'longestStreak': longestStreak,
         'lastPracticeDate': lastPracticeDate?.toIso8601String(),
       };
-
-  /// Create from JSON
-  factory StreakTracker.fromJson(Map<String, dynamic> json) {
-    return StreakTracker(
-      currentStreak: json['currentStreak'] as int? ?? 0,
-      longestStreak: json['longestStreak'] as int? ?? 0,
-      lastPracticeDate: json['lastPracticeDate'] != null
-          ? DateTime.parse(json['lastPracticeDate'] as String)
-          : null,
-    );
-  }
 }

@@ -18,9 +18,9 @@ import '../widgets/narrator_profile_body.dart';
 /// - Compare narrations
 /// - Study flashcards
 class ScholarModePage extends StatefulWidget {
-  final HadithIndexEntry hadith;
 
-  const ScholarModePage({super.key, required this.hadith});
+  const ScholarModePage({required this.hadith, super.key});
+  final HadithIndexEntry hadith;
 
   @override
   State<ScholarModePage> createState() => _ScholarModePageState();
@@ -56,14 +56,14 @@ class _ScholarModePageState extends State<ScholarModePage> {
   }
 
   Future<void> _loadNote() async {
-    final box = await Hive.openBox('hadith_notes');
+    final box = await Hive.openBox<dynamic>('hadith_notes');
     setState(() {
-      _note = box.get(widget.hadith.id, defaultValue: '');
+      _note = (box.get(widget.hadith.id, defaultValue: '') ?? '') as String;
     });
   }
 
   Future<void> _saveNote(String note) async {
-    final box = await Hive.openBox('hadith_notes');
+    final box = await Hive.openBox<dynamic>('hadith_notes');
     await box.put(widget.hadith.id, note);
     setState(() => _note = note);
   }
@@ -191,13 +191,11 @@ class _ScholarModePageState extends State<ScholarModePage> {
             const SizedBox(height: 16),
             
             // Matn (Text)
-            _highlightKeywords
-                ? _buildHighlightedText(widget.hadith.text, theme)
-                : Text(
+            if (_highlightKeywords) _buildHighlightedText(widget.hadith.text, theme) else Text(
                     widget.hadith.text,
                     style: const TextStyle(
                       fontSize: 22,
-                      height: 2.0,
+                      height: 2,
                       fontFamily: 'Amiri',
                     ),
                     textDirection: TextDirection.rtl,
@@ -236,7 +234,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
       ..sort((a, b) => b.length.compareTo(a.length));
     
     while (currentIndex < text.length) {
-      bool found = false;
+      var found = false;
       
       for (final keyword in sortedKeywords) {
         if (text.substring(currentIndex).startsWith(keyword)) {
@@ -244,7 +242,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
             text: keyword,
             style: TextStyle(
               fontSize: 22,
-              height: 2.0,
+              height: 2,
               fontFamily: 'Amiri',
               backgroundColor: _highlightColors[keyword],
             ),
@@ -269,7 +267,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
           text: text.substring(currentIndex, nextKeywordIndex),
           style: const TextStyle(
             fontSize: 22,
-            height: 2.0,
+            height: 2,
             fontFamily: 'Amiri',
           ),
         ),);
@@ -413,7 +411,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
+                      MaterialPageRoute<void>(
                         builder: (_) => ScholarModePage(hadith: result.entry),
                       ),
                     );
@@ -604,7 +602,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
 
   void _showNarratorDetail(NarratorInfo narrator, NarratorProfile? profile) {
     HapticFeedback.mediumImpact();
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -705,7 +703,7 @@ ${widget.hadith.companion.isNotEmpty ? '👤 ${widget.hadith.companion}' : ''}
   }
 
   Future<void> _addToReview() async {
-    final box = await Hive.openBox('hadith_review');
+    final box = await Hive.openBox<dynamic>('hadith_review');
     final list = box.get('review_list', defaultValue: <String>[]) as List;
     if (!list.contains(widget.hadith.id)) {
       list.add(widget.hadith.id);

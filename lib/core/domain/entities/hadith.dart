@@ -1,12 +1,6 @@
 import 'package:equatable/equatable.dart';
 
 class HadithCollection extends Equatable {
-  final String id;
-  final String titleArabic;
-  final String titleEnglish;
-  final int hadithsCount;
-  final String author;
-  final String description;
 
   const HadithCollection({
     required this.id,
@@ -16,16 +10,18 @@ class HadithCollection extends Equatable {
     required this.author,
     this.description = '',
   });
+  final String id;
+  final String titleArabic;
+  final String titleEnglish;
+  final int hadithsCount;
+  final String author;
+  final String description;
 
   @override
   List<Object?> get props => [id, titleArabic, titleEnglish, hadithsCount, author];
 }
 
 class HadithBook extends Equatable {
-  final String id;
-  final BookMetadata metadata;
-  final List<HadithChapter> chapters;
-  final List<Hadith> hadiths;
 
   const HadithBook({
     required this.id,
@@ -33,31 +29,31 @@ class HadithBook extends Equatable {
     required this.chapters,
     required this.hadiths,
   });
+  final String id;
+  final BookMetadata metadata;
+  final List<HadithChapter> chapters;
+  final List<Hadith> hadiths;
 
   @override
   List<Object?> get props => [id, metadata, chapters, hadiths];
 }
 
 class BookMetadata extends Equatable {
-  final String title;
-  final String author;
-  final String introduction;
   
   const BookMetadata({
     required this.title,
     required this.author,
     this.introduction = '',
   });
+  final String title;
+  final String author;
+  final String introduction;
 
   @override
   List<Object?> get props => [title, author, introduction];
 }
 
 class HadithChapter extends Equatable {
-  final int id;
-  final String bookId; // Usually integer in JSON but string logical ID
-  final String topicArabic;
-  final String topicEnglish;
 
   const HadithChapter({
     required this.id,
@@ -65,20 +61,16 @@ class HadithChapter extends Equatable {
     required this.topicArabic,
     required this.topicEnglish,
   });
+  final int id;
+  final String bookId; // Usually integer in JSON but string logical ID
+  final String topicArabic;
+  final String topicEnglish;
 
   @override
   List<Object?> get props => [id, bookId, topicArabic, topicEnglish];
 }
 
-class Hadith extends Equatable {
-  final int id;
-  final int idInBook;
-  final String arabic; // Matn
-  final String englishText;
-  final String narratorEnglish;
-  final int chapterId;
-  final int? bookId;
-  final String? collectionId; // e.g. 'bukhari', 'muslim'
+class Hadith extends Equatable { // e.g. 'bukhari', 'muslim'
 
   const Hadith({
     required this.id,
@@ -90,6 +82,14 @@ class Hadith extends Equatable {
     this.bookId,
     this.collectionId,
   });
+  final int id;
+  final int idInBook;
+  final String arabic; // Matn
+  final String englishText;
+  final String narratorEnglish;
+  final int chapterId;
+  final int? bookId;
+  final String? collectionId;
 
   @override
   List<Object?> get props => [id, idInBook, arabic, englishText, chapterId];

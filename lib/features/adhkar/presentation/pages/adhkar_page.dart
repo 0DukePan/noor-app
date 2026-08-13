@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -58,7 +59,6 @@ class _AdhkarPageState extends State<AdhkarPage> {
           // Modern AppBar
           SliverAppBar(
             expandedHeight: 120,
-            floating: false,
             pinned: true,
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.transparent,
@@ -214,7 +214,7 @@ class _AdhkarPageState extends State<AdhkarPage> {
   void _openAdhkar(BuildContext context, AdhkarType type) {
     Navigator.of(context)
         .push(
-          MaterialPageRoute(
+          MaterialPageRoute<void>(
             builder: (_) => AdhkarCounterPage(type: type),
           ),
         )
@@ -224,9 +224,9 @@ class _AdhkarPageState extends State<AdhkarPage> {
 
 /// Modern Progress Card
 class _TodayProgressCard extends StatelessWidget {
-  final DailyAdhkarStats stats;
 
   const _TodayProgressCard({required this.stats});
+  final DailyAdhkarStats stats;
 
   @override
   Widget build(BuildContext context) {
@@ -347,13 +347,13 @@ class _TodayProgressCard extends StatelessWidget {
 }
 
 class _StatusChip extends StatelessWidget {
-  final String label;
-  final bool isComplete;
 
   const _StatusChip({
     required this.label,
     required this.isComplete,
   });
+  final String label;
+  final bool isComplete;
 
   @override
   Widget build(BuildContext context) {
@@ -388,6 +388,14 @@ class _StatusChip extends StatelessWidget {
 
 /// Modern Category Card
 class _ModernCategoryCard extends StatelessWidget {
+
+  const _ModernCategoryCard({
+    required this.title,
+    required this.subtitle,
+    required this.emoji,
+    required this.gradient,
+    required this.onTap, this.isHighlighted = false, // ✅ was: true (wrong)
+  });
   final String title;
   final String subtitle;
   final String emoji;
@@ -396,15 +404,6 @@ class _ModernCategoryCard extends StatelessWidget {
   // FIX 2: Default changed from true → false so non-time-based cards are NOT highlighted
   final bool isHighlighted;
   final VoidCallback onTap;
-
-  const _ModernCategoryCard({
-    required this.title,
-    required this.subtitle,
-    required this.emoji,
-    required this.gradient,
-    this.isHighlighted = false, // ✅ was: true (wrong)
-    required this.onTap,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -483,9 +482,9 @@ class _ModernCategoryCard extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class AdhkarCounterPage extends StatefulWidget {
-  final AdhkarType type;
 
-  const AdhkarCounterPage({super.key, required this.type});
+  const AdhkarCounterPage({required this.type, super.key});
+  final AdhkarType type;
 
   @override
   State<AdhkarCounterPage> createState() => _AdhkarCounterPageState();
@@ -537,17 +536,17 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
     if (_collection == null || _progress.isCompleted) return;
 
     if (_settings.vibrateOnComplete) {
-      HapticFeedback.lightImpact();
+      unawaited(HapticFeedback.lightImpact());
     }
 
-    _pulseController.forward().then((_) => _pulseController.reverse());
+    unawaited(_pulseController.forward().then((_) => _pulseController.reverse()));
 
     final currentZekr = _currentZekr;
     if (currentZekr == null) return;
 
     if (_progress.currentCount + 1 >= currentZekr.repeat) {
       if (_settings.vibrateOnComplete) {
-        HapticFeedback.mediumImpact();
+        unawaited(HapticFeedback.mediumImpact());
       }
 
       if (_progress.currentIndex + 1 >= _collection!.count) {
@@ -567,7 +566,7 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
   }
 
   void _showCompletionDialog() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         icon: const Text('🎉', style: TextStyle(fontSize: 48)),
@@ -724,7 +723,7 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
 
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -737,7 +736,7 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
                           textAlign: TextAlign.center,
                           style: GoogleFonts.amiri(
                             fontSize: _settings.fontSize + 12,
-                            height: 2.0,
+                            height: 2,
                             color: theme.colorScheme.onSurface, // FIX 4: was onBackground (deprecated)
                             fontWeight: FontWeight.bold,
                           ),
@@ -767,7 +766,7 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
                               fontSize: 80,
                               fontWeight: FontWeight.w900,
                               color: theme.colorScheme.primary,
-                              height: 1.0,
+                              height: 1,
                             ),
                           ),
                         ),
@@ -796,7 +795,7 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
 
           if (currentZekr.bless != null)
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(24),
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(

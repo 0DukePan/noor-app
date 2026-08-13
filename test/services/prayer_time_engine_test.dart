@@ -3,7 +3,7 @@ import 'package:noor_app/core/services/prayer_time_engine.dart';
 
 /// Reference values are derived from standard NOAA solar equations (as used by
 /// the well-known PrayTimes library). The engine's job is to produce the
-/// *local wall-clock* times for the given [utcOffset].
+/// *local wall-clock* times for the given `utcOffset`.
 ///
 /// Verified reference points (rounded to the nearest minute):
 ///  - Mecca (21.42N, 39.83E), 2026-03-15, Umm al-Qura:
@@ -68,7 +68,6 @@ void main() {
           longitude: 28.9784,
           date: DateTime(2026, 6, 15),
           method: CalculationMethod.turkey,
-          madhab: Madhab.shafi,
           utcOffset: 3,
         );
 
@@ -114,7 +113,6 @@ void main() {
           longitude: 18.0686,
           date: DateTime(2026, 3, 15),
           method: CalculationMethod.muslimWorldLeague,
-          highLatitudeRule: HighLatitudeRule.middleOfNight,
           utcOffset: 1,
         );
 
@@ -188,7 +186,6 @@ void main() {
           longitude: -0.1278,
           date: DateTime(2026, 3, 15),
           method: CalculationMethod.muslimWorldLeague,
-          utcOffset: 0,
         );
 
         expect(times.dhuhr.hour, 12);
@@ -217,7 +214,6 @@ void main() {
           longitude: -74.006,
           date: DateTime(2026, 6, 15),
           method: CalculationMethod.northAmerica,
-          utcOffset: 0,
         );
 
         expect(wrong.dhuhr.hour, 16);
@@ -229,7 +225,6 @@ void main() {
           longitude: 39.8262,
           date: DateTime(2026, 3, 15),
           method: CalculationMethod.ummAlQura,
-          utcOffset: 0,
         );
 
         final shifted = PrayerTimeEngine.calculate(

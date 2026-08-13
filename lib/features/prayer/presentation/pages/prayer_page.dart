@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/design_system.dart';
 import '../../../../core/services/day_state_machine.dart';
 import '../../../../core/services/prayer_time_engine.dart';
+import '../../../../core/theme/design_system.dart';
 import '../providers/prayer_providers.dart';
 
 /// 🕌 صفحة مواقيت الصلاة — Reactive Prayer Times Page
@@ -110,9 +110,9 @@ class PrayerPage extends ConsumerWidget {
 
 /// Inner content widget that uses real prayer data
 class _PrayerContent extends ConsumerWidget {
-  final PrayerPageData data;
 
   const _PrayerContent({required this.data});
+  final PrayerPageData data;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -230,7 +230,7 @@ class _PrayerContent extends ConsumerWidget {
       {'name': 'العشاء', 'dt': pt.isha, 'icon': Icons.dark_mode_rounded, 'isSunrise': false},
     ];
 
-    bool foundNext = false;
+    var foundNext = false;
     return prayers.map((p) {
       final dt = p['dt'] as DateTime;
       PrayerStatus status;
@@ -261,7 +261,7 @@ class _PrayerContent extends ConsumerWidget {
     const en = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
     const ar = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
     var result = input;
-    for (int i = 0; i < en.length; i++) {
+    for (var i = 0; i < en.length; i++) {
       result = result.replaceAll(en[i], ar[i]);
     }
     return result;
@@ -275,10 +275,10 @@ class _PrayerContent extends ConsumerWidget {
 enum PrayerStatus { passed, next, upcoming }
 
 class _NextPrayerCountdown extends StatelessWidget {
-  final Map<String, dynamic>? nextPrayer;
-  final DateTime now;
 
   const _NextPrayerCountdown({required this.nextPrayer, required this.now});
+  final Map<String, dynamic>? nextPrayer;
+  final DateTime now;
 
   @override
   Widget build(BuildContext context) {
@@ -328,16 +328,6 @@ class _NextPrayerCountdown extends StatelessWidget {
 }
 
 class _TimelinePrayerRow extends StatelessWidget {
-  final String name;
-  final String time;
-  final String meridiem;
-  final IconData icon;
-  final PrayerStatus status;
-  final bool isSunrise;
-  final bool isFirst;
-  final bool isLast;
-  final bool isCompleted;
-  final VoidCallback? onToggle;
 
   const _TimelinePrayerRow({
     required this.name,
@@ -351,6 +341,16 @@ class _TimelinePrayerRow extends StatelessWidget {
     this.isCompleted = false,
     this.onToggle,
   });
+  final String name;
+  final String time;
+  final String meridiem;
+  final IconData icon;
+  final PrayerStatus status;
+  final bool isSunrise;
+  final bool isFirst;
+  final bool isLast;
+  final bool isCompleted;
+  final VoidCallback? onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -519,10 +519,10 @@ class _TimelinePrayerRow extends StatelessWidget {
 }
 
 class _LocationCard extends StatelessWidget {
-  final String cityName;
-  final String countryName;
 
   const _LocationCard({required this.cityName, required this.countryName});
+  final String cityName;
+  final String countryName;
 
   @override
   Widget build(BuildContext context) {

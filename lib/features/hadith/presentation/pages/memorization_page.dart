@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/noor_theme.dart';
 import '../../../../core/algorithms/fsrs_algorithm.dart';
-import '../providers/hadith_providers.dart';
+import '../../../../core/theme/noor_theme.dart';
 import '../hadith_book_names.dart';
+import '../providers/hadith_providers.dart';
 
 /// صفحة الحفظ بالتكرار المتباعد - Spaced Repetition Memorization Page
 class MemorizationPage extends ConsumerStatefulWidget {
@@ -41,7 +41,7 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
           .read(localHadithDataSourceProvider)
           .getHadithsPage(bookId: 'nawawi40', page: 1, limit: 42);
       await ref.read(memorizationProvider.notifier).loadCards(hadiths);
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('Failed to load memorization deck: $e');
     }
   }
@@ -277,7 +277,7 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
               style: const TextStyle(
                 fontFamily: 'Amiri',
                 fontSize: 24,
-                height: 2.0,
+                height: 2,
                 color: NoorTheme.textArabic,
               ),
               textAlign: TextAlign.center,
@@ -374,10 +374,6 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
 }
 
 class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
 
   const _StatCard({
     required this.icon,
@@ -385,6 +381,10 @@ class _StatCard extends StatelessWidget {
     required this.value,
     required this.color,
   });
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -420,15 +420,15 @@ class _StatCard extends StatelessWidget {
 }
 
 class _RatingButton extends StatelessWidget {
-  final Rating rating;
-  final String intervalText;
-  final VoidCallback onTap;
 
   const _RatingButton({
     required this.rating,
     required this.intervalText,
     required this.onTap,
   });
+  final Rating rating;
+  final String intervalText;
+  final VoidCallback onTap;
 
   Color get _color {
     switch (rating) {

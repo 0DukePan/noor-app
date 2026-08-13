@@ -6,11 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/design_system.dart';
-import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/data/data_sources/hadith_database.dart';
+import '../../../../core/domain/entities/hadith.dart';
+import '../../../../core/theme/design_system.dart';
 import '../../../hadith/presentation/hadith_book_names.dart';
 import '../../../hadith/presentation/pages/hadith_reader_page.dart';
+import '../../domain/entities/search_result.dart';
 import '../providers/search_provider.dart';
 
 class SearchPage extends ConsumerStatefulWidget {
@@ -98,10 +99,10 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 }
 
-class _SearchResultCard extends StatelessWidget {
-  final dynamic result; // SearchResult
+class _SearchResultCard extends StatelessWidget { // SearchResult
 
   const _SearchResultCard({required this.result});
+  final SearchResult result;
 
   @override
   Widget build(BuildContext context) {
@@ -186,10 +187,10 @@ class _SearchResultCard extends StatelessWidget {
   }
 
   Future<void> _openResult(BuildContext context) async {
-    final metadata = result.metadata as Map<String, dynamic>;
+    final metadata = result.metadata;
 
     if (result.source == 'quran') {
-      context.push('/quran/surah/${metadata['surah']}');
+      unawaited(context.push('/quran/surah/${metadata['surah']}'));
       return;
     }
 
@@ -207,20 +208,23 @@ class _SearchResultCard extends StatelessWidget {
           englishText: row['english_text'] as String? ?? '',
           narratorEnglish: row['english_narrator'] as String? ?? '',
           chapterId: row['chapter_id'] as int? ?? 0,
-          bookId: null,
           collectionId: book,
         );
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => HadithReaderPage(
-            hadith: hadith,
-            bookTitle: hadithBookName(book),
-            chapterTitle: '',
-            bookColor: NoorDesignSystem.emeraldGreen,
-            allHadiths: [hadith],
-            currentIndex: 0,
+        unawaited(
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => HadithReaderPage(
+                hadith: hadith,
+                bookTitle: hadithBookName(book),
+                chapterTitle: '',
+                bookColor: NoorDesignSystem.emeraldGreen,
+                allHadiths: [hadith],
+                currentIndex: 0,
+              ),
+            ),
           ),
-        ),);
-      } catch (e) {
+        );
+      } on Exception catch (e) {
         debugPrint('Failed to open hadith result: $e');
       }
       return;

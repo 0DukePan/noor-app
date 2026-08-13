@@ -30,7 +30,7 @@ void main() {
       (tester) async {
     await tester.runAsync(() async {
       Hive.init(tempDir.path);
-      await Hive.openBox<Map>('settings');
+      await Hive.openBox<Map<dynamic, dynamic>>('settings');
     });
 
     var completed = false;
@@ -54,7 +54,7 @@ void main() {
   testWidgets('onboarding: last step shows the start button', (tester) async {
     await tester.runAsync(() async {
       Hive.init(tempDir.path);
-      await Hive.openBox<Map>('settings');
+      await Hive.openBox<Map<dynamic, dynamic>>('settings');
     });
 
     await tester.pumpWidget(MaterialApp(
@@ -93,8 +93,8 @@ void main() {
       (tester) async {
     await tester.runAsync(() async {
       Hive.init(tempDir.path);
-      await Hive.openBox<Map>('settings');
-      await Hive.openBox<Map>('theme_settings');
+      await Hive.openBox<Map<dynamic, dynamic>>('settings');
+      await Hive.openBox<Map<dynamic, dynamic>>('theme_settings');
     });
 
     await tester.pumpWidget(const ProviderScope(

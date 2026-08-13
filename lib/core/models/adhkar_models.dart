@@ -13,29 +13,30 @@ enum AdhkarType {
 
 /// ذكر واحد
 class Zekr {
-  final int index;
-  final String text;
-  final int repeat;
-  final String? bless;
-  final AdhkarType type;
 
   const Zekr({
     required this.index,
     required this.text,
     required this.repeat,
-    this.bless,
-    required this.type,
+    required this.type, this.bless,
   });
 
   factory Zekr.fromJson(Map<String, dynamic> json, int index, AdhkarType type) {
     return Zekr(
       index: index,
-      text: json['zekr'] ?? '',
-      repeat: json['repeat'] ?? 1,
-      bless: json['bless']?.toString().isNotEmpty == true ? json['bless'] : null,
+      text: (json['zekr'] as String?) ?? '',
+      repeat: (json['repeat'] as num?)?.toInt() ?? 1,
+      bless: ((json['bless'] as String?) ?? '').isNotEmpty
+          ? json['bless'] as String
+          : null,
       type: type,
     );
   }
+  final int index;
+  final String text;
+  final int repeat;
+  final String? bless;
+  final AdhkarType type;
 
   /// المفتاح الفريد
   String get key => '${type.name}:$index';
@@ -43,9 +44,6 @@ class Zekr {
 
 /// مجموعة أذكار
 class AdhkarCollection {
-  final String title;
-  final AdhkarType type;
-  final List<Zekr> adhkar;
 
   const AdhkarCollection({
     required this.title,
@@ -53,32 +51,29 @@ class AdhkarCollection {
     required this.adhkar,
   });
 
+  factory AdhkarCollection.fromJson(Map<String, dynamic> json, AdhkarType type) {
+    final content = json['content'] as List? ?? [];
+    return AdhkarCollection(
+      title: (json['title'] as String?) ?? '',
+      type: type,
+      adhkar: content.asMap().entries.map((e) => 
+        Zekr.fromJson(Map<String, dynamic>.from(e.value as Map), e.key, type),
+      ).toList(),
+    );
+  }
+  final String title;
+  final AdhkarType type;
+  final List<Zekr> adhkar;
+
   /// عدد الأذكار
   int get count => adhkar.length;
 
   /// إجمالي التكرارات
   int get totalRepeat => adhkar.fold(0, (sum, z) => sum + z.repeat);
-
-  factory AdhkarCollection.fromJson(Map<String, dynamic> json, AdhkarType type) {
-    final content = json['content'] as List? ?? [];
-    return AdhkarCollection(
-      title: json['title'] ?? '',
-      type: type,
-      adhkar: content.asMap().entries.map((e) => 
-        Zekr.fromJson(e.value, e.key, type),
-      ).toList(),
-    );
-  }
 }
 
 /// حالة تقدم الأذكار
 class AdhkarProgress {
-  final AdhkarType type;
-  final int currentIndex;
-  final int currentCount;
-  final bool isCompleted;
-  final DateTime? startedAt;
-  final DateTime? completedAt;
 
   const AdhkarProgress({
     required this.type,
@@ -88,6 +83,30 @@ class AdhkarProgress {
     this.startedAt,
     this.completedAt,
   });
+
+  factory AdhkarProgress.fromJson(Map<String, dynamic> json) {
+    return AdhkarProgress(
+      type: AdhkarType.values.firstWhere(
+        (t) => t.name == json['type'],
+        orElse: () => AdhkarType.general,
+      ),
+      currentIndex: (json['currentIndex'] as num?)?.toInt() ?? 0,
+      currentCount: (json['currentCount'] as num?)?.toInt() ?? 0,
+      isCompleted: json['isCompleted'] as bool? ?? false,
+      startedAt: json['startedAt'] != null 
+          ? DateTime.parse(json['startedAt'] as String) 
+          : null,
+      completedAt: json['completedAt'] != null 
+          ? DateTime.parse(json['completedAt'] as String) 
+          : null,
+    );
+  }
+  final AdhkarType type;
+  final int currentIndex;
+  final int currentCount;
+  final bool isCompleted;
+  final DateTime? startedAt;
+  final DateTime? completedAt;
 
   /// نسخة مع تقدم
   AdhkarProgress increment() => AdhkarProgress(
@@ -102,7 +121,6 @@ class AdhkarProgress {
   AdhkarProgress nextZekr() => AdhkarProgress(
     type: type,
     currentIndex: currentIndex + 1,
-    currentCount: 0,
     isCompleted: isCompleted,
     startedAt: startedAt,
   );
@@ -128,33 +146,10 @@ class AdhkarProgress {
     'startedAt': startedAt?.toIso8601String(),
     'completedAt': completedAt?.toIso8601String(),
   };
-
-  factory AdhkarProgress.fromJson(Map<String, dynamic> json) {
-    return AdhkarProgress(
-      type: AdhkarType.values.firstWhere(
-        (t) => t.name == json['type'],
-        orElse: () => AdhkarType.general,
-      ),
-      currentIndex: json['currentIndex'] ?? 0,
-      currentCount: json['currentCount'] ?? 0,
-      isCompleted: json['isCompleted'] ?? false,
-      startedAt: json['startedAt'] != null 
-          ? DateTime.parse(json['startedAt']) 
-          : null,
-      completedAt: json['completedAt'] != null 
-          ? DateTime.parse(json['completedAt']) 
-          : null,
-    );
-  }
 }
 
 /// إحصائيات الأذكار اليومية
 class DailyAdhkarStats {
-  final DateTime date;
-  final bool morningCompleted;
-  final bool eveningCompleted;
-  final int afterPrayerCount;
-  final int totalAdhkarCount;
 
   const DailyAdhkarStats({
     required this.date,
@@ -164,12 +159,27 @@ class DailyAdhkarStats {
     this.totalAdhkarCount = 0,
   });
 
+  factory DailyAdhkarStats.fromJson(Map<String, dynamic> json) {
+    return DailyAdhkarStats(
+      date: DateTime.parse(json['date'] as String),
+      morningCompleted: json['morningCompleted'] as bool? ?? false,
+      eveningCompleted: json['eveningCompleted'] as bool? ?? false,
+      afterPrayerCount: (json['afterPrayerCount'] as num?)?.toInt() ?? 0,
+      totalAdhkarCount: (json['totalAdhkarCount'] as num?)?.toInt() ?? 0,
+    );
+  }
+  final DateTime date;
+  final bool morningCompleted;
+  final bool eveningCompleted;
+  final int afterPrayerCount;
+  final int totalAdhkarCount;
+
   /// هل اكتمل اليوم؟
   bool get isComplete => morningCompleted && eveningCompleted;
 
   /// نسبة الإتمام
   double get progress {
-    int completed = 0;
+    var completed = 0;
     if (morningCompleted) completed++;
     if (eveningCompleted) completed++;
     return completed / 2.0;
@@ -182,25 +192,10 @@ class DailyAdhkarStats {
     'afterPrayerCount': afterPrayerCount,
     'totalAdhkarCount': totalAdhkarCount,
   };
-
-  factory DailyAdhkarStats.fromJson(Map<String, dynamic> json) {
-    return DailyAdhkarStats(
-      date: DateTime.parse(json['date']),
-      morningCompleted: json['morningCompleted'] ?? false,
-      eveningCompleted: json['eveningCompleted'] ?? false,
-      afterPrayerCount: json['afterPrayerCount'] ?? 0,
-      totalAdhkarCount: json['totalAdhkarCount'] ?? 0,
-    );
-  }
 }
 
 /// إعدادات عرض الأذكار
-class AdhkarDisplaySettings {
-  final double fontSize;
-  final bool showBless;
-  final bool vibrateOnComplete;
-  final bool autoAdvance;
-  final int autoAdvanceDelay; // milliseconds
+class AdhkarDisplaySettings { // milliseconds
 
   const AdhkarDisplaySettings({
     this.fontSize = 22.0,
@@ -209,6 +204,21 @@ class AdhkarDisplaySettings {
     this.autoAdvance = false,
     this.autoAdvanceDelay = 500,
   });
+
+  factory AdhkarDisplaySettings.fromJson(Map<String, dynamic> json) {
+    return AdhkarDisplaySettings(
+      fontSize: ((json['fontSize'] ?? 22.0) as num).toDouble(),
+      showBless: json['showBless'] as bool? ?? true,
+      vibrateOnComplete: json['vibrateOnComplete'] as bool? ?? true,
+      autoAdvance: json['autoAdvance'] as bool? ?? false,
+      autoAdvanceDelay: (json['autoAdvanceDelay'] as num?)?.toInt() ?? 500,
+    );
+  }
+  final double fontSize;
+  final bool showBless;
+  final bool vibrateOnComplete;
+  final bool autoAdvance;
+  final int autoAdvanceDelay;
 
   AdhkarDisplaySettings copyWith({
     double? fontSize,
@@ -233,16 +243,6 @@ class AdhkarDisplaySettings {
     'autoAdvance': autoAdvance,
     'autoAdvanceDelay': autoAdvanceDelay,
   };
-
-  factory AdhkarDisplaySettings.fromJson(Map<String, dynamic> json) {
-    return AdhkarDisplaySettings(
-      fontSize: (json['fontSize'] ?? 22.0).toDouble(),
-      showBless: json['showBless'] ?? true,
-      vibrateOnComplete: json['vibrateOnComplete'] ?? true,
-      autoAdvance: json['autoAdvance'] ?? false,
-      autoAdvanceDelay: json['autoAdvanceDelay'] ?? 500,
-    );
-  }
 }
 
 /// معلومات نوع الأذكار

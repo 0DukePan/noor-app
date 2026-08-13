@@ -18,8 +18,8 @@ void main() {
     test('successful review increases stability', () {
       final stability =
           FSRSAlgorithm.updateStability(
-        difficulty: 5.0,
-        stability: 1.0,
+        difficulty: 5,
+        stability: 1,
         retrievability: 0.9,
         rating: Rating.good,
       );
@@ -27,22 +27,22 @@ void main() {
     });
 
     test('MemorizationCard advances to a future review after a good rating', () {
-      final card = MemorizationCard(id: '1', hadithId: 'h1');
-      card.review(Rating.good);
+      final card = MemorizationCard(id: '1', hadithId: 'h1')
+        ..review(Rating.good);
       expect(card.repetitions, 1);
       expect(card.nextReview.isAfter(DateTime.now()), isTrue);
       expect(card.lapses, 0);
     });
 
     test('Rating "again" increments lapses', () {
-      final card = MemorizationCard(id: '1', hadithId: 'h1');
-      card.review(Rating.again);
+      final card = MemorizationCard(id: '1', hadithId: 'h1')
+        ..review(Rating.again);
       expect(card.lapses, 1);
     });
 
     test('serialization round-trips card state', () {
-      final card = MemorizationCard(id: '2', hadithId: 'h2');
-      card.review(Rating.easy);
+      final card = MemorizationCard(id: '2', hadithId: 'h2')
+        ..review(Rating.easy);
       final restored = MemorizationCard.fromJson(card.toJson());
       expect(restored.id, card.id);
       expect(restored.difficulty, card.difficulty);
@@ -53,8 +53,8 @@ void main() {
     });
 
     test('StreakTracker tracks consecutive days', () {
-      final streak = StreakTracker();
-      streak.recordPractice();
+      final streak = StreakTracker()
+        ..recordPractice();
       expect(streak.currentStreak, 1);
       expect(streak.practicedToday, isTrue);
       // Same-day practice does not double-count.

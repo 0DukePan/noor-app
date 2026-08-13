@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -56,14 +57,14 @@ class _QadaTrackerPageState extends ConsumerState<QadaTrackerPage>
           _QadaList(
             records: qada.prayerRecords,
             type: QadaType.prayer,
-            onIncrement: (id) => _incrementRecord(id),
+            onIncrement: _incrementRecord,
             onDelete: (id) => ref.read(qadaProvider.notifier).deleteRecord(id),
             onAdd: () => _showAddDialog(QadaType.prayer),
           ),
           _QadaList(
             records: qada.fastingRecords,
             type: QadaType.fasting,
-            onIncrement: (id) => _incrementRecord(id),
+            onIncrement: _incrementRecord,
             onDelete: (id) => ref.read(qadaProvider.notifier).deleteRecord(id),
             onAdd: () => _showAddDialog(QadaType.fasting),
           ),
@@ -72,17 +73,17 @@ class _QadaTrackerPageState extends ConsumerState<QadaTrackerPage>
     );
   }
 
-  void _incrementRecord(String id) async {
+  Future<void> _incrementRecord(String id) async {
     await HapticFeedback.lightImpact();
     final isComplete = ref.read(qadaProvider.notifier).incrementRecord(id);
     if (isComplete) {
-      HapticFeedback.heavyImpact();
+      unawaited(HapticFeedback.heavyImpact());
       _showCompletionDialog();
     }
   }
 
   void _showAddDialog(QadaType type) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => _AddQadaDialog(
         type: type,
@@ -94,7 +95,7 @@ class _QadaTrackerPageState extends ConsumerState<QadaTrackerPage>
   }
 
   void _showCompletionDialog() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -112,11 +113,6 @@ class _QadaTrackerPageState extends ConsumerState<QadaTrackerPage>
 }
 
 class _QadaList extends StatelessWidget {
-  final List<QadaRecord> records;
-  final QadaType type;
-  final Function(String) onIncrement;
-  final Function(String) onDelete;
-  final VoidCallback onAdd;
 
   const _QadaList({
     required this.records,
@@ -125,6 +121,11 @@ class _QadaList extends StatelessWidget {
     required this.onDelete,
     required this.onAdd,
   });
+  final List<QadaRecord> records;
+  final QadaType type;
+  final void Function(String) onIncrement;
+  final void Function(String) onDelete;
+  final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -188,10 +189,6 @@ class _QadaList extends StatelessWidget {
 }
 
 class _QadaCard extends StatelessWidget {
-  final QadaRecord record;
-  final QadaType type;
-  final VoidCallback onIncrement;
-  final VoidCallback onDelete;
 
   const _QadaCard({
     required this.record,
@@ -199,6 +196,10 @@ class _QadaCard extends StatelessWidget {
     required this.onIncrement,
     required this.onDelete,
   });
+  final QadaRecord record;
+  final QadaType type;
+  final VoidCallback onIncrement;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -360,13 +361,13 @@ class _QadaCard extends StatelessWidget {
 }
 
 class _AddQadaDialog extends StatefulWidget {
-  final QadaType type;
-  final Function(String name, int count, String? notes) onAdd;
 
   const _AddQadaDialog({
     required this.type,
     required this.onAdd,
   });
+  final QadaType type;
+  final void Function(String name, int count, String? notes) onAdd;
 
   @override
   State<_AddQadaDialog> createState() => _AddQadaDialogState();

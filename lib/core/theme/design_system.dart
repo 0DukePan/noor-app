@@ -171,25 +171,25 @@ class NoorDesignSystem {
   // ═══════════════════════════════════════════════════════════════════════════
 
   /// Buttons, badges
-  static const double radiusSmall = 8.0;
+  static const double radiusSmall = 8;
   /// Cards
-  static const double radiusMedium = 12.0;
+  static const double radiusMedium = 12;
   /// Modals, sheets
-  static const double radiusLarge = 16.0;
+  static const double radiusLarge = 16;
   /// Pills, avatars
-  static const double radiusFull = 999.0;
+  static const double radiusFull = 999;
 
   // Spacing scale: 4-8-12-16-24-32-48-64-96
-  static const double spacingXXS = 4.0;
-  static const double spacingXS = 4.0;
-  static const double spacingS = 8.0;
-  static const double spacingSM = 12.0;
-  static const double spacingM = 16.0;
-  static const double spacingL = 24.0;
-  static const double spacingXL = 32.0;
-  static const double spacingXXL = 48.0;
-  static const double spacing3XL = 64.0;
-  static const double spacing4XL = 96.0;
+  static const double spacingXXS = 4;
+  static const double spacingXS = 4;
+  static const double spacingS = 8;
+  static const double spacingSM = 12;
+  static const double spacingM = 16;
+  static const double spacingL = 24;
+  static const double spacingXL = 32;
+  static const double spacingXXL = 48;
+  static const double spacing3XL = 64;
+  static const double spacing4XL = 96;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // SHADOWS — Minimal, use surface color differences

@@ -4,10 +4,6 @@ import '../../core/theme/noor_theme.dart';
 /// هيكل التحميل - Loading Skeleton Widget
 /// Shimmer effect placeholders for loading states
 class LoadingSkeleton extends StatefulWidget {
-  final double width;
-  final double height;
-  final double borderRadius;
-  final bool isCircle;
 
   const LoadingSkeleton({
     super.key,
@@ -41,6 +37,10 @@ class LoadingSkeleton extends StatefulWidget {
     this.height = 120,
   })  : borderRadius = 12,
         isCircle = false;
+  final double width;
+  final double height;
+  final double borderRadius;
+  final bool isCircle;
 
   @override
   State<LoadingSkeleton> createState() => _LoadingSkeletonState();
@@ -101,9 +101,9 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
 
 /// Surah list loading skeleton
 class SurahListSkeleton extends StatelessWidget {
-  final int itemCount;
 
   const SurahListSkeleton({super.key, this.itemCount = 10});
+  final int itemCount;
 
   @override
   Widget build(BuildContext context) {
@@ -144,9 +144,9 @@ class SurahListSkeleton extends StatelessWidget {
 
 /// Hadith list loading skeleton
 class HadithListSkeleton extends StatelessWidget {
-  final int itemCount;
 
   const HadithListSkeleton({super.key, this.itemCount = 5});
+  final int itemCount;
 
   @override
   Widget build(BuildContext context) {
@@ -191,9 +191,9 @@ class HadithListSkeleton extends StatelessWidget {
 
 /// Verse list loading skeleton
 class VerseListSkeleton extends StatelessWidget {
-  final int itemCount;
 
   const VerseListSkeleton({super.key, this.itemCount = 7});
+  final int itemCount;
 
   @override
   Widget build(BuildContext context) {

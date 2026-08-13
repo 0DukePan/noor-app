@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/design_system.dart';
 import '../../../../core/services/day_state_machine.dart';
+import '../../../../core/theme/design_system.dart';
 
 /// 🕐 Day State Card — shows current Islamic day period from DayStateMachine
 class DayStateCard extends StatelessWidget {

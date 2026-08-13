@@ -1,15 +1,15 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/design_system.dart';
-
+import '../../../../core/services/hive_service.dart';
 import '../../../../core/services/mosque_mode_service.dart';
-import '../../../../core/services/seasonal_offsets_engine.dart';
 import '../../../../core/services/prayer_health_check.dart';
 import '../../../../core/services/prayer_time_engine.dart';
-import '../../../../core/services/hive_service.dart';
+import '../../../../core/services/seasonal_offsets_engine.dart';
+import '../../../../core/theme/design_system.dart';
 import '../providers/prayer_providers.dart';
 
 /// ⚙️ إعدادات الصلاة المتقدمة — Advanced Prayer Settings
@@ -168,7 +168,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                 activeThumbColor: NoorDesignSystem.primaryGreen,
                 onChanged: (v) {
                   HapticFeedback.selectionClick();
-                  notifier.toggleAdhan(prayer, v);
+                  notifier.toggleAdhan(prayer, enabled: v);
                 },
               ),
               if (prayer != _prayers.last) Divider(height: 1, indent: 56, color: theme.dividerColor.withValues(alpha: 0.3)),
@@ -209,7 +209,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
             activeThumbColor: NoorDesignSystem.primaryGreen,
             onChanged: (v) {
               HapticFeedback.mediumImpact();
-              notifier.setMosqueMode(v);
+              notifier.setMosqueMode(enabled: v);
             },
             contentPadding: EdgeInsets.zero,
           ),
@@ -405,7 +405,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: settings.healthLoading ? null : () => notifier.runHealthCheck(),
+              onPressed: settings.healthLoading ? null : notifier.runHealthCheck,
               icon: settings.healthLoading
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.health_and_safety_rounded),
@@ -442,7 +442,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                 issue: issue,
                 onFix: () async {
                   await PrayerHealthCheck.attemptFix(issue);
-                  notifier.runHealthCheck();
+                  unawaited(notifier.runHealthCheck());
                 },
               ),),
           ],
@@ -457,10 +457,10 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _SectionHeader extends StatelessWidget {
-  final IconData icon;
-  final String title;
 
   const _SectionHeader({required this.icon, required this.title});
+  final IconData icon;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -486,10 +486,10 @@ class _SectionHeader extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _QuickMosqueButton extends StatelessWidget {
-  final int minutes;
-  final VoidCallback onTap;
 
   const _QuickMosqueButton({required this.minutes, required this.onTap});
+  final int minutes;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -513,9 +513,9 @@ class _QuickMosqueButton extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _HealthStatusBadge extends StatelessWidget {
-  final HealthStatus status;
 
   const _HealthStatusBadge({required this.status});
+  final HealthStatus status;
 
   @override
   Widget build(BuildContext context) {
@@ -560,10 +560,10 @@ class _HealthStatusBadge extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _HealthIssueCard extends StatelessWidget {
-  final HealthIssue issue;
-  final VoidCallback onFix;
 
   const _HealthIssueCard({required this.issue, required this.onFix});
+  final HealthIssue issue;
+  final VoidCallback onFix;
 
   @override
   Widget build(BuildContext context) {

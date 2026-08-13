@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -31,8 +32,8 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
     });
   }
 
-  void _removeBookmark(String collectionId, int hadithId) async {
-    HapticFeedback.lightImpact();
+  Future<void> _removeBookmark(String collectionId, int hadithId) async {
+    unawaited(HapticFeedback.lightImpact());
     await HadithUserDataService.removeBookmark(collectionId, hadithId);
     _loadBookmarks();
     if (mounted) {
@@ -177,7 +178,7 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (_) => HadithReaderPage(
                         hadith: hadith,
                         bookTitle: hadithBookName(collectionId),

@@ -153,7 +153,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   value: hapticEnabled,
                   onChanged: (value) {
                     ref.read(hapticEnabledProvider.notifier).state = value;
-                    ThemeService.setHapticEnabled(value);
+                    ThemeService.setHapticEnabled(enabled: value);
                     if (value) HapticFeedback.lightImpact();
                   },
                 ),
@@ -162,7 +162,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   title: 'مسح ذاكرة التخزين',
                   subtitle: 'حذف البيانات المؤقتة لتحرير المساحة',
                   icon: Icons.delete_outline_rounded,
-                  onTap: () => _showClearCacheDialog(),
+                  onTap: _showClearCacheDialog,
                 ),
               ],
             ),
@@ -193,13 +193,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   subtitle: 'إدارة البيانات المحفوظة',
                   icon: Icons.storage_rounded,
                   onTap: () => context.go('/tools/settings/storage'),
-                ),
-                const Divider(height: 1),
-                _buildListTile(
-                  title: 'السحابة والموقع',
-                  subtitle: 'المزامنة ومحرك ثقة الموقع',
-                  icon: Icons.cloud_rounded,
-                  onTap: () => context.go('/tools/settings/cloud'),
                 ),
               ],
             ),
@@ -261,7 +254,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   /// Honest privacy statement — what the app collects and what it does not.
   void _showPrivacySheet(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (context) => SafeArea(
@@ -298,12 +291,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 icon: Icons.lock_outline,
                 text: 'ملاحظاتك الشخصية (محراب التدبر) تُشفَّر وتُحفظ على جهازك فقط.',
               ),
-              const SizedBox(height: 8),
-              Text(
-                'المزامنة السحابية اختيارية وتتطلب تسجيل دخولاً صريحاً منك.',
-                style: NoorDesignSystem.textTheme.bodySmall?.copyWith(
-                  color: NoorDesignSystem.textSecondary,
-                ),
+              const _PrivacyRow(
+                icon: Icons.cloud_off_outlined,
+                text: 'لا توجد مزامنة سحابية: كل بياناتك (المحفوظات، الإحصائيات، التقدم) محفوظة محلياً على جهازك.',
+              ),
+              const _PrivacyRow(
+                icon: Icons.link_outlined,
+                text: 'قد يتصل التطبيق بخوادم عامة لتحميل بيانات مفقودة فقط (تفسير/تلاوة/مواقيت) دون إرسال أي من بياناتك.',
               ),
             ],
           ),
@@ -313,7 +307,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   void _showAboutSheet(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (context) => SafeArea(
         child: Padding(
@@ -443,7 +437,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   void _showClearCacheDialog() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
@@ -475,10 +469,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
 /// Row used in the privacy sheet.
 class _PrivacyRow extends StatelessWidget {
-  final IconData icon;
-  final String text;
 
   const _PrivacyRow({required this.icon, required this.text});
+  final IconData icon;
+  final String text;
 
   @override
   Widget build(BuildContext context) {

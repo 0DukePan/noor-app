@@ -94,7 +94,7 @@
 
 ### 📊 Analytics & Profile
 - **Reading Streaks** — Daily engagement tracking with streak maintenance
-- **Statistics Dashboard** — Charts via `fl_chart` showing memorization progress, reading habits, and quiz scores
+- **Learning Statistics** — Memorization progress, reading habits, and quiz history with streak tracking
 - **Day State Machine** — Sophisticated FSM tracking daily worship state transitions
 - **Home Screen Widgets** — Native Android/iOS widgets for prayer times and daily verse (`home_widget`)
 
@@ -169,7 +169,6 @@ graph TB
         SQLite["SQLite DB\n(sqflite)"]
         Hive["Hive Boxes\n(10 stores)"]
         JSON["Bundled JSON\n(25K+ assets)"]
-        Supabase["Supabase\n(Optional Cloud)"]
     end
 
     subgraph Services["🔧 Core Services"]
@@ -510,10 +509,8 @@ graph LR
         HiveDB["Hive Storage\n(10 boxes)"]
     end
 
-    subgraph OptionalCloud["☁️ Optional Cloud Services"]
-        Supabase["Supabase\n(Auth / DB / Storage)"]
-        Firebase["Firebase\n(FCM Push Notifications)"]
-        Sentry["Sentry\n(Crash Reports)"]
+    subgraph Observability["🔍 Observability"]
+        Sentry["Sentry\n(Crash Reports, no PII)"]
     end
 
     subgraph DeviceSensors["📡 Device Sensors"]
@@ -523,12 +520,12 @@ graph LR
     end
 
     Android & iOS --> FlutterApp
-    FlutterApp --> OptionalCloud
+    FlutterApp --> Observability
     FlutterApp --> DeviceSensors
 
     style ClientDevices fill:#1b5e20,stroke:#0d3310,color:#fff
     style FlutterApp fill:#1565c0,stroke:#0d3d78,color:#fff
-    style OptionalCloud fill:#e65100,stroke:#a63a00,color:#fff
+    style Observability fill:#e65100,stroke:#a63a00,color:#fff
     style DeviceSensors fill:#6a1b9a,stroke:#4a1270,color:#fff
 ```
 
@@ -556,12 +553,10 @@ graph LR
 | `hive_flutter` | NoSQL key-value store for user data |
 | `flutter_secure_storage` | Encrypted storage for sensitive data |
 
-### Backend & Sync
+### Network (fallback only)
 | Package | Purpose |
 |---|---|
-| `supabase_flutter` | Cloud sync and remote data (optional) |
-| `firebase_messaging` | Push notifications |
-| `http` | REST API calls |
+| `http` | Optional REST fallbacks for missing tafsir/recitation/prayer data; core features are fully offline |
 
 ### Islamic Libraries
 | Package | Purpose |
@@ -574,7 +569,6 @@ graph LR
 |---|---|
 | `just_audio` + `audio_service` | Quran recitation with background playback |
 | `google_fonts` | Cairo & Amiri typography |
-| `fl_chart` | Statistics charts |
 | `flutter_svg` | Vector icon rendering |
 | `flutter_animate` | Micro-animations |
 | `pdf` + `printing` | PDF export |
@@ -739,14 +733,6 @@ Pass at build time:
 flutter run --dart-define=SENTRY_DSN=https://your-dsn@sentry.io/project
 ```
 
-### Supabase (Optional)
-
-Cloud sync requires a Supabase project. Configure in `lib/core/services/supabase_service.dart`. Without Supabase, the app operates fully offline.
-
-### Firebase (Optional)
-
-Push notifications require Firebase. Add your `google-services.json` (Android) and `GoogleService-Info.plist` (iOS) to the respective platform directories.
-
 ---
 
 ## Core Services
@@ -755,7 +741,7 @@ Push notifications require Firebase. Add your `google-services.json` (Android) a
 The largest service in the app. Implements multi-method prayer time calculation with:
 - Seasonal offset corrections via `seasonal_offsets_engine.dart`
 - Location trust scoring via `location_trust_engine.dart`
-- Weekly schedule generation via `weekly_scheduler_service.dart`
+- Weekly schedule generation via `prayer_time_engine.calculateWeek`
 - Health checks and self-diagnostics via `prayer_health_check.dart`
 
 ### Isnad Parser Service (`isnad_parser_service.dart`)

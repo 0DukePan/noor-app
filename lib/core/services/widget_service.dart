@@ -1,9 +1,10 @@
+import 'dart:async';
 import 'package:home_widget/home_widget.dart';
 
-import '../../core/services/offline_data_service.dart';
-import '../../core/services/location_trust_engine.dart';
-import '../../core/services/prayer_time_engine.dart';
 import '../../core/services/hive_service.dart';
+import '../../core/services/location_trust_engine.dart';
+import '../../core/services/offline_data_service.dart';
+import '../../core/services/prayer_time_engine.dart';
 
 /// خدمة الويدجت - Widget Service for iOS & Android Home Screen
 class WidgetService {
@@ -16,7 +17,7 @@ class WidgetService {
     await HomeWidget.setAppGroupId(_appGroupId);
     
     // Register background callback
-    HomeWidget.registerInteractivityCallback(backgroundCallback);
+    unawaited(HomeWidget.registerInteractivityCallback(backgroundCallback));
   }
 
   /// Background callback for widget updates
@@ -26,13 +27,10 @@ class WidgetService {
     switch (uri.host) {
       case 'update_prayer':
         await updatePrayerWidget();
-        break;
       case 'update_verse':
         await updateVerseWidget();
-        break;
       case 'update_adhkar':
         await updateAdhkarWidget();
-        break;
     }
   }
 
@@ -86,7 +84,7 @@ class WidgetService {
         androidName: _androidWidgetName,
         qualifiedAndroidName: 'com.noor.app.$_androidWidgetName',
       );
-    } catch (e) {
+    } on Exception {
       // Widget update failed
     }
   }
@@ -118,7 +116,7 @@ class WidgetService {
       await OfflineDataService.init();
 
       // Get a verse based on day of year
-      final dayOfYear = DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays;
+      final dayOfYear = DateTime.now().difference(DateTime(DateTime.now().year)).inDays;
       final surahNumber = (dayOfYear % 114) + 1;
       final verseNumber = (dayOfYear % 7) + 1;
 
@@ -126,7 +124,7 @@ class WidgetService {
       if (surah != null) {
         final verses = surah['ayahs'] as List?;
         if (verses != null && verses.length >= verseNumber) {
-          final verse = verses[verseNumber - 1];
+          final verse = verses[verseNumber - 1] as Map;
           final verseText = verse['text'] as String? ?? '';
 
           // Truncate for widget
@@ -146,7 +144,7 @@ class WidgetService {
           );
         }
       }
-    } catch (e) {
+    } on Exception {
       // Widget update failed
     }
   }
@@ -170,7 +168,7 @@ class WidgetService {
         iOSName: _iOSWidgetName,
         androidName: _androidWidgetName,
       );
-    } catch (e) {
+    } on Exception {
       // Widget update failed
     }
   }
@@ -182,7 +180,7 @@ class WidgetService {
       await HomeWidget.saveWidgetData<int>('adhkar_count', currentCount + 1);
 
       await updateAdhkarWidget();
-    } catch (e) {
+    } on Exception {
       // Increment failed
     }
   }
@@ -205,7 +203,7 @@ class WidgetService {
         iOSName: _iOSWidgetName,
         androidName: _androidWidgetName,
       );
-    } catch (e) {
+    } on Exception {
       // Widget update failed
     }
   }

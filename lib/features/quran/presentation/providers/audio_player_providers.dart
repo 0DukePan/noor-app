@@ -7,15 +7,14 @@ import '../../../../core/services/quran_audio_service.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 class AudioPlayerState {
+
+  const AudioPlayerState({
+    required this.selectedReciter, this.isExpanded = false,
+    this.playbackSpeed = 1.0,
+  });
   final bool isExpanded;
   final Reciter selectedReciter;
   final double playbackSpeed;
-
-  const AudioPlayerState({
-    this.isExpanded = false,
-    required this.selectedReciter,
-    this.playbackSpeed = 1.0,
-  });
 
   AudioPlayerState copyWith({
     bool? isExpanded,

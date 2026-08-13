@@ -46,22 +46,21 @@ class HadithDatabase {
   static Future<void> warmUp() async {
     try {
       await database;
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('HadithDatabase warmUp failed: $e');
     }
   }
 
   /// Test hook: point the database at a writable directory so tests can avoid
   /// path_provider (which needs platform channels).
-  static String _dbDirectory = '';
-  static void debugSetDatabaseDirectory(String directory) => _dbDirectory = directory;
+  static String debugDatabaseDirectory = '';
 
   static Future<Database> _initDatabase() async {
-    final dir = _dbDirectory.isNotEmpty
-        ? _dbDirectory
+    final dir = debugDatabaseDirectory.isNotEmpty
+        ? debugDatabaseDirectory
         : (await getApplicationDocumentsDirectory()).path;
     final dbPath = p.join(dir, _dbName);
-    _wasCached = await File(dbPath).exists();
+    _wasCached = File(dbPath).existsSync();
 
     return openDatabase(
       dbPath,
@@ -87,13 +86,13 @@ class HadithDatabase {
   static Future<void> _migrateToV2(Database db) async {
     try {
       await db.execute('ALTER TABLE hadiths ADD COLUMN arabic_norm TEXT');
-    } catch (_) {
+    } on Exception catch (_) {
       // Column may already exist on partially migrated databases.
     }
 
     // Backfill normalized text in batches.
     const batchSize = 1000;
-    int offset = 0;
+    var offset = 0;
     while (true) {
       final rows = await db.query(
         'hadiths',
@@ -118,7 +117,7 @@ class HadithDatabase {
     // Recreate the FTS table over arabic_norm and rebuild it.
     try {
       await db.execute('DROP TABLE hadiths_fts');
-    } catch (_) {}
+    } on Exception catch (_) {}
     await db.execute('''
       CREATE VIRTUAL TABLE hadiths_fts USING fts5(
         arabic_norm,
@@ -138,7 +137,7 @@ class HadithDatabase {
     String? directory,
   }) async {
     final dir = directory ??
-        (_dbDirectory.isNotEmpty ? _dbDirectory : (await getApplicationDocumentsDirectory()).path);
+        (debugDatabaseDirectory.isNotEmpty ? debugDatabaseDirectory : (await getApplicationDocumentsDirectory()).path);
     final dbPath = p.join(dir, 'hadith_test_${bookIds.join('_')}.db');
     return openDatabase(
       dbPath,
@@ -218,7 +217,7 @@ class HadithDatabase {
   // ═══════════════════════════════════════════════════════════════════
 
   /// Import progress for the one-time first-launch build (0.0 → 1.0).
-  static final ValueNotifier<double> importProgress = ValueNotifier(0.0);
+  static final ValueNotifier<double> importProgress = ValueNotifier(0);
 
   /// Whether the database file already existed (import skipped on launch).
   static bool _wasCached = false;
@@ -258,7 +257,7 @@ class HadithDatabase {
     try {
       await db.execute("INSERT INTO hadiths_fts(hadiths_fts) VALUES('rebuild')");
       debugPrint('✅ FTS index rebuilt.');
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('❌ FTS rebuild failed: $e');
     }
   }
@@ -267,7 +266,7 @@ class HadithDatabase {
     try {
       debugPrint('📖 Importing $bookId...');
       final jsonString = await rootBundle.loadString(assetPath);
-      final Map<String, dynamic> json = jsonDecode(jsonString);
+      final json = Map<String, dynamic>.from(jsonDecode(jsonString) as Map);
 
       // --- Collection metadata ---
       final meta = json['metadata'] as Map<String, dynamic>;
@@ -290,7 +289,7 @@ class HadithDatabase {
       final chapterBatch = db.batch();
       for (final c in chaptersList) {
         chapterBatch.insert('chapters', {
-          'id': c['id'],
+          'id': (c as Map)['id'],
           'collection_id': bookId,
           'title_arabic': c['arabic'] ?? '',
           'title_english': c['english'] ?? '',
@@ -301,11 +300,11 @@ class HadithDatabase {
       // --- Hadiths ---
       // Process in batches of 500 to avoid memory spikes
       const batchSize = 500;
-      for (int i = 0; i < hadithsList.length; i += batchSize) {
+      for (var i = 0; i < hadithsList.length; i += batchSize) {
         final end = (i + batchSize > hadithsList.length) ? hadithsList.length : i + batchSize;
         final batch = db.batch();
 
-        for (int j = i; j < end; j++) {
+        for (var j = i; j < end; j++) {
           final h = hadithsList[j] as Map<String, dynamic>;
           final engMap = h['english'] as Map<String, dynamic>? ?? {};
 
@@ -315,7 +314,7 @@ class HadithDatabase {
             'collection_id': bookId,
             'chapter_id': h['chapterId'] ?? 0,
             'arabic': h['arabic'] ?? '',
-            'arabic_norm': normalizeForSearch(h['arabic'] ?? ''),
+            'arabic_norm': normalizeForSearch((h['arabic'] ?? '') as String),
             'english_narrator': engMap['narrator'] ?? '',
             'english_text': engMap['text'] ?? '',
           }, conflictAlgorithm: ConflictAlgorithm.replace,);
@@ -325,7 +324,7 @@ class HadithDatabase {
       }
 
       debugPrint('  ✅ $bookId: ${hadithsList.length} hadiths imported.');
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('  ❌ Error importing $bookId: $e');
     }
   }
@@ -359,8 +358,8 @@ class HadithDatabase {
     int offset = 0,
   }) async {
     final db = await database;
-    String where = 'collection_id = ?';
-    final List<dynamic> args = [collectionId];
+    var where = 'collection_id = ?';
+    final args = <dynamic>[collectionId];
 
     if (chapterId != null) {
       where += ' AND chapter_id = ?';
@@ -396,7 +395,7 @@ class HadithDatabase {
       'SELECT chapter_id, COUNT(*) as cnt FROM hadiths WHERE collection_id = ? GROUP BY chapter_id',
       [collectionId],
     );
-    return {for (final r in results) r['chapter_id'] as int: r['cnt'] as int};
+    return {for (final r in results) r['chapter_id']! as int: r['cnt']! as int};
   }
 
   /// Full-text search across the entire corpus.
@@ -440,7 +439,7 @@ class HadithDatabase {
       if (results.isNotEmpty) return results;
 
       // FTS found nothing (e.g. an unusual tokenization) → fall through to LIKE.
-    } catch (_) {
+    } on Exception catch (_) {
       // Invalid FTS syntax (special characters) → fall through to LIKE.
     }
 
@@ -448,9 +447,9 @@ class HadithDatabase {
     // raw arabic column keeps tashkeel, so a plain LIKE could never match a
     // user's un-diacritized query).
     final normalizedQuery = normalizeForSearch(query);
-    String where =
+    var where =
         '(arabic_norm LIKE ? OR english_text LIKE ? OR english_narrator LIKE ?)';
-    final List<dynamic> args = ['%$normalizedQuery%', '%$normalizedQuery%', '%$normalizedQuery%'];
+    final args = <dynamic>['%$normalizedQuery%', '%$normalizedQuery%', '%$normalizedQuery%'];
 
     if (collectionId != null) {
       where += ' AND collection_id = ?';

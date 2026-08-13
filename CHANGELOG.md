@@ -13,6 +13,16 @@ All notable changes to Noor (نور) are documented in this file.
 - CI job that produces a properly signed release AAB when signing secrets are
   configured
 - `docs/qa-checklist.md` — manual on-device QA checklist for the store run
+- CI now runs tests with coverage and uploads the lcov report (baseline:
+  58.5% lines hit)
+
+### Changed
+- Adopted `very_good_analysis` (strict lints + strict-casts/inference/raw-types);
+  `flutter analyze` reports **0 issues** across the whole codebase
+- Removed dead cloud stack: Supabase service, cloud settings page, and the
+  `supabase_flutter`, `firebase_core`, `firebase_messaging`, `fl_chart`
+  dependencies — the app is fully local (SQLite/Hive); README no longer
+  advertises features that do not exist
 
 ### Fixed
 - Quran search missed matches containing the alef-wasla (ٱ) — e.g. «الرحمن»
@@ -20,6 +30,13 @@ All notable changes to Noor (نور) are documented in this file.
 - Hadith database v2 migration: searches are normalized (de-diacritized) and
   the FTS index is rebuilt over the normalized text
 - Clearing the search cache could fail with a locked database file
+- `QuranDataSource` filled its data map with `Color.toARGB32` — the whole
+  Quran never loaded through that path
+- Mojibake (U+FFFD) in two home-screen greeting strings; a guard test now
+  fails the build if any mojibake is ever reintroduced
+- ~200 unchecked `dynamic` accesses typed (JSON/Hive reads now use explicit
+  casts); dead stubs removed (`getVersesByJuz`, tafsir API loader, hijri
+  provider); all 20 TODO/FIXME comments resolved
 
 ## [1.0.0] - 2026-08-09
 

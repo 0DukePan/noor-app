@@ -1,15 +1,15 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/tafsir_theme.dart';
 import '../../../../core/domain/entities/surah.dart';
 import '../../../../core/models/tafsir_models.dart';
-import '../../../../core/services/tafsir_data_source.dart';
 import '../../../../core/services/quran_data_source.dart';
 import '../../../../core/services/statistics_service.dart';
+import '../../../../core/services/tafsir_data_source.dart';
+import '../../../../core/theme/tafsir_theme.dart';
 import '../providers/quran_providers.dart';
 
 part 'full_tafsir_reader.dart';
@@ -26,13 +26,6 @@ enum MushafTheme {
 }
 
 class MushafThemeData {
-  final Color backgroundColor;
-  final Color textColor;
-  final Color verseMarkerColor;
-  final Color headerColor;
-  final Color headerTextColor;
-  final Color borderColor;
-  final String label;
 
   const MushafThemeData({
     required this.backgroundColor,
@@ -43,6 +36,13 @@ class MushafThemeData {
     required this.borderColor,
     required this.label,
   });
+  final Color backgroundColor;
+  final Color textColor;
+  final Color verseMarkerColor;
+  final Color headerColor;
+  final Color headerTextColor;
+  final Color borderColor;
+  final String label;
 
   static const Map<MushafTheme, MushafThemeData> themes = {
     MushafTheme.madaniCream: MushafThemeData(
@@ -99,9 +99,9 @@ final mushafShowControlsProvider = StateProvider<bool>((ref) => true);
 
 /// صفحة المصحف - Traditional Mushaf Page Viewer
 class QuranMushafPage extends ConsumerStatefulWidget {
-  final int initialPage;
 
   const QuranMushafPage({super.key, this.initialPage = 1});
+  final int initialPage;
 
   @override
   ConsumerState<QuranMushafPage> createState() => _QuranMushafPageState();
@@ -203,7 +203,7 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
     );
   }
 
-  void _saveReadingProgress(int page) async {
+  Future<void> _saveReadingProgress(int page) async {
     try {
       final verses = await ref.read(quranPageProvider(page).future);
       if (verses.isEmpty) return;
@@ -219,7 +219,7 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
             verseNumber: ayah,
             page: page,
           );
-    } catch (_) {
+    } on Exception catch (_) {
       // Progress is best-effort; never block paging on a write failure.
     }
   }
@@ -227,7 +227,7 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
   void _showThemeSelector(BuildContext context, WidgetRef ref) {
     final currentTheme = ref.read(mushafThemeProvider);
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
@@ -320,13 +320,13 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _MushafPageWidget extends ConsumerWidget {
-  final int pageNumber;
-  final MushafThemeData themeData;
 
   const _MushafPageWidget({
     required this.pageNumber,
     required this.themeData,
   });
+  final int pageNumber;
+  final MushafThemeData themeData;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -416,7 +416,7 @@ class _MushafPageWidget extends ConsumerWidget {
   Widget _buildContinuousText(BuildContext context, List<Verse> verses, Set<int> surahStarts) {
     final children = <Widget>[];
 
-    int i = 0;
+    var i = 0;
     while (i < verses.length) {
       // Check if a new surah starts here
       if (surahStarts.contains(i)) {
@@ -452,7 +452,7 @@ class _MushafPageWidget extends ConsumerWidget {
   /// Show Ayah Actions bottom sheet with Tafsir preview
   static void _showAyahActions(BuildContext context, Verse verse, MushafThemeData themeData) {
     HapticFeedback.mediumImpact();
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -469,10 +469,6 @@ class _MushafPageWidget extends ConsumerWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _PageHeader extends StatelessWidget {
-  final String surahName;
-  final int juz;
-  final int pageNumber;
-  final MushafThemeData themeData;
 
   const _PageHeader({
     required this.surahName,
@@ -480,6 +476,10 @@ class _PageHeader extends StatelessWidget {
     required this.pageNumber,
     required this.themeData,
   });
+  final String surahName;
+  final int juz;
+  final int pageNumber;
+  final MushafThemeData themeData;
 
   @override
   Widget build(BuildContext context) {
@@ -516,15 +516,15 @@ class _PageHeader extends StatelessWidget {
 }
 
 class _SurahStartBanner extends StatelessWidget {
-  final String surahName;
-  final int surahNumber;
-  final MushafThemeData themeData;
 
   const _SurahStartBanner({
     required this.surahName,
     required this.surahNumber,
     required this.themeData,
   });
+  final String surahName;
+  final int surahNumber;
+  final MushafThemeData themeData;
 
   @override
   Widget build(BuildContext context) {
@@ -565,15 +565,15 @@ class _SurahStartBanner extends StatelessWidget {
 }
 
 class _ContinuousVerseBlock extends StatefulWidget {
-  final List<Verse> verses;
-  final MushafThemeData themeData;
-  final ValueChanged<Verse>? onVerseTap;
 
   const _ContinuousVerseBlock({
     required this.verses,
     required this.themeData,
     this.onVerseTap,
   });
+  final List<Verse> verses;
+  final MushafThemeData themeData;
+  final ValueChanged<Verse>? onVerseTap;
 
   @override
   State<_ContinuousVerseBlock> createState() => _ContinuousVerseBlockState();
@@ -625,27 +625,28 @@ class _ContinuousVerseBlockState extends State<_ContinuousVerseBlock> {
     for (var idx = 0; idx < widget.verses.length; idx++) {
       final verse = widget.verses[idx];
       // Verse text (tappable)
-      spans.add(TextSpan(
-        text: verse.textUthmani,
-        style: GoogleFonts.amiri(
-          fontSize: 24,
-          height: 2.2,
-          color: widget.themeData.textColor,
-          fontWeight: FontWeight.w500,
-        ),
-        recognizer: _recognizers[idx],
-      ),);
+      spans
+        ..add(TextSpan(
+          text: verse.textUthmani,
+          style: GoogleFonts.amiri(
+            fontSize: 24,
+            height: 2.2,
+            color: widget.themeData.textColor,
+            fontWeight: FontWeight.w500,
+          ),
+          recognizer: _recognizers[idx],
+        ),)
 
-      // Verse number marker ﴿١﴾ (also tappable)
-      spans.add(TextSpan(
-        text: ' \uFD3F${_toArabicNumeral(verse.numberInSurah)}\uFD3E ',
-        style: GoogleFonts.amiri(
-          fontSize: 16,
-          color: widget.themeData.verseMarkerColor,
-          fontWeight: FontWeight.bold,
-        ),
-        recognizer: _recognizers[idx],
-      ),);
+        // Verse number marker ﴿١﴾ (also tappable)
+        ..add(TextSpan(
+          text: ' \uFD3F${_toArabicNumeral(verse.numberInSurah)}\uFD3E ',
+          style: GoogleFonts.amiri(
+            fontSize: 16,
+            color: widget.themeData.verseMarkerColor,
+            fontWeight: FontWeight.bold,
+          ),
+          recognizer: _recognizers[idx],
+        ),);
     }
 
     return Padding(
@@ -669,10 +670,6 @@ class _ContinuousVerseBlockState extends State<_ContinuousVerseBlock> {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _MushafTopBar extends StatelessWidget {
-  final int pageNumber;
-  final MushafThemeData themeData;
-  final VoidCallback onBack;
-  final VoidCallback onTheme;
 
   const _MushafTopBar({
     required this.pageNumber,
@@ -680,6 +677,10 @@ class _MushafTopBar extends StatelessWidget {
     required this.onBack,
     required this.onTheme,
   });
+  final int pageNumber;
+  final MushafThemeData themeData;
+  final VoidCallback onBack;
+  final VoidCallback onTheme;
 
   @override
   Widget build(BuildContext context) {
@@ -691,7 +692,7 @@ class _MushafTopBar extends StatelessWidget {
           end: Alignment.bottomCenter,
           colors: [
             themeData.backgroundColor,
-            themeData.backgroundColor.withValues(alpha: 0.0),
+            themeData.backgroundColor.withValues(alpha: 0),
           ],
         ),
       ),
@@ -718,15 +719,15 @@ class _MushafTopBar extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _MushafBottomBar extends StatelessWidget {
-  final int currentPage;
-  final MushafThemeData themeData;
-  final ValueChanged<int> onJump;
 
   const _MushafBottomBar({
     required this.currentPage,
     required this.themeData,
     required this.onJump,
   });
+  final int currentPage;
+  final MushafThemeData themeData;
+  final ValueChanged<int> onJump;
 
   @override
   Widget build(BuildContext context) {
@@ -738,7 +739,7 @@ class _MushafBottomBar extends StatelessWidget {
           end: Alignment.topCenter,
           colors: [
             themeData.backgroundColor,
-            themeData.backgroundColor.withValues(alpha: 0.0),
+            themeData.backgroundColor.withValues(alpha: 0),
           ],
         ),
       ),
@@ -783,13 +784,13 @@ class _MushafBottomBar extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _AyahActionSheet extends StatefulWidget {
-  final Verse verse;
-  final MushafThemeData themeData;
 
   const _AyahActionSheet({
     required this.verse,
     required this.themeData,
   });
+  final Verse verse;
+  final MushafThemeData themeData;
 
   @override
   State<_AyahActionSheet> createState() => _AyahActionSheetState();
@@ -810,7 +811,6 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
     final entry = await TafsirDataSource.getAyahTafsir(
       surah: widget.verse.surahNumber,
       ayah: widget.verse.numberInSurah,
-      source: TafsirSourceId.muyassar,
     );
     if (mounted) {
       setState(() {
@@ -892,7 +892,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                 verse.textUthmani,
                 style: GoogleFonts.amiri(
                   fontSize: 26,
-                  height: 2.0,
+                  height: 2,
                   color: td.textColor,
                   fontWeight: FontWeight.w500,
                 ),
@@ -1097,7 +1097,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                   Navigator.pop(context);
                   // Navigate to the dedicated TafsirPage for this surah+ayah
                   Navigator.of(context).push(
-                    FadeThroughPageRoute(
+                    FadeThroughPageRoute<void>(
                       page: _FullTafsirReaderPage(
                         surahNumber: verse.surahNumber,
                         ayahNumber: verse.numberInSurah,
@@ -1143,11 +1143,6 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final Color bgColor;
-  final VoidCallback onTap;
 
   const _ActionButton({
     required this.icon,
@@ -1156,6 +1151,11 @@ class _ActionButton extends StatelessWidget {
     required this.bgColor,
     required this.onTap,
   });
+  final IconData icon;
+  final String label;
+  final Color color;
+  final Color bgColor;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -1186,4 +1186,3 @@ class _ActionButton extends StatelessWidget {
     );
   }
 }
-

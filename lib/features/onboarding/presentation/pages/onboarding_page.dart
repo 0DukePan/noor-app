@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../core/theme/noor_theme.dart';
 import '../../../../core/services/hive_service.dart';
+import '../../../../core/theme/noor_theme.dart';
 
 /// صفحة الترحيب والتهيئة - Onboarding Page
 class OnboardingPage extends StatefulWidget {
-  final VoidCallback onComplete;
 
-  const OnboardingPage({super.key, required this.onComplete});
+  const OnboardingPage({required this.onComplete, super.key});
+  final VoidCallback onComplete;
 
   @override
   State<OnboardingPage> createState() => _OnboardingPageState();
@@ -77,8 +77,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
     }
   }
 
-  void _completeOnboarding() async {
-    HapticFeedback.mediumImpact();
+  Future<void> _completeOnboarding() async {
+    unawaited(HapticFeedback.mediumImpact());
     
     // Save onboarding complete flag (same key the router redirect reads).
     // Fire-and-forget: never block navigation on a disk write.
@@ -185,7 +185,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         children: [
           // Animated icon
           TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0.8, end: 1.0),
+            tween: Tween(begin: 0.8, end: 1),
             duration: const Duration(milliseconds: 600),
             curve: Curves.elasticOut,
             builder: (context, value, child) {
@@ -237,12 +237,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
 }
 
 class OnboardingStep {
-  final String icon;
-  final String title;
-  final String subtitle;
-  final String description;
-  final Color color;
-  final bool isLast;
 
   OnboardingStep({
     required this.icon,
@@ -252,6 +246,12 @@ class OnboardingStep {
     required this.color,
     this.isLast = false,
   });
+  final String icon;
+  final String title;
+  final String subtitle;
+  final String description;
+  final Color color;
+  final bool isLast;
 }
 
 /// Check if onboarding is complete (reads the same flag the router redirects on)

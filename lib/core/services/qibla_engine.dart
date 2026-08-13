@@ -89,12 +89,12 @@ class QiblaEngine {
     
     // Europe
     if (latitude >= 35 && latitude <= 70 && longitude >= -10 && longitude <= 40) {
-      return 0.0; // Varies significantly, ~0° average
+      return 0; // Varies significantly, ~0° average
     }
     
     // South Asia (India, Pakistan, etc.)
     if (latitude >= 5 && latitude <= 40 && longitude >= 60 && longitude <= 100) {
-      return -1.0; // ~1° West
+      return -1; // ~1° West
     }
     
     // Southeast Asia
@@ -104,16 +104,16 @@ class QiblaEngine {
     
     // North America (East)
     if (latitude >= 25 && latitude <= 50 && longitude >= -90 && longitude <= -60) {
-      return -14.0; // ~14° West
+      return -14; // ~14° West
     }
     
     // North America (West)
     if (latitude >= 25 && latitude <= 50 && longitude >= -130 && longitude <= -100) {
-      return 12.0; // ~12° East
+      return 12; // ~12° East
     }
     
     // Default: assume minimal declination
-    return 0.0;
+    return 0;
   }
 
   /// تصحيح البوصلة بالانحراف المغناطيسي
@@ -283,11 +283,6 @@ extension QiblaAlignmentInfo on QiblaAlignment {
 
 /// نتيجة حساب القبلة الكاملة
 class QiblaResult {
-  final double trueQiblaDirection;    // من الشمال الحقيقي
-  final double magneticQiblaDirection; // من الشمال المغناطيسي
-  final double declination;
-  final double distanceToKaaba;
-  final String directionText;
 
   const QiblaResult({
     required this.trueQiblaDirection,
@@ -326,15 +321,15 @@ class QiblaResult {
       directionText: QiblaEngine.formatDirection(trueQibla),
     );
   }
+  final double trueQiblaDirection;    // من الشمال الحقيقي
+  final double magneticQiblaDirection; // من الشمال المغناطيسي
+  final double declination;
+  final double distanceToKaaba;
+  final String directionText;
 }
 
 /// إعدادات وضع المسجد
 class MosqueMode {
-  final bool enabled;
-  final bool permanentLock;
-  final bool ignoreVibrations;
-  final bool noAutoTimeout;
-  final double lockedDirection;
 
   const MosqueMode({
     this.enabled = false,
@@ -343,6 +338,11 @@ class MosqueMode {
     this.noAutoTimeout = true,
     this.lockedDirection = 0,
   });
+  final bool enabled;
+  final bool permanentLock;
+  final bool ignoreVibrations;
+  final bool noAutoTimeout;
+  final double lockedDirection;
 
   MosqueMode copyWith({
     bool? enabled,

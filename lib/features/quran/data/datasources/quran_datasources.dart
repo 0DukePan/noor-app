@@ -1,5 +1,5 @@
 import '../../../../core/domain/entities/surah.dart';
-import '../../domain/entities/quran_entities.dart' hide Surah, Verse, RevelationType;
+import '../../domain/entities/quran_entities.dart' hide RevelationType, Surah, Verse;
 
 /// مصدر البيانات المحلي للقرآن - Quran Local Data Source
 abstract class QuranLocalDataSource {
@@ -50,11 +50,7 @@ class VerseModel extends Verse {
     required super.number,
     required super.numberInSurah,
     required super.textUthmani,
-    super.textSimple,
-    required super.page,
-    required super.juz,
-    required super.hizb,
-    required super.quarter,
+    required super.page, required super.juz, required super.hizb, required super.quarter, super.textSimple,
     super.sajdah,
     super.surahNumber,
     super.surahName,
@@ -108,12 +104,12 @@ class SurahModel extends Surah {
   factory SurahModel.fromJson(Map<String, dynamic> json) {
     return SurahModel(
       number: json['number'] as int,
-      nameArabic: (json['name'] ?? json['name_arabic']) as String,
+      nameArabic: (json['name'] ?? json['name_arabic'] ?? '') as String,
       nameEnglish: (json['englishName'] ?? json['name_english']) as String,
       englishNameTranslation: (json['englishNameTranslation'] ?? json['english_name_translation'] ?? '') as String,
       nameTransliteration: (json['name_transliteration'] ?? '') as String,
       versesCount: (json['numberOfAyahs'] ?? json['verses_count']) as int,
-      revelationType: _parseRevelationType(json['revelationType'] ?? json['revelation_type'] ?? ''),
+      revelationType: _parseRevelationType((json['revelationType'] ?? json['revelation_type'] ?? '') as String),
       page: json['page'] as int? ?? 0,
       verses: (json['verses'] as List<dynamic>?)
               ?.map((v) => VerseModel.fromJson(v as Map<String, dynamic>))
@@ -150,9 +146,7 @@ class TafsirModel extends Tafsir {
     required super.surahNumber,
     required super.verseNumber,
     required super.briefText,
-    super.detailedText,
-    required super.source,
-    required super.author,
+    required super.source, required super.author, super.detailedText,
   });
 
   factory TafsirModel.fromJson(Map<String, dynamic> json) {
@@ -184,9 +178,7 @@ class RevelationCauseModel extends RevelationCause {
     required super.surahNumber,
     required super.verseNumber,
     required super.briefSummary,
-    super.fullStory,
-    required super.causeType,
-    required super.source,
+    required super.causeType, required super.source, super.fullStory,
     super.historicalContext,
   });
 

@@ -1,10 +1,17 @@
-include: package:flutter_lints/flutter.yaml
+# Strict, opinionated lint set (very_good_analysis).
+#
+# Deliberate deviations (documented):
+# - `public_member_api_docs` off: this is an application, not a published
+#   package; the rule would mandate docs on internal widgets/providers.
+# - `lines_longer_than_80_chars` off: long Arabic strings make 80-column
+#   line breaking cosmetic churn, not a correctness improvement.
+# - `always_use_package_imports` off: the codebase consistently uses relative
+#   imports (the same convention as the Flutter framework itself).
+# Everything else in the preset is enforced to zero issues.
+include: package:very_good_analysis/analysis_options.7.0.0.yaml
 
 linter:
   rules:
-    - prefer_const_constructors
-    - prefer_const_declarations
-    - prefer_final_fields
-    - prefer_final_locals
-    - avoid_print
-    - require_trailing_commas
+    public_member_api_docs: false
+    lines_longer_than_80_chars: false
+    always_use_package_imports: false

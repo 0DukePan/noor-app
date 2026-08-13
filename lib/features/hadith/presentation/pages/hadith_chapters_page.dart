@@ -2,24 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/design_system.dart';
 import '../../../../core/domain/entities/hadith.dart';
+import '../../../../core/theme/design_system.dart';
 import '../providers/hadith_providers.dart';
 import 'hadith_chapter_hadiths_page.dart';
 
 /// صفحة أبواب الكتاب - Hadith Chapters (Books) Browser
 /// Collection → **Chapters** → Hadiths
 class HadithChaptersPage extends ConsumerWidget {
+
+  const HadithChaptersPage({
+    required this.bookId, required this.bookTitle, required this.bookColor, super.key,
+  });
   final String bookId;
   final String bookTitle;
   final Color bookColor;
-
-  const HadithChaptersPage({
-    super.key,
-    required this.bookId,
-    required this.bookTitle,
-    required this.bookColor,
-  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,10 +28,10 @@ class HadithChaptersPage extends ConsumerWidget {
       body: bookAsync.when(
         data: (book) => countsAsync.when(
           data: (counts) => _buildContent(context, book, counts),
-          loading: () => _buildLoading(),
+          loading: _buildLoading,
           error: (e, s) => _buildError(e),
         ),
-        loading: () => _buildLoading(),
+        loading: _buildLoading,
         error: (e, s) => _buildError(e),
       ),
     );
@@ -123,7 +120,7 @@ class HadithChaptersPage extends ConsumerWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (_) => HadithChapterHadithsPage(
                         bookId: bookId,
                         bookTitle: bookTitle,
@@ -187,7 +184,7 @@ class HadithChaptersPage extends ConsumerWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
+                      MaterialPageRoute<void>(
                         builder: (_) => HadithChapterHadithsPage(
                           bookId: bookId,
                           bookTitle: bookTitle,
@@ -253,7 +250,6 @@ class HadithChaptersPage extends ConsumerWidget {
             ),
           ),
         ),
-        collapseMode: CollapseMode.parallax,
       ),
     );
   }
@@ -264,15 +260,15 @@ class HadithChaptersPage extends ConsumerWidget {
 // ─────────────────────────────────────────────────────────
 
 class _StatChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
 
   const _StatChip({
     required this.icon,
     required this.label,
     required this.color,
   });
+  final IconData icon;
+  final String label;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -302,11 +298,6 @@ class _StatChip extends StatelessWidget {
 }
 
 class _ChapterTile extends StatelessWidget {
-  final HadithChapter chapter;
-  final int index;
-  final int hadithCount;
-  final Color bookColor;
-  final VoidCallback onTap;
 
   const _ChapterTile({
     required this.chapter,
@@ -315,6 +306,11 @@ class _ChapterTile extends StatelessWidget {
     required this.bookColor,
     required this.onTap,
   });
+  final HadithChapter chapter;
+  final int index;
+  final int hadithCount;
+  final Color bookColor;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {

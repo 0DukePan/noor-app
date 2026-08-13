@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 /// This prevents UI jank when loading large files like Bukhari.json (12MB+).
 class IsolateParser {
   /// Loads a string asset and parses it using the provided [parser] function in a background Isolate.
-  static Future<T> parseInBackground<T, R>({
+  static Future<T> parseInBackground<T>({
     required String assetPath,
     required T Function(String json) parser,
   }) async {
@@ -17,17 +17,17 @@ class IsolateParser {
     
     final jsonString = await rootBundle.loadString(assetPath);
     
-    return await compute(_parseWrapper, _ParseArgs(jsonString, parser));
+    return compute(_parseWrapper<T>, _ParseArgs<T>(jsonString, parser));
   }
 
-  static T _parseWrapper<T, R>(_ParseArgs<T> args) {
+  static T _parseWrapper<T>(_ParseArgs<T> args) {
     return args.parser(args.jsonString);
   }
 }
 
 class _ParseArgs<T> {
-  final String jsonString;
-  final T Function(String) parser;
 
   _ParseArgs(this.jsonString, this.parser);
+  final String jsonString;
+  final T Function(String) parser;
 }

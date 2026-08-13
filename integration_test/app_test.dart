@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -45,7 +46,7 @@ void main() {
 
   testWidgets('app boots and all five main tabs render', (tester) async {
     // Boot the real app (service init runs in real async time).
-    app.main();
+    unawaited(app.main());
     await tester.pump();
     await _pumpUntil(tester, find.byType(Scaffold), timeout: _bootTimeout);
     await tester.pump(const Duration(seconds: 2));

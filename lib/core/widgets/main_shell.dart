@@ -8,9 +8,9 @@ import '../theme/design_system.dart';
 /// الإطار الرئيسي - Main Shell
 /// Premium floating bottom navigation with calm, modern design
 class MainShell extends StatelessWidget {
-  final Widget child;
 
-  const MainShell({super.key, required this.child});
+  const MainShell({required this.child, super.key});
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +42,6 @@ class _NoorBottomNav extends StatelessWidget {
             color: NoorDesignSystem.emeraldGreen.withValues(alpha: isDark ? 0.15 : 0.08),
             blurRadius: 24,
             offset: const Offset(0, -4),
-            spreadRadius: 0,
           ),
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
@@ -99,10 +98,6 @@ class _NoorBottomNav extends StatelessWidget {
 }
 
 class _NavItem extends StatefulWidget {
-  final IconData icon;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
 
   const _NavItem({
     required this.icon,
@@ -110,6 +105,10 @@ class _NavItem extends StatefulWidget {
     required this.isSelected,
     required this.onTap,
   });
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
 
   @override
   State<_NavItem> createState() => _NavItemState();
@@ -126,7 +125,7 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
       vsync: this,
       duration: const Duration(milliseconds: 200),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.85).animate(
+    _scaleAnimation = Tween<double>(begin: 1, end: 0.85).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }

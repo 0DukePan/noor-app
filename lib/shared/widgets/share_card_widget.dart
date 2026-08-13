@@ -1,26 +1,24 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../core/theme/noor_theme.dart';
 import '../../../core/services/export_share_service.dart';
+import '../../../core/theme/noor_theme.dart';
 
 /// بطاقة المشاركة - Share Card Widget
 /// Beautiful card for sharing verses or hadiths on social media
 class ShareCardWidget extends StatelessWidget {
+
+  const ShareCardWidget({
+    required this.cardKey, required this.arabicText, required this.source, super.key,
+    this.translation,
+    this.style = ShareCardStyle.elegant,
+  });
   final GlobalKey cardKey;
   final String arabicText;
   final String source;
   final String? translation;
   final ShareCardStyle style;
-
-  const ShareCardWidget({
-    super.key,
-    required this.cardKey,
-    required this.arabicText,
-    required this.source,
-    this.translation,
-    this.style = ShareCardStyle.elegant,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -64,15 +62,15 @@ enum ShareCardStyle { elegant, minimal, gradient, dark }
 
 /// Elegant style card
 class _ElegantCard extends StatelessWidget {
-  final String arabicText;
-  final String source;
-  final String? translation;
 
   const _ElegantCard({
     required this.arabicText,
     required this.source,
     this.translation,
   });
+  final String arabicText;
+  final String source;
+  final String? translation;
 
   @override
   Widget build(BuildContext context) {
@@ -181,15 +179,15 @@ class _ElegantCard extends StatelessWidget {
 
 /// Minimal style card
 class _MinimalCard extends StatelessWidget {
-  final String arabicText;
-  final String source;
-  final String? translation;
 
   const _MinimalCard({
     required this.arabicText,
     required this.source,
     this.translation,
   });
+  final String arabicText;
+  final String source;
+  final String? translation;
 
   @override
   Widget build(BuildContext context) {
@@ -205,7 +203,7 @@ class _MinimalCard extends StatelessWidget {
             style: const TextStyle(
               fontFamily: 'AmiriQuran',
               fontSize: 28,
-              height: 2.0,
+              height: 2,
               color: Colors.black87,
             ),
             textAlign: TextAlign.center,
@@ -227,15 +225,15 @@ class _MinimalCard extends StatelessWidget {
 
 /// Gradient style card
 class _GradientCard extends StatelessWidget {
-  final String arabicText;
-  final String source;
-  final String? translation;
 
   const _GradientCard({
     required this.arabicText,
     required this.source,
     this.translation,
   });
+  final String arabicText;
+  final String source;
+  final String? translation;
 
   @override
   Widget build(BuildContext context) {
@@ -263,7 +261,7 @@ class _GradientCard extends StatelessWidget {
             style: const TextStyle(
               fontFamily: 'AmiriQuran',
               fontSize: 24,
-              height: 2.0,
+              height: 2,
               color: Colors.white,
             ),
             textAlign: TextAlign.center,
@@ -295,15 +293,15 @@ class _GradientCard extends StatelessWidget {
 
 /// Dark style card
 class _DarkCard extends StatelessWidget {
-  final String arabicText;
-  final String source;
-  final String? translation;
 
   const _DarkCard({
     required this.arabicText,
     required this.source,
     this.translation,
   });
+  final String arabicText;
+  final String source;
+  final String? translation;
 
   @override
   Widget build(BuildContext context) {
@@ -336,7 +334,7 @@ class _DarkCard extends StatelessWidget {
             style: const TextStyle(
               fontFamily: 'AmiriQuran',
               fontSize: 24,
-              height: 2.0,
+              height: 2,
               color: NoorTheme.accentGold,
             ),
             textAlign: TextAlign.center,
@@ -371,16 +369,14 @@ class _DarkCard extends StatelessWidget {
 
 /// Share card preview dialog
 class ShareCardPreviewDialog extends StatefulWidget {
+
+  const ShareCardPreviewDialog({
+    required this.arabicText, required this.source, super.key,
+    this.translation,
+  });
   final String arabicText;
   final String source;
   final String? translation;
-
-  const ShareCardPreviewDialog({
-    super.key,
-    required this.arabicText,
-    required this.source,
-    this.translation,
-  });
 
   @override
   State<ShareCardPreviewDialog> createState() => _ShareCardPreviewDialogState();
@@ -480,10 +476,10 @@ class _ShareCardPreviewDialogState extends State<ShareCardPreviewDialog> {
   }
 
   Future<void> _shareCard() async {
-    HapticFeedback.mediumImpact();
+    unawaited(HapticFeedback.mediumImpact());
 
     // Wait for next frame to ensure widget is rendered
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
 
     final imageBytes = await ExportShareService.generateShareCard(_cardKey);
     if (imageBytes != null) {
@@ -499,7 +495,7 @@ void showShareCardDialog(
   required String source,
   String? translation,
 }) {
-  showDialog(
+  showDialog<void>(
     context: context,
     builder: (context) => ShareCardPreviewDialog(
       arabicText: arabicText,

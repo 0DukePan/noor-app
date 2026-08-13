@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' show Icons, IconData;
-import 'package:just_audio/just_audio.dart';
-import 'package:just_audio_background/just_audio_background.dart';
+
 import 'package:audio_session/audio_session.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show IconData, Icons;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../domain/entities/surah_names.dart';
 
@@ -22,15 +23,15 @@ import '../domain/entities/surah_names.dart';
 /// - Multiple reciters
 class QuranAudioEngine {
   static final AudioPlayer _player = AudioPlayer();
-  static Box? _cacheBox;
-  static Box? _progressBox;
+  static Box<dynamic>? _cacheBox;
+  static Box<dynamic>? _progressBox;
   
   // State
   static int _currentSurah = 1;
   static int _currentAyah = 1;
   static String _currentReciter = 'ar.alafasy';
-  static RepeatMode _repeatMode = RepeatMode.none;
-  static double _speed = 1.0;
+  static RepeatMode repeatMode = RepeatMode.none;
+  static double _speed = 1;
   
   // Streams
   static final _currentAyahController = StreamController<int>.broadcast();
@@ -46,8 +47,8 @@ class QuranAudioEngine {
   /// تهيئة المحرك
   static Future<void> init() async {
     // Initialize Hive boxes
-    _cacheBox = await Hive.openBox('audio_cache');
-    _progressBox = await Hive.openBox('audio_progress');
+    _cacheBox = await Hive.openBox<dynamic>('audio_cache');
+    _progressBox = await Hive.openBox<dynamic>('audio_progress');
     
     // Initialize audio session for background playback
     final session = await AudioSession.instance;
@@ -59,7 +60,6 @@ class QuranAudioEngine {
         contentType: AndroidAudioContentType.music,
         usage: AndroidAudioUsage.media,
       ),
-      androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
     ),);
     
     // Listen to player state
@@ -76,9 +76,7 @@ class QuranAudioEngine {
     });
     
     // Listen to position for progress saving
-    _player.positionStream.listen((position) {
-      _saveProgress(position);
-    });
+    _player.positionStream.listen(_saveProgress);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -167,7 +165,7 @@ class QuranAudioEngine {
       if (savedPosition != null && savedPosition.inSeconds > 3) {
         await _player.seek(savedPosition);
       }
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('Error playing audio: $e');
     }
   }
@@ -230,13 +228,6 @@ class QuranAudioEngine {
 
   static double get speed => _speed;
 
-  /// وضع التكرار
-  static void setRepeatMode(RepeatMode mode) {
-    _repeatMode = mode;
-  }
-
-  static RepeatMode get repeatMode => _repeatMode;
-
   // ═══════════════════════════════════════════════════════════════════════════
   // OFFLINE CACHING
   // ═══════════════════════════════════════════════════════════════════════════
@@ -263,7 +254,7 @@ class QuranAudioEngine {
     debugPrint('Streaming: $url');
     
     // Start background download for caching
-    _downloadForCache(surah, ayah, url);
+    unawaited(_downloadForCache(surah, ayah, url));
     
     return AudioSource.uri(
       Uri.parse(url),
@@ -286,7 +277,7 @@ class QuranAudioEngine {
         
         debugPrint('Cached: $localPath');
       }
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('Cache download failed: $e');
     }
   }
@@ -315,14 +306,14 @@ class QuranAudioEngine {
     
     _cacheBox?.toMap().forEach((key, value) {
       if (value is Map) {
-        final timestamp = DateTime.tryParse(value['timestamp'] ?? '');
+        final timestamp = DateTime.tryParse((value['timestamp'] ?? '') as String);
         if (timestamp != null && now.difference(timestamp).inDays > 7) {
           // Delete file
           final path = value['path'];
           if (path != null) {
-            File(path).deleteSync();
+            File(path as String).deleteSync();
           }
-          keysToRemove.add(key);
+          keysToRemove.add(key as String);
         }
       }
     });
@@ -341,7 +332,7 @@ class QuranAudioEngine {
     
     if (!audioDir.existsSync()) return '0 MB';
     
-    int totalSize = 0;
+    var totalSize = 0;
     audioDir.listSync(recursive: true).whereType<File>().forEach((file) {
       totalSize += file.lengthSync();
     });
@@ -382,23 +373,23 @@ class QuranAudioEngine {
 
   /// استعادة آخر موضع
   static Future<ResumeInfo?> getLastPosition() async {
-    final data = _progressBox?.get('last_position');
+    final data = _progressBox?.get('last_position') as Map<dynamic, dynamic>?;
     if (data == null) return null;
     
     return ResumeInfo(
-      surah: data['surah'] ?? 1,
-      ayah: data['ayah'] ?? 1,
-      position: Duration(milliseconds: data['position'] ?? 0),
-      reciter: data['reciter'] ?? 'ar.alafasy',
-      timestamp: DateTime.tryParse(data['timestamp'] ?? ''),
+      surah: (data['surah'] ?? 1) as int,
+      ayah: (data['ayah'] ?? 1) as int,
+      position: Duration(milliseconds: (data['position'] ?? 0) as int),
+      reciter: (data['reciter'] ?? 'ar.alafasy') as String,
+      timestamp: DateTime.tryParse((data['timestamp'] ?? '') as String),
     );
   }
 
   static Duration? _getSavedPosition(int surah, int ayah) {
-    final data = _progressBox?.get('last_position');
+    final data = _progressBox?.get('last_position') as Map<dynamic, dynamic>?;
     if (data == null) return null;
     if (data['surah'] != surah || data['ayah'] != ayah) return null;
-    return Duration(milliseconds: data['position'] ?? 0);
+    return Duration(milliseconds: (data['position'] ?? 0) as int);
   }
 
   /// استئناف من آخر موضع
@@ -418,19 +409,16 @@ class QuranAudioEngine {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static void _onAyahComplete() {
-    switch (_repeatMode) {
+    switch (repeatMode) {
       case RepeatMode.ayah:
         // Repeat same ayah
         playAyah(surah: _currentSurah, ayah: _currentAyah);
-        break;
       case RepeatMode.surah:
         // Next ayah or restart surah
         nextAyah();
-        break;
       case RepeatMode.none:
         // Auto-advance to next ayah
         nextAyah();
-        break;
     }
   }
 
@@ -451,8 +439,8 @@ class QuranAudioEngine {
       5, 8, 8, 11, 11, 8, 3, 9, 5, 4, 7, 3, 6, 3, 5, 4, 5, 6,
     ];
     
-    int absoluteNumber = 0;
-    for (int i = 0; i < surah - 1; i++) {
+    var absoluteNumber = 0;
+    for (var i = 0; i < surah - 1; i++) {
       absoluteNumber += verseCounts[i];
     }
     return absoluteNumber + ayah;
@@ -490,11 +478,6 @@ class QuranAudioEngine {
 
 /// معلومات القارئ
 class ReciterInfo {
-  final String id;
-  final String arabicName;
-  final String englishName;
-  final String baseUrl;
-  final String flag;
 
   const ReciterInfo({
     required this.id,
@@ -503,6 +486,11 @@ class ReciterInfo {
     required this.baseUrl,
     required this.flag,
   });
+  final String id;
+  final String arabicName;
+  final String englishName;
+  final String baseUrl;
+  final String flag;
 }
 
 /// وضع التكرار
@@ -532,13 +520,13 @@ extension RepeatModeInfo on RepeatMode {
 
 /// حالة التشغيل
 class PlayState {
-  final bool isPlaying;
-  final ProcessingState processingState;
 
   const PlayState({
     required this.isPlaying,
     required this.processingState,
   });
+  final bool isPlaying;
+  final ProcessingState processingState;
 
   bool get isLoading => processingState == ProcessingState.loading ||
       processingState == ProcessingState.buffering;
@@ -547,11 +535,6 @@ class PlayState {
 
 /// معلومات الاستئناف
 class ResumeInfo {
-  final int surah;
-  final int ayah;
-  final Duration position;
-  final String reciter;
-  final DateTime? timestamp;
 
   const ResumeInfo({
     required this.surah,
@@ -560,5 +543,9 @@ class ResumeInfo {
     required this.reciter,
     this.timestamp,
   });
+  final int surah;
+  final int ayah;
+  final Duration position;
+  final String reciter;
+  final DateTime? timestamp;
 }
-

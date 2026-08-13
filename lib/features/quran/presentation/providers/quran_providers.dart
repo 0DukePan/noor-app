@@ -1,22 +1,20 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/data/data_sources/local_tafsir_data_source.dart';
+import '../../../../core/data/repositories/tafsir_repository_impl.dart';
 // Entities
 import '../../../../core/domain/entities/surah.dart';
 import '../../../../core/domain/entities/tafsir.dart';
-
+import '../../../../core/domain/policies/offline_policy.dart';
 // Core Repositories (Tafsir remains on Core for now)
 import '../../../../core/domain/repositories/tafsir_repository.dart';
-import '../../../../core/data/repositories/tafsir_repository_impl.dart';
-import '../../../../core/data/data_sources/local_tafsir_data_source.dart';
-
-// Feature Repositories (Quran moves to Feature Architecture)
-import '../../domain/repositories/quran_repository.dart';
-import '../../data/repositories/quran_repository_impl.dart';
+import '../../../../core/utils/arabic_text.dart';
 import '../../data/datasources/local_quran_data_source.dart'; // Impl
 import '../../data/datasources/remote_quran_data_source.dart'; // Stub
-import '../../../../core/domain/policies/offline_policy.dart';
-import '../../../../core/utils/arabic_text.dart';
+import '../../data/repositories/quran_repository_impl.dart';
+// Feature Repositories (Quran moves to Feature Architecture)
+import '../../domain/repositories/quran_repository.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // REPOSITORY & DATA SOURCES
@@ -68,7 +66,7 @@ final surahsProvider = FutureProvider<List<Surah>>((ref) async {
   final result = await repo.getAllSurahs();
   
   return result.fold(
-    (failure) => throw failure.message, // Propagate error to AsyncValue
+    (failure) => throw Exception(failure.message), // Propagate error to AsyncValue
     (surahs) => surahs,
   );
 });
@@ -79,7 +77,7 @@ final surahProvider = FutureProvider.family<Surah, int>((ref, surahNumber) async
   final result = await repo.getSurahWithVerses(surahNumber);
   
   return result.fold(
-    (failure) => throw failure.message,
+    (failure) => throw Exception(failure.message),
     (surah) => surah,
   );
 });
@@ -100,15 +98,15 @@ final mushafCurrentPageProvider = StateProvider<int>((ref) => 1);
 // ═══════════════════════════════════════════════════════════════════════════
 
 class ReadingSettings {
-  final double fontSize;
-  final bool showTranslation;
-  final bool isKhushuMode;
 
   const ReadingSettings({
     this.fontSize = 24.0,
     this.showTranslation = true,
     this.isKhushuMode = false,
   });
+  final double fontSize;
+  final bool showTranslation;
+  final bool isKhushuMode;
 
   ReadingSettings copyWith({double? fontSize, bool? showTranslation, bool? isKhushuMode}) {
     return ReadingSettings(
@@ -192,7 +190,7 @@ final filteredSurahsProvider = Provider<AsyncValue<List<Surah>>>((ref) {
           surah.number.toString() == query;
 
       // Filter match
-      bool matchesType = true;
+      var matchesType = true;
       if (filter == 'meccan') {
         matchesType = surah.revelationType == RevelationType.meccan;
       } else if (filter == 'medinan') {
@@ -203,4 +201,3 @@ final filteredSurahsProvider = Provider<AsyncValue<List<Surah>>>((ref) {
     }).toList();
   });
 });
-

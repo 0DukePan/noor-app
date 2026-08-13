@@ -12,12 +12,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 /// - Indoor/Outdoor detection
 /// - Fallback to last known good location
 class LocationTrustEngine {
-  static Box? _locationBox;
+  static Box<dynamic>? _locationBox;
   
   // Thresholds
-  static const double _highAccuracyThreshold = 20.0;   // meters
-  static const double _mediumAccuracyThreshold = 100.0;
-  static const double _lowAccuracyThreshold = 500.0;
+  static const double _highAccuracyThreshold = 20;   // meters
+  static const double _mediumAccuracyThreshold = 100;
+  static const double _lowAccuracyThreshold = 500;
   
   // Cached location
   static TrustedLocation? _cachedLocation;
@@ -28,14 +28,14 @@ class LocationTrustEngine {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static Future<void> init() async {
-    _locationBox = await Hive.openBox('location_trust');
+    _locationBox = await Hive.openBox<dynamic>('location_trust');
     _loadCachedLocation();
   }
 
   static void _loadCachedLocation() {
     final data = _locationBox?.get('trusted_location');
     if (data != null) {
-      _cachedLocation = TrustedLocation.fromMap(Map<String, dynamic>.from(data));
+      _cachedLocation = TrustedLocation.fromMap(Map<String, dynamic>.from(data as Map));
     }
   }
 
@@ -54,7 +54,7 @@ class LocationTrustEngine {
     bool forceRefresh = false,
   }) async {
     // Check permission first
-    LocationPermission permission = await Geolocator.checkPermission();
+    var permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
     }
@@ -114,7 +114,7 @@ class LocationTrustEngine {
       return LocationResult.success(trusted);
     } on TimeoutException {
       return _fallbackToCached('انتهت مهلة تحديد الموقع');
-    } catch (e) {
+    } on Exception catch (e) {
       return _fallbackToCached('خطأ في تحديد الموقع: $e');
     }
   }
@@ -172,7 +172,7 @@ class LocationTrustEngine {
     Duration interval = const Duration(minutes: 5),
   }) async* {
     while (true) {
-      await Future.delayed(interval);
+      await Future<void>.delayed(interval);
       final result = await getTrustedLocation();
       if (result.isSuccess) {
         yield result.location!;
@@ -297,13 +297,6 @@ enum EnvironmentType {
 
 /// موقع موثوق
 class TrustedLocation {
-  final double latitude;
-  final double longitude;
-  final double altitude;
-  final double accuracy;
-  final LocationTrustLevel trustLevel;
-  final DateTime timestamp;
-  final LocationSource source;
 
   const TrustedLocation({
     required this.latitude,
@@ -315,6 +308,25 @@ class TrustedLocation {
     required this.source,
   });
 
+  factory TrustedLocation.fromMap(Map<String, dynamic> map) {
+    return TrustedLocation(
+      latitude: (map['latitude'] ?? 0) as double,
+      longitude: (map['longitude'] ?? 0) as double,
+      altitude: (map['altitude'] ?? 0) as double,
+      accuracy: (map['accuracy'] ?? 1000) as double,
+      trustLevel: LocationTrustLevel.values[(map['trustLevel'] ?? 4) as int],
+      timestamp: DateTime.tryParse(map['timestamp'] as String? ?? '') ?? DateTime.now(),
+      source: LocationSource.values[(map['source'] ?? 3) as int],
+    );
+  }
+  final double latitude;
+  final double longitude;
+  final double altitude;
+  final double accuracy;
+  final LocationTrustLevel trustLevel;
+  final DateTime timestamp;
+  final LocationSource source;
+
   Map<String, dynamic> toMap() => {
     'latitude': latitude,
     'longitude': longitude,
@@ -324,26 +336,10 @@ class TrustedLocation {
     'timestamp': timestamp.toIso8601String(),
     'source': source.index,
   };
-
-  factory TrustedLocation.fromMap(Map<String, dynamic> map) {
-    return TrustedLocation(
-      latitude: map['latitude'] ?? 0,
-      longitude: map['longitude'] ?? 0,
-      altitude: map['altitude'] ?? 0,
-      accuracy: map['accuracy'] ?? 1000,
-      trustLevel: LocationTrustLevel.values[map['trustLevel'] ?? 4],
-      timestamp: DateTime.tryParse(map['timestamp'] ?? '') ?? DateTime.now(),
-      source: LocationSource.values[map['source'] ?? 3],
-    );
-  }
 }
 
 /// نتيجة الموقع
 class LocationResult {
-  final bool isSuccess;
-  final TrustedLocation? location;
-  final String? error;
-  final String? warning;
 
   const LocationResult._({
     required this.isSuccess,
@@ -366,4 +362,8 @@ class LocationResult {
       error: error,
     );
   }
+  final bool isSuccess;
+  final TrustedLocation? location;
+  final String? error;
+  final String? warning;
 }

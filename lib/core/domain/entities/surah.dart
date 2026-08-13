@@ -3,6 +3,15 @@ import 'package:equatable/equatable.dart';
 enum RevelationType { meccan, medinan }
 
 class Surah extends Equatable {
+
+  const Surah({
+    required this.number,
+    required this.nameArabic,
+    required this.nameEnglish,
+    required this.englishNameTranslation,
+    required this.versesCount, required this.revelationType, required this.verses, this.nameTransliteration = '',
+    this.page = 0,
+  });
   final int number;
   final String nameArabic;
   final String nameEnglish;
@@ -12,18 +21,6 @@ class Surah extends Equatable {
   final RevelationType revelationType;
   final int page;
   final List<Verse> verses;
-
-  const Surah({
-    required this.number,
-    required this.nameArabic,
-    required this.nameEnglish,
-    required this.englishNameTranslation,
-    this.nameTransliteration = '',
-    required this.versesCount,
-    required this.revelationType,
-    this.page = 0,
-    required this.verses,
-  });
 
   @override
   List<Object?> get props => [
@@ -40,17 +37,6 @@ class Surah extends Equatable {
 }
 
 class Verse extends Equatable {
-  final int number; // Global number if available, otherwise 0
-  final int numberInSurah;
-  final String textUthmani;
-  final String? textSimple;
-  final int juz;
-  final int page;
-  final int hizb;
-  final int quarter;
-  final bool sajdah;
-  final int surahNumber;
-  final String? surahName;
 
   const Verse({
     required this.number,
@@ -65,6 +51,17 @@ class Verse extends Equatable {
     this.surahNumber = 0,
     this.surahName,
   });
+  final int number; // Global number if available, otherwise 0
+  final int numberInSurah;
+  final String textUthmani;
+  final String? textSimple;
+  final int juz;
+  final int page;
+  final int hizb;
+  final int quarter;
+  final bool sajdah;
+  final int surahNumber;
+  final String? surahName;
 
   @override
   List<Object?> get props => [

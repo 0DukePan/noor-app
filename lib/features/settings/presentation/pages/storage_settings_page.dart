@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/design_system.dart';
 import '../../../../core/services/hive_service.dart';
 import '../../../../core/services/quran_audio_engine.dart';
 import '../../../../core/services/silent_ui_controller.dart';
+import '../../../../core/theme/design_system.dart';
 import '../../../search/data/data_sources/search_local_data_source.dart';
 
 /// 🗄️ إعدادات التخزين والأداء — Storage & Performance Settings
@@ -36,7 +36,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
           'adhkar_cached': HiveService.adhkarBox.length,
         };
       });
-    } catch (_) {
+    } on Exception catch (_) {
       setState(() => _cacheStats = {'surahs_cached': 0, 'hadiths_cached': 0, 'adhkar_cached': 0});
     }
   }
@@ -126,7 +126,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
             trailing: _clearing
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.arrow_forward_ios_rounded, size: 16),
-            onTap: _clearing ? null : () => _clearCache(),
+            onTap: _clearing ? null : _clearCache,
             contentPadding: EdgeInsets.zero,
           ),
 
@@ -147,7 +147,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
             trailing: _syncing
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.arrow_forward_ios_rounded, size: 16),
-            onTap: _syncing ? null : () => _refreshStats(),
+            onTap: _syncing ? null : _refreshStats,
             contentPadding: EdgeInsets.zero,
           ),
         ],
@@ -254,9 +254,9 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.icon, required this.title});
   final IconData icon;
   final String title;
-  const _SectionHeader({required this.icon, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -275,10 +275,10 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _StatRow extends StatelessWidget {
+  const _StatRow({required this.label, required this.value, required this.icon});
   final String label;
   final String value;
   final IconData icon;
-  const _StatRow({required this.label, required this.value, required this.icon});
 
   @override
   Widget build(BuildContext context) {

@@ -1,26 +1,24 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../core/theme/noor_theme.dart';
 import '../../../../core/domain/policies/privacy_policy.dart';
 import '../../../../core/services/hive_service.dart';
 import '../../../../core/services/secure_key_service.dart';
+import '../../../../core/theme/noor_theme.dart';
 
 /// صفحة محراب التدبر - Tadabbur Mihrab Page
 /// Personal reflections on Quran verses with local encryption
 class TadabburMihrabPage extends ConsumerStatefulWidget {
+
+  const TadabburMihrabPage({
+    required this.surahNumber, required this.verseNumber, required this.verseText, super.key,
+  });
   final int surahNumber;
   final int verseNumber;
   final String verseText;
-
-  const TadabburMihrabPage({
-    super.key,
-    required this.surahNumber,
-    required this.verseNumber,
-    required this.verseText,
-  });
 
   @override
   ConsumerState<TadabburMihrabPage> createState() => _TadabburMihrabPageState();
@@ -43,7 +41,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
     final key = await SecureKeyService.getOrCreateKey('tadabbur');
     if (!mounted) return;
     setState(() => _privacyPolicy = DefaultPrivacyPolicy(encryptionKey: key));
-    _loadNotes();
+    unawaited(_loadNotes());
   }
 
   Future<void> _loadNotes() async {
@@ -55,7 +53,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
     _savedNotes = encrypted.map((e) {
       return {
         ...e,
-        'decrypted_note': _privacyPolicy?.decryptLocalData(e['encrypted_note'] ?? '') ?? '',
+        'decrypted_note': _privacyPolicy?.decryptLocalData((e['encrypted_note'] ?? '') as String) ?? '',
       };
     }).toList();
     setState(() => _isLoading = false);
@@ -145,7 +143,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
                     style: const TextStyle(
                       fontFamily: 'AmiriQuran',
                       fontSize: 22,
-                      height: 2.0,
+                      height: 2,
                       color: NoorTheme.textArabic,
                     ),
                     textAlign: TextAlign.center,
@@ -272,9 +270,9 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
                           itemBuilder: (context, index) {
                             final note = _savedNotes[index];
                             return _NoteCard(
-                              note: note['decrypted_note'] ?? '',
-                              createdAt: DateTime.parse(note['createdAt']),
-                              onDelete: () => _deleteNote(note['id']),
+                              note: (note['decrypted_note'] ?? '') as String,
+                              createdAt: DateTime.parse(note['createdAt'] as String),
+                              onDelete: () => _deleteNote((note['id'] ?? '') as String),
                             );
                           },
                         ),
@@ -286,7 +284,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
   }
 
   void _showPrivacyInfo() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Row(
@@ -324,15 +322,15 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
 }
 
 class _NoteCard extends StatelessWidget {
-  final String note;
-  final DateTime createdAt;
-  final VoidCallback onDelete;
 
   const _NoteCard({
     required this.note,
     required this.createdAt,
     required this.onDelete,
   });
+  final String note;
+  final DateTime createdAt;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {

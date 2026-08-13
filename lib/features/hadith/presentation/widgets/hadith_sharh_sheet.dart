@@ -3,9 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../../../core/theme/design_system.dart';
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/services/hadith_search_engine.dart';
+import '../../../../core/theme/design_system.dart';
 import '../hadith_book_names.dart';
 import '../pages/isnad_chain_page.dart';
 import '../pages/isnad_graph_page.dart';
@@ -15,16 +15,13 @@ import '../pages/tags_management_page.dart';
 /// 📖 شرح الحديث — Scholarly Explanation Bottom Sheet
 /// Stage 7: Provides contextual explanation, grade analysis, benefits, and user notes
 class HadithSharhSheet extends StatefulWidget {
+
+  const HadithSharhSheet({
+    required this.hadith, required this.bookTitle, required this.bookColor, super.key,
+  });
   final Hadith hadith;
   final String bookTitle;
   final Color bookColor;
-
-  const HadithSharhSheet({
-    super.key,
-    required this.hadith,
-    required this.bookTitle,
-    required this.bookColor,
-  });
 
   /// Show the sheet from anywhere
   static Future<void> show(
@@ -34,7 +31,7 @@ class HadithSharhSheet extends StatefulWidget {
     required Color bookColor,
   }) {
     HapticFeedback.mediumImpact();
-    return showModalBottomSheet(
+    return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -65,19 +62,19 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
 
   Future<void> _loadNote() async {
     try {
-      final box = await Hive.openBox('hadith_notes');
+      final box = await Hive.openBox<dynamic>('hadith_notes');
       final note = box.get('note_${widget.hadith.id}', defaultValue: '') as String;
       setState(() {
         _noteController.text = note;
       });
-    } catch (_) {}
+    } on Exception catch (_) {}
   }
 
   Future<void> _saveNote(String note) async {
     try {
-      final box = await Hive.openBox('hadith_notes');
+      final box = await Hive.openBox<dynamic>('hadith_notes');
       await box.put('note_${widget.hadith.id}', note);
-    } catch (_) {}
+    } on Exception catch (_) {}
   }
 
   Future<void> _loadSimilarHadiths() async {
@@ -99,7 +96,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
       } else {
         if (mounted) setState(() => _loadingSimilar = false);
       }
-    } catch (_) {
+    } on Exception catch (_) {
       if (mounted) setState(() => _loadingSimilar = false);
     }
   }
@@ -183,7 +180,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                       color: widget.bookColor,
                       child: Text(
                         widget.hadith.arabic,
-                        style: GoogleFonts.amiri(fontSize: 18, height: 2.0),
+                        style: GoogleFonts.amiri(fontSize: 18, height: 2),
                         textDirection: TextDirection.rtl,
                         maxLines: 4,
                         overflow: TextOverflow.ellipsis,
@@ -347,7 +344,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                             color: Colors.deepPurple,
                             onTap: () {
                               Navigator.pop(context);
-                              Navigator.push(context, MaterialPageRoute(
+                              Navigator.push(context, MaterialPageRoute<void>(
                                 builder: (_) => IsnadChainPage(
                                   hadithId: widget.hadith.id.toString(),
                                   hadithText: widget.hadith.arabic,
@@ -364,7 +361,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                             color: Colors.indigo,
                             onTap: () {
                               Navigator.pop(context);
-                              Navigator.push(context, MaterialPageRoute(
+                              Navigator.push(context, MaterialPageRoute<void>(
                                 builder: (_) => IsnadGraphPage(
                                   hadithText: widget.hadith.arabic,
                                   hadithSource: widget.bookTitle,
@@ -380,7 +377,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                             color: Colors.teal,
                             onTap: () {
                               Navigator.pop(context);
-                              Navigator.push(context, MaterialPageRoute(
+                              Navigator.push(context, MaterialPageRoute<void>(
                                 builder: (_) => NarrationComparisonPage(
                                   hadithKeyword: widget.hadith.arabic.split(' ').take(4).join(' '),
                                 ),
@@ -395,7 +392,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                             color: Colors.brown,
                             onTap: () {
                               Navigator.pop(context);
-                              Navigator.push(context, MaterialPageRoute(
+                              Navigator.push(context, MaterialPageRoute<void>(
                                 builder: (_) => TagsManagementPage(
                                   hadithId: widget.hadith.id.toString(),
                                 ),
@@ -514,9 +511,9 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.label, required this.value});
   final String label;
   final String value;
-  const _InfoRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -540,11 +537,6 @@ class _InfoRow extends StatelessWidget {
 }
 
 class _StudyToolButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String subtitle;
-  final Color color;
-  final VoidCallback onTap;
 
   const _StudyToolButton({
     required this.icon,
@@ -553,6 +545,11 @@ class _StudyToolButton extends StatelessWidget {
     required this.color,
     required this.onTap,
   });
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -600,4 +597,3 @@ class _StudyToolButton extends StatelessWidget {
     );
   }
 }
-

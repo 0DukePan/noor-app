@@ -8,7 +8,7 @@ class LocationService {
 
   /// Check if location services are enabled
   Future<bool> isLocationEnabled() async {
-    return await Geolocator.isLocationServiceEnabled();
+    return Geolocator.isLocationServiceEnabled();
   }
 
   /// Request location permission
@@ -38,7 +38,7 @@ class LocationService {
         longitude: position.longitude,
         altitude: position.altitude,
       );
-    } catch (e) {
+    } on Exception {
       return null;
     }
   }

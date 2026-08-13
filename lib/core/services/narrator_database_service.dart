@@ -31,14 +31,14 @@ class NarratorDatabaseService {
         final m = item as Map<String, dynamic>;
         return NarratorProfile(
           name: m['name'] as String,
-          aliases: List<String>.from(m['aliases'] ?? []),
+          aliases: List<String>.from(m['aliases'] as List? ?? []),
           rank: m['rank'] as String? ?? '',
           rankSource: m['rankSource'] as String? ?? '',
           birthYear: m['birthYear'] as int? ?? 0,
           deathYear: m['deathYear'] as int? ?? 0,
           role: m['role'] as String? ?? '',
-          teachers: List<String>.from(m['teachers'] ?? []),
-          students: List<String>.from(m['students'] ?? []),
+          teachers: List<String>.from(m['teachers'] as List? ?? []),
+          students: List<String>.from(m['students'] as List? ?? []),
           tadlis: m['tadlis'] as String? ?? '',
           ikhtilat: m['ikhtilat'] as String? ?? '',
           verdictSource: m['verdictSource'] as String? ?? '',
@@ -47,7 +47,7 @@ class NarratorDatabaseService {
 
       _initialized = true;
       debugPrint('Narrator database loaded: ${_narrators!.length} narrators');
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('Error loading narrator database: $e');
       _narrators = [];
       _initialized = true;
@@ -132,6 +132,21 @@ class NarratorDatabaseService {
 /// grow into them, but are left unpopulated rather than fabricating scholarly
 /// verdicts.
 class NarratorProfile {
+
+  const NarratorProfile({
+    required this.name,
+    required this.aliases,
+    required this.rank,
+    required this.rankSource,
+    required this.birthYear,
+    required this.deathYear,
+    required this.role,
+    required this.teachers,
+    required this.students,
+    this.tadlis = '',
+    this.ikhtilat = '',
+    this.verdictSource = '',
+  });
   final String name;
   final List<String> aliases;
   final String rank;
@@ -150,21 +165,6 @@ class NarratorProfile {
 
   /// Source of the reliability verdict (e.g. Ibn Hajar, al-Dhahabi).
   final String verdictSource;
-
-  const NarratorProfile({
-    required this.name,
-    required this.aliases,
-    required this.rank,
-    required this.rankSource,
-    required this.birthYear,
-    required this.deathYear,
-    required this.role,
-    required this.teachers,
-    required this.students,
-    this.tadlis = '',
-    this.ikhtilat = '',
-    this.verdictSource = '',
-  });
 
   /// Display-friendly death year
   String get deathYearDisplay => deathYear > 0 ? '$deathYear هـ' : 'غير معلوم';

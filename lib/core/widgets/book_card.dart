@@ -3,20 +3,15 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/design_system.dart';
 
 class BookCard extends StatelessWidget {
+
+  const BookCard({
+    required this.title, required this.subtitle, required this.count, required this.color, required this.onTap, super.key,
+  });
   final String title;
   final String subtitle;
   final int count;
   final Color color;
   final VoidCallback onTap;
-
-  const BookCard({
-    super.key,
-    required this.title,
-    required this.subtitle,
-    required this.count,
-    required this.color,
-    required this.onTap,
-  });
 
   @override
   Widget build(BuildContext context) {

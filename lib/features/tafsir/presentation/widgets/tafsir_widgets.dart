@@ -1,25 +1,24 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/models/tafsir_models.dart';
 import '../../../../core/services/tafsir_data_source.dart';
 
 /// 📖 TafsirInlineView - عرض التفسير المختصر تحت الآية
 class TafsirInlineView extends StatefulWidget {
+
+  const TafsirInlineView({
+    required this.surah, required this.ayah, super.key,
+    this.source = TafsirSourceId.muyassar,
+    this.initiallyExpanded = false,
+    this.onExpand,
+    this.onFullScreen,
+  });
   final int surah;
   final int ayah;
   final TafsirSourceId source;
   final bool initiallyExpanded;
   final VoidCallback? onExpand;
   final VoidCallback? onFullScreen;
-
-  const TafsirInlineView({
-    super.key,
-    required this.surah,
-    required this.ayah,
-    this.source = TafsirSourceId.muyassar,
-    this.initiallyExpanded = false,
-    this.onExpand,
-    this.onFullScreen,
-  });
 
   @override
   State<TafsirInlineView> createState() => _TafsirInlineViewState();
@@ -83,14 +82,16 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
         
         // Record reading
         if (tafsir != null) {
-          TafsirDataSource.recordReading(
-            surah: widget.surah,
-            ayah: widget.ayah,
-            source: widget.source,
+          unawaited(
+            TafsirDataSource.recordReading(
+              surah: widget.surah,
+              ayah: widget.ayah,
+              source: widget.source,
+            ),
           );
         }
       }
-    } catch (e) {
+    } on Exception {
       if (mounted) {
         setState(() {
           _error = 'فشل في تحميل التفسير';
@@ -308,7 +309,7 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
 
   void _showFullScreen(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (_) => TafsirFullScreenPage(
           surah: widget.surah,
           ayah: widget.ayah,
@@ -319,7 +320,7 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
   }
 
   void _showCompare(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -333,16 +334,13 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
 
 /// 📖 TafsirFullScreenPage - صفحة التفسير الكاملة
 class TafsirFullScreenPage extends StatefulWidget {
+
+  const TafsirFullScreenPage({
+    required this.surah, required this.ayah, required this.source, super.key,
+  });
   final int surah;
   final int ayah;
   final TafsirSourceId source;
-
-  const TafsirFullScreenPage({
-    super.key,
-    required this.surah,
-    required this.ayah,
-    required this.source,
-  });
 
   @override
   State<TafsirFullScreenPage> createState() => _TafsirFullScreenPageState();
@@ -457,7 +455,7 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
                             entry.text,
                             style: TextStyle(
                               fontSize: settings.fontSize + 2,
-                              height: 2.0,
+                              height: 2,
                               fontFamily: 'Amiri',
                             ),
                             textAlign: TextAlign.justify,
@@ -520,7 +518,7 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
   void _showFontSizeDialog(BuildContext context) {
     var settings = TafsirDataSource.getSettings();
     
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
@@ -574,14 +572,12 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
 
 /// 📖 TafsirCompareSheet - مقارنة التفاسير
 class TafsirCompareSheet extends StatefulWidget {
-  final int surah;
-  final int ayah;
 
   const TafsirCompareSheet({
-    super.key,
-    required this.surah,
-    required this.ayah,
+    required this.surah, required this.ayah, super.key,
   });
+  final int surah;
+  final int ayah;
 
   @override
   State<TafsirCompareSheet> createState() => _TafsirCompareSheetState();
@@ -736,8 +732,7 @@ class _TafsirCompareSheetState extends State<TafsirCompareSheet> {
                               const SizedBox(height: 12),
                               
                               // Tafsir text
-                              entry != null
-                                  ? SelectableText(
+                              if (entry != null) SelectableText(
                                       entry.text,
                                       style: TextStyle(
                                         fontSize: settings.fontSize,
@@ -745,8 +740,7 @@ class _TafsirCompareSheetState extends State<TafsirCompareSheet> {
                                         fontFamily: 'Amiri',
                                       ),
                                       textDirection: TextDirection.rtl,
-                                    )
-                                  : Text(
+                                    ) else Text(
                                       'لا يوجد تفسير',
                                       style: TextStyle(
                                         color: theme.colorScheme.error,
@@ -767,16 +761,14 @@ class _TafsirCompareSheetState extends State<TafsirCompareSheet> {
 
 /// 📖 TafsirBottomSheet - عرض التفسير السفلي
 class TafsirBottomSheet extends StatelessWidget {
+
+  const TafsirBottomSheet({
+    required this.surah, required this.ayah, super.key,
+    this.source = TafsirSourceId.muyassar,
+  });
   final int surah;
   final int ayah;
   final TafsirSourceId source;
-
-  const TafsirBottomSheet({
-    super.key,
-    required this.surah,
-    required this.ayah,
-    this.source = TafsirSourceId.muyassar,
-  });
 
   static void show(
     BuildContext context, {
@@ -784,7 +776,7 @@ class TafsirBottomSheet extends StatelessWidget {
     required int ayah,
     TafsirSourceId source = TafsirSourceId.muyassar,
   }) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -817,18 +809,14 @@ class TafsirBottomSheet extends StatelessWidget {
 }
 
 class TafsirSheetContent extends StatefulWidget {
+
+  const TafsirSheetContent({
+    required this.surah, required this.ayah, required this.source, required this.scrollController, super.key,
+  });
   final int surah;
   final int ayah;
   final TafsirSourceId source;
   final ScrollController scrollController;
-
-  const TafsirSheetContent({
-    super.key,
-    required this.surah,
-    required this.ayah,
-    required this.source,
-    required this.scrollController,
-  });
 
   @override
   State<TafsirSheetContent> createState() => _TafsirSheetContentState();
@@ -937,7 +925,7 @@ class _TafsirSheetContentState extends State<TafsirSheetContent> {
                         _tafsir!.text,
                         style: TextStyle(
                           fontSize: settings.fontSize,
-                          height: 2.0,
+                          height: 2,
                           fontFamily: 'Amiri',
                         ),
                         textAlign: TextAlign.justify,

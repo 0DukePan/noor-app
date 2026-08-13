@@ -11,16 +11,13 @@ import '../../../../core/theme/design_system.dart';
 
 /// Bottom sheet that previews and shares a beautifully formatted Hadith image.
 class HadithShareSheet extends StatefulWidget {
+
+  const HadithShareSheet({
+    required this.hadith, required this.bookTitle, required this.bookColor, super.key,
+  });
   final Hadith hadith;
   final String bookTitle;
   final Color bookColor;
-
-  const HadithShareSheet({
-    super.key,
-    required this.hadith,
-    required this.bookTitle,
-    required this.bookColor,
-  });
 
   /// Displays the share sheet
   static void show(BuildContext context, {
@@ -28,7 +25,7 @@ class HadithShareSheet extends StatefulWidget {
     required String bookTitle,
     required Color bookColor,
   }) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -54,9 +51,9 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
 
     try {
       // 1. Capture widget as image
-      final boundary = _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      final boundary = _globalKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
       // We use a high pixel ratio for a crisp, high-res image
-      final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      final image = await boundary.toImage(pixelRatio: 3);
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       final pngBytes = byteData!.buffer.asUint8List();
 
@@ -75,7 +72,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
       // Close bottom sheet if needed
       if (mounted) Navigator.pop(context);
 
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -195,7 +192,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
       decoration: BoxDecoration(
         color: Colors.white,
         gradient: bgGradient,
-        border: Border.all(color: widget.bookColor.withValues(alpha: 0.2), width: 1),
+        border: Border.all(color: widget.bookColor.withValues(alpha: 0.2)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

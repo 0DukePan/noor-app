@@ -46,13 +46,13 @@ enum DataCategory {
 
 /// Default implementation of Privacy Policy
 class DefaultPrivacyPolicy implements PrivacyPolicy {
-  final Key _encryptionKey;
-  late final Encrypter _encrypter;
 
   DefaultPrivacyPolicy({required String encryptionKey})
       : _encryptionKey = Key.fromUtf8(encryptionKey.padRight(32).substring(0, 32)) {
     _encrypter = Encrypter(AES(_encryptionKey));
   }
+  final Key _encryptionKey;
+  late final Encrypter _encrypter;
 
   /// A random IV is generated for every encryption and prepended to the
   /// ciphertext, so the same plaintext never produces the same output.
@@ -74,7 +74,7 @@ class DefaultPrivacyPolicy implements PrivacyPolicy {
       final iv = IV(base64Decode(parts[0]));
       final decrypted = _encrypter.decrypt64(parts[1], iv: iv);
       return decrypted;
-    } catch (e) {
+    } on Exception {
       // Return empty string if decryption fails (corrupted data)
       return '';
     }

@@ -103,10 +103,10 @@ class TafsirTheme {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class ArabesqueDivider extends StatelessWidget {
-  final double width;
-  final Color? color;
 
   const ArabesqueDivider({super.key, this.width = 200, this.color});
+  final double width;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -146,8 +146,8 @@ class ArabesqueDivider extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isLeft
-                    ? [color.withValues(alpha: 0.0), color]
-                    : [color, color.withValues(alpha: 0.0)],
+                    ? [color.withValues(alpha: 0), color]
+                    : [color, color.withValues(alpha: 0)],
               ),
             ),
           ),
@@ -171,9 +171,9 @@ class ArabesqueDivider extends StatelessWidget {
 
 /// Compact Arabesque divider for tight spaces
 class ArabesqueDividerCompact extends StatelessWidget {
-  final Color? color;
 
   const ArabesqueDividerCompact({super.key, this.color});
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -202,7 +202,6 @@ class ArabesqueDividerCompact extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class FadeThroughPageRoute<T> extends PageRouteBuilder<T> {
-  final Widget page;
 
   FadeThroughPageRoute({required this.page})
       : super(
@@ -217,7 +216,7 @@ class FadeThroughPageRoute<T> extends PageRouteBuilder<T> {
                 curve: Curves.easeOutCubic,
               ),
               child: ScaleTransition(
-                scale: Tween<double>(begin: 0.92, end: 1.0).animate(
+                scale: Tween<double>(begin: 0.92, end: 1).animate(
                   CurvedAnimation(
                     parent: animation,
                     curve: Curves.easeOutCubic,
@@ -228,6 +227,7 @@ class FadeThroughPageRoute<T> extends PageRouteBuilder<T> {
             );
           },
         );
+  final Widget page;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -235,20 +235,19 @@ class FadeThroughPageRoute<T> extends PageRouteBuilder<T> {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class TafsirReadingSurface extends StatelessWidget {
-  final Widget child;
-  final EdgeInsets padding;
 
   const TafsirReadingSurface({
-    super.key,
-    required this.child,
+    required this.child, super.key,
     this.padding = const EdgeInsets.all(20),
   });
+  final Widget child;
+  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
 
-    return Container(
+    return ColoredBox(
       color: TafsirTheme.readingBackground(brightness),
       child: Padding(
         padding: padding,

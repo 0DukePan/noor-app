@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -143,14 +143,6 @@ String _surahsInRange(int fromPage, int toPage) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class Khatmah {
-  final String id;
-  final String name;
-  final DateTime startDate;
-  final DateTime? targetEndDate;
-  final int currentSurah;
-  final int currentVerse;
-  final int currentPage;
-  final double progressPercentage;
 
   const Khatmah({
     required this.id,
@@ -162,6 +154,29 @@ class Khatmah {
     this.currentPage = 1,
     this.progressPercentage = 0.0,
   });
+
+  factory Khatmah.fromMap(Map<dynamic, dynamic> map) {
+    return Khatmah(
+      id: map['id'] as String,
+      name: map['name'] as String,
+      startDate: DateTime.parse(map['startDate'] as String),
+      targetEndDate: map['targetEndDate'] != null
+          ? DateTime.parse(map['targetEndDate'] as String)
+          : null,
+      currentSurah: map['currentSurah'] as int? ?? 1,
+      currentVerse: map['currentVerse'] as int? ?? 1,
+      currentPage: map['currentPage'] as int? ?? 1,
+      progressPercentage: (map['progressPercentage'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+  final String id;
+  final String name;
+  final DateTime startDate;
+  final DateTime? targetEndDate;
+  final int currentSurah;
+  final int currentVerse;
+  final int currentPage;
+  final double progressPercentage;
 
   Khatmah copyWith({
     String? name,
@@ -194,21 +209,6 @@ class Khatmah {
     'progressPercentage': progressPercentage,
   };
 
-  factory Khatmah.fromMap(Map<dynamic, dynamic> map) {
-    return Khatmah(
-      id: map['id'] as String,
-      name: map['name'] as String,
-      startDate: DateTime.parse(map['startDate'] as String),
-      targetEndDate: map['targetEndDate'] != null
-          ? DateTime.parse(map['targetEndDate'] as String)
-          : null,
-      currentSurah: map['currentSurah'] as int? ?? 1,
-      currentVerse: map['currentVerse'] as int? ?? 1,
-      currentPage: map['currentPage'] as int? ?? 1,
-      progressPercentage: (map['progressPercentage'] as num?)?.toDouble() ?? 0.0,
-    );
-  }
-
   /// Smart daily pages — guards against division by zero, max 50
   int get dailyPagesNeeded {
     if (targetEndDate == null) return 20;
@@ -228,10 +228,6 @@ class Khatmah {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class ReadingDay {
-  final String dayLabel;
-  final String surahRange;
-  final String pageRange;
-  final bool isToday;
 
   const ReadingDay({
     required this.dayLabel,
@@ -239,6 +235,10 @@ class ReadingDay {
     required this.pageRange,
     this.isToday = false,
   });
+  final String dayLabel;
+  final String surahRange;
+  final String pageRange;
+  final bool isToday;
 }
 
 /// Generate a 3-day reading schedule from current position
@@ -248,7 +248,7 @@ List<ReadingDay> generateSchedule(Khatmah khatmah) {
   final labels = ['اليوم', 'غداً', 'بعد غد'];
   final result = <ReadingDay>[];
 
-  for (int i = 0; i < 3; i++) {
+  for (var i = 0; i < 3; i++) {
     final fromPage = khatmah.currentPage + (pagesPerDay * i);
     final toPage = (khatmah.currentPage + (pagesPerDay * (i + 1)) - 1).clamp(1, 604);
     if (fromPage > 604) break;
@@ -268,21 +268,12 @@ List<ReadingDay> generateSchedule(Khatmah khatmah) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class CompletedKhatmah {
-  final String name;
-  final DateTime completedDate;
-  final int durationDays;
 
   const CompletedKhatmah({
     required this.name,
     required this.completedDate,
     required this.durationDays,
   });
-
-  Map<String, dynamic> toMap() => {
-    'name': name,
-    'completedDate': completedDate.toIso8601String(),
-    'durationDays': durationDays,
-  };
 
   factory CompletedKhatmah.fromMap(Map<dynamic, dynamic> map) {
     return CompletedKhatmah(
@@ -291,6 +282,15 @@ class CompletedKhatmah {
       durationDays: map['durationDays'] as int,
     );
   }
+  final String name;
+  final DateTime completedDate;
+  final int durationDays;
+
+  Map<String, dynamic> toMap() => {
+    'name': name,
+    'completedDate': completedDate.toIso8601String(),
+    'durationDays': durationDays,
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -298,6 +298,10 @@ class CompletedKhatmah {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class KhatmahNotifier extends StateNotifier<Khatmah?> {
+
+  KhatmahNotifier() : super(null) {
+    _loadFromHive();
+  }
   static const _boxName = 'khatmah_box';
   static const _activeKey = 'active_khatmah';
   static const _completedKey = 'completed_khatmahs';
@@ -305,15 +309,11 @@ class KhatmahNotifier extends StateNotifier<Khatmah?> {
   static const _todayDateKey = 'today_date';
 
   /// ✅ Cached Hive box — opened once, reused everywhere
-  Box? _box;
-
-  KhatmahNotifier() : super(null) {
-    _loadFromHive();
-  }
+  Box<dynamic>? _box;
 
   /// ✅ Single box instance — no repeated openBox() calls
-  Future<Box> _getBox() async {
-    _box ??= await Hive.openBox(_boxName);
+  Future<Box<dynamic>> _getBox() async {
+    _box ??= await Hive.openBox<dynamic>(_boxName);
     return _box!;
   }
 
@@ -321,7 +321,7 @@ class KhatmahNotifier extends StateNotifier<Khatmah?> {
     final box = await _getBox();
     final data = box.get(_activeKey);
     if (data != null) {
-      state = Khatmah.fromMap(Map<dynamic, dynamic>.from(data));
+      state = Khatmah.fromMap(Map<dynamic, dynamic>.from(data as Map));
     }
   }
 
@@ -392,10 +392,9 @@ class KhatmahNotifier extends StateNotifier<Khatmah?> {
       durationDays: DateTime.now().difference(state!.startDate).inDays,
     );
 
-    final List<dynamic> existing = box.get(_completedKey, defaultValue: <dynamic>[]);
-    existing.add(completed.toMap());
+    final existing = (box.get(_completedKey, defaultValue: <dynamic>[]) as List<dynamic>)
+      ..add(completed.toMap());
     await box.put(_completedKey, existing);
-
     state = null;
     await _saveToHive();
     await _resetTodayPages();
@@ -404,8 +403,8 @@ class KhatmahNotifier extends StateNotifier<Khatmah?> {
   /// Get completed khatmah history
   Future<List<CompletedKhatmah>> getCompletedHistory() async {
     final box = await _getBox();
-    final List<dynamic> data = box.get(_completedKey, defaultValue: <dynamic>[]);
-    return data.map((e) => CompletedKhatmah.fromMap(Map<dynamic, dynamic>.from(e))).toList();
+    final data = box.get(_completedKey, defaultValue: <dynamic>[]) as List<dynamic>;
+    return data.map((e) => CompletedKhatmah.fromMap(Map<dynamic, dynamic>.from(e as Map))).toList();
   }
 
   /// Get pages read today — ✅ timezone-safe date normalization

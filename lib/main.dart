@@ -1,20 +1,21 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hijri/hijri_calendar.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:hijri/hijri_calendar.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import 'core/theme/noor_theme.dart';
-import 'core/theme/design_system.dart';
+import 'core/data/data_sources/hadith_database.dart';
 import 'core/router/app_router.dart';
-import 'core/services/services.dart';
 import 'core/services/hadith_user_data_service.dart';
 import 'core/services/narrator_database_service.dart';
-import 'core/data/data_sources/hadith_database.dart';
+import 'core/services/services.dart';
+import 'core/theme/design_system.dart';
+import 'core/theme/noor_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,14 +37,15 @@ Future<void> main() async {
   await _initializeServices();
 
   // Initialize Sentry for crash reporting (errors only, no user tracking)
-  const sentryDsn = String.fromEnvironment('SENTRY_DSN', defaultValue: '');
+  const sentryDsn = String.fromEnvironment('SENTRY_DSN');
   if (sentryDsn.isNotEmpty) {
     await SentryFlutter.init(
       (options) {
-        options.dsn = sentryDsn;
-        options.tracesSampleRate = 0.0; // No performance tracking
-        options.attachScreenshot = false; // Privacy: no screenshots
-        options.sendDefaultPii = false; // Privacy: no personal data
+        options
+          ..dsn = sentryDsn
+          ..tracesSampleRate = 0.0 // No performance tracking
+          ..attachScreenshot = false // Privacy: no screenshots
+          ..sendDefaultPii = false; // Privacy: no personal data
       },
       appRunner: () => runApp(
         const ProviderScope(
@@ -71,83 +73,83 @@ Future<void> _initializeServices() async {
   // 1b. Statistics service (depends on Hive)
   try {
     await StatisticsService.init();
-  } catch (e) {
+  } on Exception catch (e) {
     debugPrint('StatisticsService init failed: $e');
   }
 
   // 1c. Day state machine (depends on Hive)
   try {
     await DayStateMachine.init();
-  } catch (e) {
+  } on Exception catch (e) {
     debugPrint('DayStateMachine init failed: $e');
   }
 
   // 1d. Content data sources (Quran, Hadith, Narrators, Tafsir, Adhkar)
   try {
     await QuranDataSource.init();
-  } catch (e) {
+  } on Exception catch (e) {
     debugPrint('QuranDataSource init failed: $e');
   }
   try {
     await HadithDataSource.init();
-  } catch (e) {
+  } on Exception catch (e) {
     debugPrint('HadithDataSource init failed: $e');
   }
   // Build the hadith SQLite database in the background so the first frame is
   // not blocked by the one-time 17-book import (cached on later launches).
-  HadithDatabase.warmUp();
+  unawaited(HadithDatabase.warmUp());
   // Build the scientific search index in the background too; it is cached in
   // Hive after the first build.
-  _initSearchEngine();
+  unawaited(_initSearchEngine());
   try {
     await NarratorDatabaseService.init();
-  } catch (e) {
+  } on Exception catch (e) {
     debugPrint('NarratorDatabaseService init failed: $e');
   }
   try {
     await TafsirDataSource.init();
     await TafsirDataSource.initPhase6();
-  } catch (e) {
+  } on Exception catch (e) {
     debugPrint('TafsirDataSource init failed: $e');
   }
   try {
     await AdhkarDataSource.init();
-  } catch (e) {
+  } on Exception catch (e) {
     debugPrint('AdhkarDataSource init failed: $e');
   }
 
   // 1e. Prayer system (location trust, mosque mode, seasonal offsets,
-  //     weekly scheduler, adhan scheduler, health checks)
+  //     adhan scheduler, health checks)
   try {
     await LocationTrustEngine.init();
-  } catch (e) {
+  } on Exception catch (e) {
     debugPrint('LocationTrustEngine init failed: $e');
   }
   try {
     await MosqueModeService.init();
-  } catch (e) {
+  } on Exception catch (e) {
     debugPrint('MosqueModeService init failed: $e');
   }
   try {
     await SeasonalOffsetsEngine.init();
-  } catch (e) {
+  } on Exception catch (e) {
     debugPrint('SeasonalOffsetsEngine init failed: $e');
   }
   if (!kIsWeb) {
     try {
       await AdhanSchedulerService.init();
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('AdhanSchedulerService init failed: $e');
     }
     try {
       await PrayerHealthCheck.init();
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('PrayerHealthCheck init failed: $e');
     }
   }
   try {
     await AdhkarTimerService.init();
-  } catch (e) {
+  } on Exception catch (e) {
     debugPrint('AdhkarTimerService init failed: $e');
   }
 
@@ -155,20 +157,20 @@ Future<void> _initializeServices() async {
   // On web, we might need to handle assets differently or they might be missing
   try {
     await OfflineDataService.init();
-  } catch (e) {
+  } on Exception catch (e) {
     debugPrint('OfflineDataService init failed: $e');
   }
 
   // 3. Audio service
   try {
     await QuranAudioService.init();
-  } catch (e) {
+  } on Exception catch (e) {
     debugPrint('QuranAudioService init failed: $e');
   }
   if (!kIsWeb) {
     try {
       await QuranAudioEngine.init();
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('QuranAudioEngine init failed: $e');
     }
   }
@@ -177,7 +179,7 @@ Future<void> _initializeServices() async {
   if (!kIsWeb) {
     try {
       await SmartNotificationEngine.init();
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('SmartNotificationEngine init failed: $e');
     }
   }
@@ -187,20 +189,20 @@ Future<void> _initializeServices() async {
     try {
       await WidgetService.init();
       await WidgetService.updateAllWidgets();
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('WidgetService init failed: $e');
     }
   }
 
   // 6. Sync data if connected (background)
-  OfflineDataService.syncIfNeeded();
+  unawaited(OfflineDataService.syncIfNeeded());
 }
 
 /// Build the hadith search index in the background (errors are non-fatal).
 Future<void> _initSearchEngine() async {
   try {
     await HadithSearchEngine.init();
-  } catch (e) {
+  } on Exception catch (e) {
     debugPrint('HadithSearchEngine init failed: $e');
   }
 }
@@ -261,7 +263,7 @@ class _NoorAppState extends ConsumerState<NoorApp> with WidgetsBindingObserver {
         utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
       );
       DayStateMachine.updateTodayTimes(times);
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('DayState refresh failed: $e');
     }
   }
@@ -295,7 +297,6 @@ class _NoorAppState extends ConsumerState<NoorApp> with WidgetsBindingObserver {
       // Khushu Theme - Calm, spiritual design
       theme: NoorTheme.light,
       darkTheme: NoorTheme.dark,
-      themeMode: ThemeMode.system,
       
       // Localization — the app's UI is Arabic-only by design; English is not
       // advertised as supported until real English strings exist.
@@ -392,4 +393,3 @@ class _DatabaseImportScreen extends StatelessWidget {
     );
   }
 }
-

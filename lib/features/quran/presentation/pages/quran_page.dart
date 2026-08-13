@@ -4,11 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/domain/entities/surah.dart';
 import '../../../../core/theme/design_system.dart';
 import '../../../../core/theme/noor_theme.dart';
-import '../providers/quran_providers.dart';
-import '../../../../core/domain/entities/surah.dart';
 import '../../../../core/utils/arabic_text.dart';
+import '../providers/quran_providers.dart';
 
 /// صفحة القرآن الديناميكية — Dynamic Quran Page
 /// Zero setState. All state via Riverpod providers.
@@ -289,13 +289,13 @@ class QuranPage extends ConsumerWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _FilterBarDelegate extends SliverPersistentHeaderDelegate {
-  final String selectedFilter;
-  final ValueChanged<String> onFilterChanged;
 
   _FilterBarDelegate({
     required this.selectedFilter,
     required this.onFilterChanged,
   });
+  final String selectedFilter;
+  final ValueChanged<String> onFilterChanged;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
@@ -333,11 +333,11 @@ class _FilterBarDelegate extends SliverPersistentHeaderDelegate {
 }
 
 class _FilterChip extends StatelessWidget {
+
+  const _FilterChip({required this.label, required this.isSelected, required this.onTap});
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
-
-  const _FilterChip({required this.label, required this.isSelected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -372,9 +372,9 @@ class _FilterChip extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _SearchBar extends ConsumerStatefulWidget {
-  final ValueChanged<String> onChanged;
 
   const _SearchBar({required this.onChanged});
+  final ValueChanged<String> onChanged;
 
   @override
   ConsumerState<_SearchBar> createState() => _SearchBarState();
@@ -435,13 +435,6 @@ class _SearchBarState extends ConsumerState<_SearchBar> {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _SurahListTile extends StatelessWidget {
-  final int number;
-  final String nameArabic;
-  final String nameEnglish;
-  final int versesCount;
-  final RevelationType revelationType;
-  final String searchQuery;
-  final VoidCallback onTap;
 
   const _SurahListTile({
     required this.number,
@@ -452,6 +445,13 @@ class _SurahListTile extends StatelessWidget {
     required this.searchQuery,
     required this.onTap,
   });
+  final int number;
+  final String nameArabic;
+  final String nameEnglish;
+  final int versesCount;
+  final RevelationType revelationType;
+  final String searchQuery;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -651,10 +651,10 @@ class _ShimmerSurahTile extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _ErrorWidget extends StatelessWidget {
-  final String error;
-  final VoidCallback onRetry;
 
   const _ErrorWidget({required this.error, required this.onRetry});
+  final String error;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {

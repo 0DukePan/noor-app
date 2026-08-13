@@ -1,20 +1,22 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter/services.dart';
+
+import '../../../../core/domain/entities/surah_names.dart';
 import '../../../../core/services/quran_audio_engine.dart';
 import '../../../../core/services/quran_data_source.dart';
-import '../../../../core/domain/entities/surah_names.dart';
 
 /// 🔊 صفحة مشغل الصوت الاحترافية - Professional Audio Player Page
 class AudioPlayerPage extends StatefulWidget {
-  final int? initialSurah;
-  final int? initialAyah;
 
   const AudioPlayerPage({
     super.key,
     this.initialSurah,
     this.initialAyah,
   });
+  final int? initialSurah;
+  final int? initialAyah;
 
   @override
   State<AudioPlayerPage> createState() => _AudioPlayerPageState();
@@ -30,8 +32,8 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
   bool _showSpeedControl = false;
   
   // Streams
-  StreamSubscription? _ayahSubscription;
-  StreamSubscription? _stateSubscription;
+  StreamSubscription<dynamic>? _ayahSubscription;
+  StreamSubscription<dynamic>? _stateSubscription;
   
   // Scroll controller for auto-scroll
   final ScrollController _scrollController = ScrollController();
@@ -86,7 +88,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
         ),
       );
 
-      if (shouldResume == true) {
+      if (shouldResume ?? false) {
         _currentSurah = resumeInfo.surah;
         await _loadSurah();
         await QuranAudioEngine.resumeLastPosition();
@@ -103,7 +105,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
       
       // Create verse keys for scrolling
       _verseKeys.clear();
-      for (int i = 0; i < ayahs.length; i++) {
+      for (var i = 0; i < ayahs.length; i++) {
         _verseKeys[i + 1] = GlobalKey();
       }
       
@@ -111,7 +113,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
         _verses = ayahs.cast<Map<String, dynamic>>();
         _isLoading = false;
       });
-    } catch (e) {
+    } on Exception catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -193,13 +195,13 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
       itemCount: _verses.length,
       itemBuilder: (context, index) {
         final verse = _verses[index];
-        final verseNumber = verse['numberInSurah'] ?? index + 1;
+        final verseNumber = (verse['numberInSurah'] ?? index + 1) as int;
         final isPlaying = verseNumber == _currentAyah && _isPlaying;
         
         return _VerseCard(
           key: _verseKeys[verseNumber],
           verseNumber: verseNumber,
-          text: verse['text'] ?? '',
+          text: (verse['text'] ?? '') as String,
           isPlaying: isPlaying,
           isCurrentAyah: verseNumber == _currentAyah,
           onTap: () => _playFromAyah(verseNumber),
@@ -220,7 +222,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
             child: Slider(
               value: QuranAudioEngine.speed,
               min: 0.5,
-              max: 2.0,
+              max: 2,
               divisions: 6,
               label: '${QuranAudioEngine.speed}x',
               onChanged: (value) {
@@ -408,8 +410,8 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
     );
   }
 
-  void _playFromAyah(int ayah) async {
-    HapticFeedback.lightImpact();
+  Future<void> _playFromAyah(int ayah) async {
+    unawaited(HapticFeedback.lightImpact());
     await QuranAudioEngine.playAyah(
       surah: _currentSurah,
       ayah: ayah,
@@ -420,7 +422,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
     const modes = RepeatMode.values;
     final currentIndex = modes.indexOf(QuranAudioEngine.repeatMode);
     final nextIndex = (currentIndex + 1) % modes.length;
-    QuranAudioEngine.setRepeatMode(modes[nextIndex]);
+    QuranAudioEngine.repeatMode = modes[nextIndex];
     setState(() {});
     
     ScaffoldMessenger.of(context).showSnackBar(
@@ -432,7 +434,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
   }
 
   void _showSurahSelector() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (context) => DraggableScrollableSheet(
@@ -502,7 +504,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
   }
 
   void _showReciterSelector() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (context) => Column(
         mainAxisSize: MainAxisSize.min,
@@ -550,13 +552,13 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
 
 /// شريط القارئ
 class _ReciterBar extends StatelessWidget {
-  final ReciterInfo reciter;
-  final VoidCallback onTap;
 
   const _ReciterBar({
     required this.reciter,
     required this.onTap,
   });
+  final ReciterInfo reciter;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -592,20 +594,15 @@ class _ReciterBar extends StatelessWidget {
 
 /// بطاقة الآية
 class _VerseCard extends StatelessWidget {
+
+  const _VerseCard({
+    required this.verseNumber, required this.text, required this.isPlaying, required this.isCurrentAyah, required this.onTap, super.key,
+  });
   final int verseNumber;
   final String text;
   final bool isPlaying;
   final bool isCurrentAyah;
   final VoidCallback onTap;
-
-  const _VerseCard({
-    super.key,
-    required this.verseNumber,
-    required this.text,
-    required this.isPlaying,
-    required this.isCurrentAyah,
-    required this.onTap,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -689,7 +686,7 @@ class _VerseCard extends StatelessWidget {
               text,
               style: TextStyle(
                 fontSize: 22,
-                height: 2.0,
+                height: 2,
                 fontFamily: 'Amiri',
                 color: isCurrentAyah
                     ? theme.colorScheme.onPrimaryContainer

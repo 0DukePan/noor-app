@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -7,10 +8,10 @@ import '../../../../core/theme/noor_theme.dart';
 /// الوسوم الشخصية - Personal Tags System
 class PersonalTagsService {
   static const _boxName = 'personal_tags';
-  static Box<Map>? _box;
+  static Box<Map<dynamic, dynamic>>? _box;
 
   static Future<void> init() async {
-    _box = await Hive.openBox<Map>(_boxName);
+    _box = await Hive.openBox<Map<dynamic, dynamic>>(_boxName);
   }
 
   static List<PersonalTag> getAllTags() {
@@ -54,12 +55,6 @@ class PersonalTagsService {
 }
 
 class PersonalTag {
-  final String id;
-  String name;
-  Color color;
-  String icon;
-  List<String> hadithIds;
-  DateTime createdAt;
 
   PersonalTag({
     required this.id,
@@ -71,15 +66,6 @@ class PersonalTag {
   })  : hadithIds = hadithIds ?? [],
         createdAt = createdAt ?? DateTime.now();
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'color': color.toARGB32(),
-        'icon': icon,
-        'hadithIds': hadithIds,
-        'createdAt': createdAt.toIso8601String(),
-      };
-
   factory PersonalTag.fromJson(Map<String, dynamic> json) => PersonalTag(
         id: json['id'] as String,
         name: json['name'] as String,
@@ -88,15 +74,30 @@ class PersonalTag {
         hadithIds: List<String>.from(json['hadithIds'] as List? ?? []),
         createdAt: DateTime.parse(json['createdAt'] as String),
       );
+  final String id;
+  String name;
+  Color color;
+  String icon;
+  List<String> hadithIds;
+  DateTime createdAt;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'color': color.toARGB32(),
+        'icon': icon,
+        'hadithIds': hadithIds,
+        'createdAt': createdAt.toIso8601String(),
+      };
 }
 
 /// صفحة إدارة الوسوم - Tags Management Page
 class TagsManagementPage extends StatefulWidget {
+
+  const TagsManagementPage({super.key, this.hadithId});
   /// When set, the page shows an "add this hadith to a tag" flow and tracks
   /// which tags already contain it.
   final String? hadithId;
-
-  const TagsManagementPage({super.key, this.hadithId});
 
   @override
   State<TagsManagementPage> createState() => _TagsManagementPageState();
@@ -150,7 +151,7 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
     _selectedColor = NoorTheme.primary;
     _selectedIcon = '🏷️';
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -290,8 +291,8 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
     await PersonalTagsService.addTag(tag);
     if (!mounted) return;
     Navigator.pop(context);
-    HapticFeedback.mediumImpact();
-    _loadTags();
+    unawaited(HapticFeedback.mediumImpact());
+    unawaited(_loadTags());
   }
 
   @override

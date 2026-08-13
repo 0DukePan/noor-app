@@ -1,12 +1,13 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart'; // for compute
 
-import '../../../../core/utils/arabic_text.dart';
+import 'package:flutter/foundation.dart'; // for compute
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+
 import '../../../../core/data/data_sources/hadith_database.dart';
+import '../../../../core/utils/arabic_text.dart';
 
 class SearchLocalDataSource {
   static const String _dbName = 'noor_search.db';
@@ -44,7 +45,7 @@ class SearchLocalDataSource {
   /// connection is closed first.
   static Future<void> clearIndex() async {
     final path = await _path();
-    if (await File(path).exists() ||
+    if (File(path).existsSync() ||
         await databaseFactory.databaseExists(path)) {
       await databaseFactory.deleteDatabase(path);
     }
@@ -70,7 +71,7 @@ class SearchLocalDataSource {
     // Quran-only index also get hadith and adhkar entries.
     Future<bool> hasSource(String source) async {
       final count = Sqflite.firstIntValue(await _db!.rawQuery(
-        "SELECT COUNT(*) FROM search_index WHERE source = ?",
+        'SELECT COUNT(*) FROM search_index WHERE source = ?',
         [source],
       ),);
       return (count ?? 0) > 0;
@@ -148,7 +149,7 @@ class SearchLocalDataSource {
             'reference': jsonEncode({'file': path}),
           });
         }
-      } catch (e) {
+      } on Exception catch (e) {
         debugPrint('Adhkar indexing failed for $path: $e');
       }
     }
@@ -158,10 +159,10 @@ class SearchLocalDataSource {
 
   Future<void> _insertRecords(List<Map<String, dynamic>> records) async {
     const batchSize = 500;
-    for (int i = 0; i < records.length; i += batchSize) {
+    for (var i = 0; i < records.length; i += batchSize) {
       final end = (i + batchSize > records.length) ? records.length : i + batchSize;
       final batch = _db!.batch();
-      for (int j = i; j < end; j++) {
+      for (var j = i; j < end; j++) {
         batch.insert('search_index', records[j]);
       }
       await batch.commit(noResult: true);
@@ -169,15 +170,16 @@ class SearchLocalDataSource {
   }
   
   static List<Map<String, dynamic>> _parseQuranForIndex(String jsonStr) {
-    final Map<String, dynamic> data = jsonDecode(jsonStr);
-    final List<Map<String, dynamic>> records = [];
+    final data = Map<String, dynamic>.from(jsonDecode(jsonStr) as Map);
+    final records = <Map<String, dynamic>>[];
     
     // Schema: "1": [ { "verse": 1, "text": "..." } ]
     data.forEach((surahNum, verses) {
       final surahId = int.parse(surahNum);
       for (final v in (verses as List)) {
-         final verseId = v['verse'] as int;
-         final text = v['text'] as String;
+         final map = v as Map;
+         final verseId = map['verse'] as int;
+         final text = map['text'] as String;
          final simpleText = normalizeArabic(text); // Remove diacritics for better search
          
          records.add({
@@ -205,7 +207,7 @@ class SearchLocalDataSource {
         ORDER BY rank 
         LIMIT 50
       ''', ['"$safeQuery"'],);
-    } catch (e) {
+    } on Exception {
       // Fallback: substring search (robust against odd tokenization).
       return _db!.rawQuery('''
         SELECT * FROM search_index 

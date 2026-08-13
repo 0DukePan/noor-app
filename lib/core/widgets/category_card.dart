@@ -3,6 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/design_system.dart';
 
 class CategoryCard extends StatelessWidget {
+
+  const CategoryCard({
+    required this.title, required this.color, required this.onTap, super.key,
+    this.subtitle,
+    this.icon,
+    this.emoji,
+    this.isSelected = false,
+  });
   final String title;
   final String? subtitle;
   final IconData? icon;
@@ -10,17 +18,6 @@ class CategoryCard extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
   final bool isSelected;
-
-  const CategoryCard({
-    super.key,
-    required this.title,
-    this.subtitle,
-    this.icon,
-    this.emoji,
-    required this.color,
-    required this.onTap,
-    this.isSelected = false,
-  });
 
   @override
   Widget build(BuildContext context) {

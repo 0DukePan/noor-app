@@ -1,7 +1,9 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
-import 'prayer_time_engine.dart';
+
 import 'location_trust_engine.dart';
+import 'prayer_time_engine.dart';
 
 /// 📿 خدمة الأذكار المرتبطة بالوقت - Adhkar Timer Service
 /// الأذكار تظهر في وقتها الحقيقي فقط
@@ -34,7 +36,7 @@ class AdhkarTimerService {
         method: CalculationMethod.ummAlQura,
         utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
       );
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('AdhkarTimerService refresh failed: $e');
     }
   }
@@ -139,12 +141,10 @@ class AdhkarTimerService {
         if (isMorningAdhkarAvailable) {
           return _todayPrayerTimes!.sunrise.difference(now);
         }
-        break;
       case AdhkarType.evening:
         if (isEveningAdhkarAvailable) {
           return _todayPrayerTimes!.maghrib.difference(now);
         }
-        break;
       case AdhkarType.afterPrayer:
         // Find active post-prayer window
         final prayers = [
@@ -160,8 +160,9 @@ class AdhkarTimerService {
             return endTime.difference(now);
           }
         }
-        break;
-      default:
+      case AdhkarType.sleep:
+      case AdhkarType.wakeUp:
+      case AdhkarType.general:
         break;
     }
     return null;
@@ -187,7 +188,10 @@ class AdhkarTimerService {
         // Tomorrow's asr
         return _todayPrayerTimes!.asr.add(const Duration(days: 1));
         
-      default:
+      case AdhkarType.afterPrayer:
+      case AdhkarType.sleep:
+      case AdhkarType.wakeUp:
+      case AdhkarType.general:
         return null;
     }
   }

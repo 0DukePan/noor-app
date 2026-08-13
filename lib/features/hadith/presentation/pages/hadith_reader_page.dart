@@ -1,32 +1,27 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/design_system.dart';
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/services/hadith_user_data_service.dart';
+import '../../../../core/theme/design_system.dart';
 import '../widgets/hadith_share_sheet.dart';
 import '../widgets/hadith_sharh_sheet.dart';
 
 /// صفحة قراءة الحديث - Immersive Hadith Reader
 /// Phase 4 of the Professional Hadith Plan
 class HadithReaderPage extends StatefulWidget {
+
+  const HadithReaderPage({
+    required this.hadith, required this.bookTitle, required this.chapterTitle, required this.bookColor, required this.allHadiths, required this.currentIndex, super.key,
+  });
   final Hadith hadith;
   final String bookTitle;
   final String chapterTitle;
   final Color bookColor;
   final List<Hadith> allHadiths;
   final int currentIndex;
-
-  const HadithReaderPage({
-    super.key,
-    required this.hadith,
-    required this.bookTitle,
-    required this.chapterTitle,
-    required this.bookColor,
-    required this.allHadiths,
-    required this.currentIndex,
-  });
 
   @override
   State<HadithReaderPage> createState() => _HadithReaderPageState();
@@ -71,8 +66,8 @@ class _HadithReaderPageState extends State<HadithReaderPage> {
     );
   }
 
-  void _toggleBookmark() async {
-    HapticFeedback.mediumImpact();
+  Future<void> _toggleBookmark() async {
+    unawaited(HapticFeedback.mediumImpact());
     final nowBookmarked = await HadithUserDataService.toggleBookmark(_currentHadith);
     if (!mounted) return;
     setState(() => _isBookmarked = nowBookmarked);
@@ -209,12 +204,6 @@ class _HadithReaderPageState extends State<HadithReaderPage> {
 // ─────────────────────────────────────────────────────────
 
 class _HadithReaderContent extends StatelessWidget {
-  final Hadith hadith;
-  final String bookTitle;
-  final String chapterTitle;
-  final Color bookColor;
-  final int index;
-  final int total;
 
   const _HadithReaderContent({
     required this.hadith,
@@ -224,11 +213,17 @@ class _HadithReaderContent extends StatelessWidget {
     required this.index,
     required this.total,
   });
+  final Hadith hadith;
+  final String bookTitle;
+  final String chapterTitle;
+  final Color bookColor;
+  final int index;
+  final int total;
 
   @override
   Widget build(BuildContext context) {
     final cleanArabic = hadith.arabic
-        .replaceAll(RegExp(r'<[^>]*>'), '')
+        .replaceAll(RegExp('<[^>]*>'), '')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
 
@@ -269,7 +264,6 @@ class _HadithReaderContent extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: bookColor.withValues(alpha: 0.15),
-                width: 1,
               ),
               boxShadow: [
                 BoxShadow(
@@ -283,7 +277,7 @@ class _HadithReaderContent extends StatelessWidget {
               cleanArabic,
               style: GoogleFonts.amiri(
                 fontSize: 22,
-                height: 2.0,
+                height: 2,
                 color: NoorDesignSystem.textPrimary,
                 fontWeight: FontWeight.w400,
               ),
@@ -360,11 +354,6 @@ class _HadithReaderContent extends StatelessWidget {
 // ─────────────────────────────────────────────────────────
 
 class _MetadataCard extends StatelessWidget {
-  final String bookTitle;
-  final String chapterTitle;
-  final int hadithNumber;
-  final String narrator;
-  final Color bookColor;
 
   const _MetadataCard({
     required this.bookTitle,
@@ -373,6 +362,11 @@ class _MetadataCard extends StatelessWidget {
     required this.narrator,
     required this.bookColor,
   });
+  final String bookTitle;
+  final String chapterTitle;
+  final int hadithNumber;
+  final String narrator;
+  final Color bookColor;
 
   @override
   Widget build(BuildContext context) {
@@ -483,11 +477,6 @@ class _MetadataCard extends StatelessWidget {
 // ─────────────────────────────────────────────────────────
 
 class _BottomNav extends StatelessWidget {
-  final int currentIndex;
-  final int total;
-  final Color bookColor;
-  final VoidCallback? onPrevious;
-  final VoidCallback? onNext;
 
   const _BottomNav({
     required this.currentIndex,
@@ -496,6 +485,11 @@ class _BottomNav extends StatelessWidget {
     this.onPrevious,
     this.onNext,
   });
+  final int currentIndex;
+  final int total;
+  final Color bookColor;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
 
   @override
   Widget build(BuildContext context) {
@@ -570,11 +564,6 @@ class _BottomNav extends StatelessWidget {
 }
 
 class _NavButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-  final Color color;
-  final bool isForward;
 
   const _NavButton({
     required this.icon,
@@ -583,6 +572,11 @@ class _NavButton extends StatelessWidget {
     required this.color,
     this.isForward = false,
   });
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+  final Color color;
+  final bool isForward;
 
   @override
   Widget build(BuildContext context) {

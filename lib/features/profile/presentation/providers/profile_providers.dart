@@ -7,14 +7,6 @@ import '../../../../core/services/statistics_service.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 class ProfileStats {
-  final ReadingStats todayReading;
-  final ReadingStats totalReading;
-  final ListeningStats listening;
-  final AdhkarDayStatus adhkarStatus;
-  final KhatmahProgress khatmah;
-  final WeeklySummary weekly;
-  final int adhkarStreak;
-  final int completedKhatmah;
 
   const ProfileStats({
     required this.todayReading,
@@ -26,6 +18,14 @@ class ProfileStats {
     required this.adhkarStreak,
     required this.completedKhatmah,
   });
+  final ReadingStats todayReading;
+  final ReadingStats totalReading;
+  final ListeningStats listening;
+  final AdhkarDayStatus adhkarStatus;
+  final KhatmahProgress khatmah;
+  final WeeklySummary weekly;
+  final int adhkarStreak;
+  final int completedKhatmah;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

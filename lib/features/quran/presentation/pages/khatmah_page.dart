@@ -139,7 +139,7 @@ class _KhatmahPlannerPageState extends ConsumerState<KhatmahPlannerPage> {
   }
 
   void _showCreateKhatmahDialog() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => _CreateKhatmahDialog(),
     );
@@ -147,14 +147,6 @@ class _KhatmahPlannerPageState extends ConsumerState<KhatmahPlannerPage> {
 }
 
 class _ActiveKhatmahCard extends StatelessWidget {
-  final String name;
-  final DateTime startDate;
-  final DateTime? targetEndDate;
-  final int currentSurah;
-  final int currentVerse;
-  final int currentPage;
-  final double progressPercentage;
-  final VoidCallback onResume;
 
   const _ActiveKhatmahCard({
     required this.name,
@@ -166,6 +158,14 @@ class _ActiveKhatmahCard extends StatelessWidget {
     required this.progressPercentage,
     required this.onResume,
   });
+  final String name;
+  final DateTime startDate;
+  final DateTime? targetEndDate;
+  final int currentSurah;
+  final int currentVerse;
+  final int currentPage;
+  final double progressPercentage;
+  final VoidCallback onResume;
 
   @override
   Widget build(BuildContext context) {
@@ -329,13 +329,13 @@ class _ActiveKhatmahCard extends StatelessWidget {
 }
 
 class _DailyGoalCard extends StatelessWidget {
-  final int pagesPerDay;
-  final int pagesReadToday;
 
   const _DailyGoalCard({
     required this.pagesPerDay,
     required this.pagesReadToday,
   });
+  final int pagesPerDay;
+  final int pagesReadToday;
 
   @override
   Widget build(BuildContext context) {
@@ -408,10 +408,6 @@ class _DailyGoalCard extends StatelessWidget {
 }
 
 class _ScheduleCard extends StatelessWidget {
-  final String day;
-  final String surahs;
-  final String pages;
-  final bool isToday;
 
   const _ScheduleCard({
     required this.day,
@@ -419,6 +415,10 @@ class _ScheduleCard extends StatelessWidget {
     required this.pages,
     required this.isToday,
   });
+  final String day;
+  final String surahs;
+  final String pages;
+  final bool isToday;
 
   @override
   Widget build(BuildContext context) {
@@ -468,15 +468,15 @@ class _ScheduleCard extends StatelessWidget {
 }
 
 class _PastKhatmahCard extends StatelessWidget {
-  final String name;
-  final DateTime completedDate;
-  final int durationDays;
 
   const _PastKhatmahCard({
     required this.name,
     required this.completedDate,
     required this.durationDays,
   });
+  final String name;
+  final DateTime completedDate;
+  final int durationDays;
 
   @override
   Widget build(BuildContext context) {

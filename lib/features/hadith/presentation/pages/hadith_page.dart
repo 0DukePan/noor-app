@@ -1,14 +1,15 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/theme/design_system.dart';
-import '../../../../core/widgets/book_card.dart';
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/services/hadith_user_data_service.dart';
-import '../providers/hadith_providers.dart';
+import '../../../../core/theme/design_system.dart';
+import '../../../../core/widgets/book_card.dart';
 import '../hadith_book_names.dart';
+import '../providers/hadith_providers.dart';
 import 'bookmarked_hadiths_page.dart';
 import 'hadith_chapters_page.dart';
 import 'hadith_reader_page.dart';
@@ -54,7 +55,7 @@ class _HadithPageState extends ConsumerState<HadithPage> {
       );
       if (!mounted || hadiths.isEmpty) return;
       context.go('/hadith/quiz', extra: hadiths);
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('Failed to load quiz deck: $e');
     }
   }
@@ -116,7 +117,7 @@ class _HadithPageState extends ConsumerState<HadithPage> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const BookmarkedHadithsPage()),
+                    MaterialPageRoute<void>(builder: (_) => const BookmarkedHadithsPage()),
                   ).then((_) => _loadProgress());
                 },
               ),
@@ -126,7 +127,7 @@ class _HadithPageState extends ConsumerState<HadithPage> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const HadithSearchPage()),
+                    MaterialPageRoute<void>(builder: (_) => const HadithSearchPage()),
                   );
                 },
               ),
@@ -157,21 +158,23 @@ class _HadithPageState extends ConsumerState<HadithPage> {
                     if (!context.mounted) return;
                     if (book.hadiths.isNotEmpty) {
                       final safeIndex = hadithIndex.clamp(0, book.hadiths.length - 1);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => HadithReaderPage(
-                            hadith: book.hadiths[safeIndex],
-                            bookTitle: bookTitle,
-                            chapterTitle: '',
-                            bookColor: Color(colorValue),
-                            allHadiths: book.hadiths,
-                            currentIndex: safeIndex,
+                      unawaited(
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) => HadithReaderPage(
+                              hadith: book.hadiths[safeIndex],
+                              bookTitle: bookTitle,
+                              chapterTitle: '',
+                              bookColor: Color(colorValue),
+                              allHadiths: book.hadiths,
+                              currentIndex: safeIndex,
+                            ),
                           ),
-                        ),
-                      ).then((_) => _loadProgress());
+                        ).then((_) => _loadProgress()),
+                      );
                     }
-                  } catch (e) {
+                  } on Exception {
                     // Silently handle errors
                   }
                 },
@@ -188,7 +191,7 @@ class _HadithPageState extends ConsumerState<HadithPage> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
+                      MaterialPageRoute<void>(
                         builder: (_) => HadithReaderPage(
                           hadith: hadith,
                           bookTitle: hadith.collectionId ?? '',
@@ -250,7 +253,7 @@ class _HadithPageState extends ConsumerState<HadithPage> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
+                            MaterialPageRoute<void>(
                               builder: (_) => HadithChaptersPage(
                                 bookId: book.id,
                                 bookTitle: book.titleArabic,
@@ -355,10 +358,10 @@ class _HadithPageState extends ConsumerState<HadithPage> {
 // ═══════════════════════════════════════════════════════════════════
 
 class _ContinueReadingCard extends StatelessWidget {
-  final Map<String, dynamic> progress;
-  final VoidCallback onTap;
 
   const _ContinueReadingCard({required this.progress, required this.onTap});
+  final Map<String, dynamic> progress;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -455,10 +458,10 @@ class _ContinueReadingCard extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════
 
 class _HadithOfTheDayCard extends StatelessWidget {
-  final Hadith hadith;
-  final VoidCallback onTap;
 
   const _HadithOfTheDayCard({required this.hadith, required this.onTap});
+  final Hadith hadith;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -581,10 +584,6 @@ class _HadithOfTheDayCard extends StatelessWidget {
 
 /// Compact tile used in the hadith page "study tools" section.
 class _StudyToolTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
 
   const _StudyToolTile({
     required this.icon,
@@ -592,6 +591,10 @@ class _StudyToolTile extends StatelessWidget {
     required this.color,
     required this.onTap,
   });
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {

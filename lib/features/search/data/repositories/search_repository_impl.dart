@@ -4,9 +4,9 @@ import '../../domain/repositories/search_repository.dart';
 import '../data_sources/search_local_data_source.dart';
 
 class SearchRepositoryImpl implements SearchRepository {
-  final SearchLocalDataSource _dataSource;
 
   SearchRepositoryImpl(this._dataSource);
+  final SearchLocalDataSource _dataSource;
 
   @override
   Future<void> initializeIndex() async {
@@ -19,14 +19,14 @@ class SearchRepositoryImpl implements SearchRepository {
     final results = await _dataSource.search(query);
     
     return results.map((row) {
-      final ref = jsonDecode(row['reference'] as String);
+      final ref = jsonDecode(row['reference'] as String) as Map<String, dynamic>;
       // We can use the original text from reference if available, or the indexed text
       final displayText = ref['original'] as String? ?? row['text'] as String;
       
       return SearchResult(
         text: displayText,
         source: row['source'] as String,
-        metadata: ref,
+        metadata: Map<String, dynamic>.from(ref as Map),
       );
     }).toList();
   }

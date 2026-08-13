@@ -41,11 +41,6 @@ class FavoritesSection extends StatelessWidget {
 }
 
 class _FavoriteItemCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
 
   const _FavoriteItemCard({
     required this.title,
@@ -54,6 +49,11 @@ class _FavoriteItemCard extends StatelessWidget {
     required this.color,
     required this.onTap,
   });
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {

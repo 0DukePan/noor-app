@@ -1,22 +1,22 @@
 import 'package:dartz/dartz.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../../../core/domain/policies/offline_policy.dart';
 import '../../domain/entities/quran_entities.dart';
 import '../../domain/repositories/quran_repository.dart';
 import '../datasources/quran_datasources.dart';
-import '../../../../core/domain/policies/offline_policy.dart';
 
 /// تنفيذ مستودع القرآن - Quran Repository Implementation
 class QuranRepositoryImpl implements QuranRepository {
-  final QuranLocalDataSource localDataSource;
-  final QuranRemoteDataSource remoteDataSource;
-  final OfflinePolicy offlinePolicy;
 
   QuranRepositoryImpl({
     required this.localDataSource,
     required this.remoteDataSource,
     required this.offlinePolicy,
   });
+  final QuranLocalDataSource localDataSource;
+  final QuranRemoteDataSource remoteDataSource;
+  final OfflinePolicy offlinePolicy;
 
   @override
   Future<Either<Failure, List<Surah>>> getAllSurahs() async {
@@ -36,7 +36,7 @@ class QuranRepositoryImpl implements QuranRepository {
       final remoteSurahs = await remoteDataSource.fetchAllSurahs();
       await localDataSource.cacheQuranData(remoteSurahs);
       return Right(remoteSurahs);
-    } catch (e) {
+    } on Exception catch (e) {
       return Left(CacheFailure(e.toString()));
     }
   }
@@ -46,7 +46,7 @@ class QuranRepositoryImpl implements QuranRepository {
     try {
       final surah = await localDataSource.getSurahWithVerses(surahNumber);
       return Right(surah);
-    } catch (e) {
+    } on Exception catch (e) {
       return Left(CacheFailure(e.toString()));
     }
   }
@@ -56,15 +56,9 @@ class QuranRepositoryImpl implements QuranRepository {
     try {
       final verses = await localDataSource.getVersesByPage(pageNumber);
       return Right(verses);
-    } catch (e) {
+    } on Exception catch (e) {
       return Left(CacheFailure(e.toString()));
     }
-  }
-
-  @override
-  Future<Either<Failure, List<Verse>>> getVersesByJuz(int juzNumber) async {
-    // TODO: Implement
-    return const Right([]);
   }
 
   @override
@@ -91,7 +85,7 @@ class QuranRepositoryImpl implements QuranRepository {
         tafsirSource ?? 'ibn_kathir',
       );
       return Right(remoteTafsir);
-    } catch (e) {
+    } on Exception catch (e) {
       return Left(ServerFailure(e.toString()));
     }
   }
@@ -109,7 +103,7 @@ class QuranRepositoryImpl implements QuranRepository {
 
       final remoteCause = await remoteDataSource.fetchRevelationCause(surahNumber, verseNumber);
       return Right(remoteCause);
-    } catch (e) {
+    } on Exception {
       return const Right(null); // Revelation cause is optional
     }
   }
@@ -121,7 +115,7 @@ class QuranRepositoryImpl implements QuranRepository {
     required int page,
   }) async {
     try {
-      final box = await Hive.openBox('reading_progress');
+      final box = await Hive.openBox<dynamic>('reading_progress');
       await box.put('last_position', {
         'surah_number': surahNumber,
         'verse_number': verseNumber,
@@ -129,7 +123,7 @@ class QuranRepositoryImpl implements QuranRepository {
         'timestamp': DateTime.now().toIso8601String(),
       });
       return const Right(null);
-    } catch (e) {
+    } on Exception catch (e) {
       return Left(CacheFailure(e.toString()));
     }
   }
@@ -138,7 +132,7 @@ class QuranRepositoryImpl implements QuranRepository {
   Future<Either<Failure, ({int surahNumber, int verseNumber, int page})>>
       getLastReadingPosition() async {
     try {
-      final box = await Hive.openBox('reading_progress');
+      final box = await Hive.openBox<dynamic>('reading_progress');
       final data = box.get('last_position') as Map<dynamic, dynamic>?;
       if (data == null) {
         return const Right((surahNumber: 1, verseNumber: 1, page: 1));
@@ -148,7 +142,7 @@ class QuranRepositoryImpl implements QuranRepository {
         verseNumber: data['verse_number'] as int,
         page: data['page'] as int,
       ),);
-    } catch (e) {
+    } on Exception {
       return const Right((surahNumber: 1, verseNumber: 1, page: 1));
     }
   }
@@ -158,7 +152,7 @@ class QuranRepositoryImpl implements QuranRepository {
     try {
       final results = await localDataSource.searchQuran(query);
       return Right(results);
-    } catch (e) {
+    } on Exception catch (e) {
       return Left(CacheFailure(e.toString()));
     }
   }
