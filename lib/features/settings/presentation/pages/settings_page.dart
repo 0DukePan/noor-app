@@ -4,8 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/services/hive_service.dart';
+import '../../../../core/services/quran_audio_engine.dart';
 import '../../../../core/theme/design_system.dart';
 import '../../../../core/theme/theme_service.dart';
+import '../../../search/data/data_sources/search_local_data_source.dart';
 
 /// صفحة الإعدادات - Settings Page
 class SettingsPage extends ConsumerStatefulWidget {
@@ -443,7 +446,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         backgroundColor: Colors.white,
         title: const Text('مسح الذاكرة المؤقتة', textAlign: TextAlign.right),
         content: const Text(
-          'هل أنت متأكد؟ سيتم إعادة تحميل البيانات عند الحاجة.',
+          'هل أنت متأكد؟ سيتم حذف ذاكرة التلاوة المحملة وفهرس البحث، ويعاد بناؤها تلقائياً عند الحاجة.',
           textAlign: TextAlign.right,
         ),
         actions: [
@@ -452,11 +455,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             child: const Text('إلغاء', style: TextStyle(color: NoorDesignSystem.textSecondary)),
           ),
           FilledButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('تم مسح الذاكرة بنجاح')),
-              );
+              await HiveService.clearAll();
+              await QuranAudioEngine.clearCache();
+              await SearchLocalDataSource.clearIndex();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('تم مسح الذاكرة المؤقتة بنجاح')),
+                );
+              }
             },
             style: FilledButton.styleFrom(backgroundColor: NoorDesignSystem.error),
             child: const Text('مسح'),

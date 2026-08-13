@@ -336,7 +336,9 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
   // ═══════════════════════════════════════════════════════════════════════════
 
   Widget _buildHukmTab(ThemeData theme) {
-    final grade = widget.hadith.grade;
+    final grade = widget.hadith.grade.isNotEmpty
+        ? widget.hadith.grade
+        : HadithSearchEngine.gradeForBook(widget.hadith.book);
     final gradeInfo = _getGradeInfo(grade);
     
     return SingleChildScrollView(
@@ -731,6 +733,13 @@ ${widget.hadith.text}
         color: Colors.red,
         icon: Icons.cancel,
         explanation: 'حديث موضوع مكذوب على النبي ﷺ، لا تجوز روايته إلا مع بيان وضعه.',
+      );
+    }
+    if (grade.contains('المصدر')) {
+      return const _GradeInfo(
+        color: Colors.blueGrey,
+        icon: Icons.menu_book,
+        explanation: 'هذا الحديث من كتاب ليس كل ما فيه صحيح — الحكم على كل حديث يختلف باختلاف إسناده، راجعه عند أهل العلم أو انظر تخريجه في كتب الأحكام.',
       );
     }
     return const _GradeInfo(

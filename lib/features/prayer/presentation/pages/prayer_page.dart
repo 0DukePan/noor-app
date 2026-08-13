@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/services/adhan_scheduler_service.dart';
 import '../../../../core/services/day_state_machine.dart';
 import '../../../../core/services/prayer_time_engine.dart';
 import '../../../../core/theme/design_system.dart';
@@ -120,6 +121,8 @@ class _PrayerContent extends ConsumerWidget {
 
     // Watch the tick stream to reactively update countdown
     final now = ref.watch(prayerTimeTickProvider).valueOrNull ?? DateTime.now();
+    // Rebuilds the bell icons when a per-prayer adhan notification toggles.
+    ref.watch(prayerAdhanToggleProvider);
     final nextPrayer = _getNextPrayer(now);
     final allPrayers = _buildPrayerList(now);
 
@@ -177,6 +180,25 @@ class _PrayerContent extends ConsumerWidget {
                         onToggle: prayerType == null
                             ? null
                             : () => _togglePrayer(prayerType),
+                        bellEnabled: prayerType != null &&
+                            AdhanSchedulerService.isAdhanEnabled(
+                              prayerType.name,
+                            ),
+                        onBellPressed: prayerType == null
+                            ? null
+                            : () async {
+                                final enabled =
+                                    AdhanSchedulerService.isAdhanEnabled(
+                                  prayerType.name,
+                                );
+                                await AdhanSchedulerService.setAdhanEnabled(
+                                  prayerType.name,
+                                  enabled: !enabled,
+                                );
+                                ref
+                                    .read(prayerAdhanToggleProvider.notifier)
+                                    .state++;
+                              },
                       ).animate().fadeIn(
                         delay: Duration(milliseconds: 150 + i * 80),
                         duration: 400.ms,
@@ -340,6 +362,8 @@ class _TimelinePrayerRow extends StatelessWidget {
     this.isLast = false,
     this.isCompleted = false,
     this.onToggle,
+    this.bellEnabled = false,
+    this.onBellPressed,
   });
   final String name;
   final String time;
@@ -351,6 +375,8 @@ class _TimelinePrayerRow extends StatelessWidget {
   final bool isLast;
   final bool isCompleted;
   final VoidCallback? onToggle;
+  final bool bellEnabled;
+  final VoidCallback? onBellPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -494,15 +520,15 @@ class _TimelinePrayerRow extends StatelessWidget {
                     if (!isSunrise)
                       IconButton(
                         icon: Icon(
-                          isPassed
-                              ? Icons.notifications_off_outlined
-                              : Icons.notifications_active_rounded,
+                          bellEnabled
+                              ? Icons.notifications_active_rounded
+                              : Icons.notifications_off_outlined,
                           size: 18,
-                          color: isPassed
-                              ? theme.colorScheme.outline
-                              : theme.colorScheme.tertiary,
+                          color: bellEnabled
+                              ? theme.colorScheme.tertiary
+                              : theme.colorScheme.outline,
                         ),
-                        onPressed: () {},
+                        onPressed: onBellPressed,
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                       ),

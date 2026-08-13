@@ -132,6 +132,11 @@ class _HadithChapterHadithsPageState
                               bookColor: widget.bookColor,
                               allHadiths: _hadiths,
                               currentIndex: index,
+                              // Paged mode: keep reading past the loaded
+                              // chunk — the reader fetches more from SQLite.
+                              bookId: widget.bookId,
+                              chapterId: widget.chapterId,
+                              startIdInBook: hadith.idInBook,
                             ),
                           ),
                         );

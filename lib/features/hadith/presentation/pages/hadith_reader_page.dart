@@ -1,20 +1,31 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/services/hadith_user_data_service.dart';
 import '../../../../core/theme/design_system.dart';
+import '../providers/hadith_providers.dart';
 import '../widgets/hadith_share_sheet.dart';
 import '../widgets/hadith_sharh_sheet.dart';
 
 /// صفحة قراءة الحديث - Immersive Hadith Reader
-/// Phase 4 of the Professional Hadith Plan
-class HadithReaderPage extends StatefulWidget {
+///
+/// Supports two modes:
+/// - Bounded: `allHadiths` is the full list (search results, hadith of day).
+/// - Paged: pass `bookId` + `chapterId` (+ optionally `startIdInBook`) and
+///   the reader loads the chapter lazily from SQLite, so large chapters can
+///   be read end-to-end without loading the whole book.
+class HadithReaderPage extends ConsumerStatefulWidget {
 
   const HadithReaderPage({
-    required this.hadith, required this.bookTitle, required this.chapterTitle, required this.bookColor, required this.allHadiths, required this.currentIndex, super.key,
+    required this.hadith, required this.bookTitle, required this.chapterTitle, required this.bookColor, required this.allHadiths, required this.currentIndex,
+    this.bookId,
+    this.chapterId,
+    this.startIdInBook,
+    super.key,
   });
   final Hadith hadith;
   final String bookTitle;
@@ -22,23 +33,37 @@ class HadithReaderPage extends StatefulWidget {
   final Color bookColor;
   final List<Hadith> allHadiths;
   final int currentIndex;
+  final String? bookId;
+  final int? chapterId;
+  final int? startIdInBook;
 
   @override
-  State<HadithReaderPage> createState() => _HadithReaderPageState();
+  ConsumerState<HadithReaderPage> createState() => _HadithReaderPageState();
 }
 
-class _HadithReaderPageState extends State<HadithReaderPage> {
+class _HadithReaderPageState extends ConsumerState<HadithReaderPage> {
+  static const _pageSize = 50;
+
   late PageController _pageController;
   late int _currentIndex;
   bool _isBookmarked = false;
 
+  final List<Hadith> _hadiths = [];
+  int _page = 1;
+  bool _hasMore = true;
+  bool _isLoading = false;
+
+  bool get _lazyMode => widget.bookId != null;
+
   @override
   void initState() {
     super.initState();
+    _hadiths.addAll(widget.allHadiths);
     _currentIndex = widget.currentIndex;
     _pageController = PageController(initialPage: _currentIndex);
     _updateBookmarkState();
     _saveProgress();
+    if (_lazyMode) _loadUntilTarget();
   }
 
   @override
@@ -47,7 +72,51 @@ class _HadithReaderPageState extends State<HadithReaderPage> {
     super.dispose();
   }
 
+  /// Load pages until the target hadith (by its in-book number) is present.
+  Future<void> _loadUntilTarget() async {
+    final targetNumber = widget.startIdInBook ?? widget.hadith.idInBook;
+    if (_hadiths.any((h) => h.idInBook == targetNumber)) return;
+    while (_hasMore && !_isLoading) {
+      final before = _hadiths.length;
+      await _loadPage();
+      if (!mounted || _hadiths.length == before) return;
+      final idx = _hadiths.indexWhere((h) => h.idInBook == targetNumber);
+      if (idx != -1) {
+        setState(() => _currentIndex = idx);
+        _pageController.jumpToPage(idx);
+        _updateBookmarkState();
+        _saveProgress();
+        return;
+      }
+    }
+  }
+
+  Future<void> _loadPage() async {
+    if (_isLoading || !_hasMore || widget.bookId == null) return;
+    setState(() => _isLoading = true);
+    try {
+      final ds = ref.read(localHadithDataSourceProvider);
+      final results = await ds.getHadithsPage(
+        bookId: widget.bookId!,
+        page: _page,
+        limit: _pageSize,
+        chapterId: widget.chapterId,
+      );
+      if (!mounted) return;
+      setState(() {
+        _hadiths.addAll(results);
+        _hasMore = results.length == _pageSize;
+        _page++;
+        _isLoading = false;
+      });
+    } on Exception catch (e) {
+      debugPrint('Failed to load reader page: $e');
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   void _updateBookmarkState() {
+    if (_hadiths.isEmpty) return;
     setState(() {
       _isBookmarked = HadithUserDataService.isBookmarked(
         _currentHadith.collectionId,
@@ -57,12 +126,15 @@ class _HadithReaderPageState extends State<HadithReaderPage> {
   }
 
   void _saveProgress() {
+    if (_hadiths.isEmpty) return;
     HadithUserDataService.saveReadingProgress(
-      bookId: _currentHadith.collectionId ?? widget.bookTitle,
+      bookId: _currentHadith.collectionId ?? widget.bookId ?? widget.bookTitle,
       bookTitle: widget.bookTitle,
       colorValue: widget.bookColor.toARGB32(),
       hadithIndex: _currentIndex,
-      totalHadiths: widget.allHadiths.length,
+      totalHadiths: _hadiths.length,
+      chapterId: _currentHadith.chapterId,
+      hadithNumber: _currentHadith.idInBook,
     );
   }
 
@@ -85,7 +157,7 @@ class _HadithReaderPageState extends State<HadithReaderPage> {
     );
   }
 
-  Hadith get _currentHadith => widget.allHadiths[_currentIndex];
+  Hadith get _currentHadith => _hadiths[_currentIndex];
 
   void _copyHadith() {
     final text =
@@ -109,6 +181,43 @@ class _HadithReaderPageState extends State<HadithReaderPage> {
       bookTitle: widget.bookTitle,
       bookColor: widget.bookColor,
     );
+  }
+
+  void _onPageChanged(int index) {
+    setState(() => _currentIndex = index);
+    HapticFeedback.selectionClick();
+    _updateBookmarkState();
+    _saveProgress();
+    // Preload the next page before the reader runs out.
+    if (_lazyMode && index >= _hadiths.length - 3 && !_isLoading && _hasMore) {
+      _loadPage();
+    }
+  }
+
+  Future<void> _goPrevious() async {
+    if (_currentIndex > 0) {
+      await _pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  Future<void> _goNext() async {
+    if (_currentIndex < _hadiths.length - 1) {
+      await _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else if (_hasMore) {
+      await _loadPage();
+      if (mounted && _currentIndex < _hadiths.length - 1) {
+        await _pageController.nextPage(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    }
   }
 
   @override
@@ -158,41 +267,32 @@ class _HadithReaderPageState extends State<HadithReaderPage> {
           ),
         ],
       ),
-      body: PageView.builder(
-        controller: _pageController,
-        itemCount: widget.allHadiths.length,
-        onPageChanged: (index) {
-          setState(() => _currentIndex = index);
-          HapticFeedback.selectionClick();
-          _updateBookmarkState();
-          _saveProgress();
-        },
-        itemBuilder: (context, index) {
-          final hadith = widget.allHadiths[index];
-          return _HadithReaderContent(
-            hadith: hadith,
-            bookTitle: widget.bookTitle,
-            chapterTitle: widget.chapterTitle,
-            bookColor: widget.bookColor,
-            index: index + 1,
-            total: widget.allHadiths.length,
-          );
-        },
-      ),
+      body: _hadiths.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : PageView.builder(
+              controller: _pageController,
+              itemCount: _hadiths.length,
+              onPageChanged: _onPageChanged,
+              itemBuilder: (context, index) {
+                final hadith = _hadiths[index];
+                return _HadithReaderContent(
+                  hadith: hadith,
+                  bookTitle: widget.bookTitle,
+                  chapterTitle: widget.chapterTitle,
+                  bookColor: widget.bookColor,
+                  index: index + 1,
+                  total: _hadiths.length,
+                );
+              },
+            ),
       // Bottom navigation
       bottomNavigationBar: _BottomNav(
         currentIndex: _currentIndex,
-        total: widget.allHadiths.length,
+        total: _hadiths.length,
         bookColor: widget.bookColor,
-        onPrevious: _currentIndex > 0
-            ? () => _pageController.previousPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,)
-            : null,
-        onNext: _currentIndex < widget.allHadiths.length - 1
-            ? () => _pageController.nextPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,)
+        onPrevious: _currentIndex > 0 ? _goPrevious : null,
+        onNext: _currentIndex < _hadiths.length - 1 || _hasMore
+            ? _goNext
             : null,
       ),
     );

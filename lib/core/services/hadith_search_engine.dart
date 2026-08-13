@@ -20,6 +20,9 @@ class HadithSearchEngine {
   static Map<String, List<String>>? _companionIndex;
   static Map<String, List<String>>? _topicIndex;
 
+  /// Bump to force a rebuild of cached indexes on existing installs.
+  static const int _indexVersion = 2;
+
   // ═══════════════════════════════════════════════════════════════════════════
   // INITIALIZATION
   // ═══════════════════════════════════════════════════════════════════════════
@@ -28,8 +31,12 @@ class HadithSearchEngine {
     _indexBox = await Hive.openBox<dynamic>('hadith_search_index');
     _cacheBox = await Hive.openBox<dynamic>('hadith_search_cache');
     
-    // Build search index if not cached (or always when a test DB is passed)
-    if (forTesting != null || _indexBox?.get('index_built') != true) {
+    // Build search index if not cached (or always when a test DB is passed).
+    // The version bumps force a rebuild whenever the index derivation changes
+    // (e.g. companion/topic extraction, grades) on existing installs.
+    if (forTesting != null ||
+        _indexBox?.get('index_built') != true ||
+        _indexBox?.get('index_version') != _indexVersion) {
       await _buildSearchIndex(forTesting);
     } else {
       _loadIndexFromCache();
@@ -86,15 +93,16 @@ class HadithSearchEngine {
     final narrator = row['english_narrator'] as String? ?? '';
     final number = row['id_in_book'] as int? ?? 0;
 
-    // Extract companion name from the Arabic sanad
-    final companion = _extractCompanion(text);
-
-    // Normalize for search (remove diacritics)
+    // Normalize FIRST: the corpus is fully vocalized, so the companion and
+    // topic patterns («عن», «قال», «صلاة»…) can never match raw text.
     final normalizedText = _normalize(text);
     final normalizedNarrator = _normalize(narrator);
 
-    // Extract topics from text
-    final topics = _extractTopics(text);
+    // Extract companion name from the normalized Arabic sanad
+    final companion = _extractCompanion(normalizedText);
+
+    // Extract topics from the normalized text
+    final topics = _extractTopics(normalizedText);
 
     return HadithIndexEntry(
       id: '${book}_${row['rowid']}',
@@ -106,9 +114,23 @@ class HadithSearchEngine {
       narrator: narrator,
       normalizedNarrator: normalizedNarrator,
       companion: companion,
-      grade: '',
+      grade: gradeForBook(book),
       topics: topics,
     );
+  }
+
+  /// Per-book grade basis — the same approach used by hadith collections
+  /// apps: the Sahihain (Bukhari & Muslim) are wholly authentic; the other
+  /// collections are graded by their source scholars per hadith, so we show
+  /// the honest source label instead of fabricating per-hadith verdicts.
+  static String gradeForBook(String bookId) {
+    switch (bookId) {
+      case 'bukhari':
+      case 'muslim':
+        return 'صحيح';
+      default:
+        return 'من المصدر';
+    }
   }
 
   /// استخراج اسم الصحابي من السند
@@ -170,6 +192,7 @@ class HadithSearchEngine {
     await _indexBox?.put('companion_index', _companionIndex);
     await _indexBox?.put('topic_index', _topicIndex);
     await _indexBox?.put('index_built', true);
+    await _indexBox?.put('index_version', _indexVersion);
     await _indexBox?.put('index_date', DateTime.now().toIso8601String());
   }
 

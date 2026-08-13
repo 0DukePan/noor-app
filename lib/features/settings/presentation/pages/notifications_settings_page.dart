@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/services/location_trust_engine.dart';
 import '../../../../core/services/smart_notification_engine.dart';
 import '../../../../core/theme/design_system.dart';
 
@@ -184,11 +185,16 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
             child: FilledButton.icon(
               onPressed: () async {
                 unawaited(HapticFeedback.mediumImpact());
-                // Apply all notification schedules
+                // Apply all notification schedules — using the user's real
+                // (trusted) location, falling back to Mecca only when the
+                // device has no stored location.
+                final location = LocationTrustEngine.cachedLocation;
+                final lat = location?.latitude ?? 21.4225;
+                final lng = location?.longitude ?? 39.8262;
                 if (_settings.adhkarMorningEnabled || _settings.adhkarEveningEnabled) {
                   await SmartNotificationEngine.scheduleAdhkarNotifications(
-                    latitude: 21.4225,
-                    longitude: 39.8262,
+                    latitude: lat,
+                    longitude: lng,
                     morningEnabled: _settings.adhkarMorningEnabled,
                     eveningEnabled: _settings.adhkarEveningEnabled,
                   );

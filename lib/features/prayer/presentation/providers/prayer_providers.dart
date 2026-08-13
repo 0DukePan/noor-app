@@ -219,6 +219,10 @@ final qadaProvider = StateNotifierProvider<QadaNotifier, QadaState>((ref) {
   return QadaNotifier();
 });
 
+/// Bumped whenever a per-prayer adhan notification is toggled so the prayer
+/// page rebuilds its bell icons.
+final prayerAdhanToggleProvider = StateProvider<int>((ref) => 0);
+
 // ═══════════════════════════════════════════════════════════════════════════
 // PRAYER SETTINGS STATE
 // ═══════════════════════════════════════════════════════════════════════════

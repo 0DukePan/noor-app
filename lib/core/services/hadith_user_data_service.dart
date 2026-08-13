@@ -22,13 +22,18 @@ class HadithUserDataService {
   // CONTINUE READING
   // ═══════════════════════════════════════════════════════════════════
 
-  /// Save reading progress
+  /// Save reading progress. `chapterId` + `hadithNumber` let the resume
+  /// flow rebuild the exact same chapter-scoped list the user was in
+  /// (previously only a list index was saved, which pointed at the wrong
+  /// hadith when applied to the whole book).
   static Future<void> saveReadingProgress({
     required String bookId,
     required String bookTitle,
     required int colorValue,
     required int hadithIndex,
     required int totalHadiths,
+    int? chapterId,
+    int? hadithNumber,
   }) async {
     final box = _progressBox;
     if (box == null) return;
@@ -38,6 +43,8 @@ class HadithUserDataService {
       'colorValue': colorValue,
       'hadithIndex': hadithIndex,
       'totalHadiths': totalHadiths,
+      'chapterId': chapterId,
+      'hadithNumber': hadithNumber,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
     });
   }

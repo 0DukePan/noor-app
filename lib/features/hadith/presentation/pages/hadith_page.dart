@@ -149,34 +149,39 @@ class _HadithPageState extends ConsumerState<HadithPage> {
                   final bookId = _lastProgress!['bookId'] as String;
                   final bookTitle = _lastProgress!['bookTitle'] as String;
                   final colorValue = _lastProgress!['colorValue'] as int;
-                  final hadithIndex = _lastProgress!['hadithIndex'] as int;
+                  final hadithNumber = _lastProgress!['hadithNumber'] as int?;
+                  final chapterId = _lastProgress!['chapterId'] as int?;
 
-                  // Load the book's hadiths to open the reader
-                  try {
-                    final ds = ref.read(localHadithDataSourceProvider);
-                    final book = await ds.loadBook(bookId);
-                    if (!context.mounted) return;
-                    if (book.hadiths.isNotEmpty) {
-                      final safeIndex = hadithIndex.clamp(0, book.hadiths.length - 1);
-                      unawaited(
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (_) => HadithReaderPage(
-                              hadith: book.hadiths[safeIndex],
-                              bookTitle: bookTitle,
-                              chapterTitle: '',
-                              bookColor: Color(colorValue),
-                              allHadiths: book.hadiths,
-                              currentIndex: safeIndex,
-                            ),
+                  if (!context.mounted) return;
+                  // Resume into the same chapter-scoped list, located by the
+                  // hadith's in-book number — not by a list index, which
+                  // pointed at an unrelated hadith.
+                  unawaited(
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => HadithReaderPage(
+                          hadith: Hadith(
+                            id: 0,
+                            idInBook: hadithNumber ?? 0,
+                            arabic: '',
+                            englishText: '',
+                            narratorEnglish: '',
+                            chapterId: chapterId ?? 0,
+                            collectionId: bookId,
                           ),
-                        ).then((_) => _loadProgress()),
-                      );
-                    }
-                  } on Exception {
-                    // Silently handle errors
-                  }
+                          bookTitle: bookTitle,
+                          chapterTitle: '',
+                          bookColor: Color(colorValue),
+                          allHadiths: const [],
+                          currentIndex: 0,
+                          bookId: bookId,
+                          chapterId: chapterId,
+                          startIdInBook: hadithNumber,
+                        ),
+                      ),
+                    ).then((_) => _loadProgress()),
+                  );
                 },
               ),
             ),

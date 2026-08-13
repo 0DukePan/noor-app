@@ -148,9 +148,17 @@ class _SurahPageState extends ConsumerState<SurahPage>
                           tooltip: 'استماع',
                           onPressed: () => _showAudioPlayer(context),
                         ),
-                        PopupMenuButton(
+                        PopupMenuButton<String>(
                           icon: Icon(Icons.more_vert_rounded, color: theme.colorScheme.onSurfaceVariant),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          onSelected: (value) {
+                            switch (value) {
+                              case 'tafsir':
+                                context.push('/tafsir?surah=${widget.surahNumber}');
+                              case 'settings':
+                                _showReadingAppearanceSheet();
+                            }
+                          },
                           itemBuilder: (context) => [
                             const PopupMenuItem(
                               value: 'tafsir',
@@ -266,6 +274,77 @@ class _SurahPageState extends ConsumerState<SurahPage>
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => _AudioPlayerSheet(surahNumber: widget.surahNumber),
+    );
+  }
+
+  void _showReadingAppearanceSheet() {
+    final settings = ref.read(readingSettingsProvider);
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'مظهر القراءة',
+                  style: GoogleFonts.cairo(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Text(
+                      'حجم الخط',
+                      style: GoogleFonts.cairo(fontSize: 14),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${settings.fontSize.round()}',
+                      style: GoogleFonts.cairo(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                Slider(
+                  value: settings.fontSize,
+                  min: 16,
+                  max: 34,
+                  divisions: 9,
+                  label: settings.fontSize.round().toString(),
+                  onChanged: (v) {
+                    ref
+                        .read(readingSettingsProvider.notifier)
+                        .setFontSize(v);
+                    setSheetState(() {});
+                  },
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    'إظهار الترجمة',
+                    style: GoogleFonts.cairo(fontSize: 14),
+                  ),
+                  value: settings.showTranslation,
+                  onChanged: (v) {
+                    ref
+                        .read(readingSettingsProvider.notifier)
+                        .toggleTranslation();
+                    setSheetState(() {});
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 

@@ -436,7 +436,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
       ('nasai', 'سنن النسائي', '📘 السنن'),
       ('ibnmajah', 'سنن ابن ماجه', '📘 السنن'),
       ('malik', 'موطأ مالك', '📙 أقدم مصنف'),
-      ('ahmad', 'مسند أحمد', '📕 المسانيد'),
+      ('ahmed', 'مسند أحمد', '📕 المسانيد'),
       ('darimi', 'سنن الدارمي', '📗 السنن'),
     ];
     
@@ -485,7 +485,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
             },
           ),
           ...['bukhari', 'muslim', 'tirmidhi', 'abudawud', 'nasai', 
-              'ibnmajah', 'malik', 'ahmad', 'darimi',].map((book) =>
+              'ibnmajah', 'malik', 'ahmed', 'darimi',].map((book) =>
             ListTile(
               title: Text(_getBookName(book)),
               onTap: () {
