@@ -95,12 +95,14 @@ flutter build ipa --release   # after signing setup in Xcode
 
 - **Icon**: already generated (`assets/icon/app_icon.png` applied to
   Android/iOS launchers).
-- **Screenshots** (required): take on a phone: home dashboard, Quran mushaf,
-  hadith library, prayer times, adhkar, qibla.
+- **Drafts ready in `docs/store/`**: listing text (ar/en), privacy-policy
+  HTML page, and the data-safety form answers.
+- **Screenshots** (required): take on a phone per `docs/store/listing.md`:
+  home dashboard, Quran mushaf, hadith library, prayer times, adhkar, qibla.
 - **Feature graphic** (Play, 1024×500).
-- **Description**: Arabic + English short/long descriptions.
-- **Privacy policy URL**: required by both stores — host the privacy sheet
-  text (Settings → الخصوصية والبيانات) on a page.
+- **Privacy policy URL**: required by both stores — host
+  `docs/store/privacy-policy.html` somewhere public (GitHub Pages, a simple
+  host) and link it.
 
 ## 7. Versioning
 

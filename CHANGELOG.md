@@ -14,8 +14,8 @@ All notable changes to Noor (نور) are documented in this file.
   configured
 - `docs/qa-checklist.md` — manual on-device QA checklist for the store run
 - CI now runs tests with coverage, uploads the lcov report, and enforces an
-  app-wide line-coverage floor via `tools/coverage_summary.py` (baseline:
-  2.6% of all `lib/` lines — measured honestly over the whole app)
+  app-wide line-coverage floor via `tools/coverage_summary.py` (2.6% → 7.4%
+  of all `lib/` lines with this batch; the floor is raised as coverage grows)
 
 ### Changed
 - Adopted `very_good_analysis` (strict lints + strict-casts/inference/raw-types);
