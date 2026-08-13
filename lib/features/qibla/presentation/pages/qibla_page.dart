@@ -152,10 +152,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
         content: Text('هل تريد متابعة تحديد القبلة؟', style: GoogleFonts.cairo()),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
+            onPressed: () => Navigator.pop(context),
             child: Text('إغلاق', style: GoogleFonts.cairo()),
           ),
           FilledButton(

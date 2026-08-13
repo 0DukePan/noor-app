@@ -233,11 +233,16 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
   Widget _buildCard(bool isDark, List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? NoorDesignSystem.surfaceDark : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: NoorDesignSystem.shadowSmall,
       ),
-      child: Column(children: children),
+      child: Material(
+        type: MaterialType.card,
+        color: isDark ? NoorDesignSystem.surfaceDark : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        clipBehavior: Clip.antiAlias,
+        child: Column(children: children),
+      ),
     );
   }
 

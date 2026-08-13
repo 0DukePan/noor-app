@@ -53,15 +53,26 @@ class _ScholarModePageState extends State<ScholarModePage> {
   @override
   void initState() {
     super.initState();
+    _noteController = TextEditingController(text: _note);
     _loadNote();
     _loadSimilarHadiths();
     _loadIsnadChain();
   }
 
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  late final TextEditingController _noteController;
+
   Future<void> _loadNote() async {
     final box = await Hive.openBox<dynamic>('hadith_notes');
+    if (!mounted) return;
     setState(() {
       _note = (box.get(_noteKey, defaultValue: '') ?? '') as String;
+      _noteController.text = _note;
     });
   }
 
@@ -352,7 +363,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
                     hintText: 'أضف ملاحظاتك على هذا الحديث...',
                     border: OutlineInputBorder(),
                   ),
-                  controller: TextEditingController(text: _note),
+                  controller: _noteController,
                   onChanged: _saveNote,
                 ),
                 const SizedBox(height: 8),

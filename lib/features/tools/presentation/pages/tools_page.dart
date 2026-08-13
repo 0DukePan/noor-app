@@ -108,7 +108,7 @@ class ToolsPage extends StatelessWidget {
                   _ToolCard(
                     icon: Icons.settings_rounded,
                     title: 'الإعدادات',
-                    subtitle: 'المظهر واللغة',
+                    subtitle: 'الإعدادات العامة والمظهر',
                     gradient: [
                       if (isDark) const Color(0xFF37474F) else const Color(0xFF546E7A),
                       if (isDark) const Color(0xFF455A64) else const Color(0xFF78909C),

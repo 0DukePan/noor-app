@@ -103,16 +103,21 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
 
   Widget _buildCacheActionsCard(bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? NoorDesignSystem.surfaceDark : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: NoorDesignSystem.shadowSmall,
       ),
-      child: Column(
-        children: [
-          // Clear cache
-          ListTile(
+      child: Material(
+        type: MaterialType.card,
+        color: isDark ? NoorDesignSystem.surfaceDark : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              // Clear cache
+              ListTile(
             leading: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -150,7 +155,9 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
             onTap: _syncing ? null : _refreshStats,
             contentPadding: EdgeInsets.zero,
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }

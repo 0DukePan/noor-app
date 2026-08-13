@@ -64,9 +64,10 @@ class _HadithPageState extends ConsumerState<HadithPage> {
   Widget build(BuildContext context) {
     final collectionsAsync = ref.watch(hadithCollectionsProvider);
     final dailyHadith = ref.watch(hadithOfTheDayProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: NoorDesignSystem.creamWhite,
+      backgroundColor: isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.creamWhite,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -74,7 +75,7 @@ class _HadithPageState extends ConsumerState<HadithPage> {
           SliverAppBar(
             expandedHeight: 140,
             pinned: true,
-            backgroundColor: NoorDesignSystem.creamWhite,
+            backgroundColor: isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.creamWhite,
             surfaceTintColor: Colors.transparent,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
@@ -84,7 +85,10 @@ class _HadithPageState extends ConsumerState<HadithPage> {
                     end: Alignment.bottomCenter,
                     colors: [
                       NoorDesignSystem.emeraldGreen.withValues(alpha: 0.1),
-                      NoorDesignSystem.creamWhite,
+                      if (isDark)
+                        NoorDesignSystem.bgDark
+                      else
+                        NoorDesignSystem.creamWhite,
                     ],
                   ),
                 ),
@@ -353,6 +357,7 @@ class _HadithPageState extends ConsumerState<HadithPage> {
     if (id.contains('nasai')) return NoorDesignSystem.nasaiColor;
     if (id.contains('ibnmajah')) return NoorDesignSystem.ibnMajahColor;
     if (id.contains('malik')) return NoorDesignSystem.malikColor;
+    if (id.contains('ahmed')) return NoorDesignSystem.musnadColor;
     if (id.contains('darimi')) return NoorDesignSystem.darimiColor;
     return NoorDesignSystem.emeraldGreen;
   }
@@ -389,7 +394,9 @@ class _ContinueReadingCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? NoorDesignSystem.surfaceDark
+                : Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: bookColor.withValues(alpha: 0.15)),
             boxShadow: [
@@ -603,8 +610,9 @@ class _StudyToolTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: Colors.white,
+      color: isDark ? NoorDesignSystem.surfaceDark : Colors.white,
       borderRadius: BorderRadius.circular(14),
       elevation: 1,
       shadowColor: Colors.black.withValues(alpha: 0.05),
@@ -631,7 +639,7 @@ class _StudyToolTile extends StatelessWidget {
                   style: GoogleFonts.cairo(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: NoorDesignSystem.textPrimary,
+                    color: isDark ? Colors.white : NoorDesignSystem.textPrimary,
                   ),
                 ),
               ),

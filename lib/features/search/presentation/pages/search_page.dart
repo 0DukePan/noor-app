@@ -44,9 +44,10 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   @override
   Widget build(BuildContext context) {
     final searchState = ref.watch(searchResultsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: NoorDesignSystem.creamWhite,
+      backgroundColor: isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.creamWhite,
       appBar: AppBar(
         title: TextField(
           controller: _controller,
@@ -57,10 +58,13 @@ class _SearchPageState extends ConsumerState<SearchPage> {
             hintStyle: TextStyle(color: NoorDesignSystem.textSecondary.withValues(alpha: 0.5)),
             border: InputBorder.none,
           ),
-          style: GoogleFonts.cairo(fontSize: 18),
+          style: GoogleFonts.cairo(
+            fontSize: 18,
+            color: isDark ? Colors.white : null,
+          ),
           onChanged: _onQueryChanged,
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? NoorDesignSystem.surfaceDark : Colors.white,
         elevation: 1,
         iconTheme: const IconThemeData(color: NoorDesignSystem.deepTeal),
       ),
@@ -106,6 +110,7 @@ class _SearchResultCard extends StatelessWidget { // SearchResult
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isQuran = result.source == 'quran';
     final isHadith = result.source == 'hadith';
     final metadata = result.metadata;
@@ -130,7 +135,7 @@ class _SearchResultCard extends StatelessWidget { // SearchResult
 
     return Card(
       elevation: 0,
-      color: Colors.white,
+      color: isDark ? NoorDesignSystem.surfaceDark : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: Colors.black.withValues(alpha: 0.05)),

@@ -457,11 +457,12 @@ class _SurahListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMakki = revelationType == RevelationType.meccan;
     final displayName = nameArabic.replaceAll('سورة ', '');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? NoorDesignSystem.surfaceDark : Colors.white,
         borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
         boxShadow: NoorDesignSystem.shadowSmall,
         border: Border.all(color: Colors.black.withValues(alpha: 0.03)),

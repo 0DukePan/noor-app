@@ -109,6 +109,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
         _verseKeys[i + 1] = GlobalKey();
       }
       
+      if (!mounted) return;
       setState(() {
         _verses = ayahs.cast<Map<String, dynamic>>();
         _isLoading = false;

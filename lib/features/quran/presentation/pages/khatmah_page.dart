@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -254,7 +254,7 @@ class _ActiveKhatmahCard extends StatelessWidget {
                 ),
               ),
               Text(
-                'صفحة $currentPage من 604',
+                'صفحة $currentPage من $kQuranTotalPages',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.white.withValues(alpha: 0.8),
                     ),
@@ -578,7 +578,7 @@ class _CreateKhatmahDialogState extends ConsumerState<_CreateKhatmahDialog> {
           ),
           const SizedBox(height: NoorTheme.spacingSm),
           Text(
-            '≈ ${(604 / _durationDays).ceil()} صفحة يومياً',
+            '≈ ${(kQuranTotalPages / _durationDays).ceil()} صفحة يومياً',
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],

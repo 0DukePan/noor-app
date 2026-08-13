@@ -76,6 +76,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
       topic: _selectedTopic,
     );
     
+    if (!mounted) return;
     setState(() {
       _searchResults = results;
       _isSearching = false;

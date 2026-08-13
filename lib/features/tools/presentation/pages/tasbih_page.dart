@@ -68,20 +68,27 @@ class _TasbihPageState extends State<TasbihPage> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     final progress = _target > 0 ? (_count / _target).clamp(0.0, 1.0) : 0.0;
     final isComplete = _target > 0 && _count >= _target;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: NoorDesignSystem.background,
+      backgroundColor: isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.background,
       appBar: AppBar(
         title: Text(
           'المسبحة الإلكترونية',
-          style: GoogleFonts.cairo(fontWeight: FontWeight.bold, color: NoorDesignSystem.naskhBlack),
+          style: GoogleFonts.cairo(
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : NoorDesignSystem.naskhBlack,
+          ),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: NoorDesignSystem.naskhBlack),
+            icon: Icon(
+              Icons.refresh_rounded,
+              color: isDark ? Colors.white : NoorDesignSystem.naskhBlack,
+            ),
             onPressed: _reset,
             tooltip: 'تصفير',
           ),
@@ -158,7 +165,9 @@ class _TasbihPageState extends State<TasbihPage> with SingleTickerProviderStateM
                             shape: BoxShape.circle,
                             color: isComplete 
                                 ? NoorDesignSystem.goldAccent.withValues(alpha: 0.1) 
-                                : Colors.white,
+                                : isDark
+                                    ? NoorDesignSystem.surfaceDark
+                                    : Colors.white,
                             boxShadow: [
                               BoxShadow(
                                 color: (isComplete ? NoorDesignSystem.goldAccent : NoorDesignSystem.primaryGreen).withValues(alpha: 0.2),
@@ -232,13 +241,18 @@ class _PresetChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSelected = value == selectedValue;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? NoorDesignSystem.primaryGreen : Colors.white,
+          color: isSelected
+              ? NoorDesignSystem.primaryGreen
+              : isDark
+                  ? NoorDesignSystem.surfaceDark
+                  : Colors.white,
           borderRadius: BorderRadius.circular(30),
           border: Border.all(
             color: isSelected ? NoorDesignSystem.primaryGreen : NoorDesignSystem.primaryContainer,

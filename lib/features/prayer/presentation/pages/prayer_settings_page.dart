@@ -109,6 +109,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<CalculationMethod>(
+            key: ValueKey(selected),
             initialValue: selected,
             isExpanded: true,
             decoration: InputDecoration(

@@ -385,6 +385,7 @@ class _SurahPageState extends ConsumerState<SurahPage>
               icon: Icons.bookmark_outline_rounded,
               title: 'إضافة علامة',
               onTap: () async {
+                final messenger = ScaffoldMessenger.of(context);
                 Navigator.pop(context);
                 // quran_uthmani.json has no page field; map it via quran_pages.
                 final page = await ref
@@ -396,21 +397,20 @@ class _SurahPageState extends ConsumerState<SurahPage>
                       verseNumber: verse.numberInSurah,
                       page: page,
                     );
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('تم حفظ العلامة')),
-                  );
-                }
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('تم حفظ العلامة')),
+                );
               },
             ),
             _OptionTile(
               icon: Icons.share_rounded,
               title: 'مشاركة',
               onTap: () {
+                final messenger = ScaffoldMessenger.of(context);
                 Navigator.pop(context);
                 final shareText = '${verse.textUthmani}\n\n— القرآن الكريم (سورة ${widget.surahNumber}، آية ${verse.numberInSurah})';
                 Clipboard.setData(ClipboardData(text: shareText));
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   const SnackBar(content: Text('تم نسخ الآية للمشاركة')),
                 );
               },
@@ -427,9 +427,10 @@ class _SurahPageState extends ConsumerState<SurahPage>
               icon: Icons.copy_rounded,
               title: 'نسخ الآية',
               onTap: () {
+                final messenger = ScaffoldMessenger.of(context);
                 Navigator.pop(context);
                 Clipboard.setData(ClipboardData(text: verse.textUthmani));
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   const SnackBar(content: Text('تم نسخ الآية')),
                 );
               },

@@ -328,29 +328,29 @@ class _QadaCard extends StatelessWidget {
           ),
 
           if (!isComplete)
-            InkWell(
-              onTap: onIncrement,
+            Material(
+              color: theme.colorScheme.primary.withValues(alpha: 0.08),
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add_rounded, color: theme.colorScheme.primary),
-                    const SizedBox(width: 8),
-                    Text(
-                      type == QadaType.prayer ? 'قضيت صلاة واحدة' : 'صمت يوماً واحداً',
-                      style: GoogleFonts.cairo(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: onIncrement,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add_rounded, color: theme.colorScheme.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        type == QadaType.prayer ? 'قضيت صلاة واحدة' : 'صمت يوماً واحداً',
+                        style: GoogleFonts.cairo(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

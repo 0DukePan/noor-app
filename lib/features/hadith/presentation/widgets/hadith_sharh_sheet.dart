@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../../../core/data/data_sources/hadith_database.dart';
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/services/hadith_search_engine.dart';
 import '../../../../core/theme/design_system.dart';
@@ -467,7 +468,9 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
 
   /// Extract contextual benefits from the hadith text
   List<String> _extractBenefits() {
-    final text = widget.hadith.arabic;
+    // The corpus is fully vocalized, so keywords are matched against the
+    // de-diacritized text.
+    final text = HadithDatabase.normalizeForSearch(widget.hadith.arabic);
     final benefits = <String>[];
 
     // Common hadith themes to extract benefits for

@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../core/services/hive_service.dart';
 import '../../../../core/services/quran_audio_engine.dart';
@@ -19,17 +20,40 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
+  String _version = '1.0.0';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (!mounted) return;
+      setState(() {
+        _version = '${info.version}+${info.buildNumber}';
+      });
+    } on Object {
+      // Platform channel unavailable (e.g. tests) — keep the fallback.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
     final hapticEnabled = ref.watch(hapticEnabledProvider);
     final fontScale = ref.watch(fontScaleProvider);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surface = isDark ? NoorDesignSystem.surfaceDark : Colors.white;
+
     return Scaffold(
-      backgroundColor: NoorDesignSystem.creamWhite,
+      backgroundColor: isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.creamWhite,
       appBar: AppBar(
         title: Text('الإعدادات', style: NoorDesignSystem.textTheme.titleLarge),
-        backgroundColor: NoorDesignSystem.creamWhite,
+        backgroundColor: isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.creamWhite,
         centerTitle: true,
         elevation: 0,
       ),
@@ -69,7 +93,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: surface,
               borderRadius: BorderRadius.circular(NoorDesignSystem.radiusLarge),
               boxShadow: NoorDesignSystem.shadowSmall,
             ),
@@ -90,50 +114,57 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
               borderRadius: BorderRadius.circular(NoorDesignSystem.radiusLarge),
               boxShadow: NoorDesignSystem.shadowSmall,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text('حجم الخط', style: NoorDesignSystem.textTheme.labelLarge),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Text('أ', style: NoorDesignSystem.textTheme.bodySmall),
-                    Expanded(
-                      child: SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          activeTrackColor: NoorDesignSystem.emeraldGreen,
-                          inactiveTrackColor: NoorDesignSystem.emeraldGreen.withValues(alpha: 0.2),
-                          thumbColor: NoorDesignSystem.emeraldGreen,
-                        ),
-                        child: Slider(
-                          value: fontScale,
-                          min: 0.8,
-                          max: 1.4,
-                          divisions: 6,
-                          onChanged: (value) {
-                            ref.read(fontScaleProvider.notifier).state = value;
-                            ThemeService.setFontScale(value);
-                          },
+            child: Material(
+              type: MaterialType.card,
+              color: surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(NoorDesignSystem.radiusLarge),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('حجم الخط', style: NoorDesignSystem.textTheme.labelLarge),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text('أ', style: NoorDesignSystem.textTheme.bodySmall),
+                      Expanded(
+                        child: SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            activeTrackColor: NoorDesignSystem.emeraldGreen,
+                            inactiveTrackColor: NoorDesignSystem.emeraldGreen.withValues(alpha: 0.2),
+                            thumbColor: NoorDesignSystem.emeraldGreen,
+                          ),
+                          child: Slider(
+                            value: fontScale,
+                            min: 0.8,
+                            max: 1.4,
+                            divisions: 6,
+                            onChanged: (value) {
+                              ref.read(fontScaleProvider.notifier).state = value;
+                              ThemeService.setFontScale(value);
+                            },
+                          ),
                         ),
                       ),
-                    ),
-                    Text('أ', style: NoorDesignSystem.textTheme.titleLarge),
-                  ],
-                ),
-                Center(
-                  child: Text(
-                    'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-                    style: GoogleFonts.amiri(
-                      fontSize: 18 * fontScale,
-                      height: 1.8,
+                      Text('أ', style: NoorDesignSystem.textTheme.titleLarge),
+                    ],
+                  ),
+                  Center(
+                    child: Text(
+                      'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                      style: GoogleFonts.amiri(
+                        fontSize: 18 * fontScale,
+                        height: 1.8,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
@@ -144,30 +175,37 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           const SizedBox(height: 16),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
               borderRadius: BorderRadius.circular(NoorDesignSystem.radiusLarge),
               boxShadow: NoorDesignSystem.shadowSmall,
             ),
-            child: Column(
-              children: [
-                _buildSwitchTile(
-                  title: 'الاهتزاز',
-                  subtitle: 'تفعيل الاستجابة اللمسية عند التفاعل',
-                  value: hapticEnabled,
-                  onChanged: (value) {
-                    ref.read(hapticEnabledProvider.notifier).state = value;
-                    ThemeService.setHapticEnabled(enabled: value);
-                    if (value) HapticFeedback.lightImpact();
-                  },
-                ),
-                const Divider(height: 1),
-                _buildListTile(
-                  title: 'مسح ذاكرة التخزين',
-                  subtitle: 'حذف البيانات المؤقتة لتحرير المساحة',
-                  icon: Icons.delete_outline_rounded,
-                  onTap: _showClearCacheDialog,
-                ),
-              ],
+            child: Material(
+              type: MaterialType.card,
+              color: surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(NoorDesignSystem.radiusLarge),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                children: [
+                  _buildSwitchTile(
+                    title: 'الاهتزاز',
+                    subtitle: 'تفعيل الاستجابة اللمسية عند التفاعل',
+                    value: hapticEnabled,
+                    onChanged: (value) {
+                      ref.read(hapticEnabledProvider.notifier).state = value;
+                      ThemeService.setHapticEnabled(enabled: value);
+                      if (value) HapticFeedback.lightImpact();
+                    },
+                  ),
+                  const Divider(height: 1),
+                  _buildListTile(
+                    title: 'مسح ذاكرة التخزين',
+                    subtitle: 'حذف البيانات المؤقتة لتحرير المساحة',
+                    icon: Icons.delete_outline_rounded,
+                    onTap: _showClearCacheDialog,
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -178,26 +216,33 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           const SizedBox(height: 16),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
               borderRadius: BorderRadius.circular(NoorDesignSystem.radiusLarge),
               boxShadow: NoorDesignSystem.shadowSmall,
             ),
-            child: Column(
-              children: [
-                _buildListTile(
-                  title: 'الإشعارات',
-                  subtitle: 'أذكار الصباح والمساء، تنبيهات الصلاة',
-                  icon: Icons.notifications_rounded,
-                  onTap: () => context.go('/tools/settings/notifications'),
-                ),
-                const Divider(height: 1),
-                _buildListTile(
-                  title: 'التخزين والأداء',
-                  subtitle: 'إدارة البيانات المحفوظة',
-                  icon: Icons.storage_rounded,
-                  onTap: () => context.go('/tools/settings/storage'),
-                ),
-              ],
+            child: Material(
+              type: MaterialType.card,
+              color: surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(NoorDesignSystem.radiusLarge),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                children: [
+                  _buildListTile(
+                    title: 'الإشعارات',
+                    subtitle: 'أذكار الصباح والمساء، تنبيهات الصلاة',
+                    icon: Icons.notifications_rounded,
+                    onTap: () => context.go('/tools/settings/notifications'),
+                  ),
+                  const Divider(height: 1),
+                  _buildListTile(
+                    title: 'التخزين والأداء',
+                    subtitle: 'إدارة البيانات المحفوظة',
+                    icon: Icons.storage_rounded,
+                    onTap: () => context.go('/tools/settings/storage'),
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -206,46 +251,60 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           // Privacy
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
               borderRadius: BorderRadius.circular(NoorDesignSystem.radiusLarge),
               boxShadow: NoorDesignSystem.shadowSmall,
             ),
-            child: Column(
-              children: [
-                _buildListTile(
-                  title: 'الخصوصية والبيانات',
-                  subtitle: 'لا نجمع أي بيانات شخصية',
-                  icon: Icons.privacy_tip_outlined,
-                  onTap: () => _showPrivacySheet(context),
-                ),
-              ],
+            child: Material(
+              type: MaterialType.card,
+              color: surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(NoorDesignSystem.radiusLarge),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                children: [
+                  _buildListTile(
+                    title: 'الخصوصية والبيانات',
+                    subtitle: 'لا نجمع أي بيانات شخصية',
+                    icon: Icons.privacy_tip_outlined,
+                    onTap: () => _showPrivacySheet(context),
+                  ),
+                ],
+              ),
             ),
           ),
 
           const SizedBox(height: 32),
 
           // About
-         Container(
+          Container(
             decoration: BoxDecoration(
-              color: Colors.white,
               borderRadius: BorderRadius.circular(NoorDesignSystem.radiusLarge),
               boxShadow: NoorDesignSystem.shadowSmall,
             ),
-            child: Column(
-              children: [
-                 _buildListTile(
-                  title: 'حول التطبيق',
-                  icon: Icons.info_outline_rounded,
-                  onTap: () => _showAboutSheet(context),
-                ),
-              ],
+            child: Material(
+              type: MaterialType.card,
+              color: surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(NoorDesignSystem.radiusLarge),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                children: [
+                  _buildListTile(
+                    title: 'حول التطبيق',
+                    icon: Icons.info_outline_rounded,
+                    onTap: () => _showAboutSheet(context),
+                  ),
+                ],
+              ),
             ),
-         ),
+          ),
 
           const SizedBox(height: 50),
           Center(
             child: Text(
-              'الإصدار 1.0.0',
+              'الإصدار $_version',
               style: NoorDesignSystem.textTheme.bodySmall,
             ),
           ),
@@ -335,7 +394,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                'الإصدار 1.0.0',
+                'الإصدار $_version',
                 style: NoorDesignSystem.textTheme.bodySmall,
               ),
             ],
@@ -443,7 +502,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         title: const Text('مسح الذاكرة المؤقتة', textAlign: TextAlign.right),
         content: const Text(
           'هل أنت متأكد؟ سيتم حذف ذاكرة التلاوة المحملة وفهرس البحث، ويعاد بناؤها تلقائياً عند الحاجة.',

@@ -142,6 +142,9 @@ String _surahsInRange(int fromPage, int toPage) {
 // KHATMAH DATA MODEL
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// Total number of mushaf pages (1–604).
+const int kQuranTotalPages = 604;
+
 class Khatmah {
 
   const Khatmah({
@@ -213,7 +216,7 @@ class Khatmah {
   int get dailyPagesNeeded {
     if (targetEndDate == null) return 20;
     final remaining = targetEndDate!.difference(DateTime.now()).inDays;
-    final pagesLeft = 604 - currentPage;
+    final pagesLeft = kQuranTotalPages - currentPage;
     if (pagesLeft <= 0) return 0; // Khatmah complete
     if (remaining <= 0) return pagesLeft.clamp(1, 50); // ✅ Clamp to max 50
     return (pagesLeft / remaining).ceil().clamp(1, 50);

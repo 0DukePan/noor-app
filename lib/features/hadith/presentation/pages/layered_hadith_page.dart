@@ -55,6 +55,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
       limit: 10,
     );
     
+    if (!mounted) return;
     setState(() {
       _similarHadiths = similar;
       _otherNarrations = otherNarrations

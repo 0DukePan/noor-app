@@ -45,6 +45,7 @@ class _AdhkarPageState extends State<AdhkarPage> {
   Widget build(BuildContext context) {
     final stats = AdhkarDataSource.getTodayStats();
     final streak = AdhkarDataSource.getStreak();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Auto-highlight based on time
     final hour = DateTime.now().hour;
@@ -52,7 +53,7 @@ class _AdhkarPageState extends State<AdhkarPage> {
     final isEvening = hour >= 12 && hour < 20;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: isDark ? NoorDesignSystem.bgDark : const Color(0xFFF5F5F5),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -60,7 +61,7 @@ class _AdhkarPageState extends State<AdhkarPage> {
           SliverAppBar(
             expandedHeight: 120,
             pinned: true,
-            backgroundColor: Colors.white,
+            backgroundColor: isDark ? NoorDesignSystem.surfaceDark : Colors.white,
             surfaceTintColor: Colors.transparent,
             elevation: 0,
             flexibleSpace: FlexibleSpaceBar(
@@ -71,7 +72,7 @@ class _AdhkarPageState extends State<AdhkarPage> {
                 style: GoogleFonts.cairo(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: NoorDesignSystem.naskhBlack,
+                  color: isDark ? Colors.white : NoorDesignSystem.naskhBlack,
                 ),
               ),
             ),
@@ -532,36 +533,48 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
     return _collection!.adhkar[_progress.currentIndex];
   }
 
+  bool _isTapping = false;
+
   Future<void> _onTap() async {
     if (_collection == null || _progress.isCompleted) return;
-
-    if (_settings.vibrateOnComplete) {
-      unawaited(HapticFeedback.lightImpact());
-    }
-
-    unawaited(_pulseController.forward().then((_) => _pulseController.reverse()));
-
-    final currentZekr = _currentZekr;
-    if (currentZekr == null) return;
-
-    if (_progress.currentCount + 1 >= currentZekr.repeat) {
+    // Guard against rapid double-taps losing counts (the saved progress is
+    // read before the async write completes).
+    if (_isTapping) return;
+    _isTapping = true;
+    try {
       if (_settings.vibrateOnComplete) {
-        unawaited(HapticFeedback.mediumImpact());
+        unawaited(HapticFeedback.lightImpact());
       }
 
-      if (_progress.currentIndex + 1 >= _collection!.count) {
-        await AdhkarDataSource.completeAdhkar(widget.type);
-        setState(() {
-          _progress = _progress.complete();
-        });
-        _showCompletionDialog();
+      unawaited(_pulseController.forward().then((_) => _pulseController.reverse()));
+
+      final currentZekr = _currentZekr;
+      if (currentZekr == null) return;
+
+      if (_progress.currentCount + 1 >= currentZekr.repeat) {
+        if (_settings.vibrateOnComplete) {
+          unawaited(HapticFeedback.mediumImpact());
+        }
+
+        if (_progress.currentIndex + 1 >= _collection!.count) {
+          await AdhkarDataSource.completeAdhkar(widget.type);
+          if (!mounted) return;
+          setState(() {
+            _progress = _progress.complete();
+          });
+          _showCompletionDialog();
+        } else {
+          final newProgress = await AdhkarDataSource.nextZekr(widget.type);
+          if (!mounted) return;
+          setState(() => _progress = newProgress);
+        }
       } else {
-        final newProgress = await AdhkarDataSource.nextZekr(widget.type);
+        final newProgress = await AdhkarDataSource.incrementCount(widget.type);
+        if (!mounted) return;
         setState(() => _progress = newProgress);
       }
-    } else {
-      final newProgress = await AdhkarDataSource.incrementCount(widget.type);
-      setState(() => _progress = newProgress);
+    } finally {
+      _isTapping = false;
     }
   }
 

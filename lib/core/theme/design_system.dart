@@ -109,9 +109,10 @@ class NoorDesignSystem {
   // HADITH BOOK COLORS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static const bukhariColor = Color(0xFF2E7D32);
-  static const muslimColor = Color(0xFF1565C0);
-  static const abuDawudColor = Color(0xFF00796B);
+static const bukhariColor = Color(0xFF2E7D32);
+static const muslimColor = Color(0xFF1565C0);
+static const abuDawudColor = Color(0xFF00796B);
+static const musnadColor = Color(0xFF6A1B9A);
   static const tirmidhiColor = Color(0xFF795548);
   static const nasaiColor = Color(0xFFC62828);
   static const ibnMajahColor = Color(0xFF6A1B9A);
