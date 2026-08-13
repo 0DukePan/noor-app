@@ -37,9 +37,11 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.bgLight,
+      backgroundColor:
+          isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.bgLight,
       appBar: AppBar(
-        title: Text('إعدادات الصلاة', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+        title: Text('إعدادات الصلاة',
+            style: GoogleFonts.cairo(fontWeight: FontWeight.bold),),
         centerTitle: true,
       ),
       body: ListView(
@@ -47,7 +49,8 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
         physics: const BouncingScrollPhysics(),
         children: [
           // ── Section 1: Adhan Sounds ──
-          const _SectionHeader(icon: Icons.volume_up_rounded, title: 'الأذان والتنبيهات'),
+          const _SectionHeader(
+              icon: Icons.volume_up_rounded, title: 'الأذان والتنبيهات',),
           const SizedBox(height: 8),
           _buildAdhanSection(theme, isDark),
           const SizedBox(height: 24),
@@ -59,19 +62,22 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
           const SizedBox(height: 24),
 
           // ── Section 3: Calculation Method ──
-          const _SectionHeader(icon: Icons.calculate_rounded, title: 'طريقة حساب المواقيت'),
+          const _SectionHeader(
+              icon: Icons.calculate_rounded, title: 'طريقة حساب المواقيت',),
           const SizedBox(height: 8),
           _buildMethodSection(theme, isDark),
           const SizedBox(height: 24),
 
           // ── Section 4: Seasonal Offsets ──
-          const _SectionHeader(icon: Icons.tune_rounded, title: 'الإزاحات الموسمية'),
+          const _SectionHeader(
+              icon: Icons.tune_rounded, title: 'الإزاحات الموسمية',),
           const SizedBox(height: 8),
           _buildOffsetsSection(theme, isDark),
           const SizedBox(height: 24),
 
           // ── Section 5: Prayer Health Check ──
-          const _SectionHeader(icon: Icons.health_and_safety_rounded, title: 'فحص النظام'),
+          const _SectionHeader(
+              icon: Icons.health_and_safety_rounded, title: 'فحص النظام',),
           const SizedBox(height: 8),
           _buildHealthSection(theme, isDark),
           const SizedBox(height: 100),
@@ -81,7 +87,8 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
   }
 
   Widget _buildMethodSection(ThemeData theme, bool isDark) {
-    final selected = HiveService.getCalculationMethod() ?? CalculationMethod.ummAlQura;
+    final selected =
+        HiveService.getCalculationMethod() ?? CalculationMethod.ummAlQura;
 
     return Container(
       decoration: BoxDecoration(
@@ -108,7 +115,8 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             ),
             items: PrayerTimeEngine.methods.entries.map((entry) {
               return DropdownMenuItem(
@@ -141,40 +149,56 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? NoorDesignSystem.surfaceDark : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: NoorDesignSystem.shadowSmall,
       ),
-      child: Column(
-        children: _prayers.map((prayer) {
-          final label = _prayerLabels[prayer] ?? prayer;
-          final enabled = settings.adhanEnabled[prayer] ?? true;
-          return Column(
-            children: [
-              SwitchListTile(
-                title: Text(label, style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
-                subtitle: Text(
-                  enabled ? 'الأذان مفعل' : 'الأذان معطل',
-                  style: GoogleFonts.cairo(
-                    fontSize: 12,
-                    color: enabled ? NoorDesignSystem.primaryGreen : Colors.grey,
+      child: Material(
+        type: MaterialType.card,
+        color: isDark ? NoorDesignSystem.surfaceDark : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: _prayers.map((prayer) {
+            final label = _prayerLabels[prayer] ?? prayer;
+            final enabled = settings.adhanEnabled[prayer] ?? true;
+            return Column(
+              children: [
+                SwitchListTile(
+                  title: Text(label,
+                      style: GoogleFonts.cairo(fontWeight: FontWeight.w600),),
+                  subtitle: Text(
+                    enabled ? 'الأذان مفعل' : 'الأذان معطل',
+                    style: GoogleFonts.cairo(
+                      fontSize: 12,
+                      color:
+                          enabled ? NoorDesignSystem.primaryGreen : Colors.grey,
+                    ),
                   ),
+                  secondary: Icon(
+                    enabled
+                        ? Icons.notifications_active_rounded
+                        : Icons.notifications_off_rounded,
+                    color:
+                        enabled ? NoorDesignSystem.primaryGreen : Colors.grey,
+                  ),
+                  value: enabled,
+                  activeThumbColor: NoorDesignSystem.primaryGreen,
+                  onChanged: (v) {
+                    HapticFeedback.selectionClick();
+                    notifier.toggleAdhan(prayer, enabled: v);
+                  },
                 ),
-                secondary: Icon(
-                  enabled ? Icons.notifications_active_rounded : Icons.notifications_off_rounded,
-                  color: enabled ? NoorDesignSystem.primaryGreen : Colors.grey,
-                ),
-                value: enabled,
-                activeThumbColor: NoorDesignSystem.primaryGreen,
-                onChanged: (v) {
-                  HapticFeedback.selectionClick();
-                  notifier.toggleAdhan(prayer, enabled: v);
-                },
-              ),
-              if (prayer != _prayers.last) Divider(height: 1, indent: 56, color: theme.dividerColor.withValues(alpha: 0.3)),
-            ],
-          );
-        }).toList(),
+                if (prayer != _prayers.last)
+                  Divider(
+                      height: 1,
+                      indent: 56,
+                      color: theme.dividerColor.withValues(alpha: 0.3),),
+              ],
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -189,93 +213,114 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? NoorDesignSystem.surfaceDark : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: NoorDesignSystem.shadowSmall,
       ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          // Global toggle
-          SwitchListTile(
-            title: Text('وضع المسجد', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 16)),
-            subtitle: Text(
-              settings.mosqueModeGlobal
-                  ? 'يتم كتم الهاتف تلقائيًا عند وقت الصلاة'
-                  : 'معطل — يدوي فقط',
-              style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey),
-            ),
-            value: settings.mosqueModeGlobal,
-            activeThumbColor: NoorDesignSystem.primaryGreen,
-            onChanged: (v) {
-              HapticFeedback.mediumImpact();
-              notifier.setMosqueMode(enabled: v);
-            },
-            contentPadding: EdgeInsets.zero,
-          ),
-
-          const Divider(height: 24),
-
-          // Duration
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Material(
+        type: MaterialType.card,
+        color: isDark ? NoorDesignSystem.surfaceDark : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
             children: [
-              Text('المدة', style: GoogleFonts.cairo(fontSize: 14, color: Colors.grey)),
-              Text('${settings.mosqueDuration} دقيقة', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+              // Global toggle
+              SwitchListTile(
+                title: Text('وضع المسجد',
+                    style: GoogleFonts.cairo(
+                        fontWeight: FontWeight.bold, fontSize: 16,),),
+                subtitle: Text(
+                  settings.mosqueModeGlobal
+                      ? 'يتم كتم الهاتف تلقائيًا عند وقت الصلاة'
+                      : 'معطل — يدوي فقط',
+                  style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey),
+                ),
+                value: settings.mosqueModeGlobal,
+                activeThumbColor: NoorDesignSystem.primaryGreen,
+                onChanged: (v) {
+                  HapticFeedback.mediumImpact();
+                  notifier.setMosqueMode(enabled: v);
+                },
+                contentPadding: EdgeInsets.zero,
+              ),
+
+              const Divider(height: 24),
+
+              // Duration
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('المدة',
+                      style:
+                          GoogleFonts.cairo(fontSize: 14, color: Colors.grey),),
+                  Text('${settings.mosqueDuration} دقيقة',
+                      style: GoogleFonts.cairo(fontWeight: FontWeight.bold),),
+                ],
+              ),
+              Slider(
+                value: settings.mosqueDuration.toDouble(),
+                min: 10,
+                max: 60,
+                divisions: 5,
+                activeColor: NoorDesignSystem.primaryGreen,
+                label: '${settings.mosqueDuration} د',
+                onChanged: (v) => notifier.setMosqueDuration(v.round()),
+              ),
+
+              const Divider(height: 16),
+
+              // Quick buttons
+              Text('تفعيل سريع',
+                  style: GoogleFonts.cairo(fontSize: 13, color: Colors.grey),),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  _QuickMosqueButton(
+                    minutes: 10,
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      MosqueModeService.quick10Minutes();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('🕌 وضع المسجد — 10 دقائق',
+                                style: GoogleFonts.cairo(),),),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  _QuickMosqueButton(
+                    minutes: 20,
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      MosqueModeService.quick20Minutes();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('🕌 وضع المسجد — 20 دقيقة',
+                                style: GoogleFonts.cairo(),),),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  _QuickMosqueButton(
+                    minutes: 30,
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      MosqueModeService.quick30Minutes();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('🕌 وضع المسجد — 30 دقيقة',
+                                style: GoogleFonts.cairo(),),),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ],
           ),
-          Slider(
-            value: settings.mosqueDuration.toDouble(),
-            min: 10,
-            max: 60,
-            divisions: 5,
-            activeColor: NoorDesignSystem.primaryGreen,
-            label: '${settings.mosqueDuration} د',
-            onChanged: (v) => notifier.setMosqueDuration(v.round()),
-          ),
-
-          const Divider(height: 16),
-
-          // Quick buttons
-          Text('تفعيل سريع', style: GoogleFonts.cairo(fontSize: 13, color: Colors.grey)),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _QuickMosqueButton(
-                minutes: 10,
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  MosqueModeService.quick10Minutes();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('🕌 وضع المسجد — 10 دقائق', style: GoogleFonts.cairo())),
-                  );
-                },
-              ),
-              const SizedBox(width: 8),
-              _QuickMosqueButton(
-                minutes: 20,
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  MosqueModeService.quick20Minutes();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('🕌 وضع المسجد — 20 دقيقة', style: GoogleFonts.cairo())),
-                  );
-                },
-              ),
-              const SizedBox(width: 8),
-              _QuickMosqueButton(
-                minutes: 30,
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  MosqueModeService.quick30Minutes();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('🕌 وضع المسجد — 30 دقيقة', style: GoogleFonts.cairo())),
-                  );
-                },
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -315,7 +360,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Per-prayer offset rows
           ...offsets.entries.map((entry) {
             final prayerLabel = _prayerLabels[entry.key] ?? entry.key;
@@ -326,7 +371,9 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                 children: [
                   SizedBox(
                     width: 60,
-                    child: Text(prayerLabel, style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w600)),
+                    child: Text(prayerLabel,
+                        style: GoogleFonts.cairo(
+                            fontSize: 14, fontWeight: FontWeight.w600,),),
                   ),
                   Expanded(
                     child: Slider(
@@ -356,7 +403,9 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                       style: GoogleFonts.cairo(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: offsetMinutes == 0 ? Colors.grey : NoorDesignSystem.goldAccent,
+                        color: offsetMinutes == 0
+                            ? Colors.grey
+                            : NoorDesignSystem.goldAccent,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -375,7 +424,8 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                 setState(() {});
               },
               icon: const Icon(Icons.replay_rounded, size: 16),
-              label: Text('إعادة تعيين', style: GoogleFonts.cairo(fontSize: 12)),
+              label:
+                  Text('إعادة تعيين', style: GoogleFonts.cairo(fontSize: 12)),
               style: TextButton.styleFrom(foregroundColor: Colors.grey),
             ),
           ),
@@ -405,9 +455,14 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: settings.healthLoading ? null : notifier.runHealthCheck,
+              onPressed:
+                  settings.healthLoading ? null : notifier.runHealthCheck,
               icon: settings.healthLoading
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white,),)
                   : const Icon(Icons.health_and_safety_rounded),
               label: Text(
                 settings.healthLoading ? 'جاري الفحص...' : 'تشغيل فحص النظام',
@@ -416,7 +471,8 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
               style: FilledButton.styleFrom(
                 backgroundColor: NoorDesignSystem.primaryGreen,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),),
               ),
             ),
           ),
@@ -431,20 +487,24 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    const Icon(Icons.check_circle_rounded, color: Colors.green, size: 48),
+                    const Icon(Icons.check_circle_rounded,
+                        color: Colors.green, size: 48,),
                     const SizedBox(height: 8),
-                    Text('كل شيء يعمل بشكل ممتاز!', style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
+                    Text('كل شيء يعمل بشكل ممتاز!',
+                        style: GoogleFonts.cairo(fontWeight: FontWeight.w600),),
                   ],
                 ),
               )
             else
-              ...settings.healthReport!.issues.map((issue) => _HealthIssueCard(
-                issue: issue,
-                onFix: () async {
-                  await PrayerHealthCheck.attemptFix(issue);
-                  unawaited(notifier.runHealthCheck());
-                },
-              ),),
+              ...settings.healthReport!.issues.map(
+                (issue) => _HealthIssueCard(
+                  issue: issue,
+                  onFix: () async {
+                    await PrayerHealthCheck.attemptFix(issue);
+                    unawaited(notifier.runHealthCheck());
+                  },
+                ),
+              ),
           ],
         ],
       ),
@@ -457,7 +517,6 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _SectionHeader extends StatelessWidget {
-
   const _SectionHeader({required this.icon, required this.title});
   final IconData icon;
   final String title;
@@ -486,7 +545,6 @@ class _SectionHeader extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _QuickMosqueButton extends StatelessWidget {
-
   const _QuickMosqueButton({required this.minutes, required this.onTap});
   final int minutes;
   final VoidCallback onTap;
@@ -499,10 +557,12 @@ class _QuickMosqueButton extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           foregroundColor: NoorDesignSystem.primaryGreen,
           side: const BorderSide(color: NoorDesignSystem.primaryGreen),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(vertical: 12),
         ),
-        child: Text('$minutes د', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+        child: Text('$minutes د',
+            style: GoogleFonts.cairo(fontWeight: FontWeight.bold),),
       ),
     );
   }
@@ -513,7 +573,6 @@ class _QuickMosqueButton extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _HealthStatusBadge extends StatelessWidget {
-
   const _HealthStatusBadge({required this.status});
   final HealthStatus status;
 
@@ -560,7 +619,6 @@ class _HealthStatusBadge extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _HealthIssueCard extends StatelessWidget {
-
   const _HealthIssueCard({required this.issue, required this.onFix});
   final HealthIssue issue;
   final VoidCallback onFix;
@@ -588,8 +646,11 @@ class _HealthIssueCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(issue.title, style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 13)),
-                Text(issue.description, style: GoogleFonts.cairo(fontSize: 11, color: Colors.grey)),
+                Text(issue.title,
+                    style: GoogleFonts.cairo(
+                        fontWeight: FontWeight.bold, fontSize: 13,),),
+                Text(issue.description,
+                    style: GoogleFonts.cairo(fontSize: 11, color: Colors.grey),),
               ],
             ),
           ),
@@ -597,7 +658,9 @@ class _HealthIssueCard extends StatelessWidget {
             TextButton(
               onPressed: onFix,
               style: TextButton.styleFrom(foregroundColor: color),
-              child: Text('إصلاح', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 12)),
+              child: Text('إصلاح',
+                  style: GoogleFonts.cairo(
+                      fontWeight: FontWeight.bold, fontSize: 12,),),
             ),
         ],
       ),

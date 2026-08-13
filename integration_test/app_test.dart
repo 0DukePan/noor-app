@@ -13,14 +13,21 @@ import 'package:noor_app/main.dart' as app;
 /// evidence — CI runs it on an emulator (see .github/workflows/ci.yml).
 ///
 /// The bottom nav only shows a label for the SELECTED tab, so navigation taps
-/// target the nav bar's known icon positions instead of text finders.
+/// target the nav icons — scoped to the bottom band of the screen so page
+/// content using the same Material icons (e.g. the Quran header) is ignored.
+/// The geometry is pinned by test/widget/nav_bar_geometry_test.dart.
 
 const _bootTimeout = Duration(minutes: 8);
 const _stepTimeout = Duration(seconds: 45);
 
-/// Bottom-nav tab centers as fractions of the screen width:
-/// home, quran, hadith, adhkar, tools.
-const _tabFractions = <double>[0.1, 0.3, 0.5, 0.7, 0.9];
+/// The five tabs' nav icons: home, quran, hadith, adhkar, tools.
+const _tabIcons = <IconData>[
+  Icons.home_rounded,
+  Icons.menu_book_rounded,
+  Icons.auto_stories_rounded,
+  Icons.favorite_rounded,
+  Icons.grid_view_rounded,
+];
 
 Future<void> _pumpUntil(
   WidgetTester tester,
@@ -35,9 +42,19 @@ Future<void> _pumpUntil(
   fail('Timed out after $timeout waiting for $finder');
 }
 
-Future<void> _tapTab(WidgetTester tester, double fraction) async {
+Future<void> _tapTab(WidgetTester tester, IconData icon) async {
   final size = tester.getSize(find.byType(Scaffold).first);
-  await tester.tapAt(Offset(size.width * fraction, size.height - 40));
+  final navIcon = find.byIcon(icon).evaluate().firstWhere(
+    (element) {
+      final rect = tester.getRect(
+        find.byElementPredicate((el) => el == element),
+      );
+      return rect.top > size.height * 0.8;
+    },
+  );
+  await tester.tapAt(
+    tester.getCenter(find.byElementPredicate((el) => el == navIcon)),
+  );
   await tester.pump();
 }
 
@@ -72,27 +89,27 @@ void main() {
     expect(find.text('الرئيسية'), findsOneWidget);
 
     // Quran tab.
-    await _tapTab(tester, _tabFractions[1]);
+    await _tapTab(tester, _tabIcons[1]);
     await _pumpUntil(tester, find.text('القرآن'));
     await _pumpUntil(tester, find.text('القرآن الكريم'));
 
     // Hadith tab (book library header).
-    await _tapTab(tester, _tabFractions[2]);
+    await _tapTab(tester, _tabIcons[2]);
     await _pumpUntil(tester, find.text('الحديث'));
     await _pumpUntil(tester, find.text('الكتب والمجاميع'));
 
     // Adhkar tab (category cards).
-    await _tapTab(tester, _tabFractions[3]);
+    await _tapTab(tester, _tabIcons[3]);
     await _pumpUntil(tester, find.text('الأذكار'));
     await _pumpUntil(tester, find.text('أذكار الصباح'));
 
     // Tools tab (tool grid).
-    await _tapTab(tester, _tabFractions[4]);
+    await _tapTab(tester, _tabIcons[4]);
     await _pumpUntil(tester, find.text('الأدوات'));
     await _pumpUntil(tester, find.text('مواقيت الصلاة'));
 
     // Back to home.
-    await _tapTab(tester, _tabFractions[0]);
+    await _tapTab(tester, _tabIcons[0]);
     await _pumpUntil(tester, find.text('الرئيسية'));
 
     // No unhandled exceptions during the whole run.
