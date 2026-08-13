@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -601,7 +601,7 @@ class _StudyToolButton extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.arrow_forward_ios_rounded, size: 14, color: color.withValues(alpha: 0.5)),
+              Icon(Icons.arrow_back_ios_new_rounded, size: 14, color: color.withValues(alpha: 0.5)),
             ],
           ),
         ),

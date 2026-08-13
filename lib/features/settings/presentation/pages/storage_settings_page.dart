@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -130,7 +130,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
             subtitle: Text('إعادة تحميل البيانات من المصدر', style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey)),
             trailing: _clearing
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                : const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
             onTap: _clearing ? null : _clearCache,
             contentPadding: EdgeInsets.zero,
           ),
@@ -151,7 +151,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
             subtitle: Text('إعادة قراءة البيانات المعروضة', style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey)),
             trailing: _syncing
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                : const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
             onTap: _syncing ? null : _refreshStats,
             contentPadding: EdgeInsets.zero,
           ),

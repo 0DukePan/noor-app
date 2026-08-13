@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -66,7 +66,7 @@ class _AdhkarPageState extends State<AdhkarPage> {
             elevation: 0,
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: false,
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+              titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
               title: Text(
                 'الأذكار اليومية',
                 style: GoogleFonts.cairo(
@@ -79,7 +79,7 @@ class _AdhkarPageState extends State<AdhkarPage> {
             actions: [
               if (streak > 0)
                 Padding(
-                  padding: const EdgeInsets.only(right: 20, top: 12),
+                  padding: const EdgeInsetsDirectional.only(end: 20, top: 12),
                   child: Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -634,7 +634,7 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
         centerTitle: true,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(left: 20),
+            padding: const EdgeInsetsDirectional.only(start: 20),
             child: Center(
               child: Container(
                 padding:
@@ -706,7 +706,7 @@ class _AdhkarCounterPageState extends State<AdhkarCounterPage>
           const SizedBox(height: 48),
           FilledButton.icon(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Transform.flip(flipX: true, child: const Icon(Icons.arrow_back_rounded)),
             label: Text('العودة للقائمة',
                 style: GoogleFonts.cairo(fontWeight: FontWeight.bold),),
             style: FilledButton.styleFrom(

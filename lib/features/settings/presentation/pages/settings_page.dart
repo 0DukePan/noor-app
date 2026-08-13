@@ -493,7 +493,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         title: Text(title, style: NoorDesignSystem.textTheme.labelLarge),
         subtitle: subtitle != null ? Text(subtitle, style: NoorDesignSystem.textTheme.bodySmall) : null,
         leading: icon != null ? Icon(icon, color: NoorDesignSystem.textSecondary, size: 20) : null,
-        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: NoorDesignSystem.textSecondary),
+        trailing: const Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: NoorDesignSystem.textSecondary),
       ),
     );
   }
@@ -503,10 +503,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).colorScheme.surface,
-        title: const Text('مسح الذاكرة المؤقتة', textAlign: TextAlign.right),
+        title: const Text('مسح الذاكرة المؤقتة', textAlign: TextAlign.start),
         content: const Text(
           'هل أنت متأكد؟ سيتم حذف ذاكرة التلاوة المحملة وفهرس البحث، ويعاد بناؤها تلقائياً عند الحاجة.',
-          textAlign: TextAlign.right,
+          textAlign: TextAlign.start,
         ),
         actions: [
           TextButton(

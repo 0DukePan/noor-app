@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -82,7 +82,7 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
         actions: [
           // Streak display
           Container(
-            margin: const EdgeInsets.only(left: 16),
+            margin: const EdgeInsetsDirectional.only(start: 16),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
               color: NoorTheme.accentGold.withValues(alpha: 0.2),
@@ -364,7 +364,7 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
           const SizedBox(height: NoorTheme.spacingXl),
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Transform.flip(flipX: true, child: const Icon(Icons.arrow_back_rounded)),
             label: const Text('العودة'),
           ),
         ],

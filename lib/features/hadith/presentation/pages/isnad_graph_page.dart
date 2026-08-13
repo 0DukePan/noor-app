@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -103,7 +103,7 @@ class _IsnadGraphPageState extends State<IsnadGraphPage>
         actions: [
           if (_chain.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(left: 12),
+              padding: const EdgeInsetsDirectional.only(start: 12),
               child: Chip(
                 label: Text('${_chain.length} راوٍ'),
                 backgroundColor: NoorTheme.primary.withValues(alpha: 0.1),

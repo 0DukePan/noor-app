@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/domain/entities/surah_names.dart';
@@ -499,7 +499,7 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
   @override
   Widget buildLeading(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.arrow_back_rounded),
+      icon: Transform.flip(flipX: true, child: const Icon(Icons.arrow_back_rounded)),
       onPressed: () => close(context, null),
     );
   }

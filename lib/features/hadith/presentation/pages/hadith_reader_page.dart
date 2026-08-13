@@ -613,9 +613,9 @@ class _BottomNav extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Previous
+          // Previous — in RTL, "back/previous" points right.
           _NavButton(
-            icon: Icons.arrow_back_ios_rounded,
+            icon: Icons.arrow_forward_ios_rounded,
             label: 'السابق',
             onTap: onPrevious,
             color: bookColor,
@@ -649,9 +649,9 @@ class _BottomNav extends StatelessWidget {
             ],
           ),
 
-          // Next
+          // Next — in RTL, "forward/next" points left.
           _NavButton(
-            icon: Icons.arrow_forward_ios_rounded,
+            icon: Icons.arrow_back_ios_rounded,
             label: 'التالي',
             onTap: onNext,
             color: bookColor,

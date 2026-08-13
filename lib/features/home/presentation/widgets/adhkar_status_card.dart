@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/models/adhkar_models.dart';
@@ -93,7 +93,7 @@ class AdhkarStatusCard extends StatelessWidget {
                 ),
               ),
               Icon(
-                Icons.arrow_forward_ios_rounded,
+                Icons.arrow_back_ios_new_rounded,
                 size: 16,
                 color: isDark ? Colors.white24 : NoorDesignSystem.textSecondary.withValues(alpha: 0.4),
               ),

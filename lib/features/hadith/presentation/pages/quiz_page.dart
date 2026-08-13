@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -49,7 +49,7 @@ class _QuizPageState extends ConsumerState<QuizPage> {
         actions: [
           // Score display
           Container(
-            margin: const EdgeInsets.only(left: 16),
+            margin: const EdgeInsetsDirectional.only(start: 16),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
               color: NoorTheme.hadithSahih.withValues(alpha: 0.2),

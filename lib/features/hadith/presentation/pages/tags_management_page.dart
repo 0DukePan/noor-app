@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -376,7 +376,7 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
                             ),
                             if (isTagged)
                               Padding(
-                                padding: const EdgeInsets.only(left: 8),
+                                padding: const EdgeInsetsDirectional.only(start: 8),
                                 child: Icon(
                                   Icons.check_circle_rounded,
                                   color: tag.color,

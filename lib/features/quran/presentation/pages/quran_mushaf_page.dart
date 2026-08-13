@@ -1,4 +1,4 @@
-import 'package:flutter/gestures.dart';
+﻿import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -699,7 +699,7 @@ class _MushafTopBar extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.arrow_back_rounded, color: themeData.textColor),
+            icon: Transform.flip(flipX: true, child: Icon(Icons.arrow_back_rounded, color: themeData.textColor)),
             onPressed: onBack,
           ),
           const Spacer(),

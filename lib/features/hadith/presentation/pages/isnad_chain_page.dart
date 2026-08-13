@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -475,7 +475,7 @@ class _NarratorCard extends StatelessWidget {
                 // Rank badge from database
                 if (profile != null && profile.rank.isNotEmpty && !narrator.isProphet)
                   Container(
-                    margin: const EdgeInsets.only(right: 10),
+                    margin: const EdgeInsetsDirectional.only(end: 10),
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: NoorDesignSystem.gradeSahih.withValues(alpha: 0.08),

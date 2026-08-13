@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -147,7 +147,7 @@ class HadithChaptersPage extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      Icon(Icons.arrow_forward_ios_rounded,
+                      Icon(Icons.arrow_back_ios_new_rounded,
                           size: 14, color: bookColor.withValues(alpha: 0.6),),
                     ],
                   ),

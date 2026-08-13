@@ -1,4 +1,4 @@
-part of 'quran_mushaf_page.dart';
+﻿part of 'quran_mushaf_page.dart';
 
 
 class _FullTafsirReaderPage extends StatefulWidget {
@@ -186,7 +186,7 @@ class _FullTafsirReaderPageState extends State<_FullTafsirReaderPage> {
           children: TafsirSource.all.map((source) {
             final isSelected = source.id == _currentSource;
             return Padding(
-              padding: const EdgeInsets.only(left: 8),
+              padding: const EdgeInsetsDirectional.only(start: 8),
               child: ChoiceChip(
                 label: Text(
                   source.arabicName,

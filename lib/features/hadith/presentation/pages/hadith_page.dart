@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -456,7 +456,7 @@ class _ContinueReadingCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Icon(Icons.arrow_forward_ios_rounded, size: 16, color: bookColor),
+              Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: bookColor),
             ],
           ),
         ),
@@ -580,7 +580,7 @@ class _HadithOfTheDayCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 4),
-                        const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Colors.white70),
+                        const Icon(Icons.arrow_back_ios_new_rounded, size: 12, color: Colors.white70),
                       ],
                     ),
                   ],

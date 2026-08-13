@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/models/tafsir_models.dart';
 import '../../../../core/services/tafsir_data_source.dart';
@@ -668,7 +668,7 @@ class _TafsirCompareSheetState extends State<TafsirCompareSheet> {
               children: TafsirSource.all.map((source) {
                 final isSelected = _selectedSources.contains(source.id);
                 return Padding(
-                  padding: const EdgeInsets.only(left: 8),
+                  padding: const EdgeInsetsDirectional.only(start: 8),
                   child: FilterChip(
                     label: Text(source.arabicName),
                     selected: isSelected,

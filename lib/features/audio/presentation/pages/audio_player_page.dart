@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter/services.dart';
@@ -693,7 +693,7 @@ class _VerseCard extends StatelessWidget {
                     ? theme.colorScheme.onPrimaryContainer
                     : theme.colorScheme.onSurface,
               ),
-              textAlign: TextAlign.right,
+              textAlign: TextAlign.start,
               textDirection: TextDirection.rtl,
             ),
           ],

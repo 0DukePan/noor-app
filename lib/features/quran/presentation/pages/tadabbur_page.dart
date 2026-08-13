@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -172,14 +172,14 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
                       controller: _noteController,
                       maxLines: 4,
                       textDirection: TextDirection.rtl,
-                      textAlign: TextAlign.right,
+                      
                       decoration: InputDecoration(
                         hintText: 'اكتب تدبرك وخواطرك هنا...',
                         hintTextDirection: TextDirection.rtl,
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.all(NoorTheme.spacingMd),
                         suffixIcon: Padding(
-                          padding: const EdgeInsets.only(left: 8),
+                          padding: const EdgeInsetsDirectional.only(start: 8),
                           child: Icon(
                             Icons.lock_rounded,
                             size: 16,

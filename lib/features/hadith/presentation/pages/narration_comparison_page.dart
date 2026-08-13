@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/services/hadith_search_engine.dart';
@@ -125,7 +125,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
                               );
                             },
                             child: Container(
-                              margin: const EdgeInsets.only(left: 8),
+                              margin: const EdgeInsetsDirectional.only(start: 8),
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
                                 color: isSelected ? NoorTheme.primary : Colors.white,

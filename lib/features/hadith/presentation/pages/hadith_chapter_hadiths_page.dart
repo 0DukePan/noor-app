@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -208,7 +208,7 @@ class _HadithPreviewCard extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
-                    Icon(Icons.arrow_forward_ios_rounded,
+                    Icon(Icons.arrow_back_ios_new_rounded,
                         size: 14, color: Colors.grey.shade400,),
                   ],
                 ),

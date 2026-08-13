@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -155,7 +155,7 @@ class QuranPage extends ConsumerWidget {
                                 ],
                               ),
                               const Spacer(),
-                              const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
+                              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white70, size: 16),
                             ],
                           ),
                         ),
@@ -523,7 +523,7 @@ class _SurahListTile extends StatelessWidget {
                 ),
 
                 const SizedBox(width: 16),
-                const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: NoorDesignSystem.textSecondary),
+                const Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: NoorDesignSystem.textSecondary),
               ],
             ),
           ),
