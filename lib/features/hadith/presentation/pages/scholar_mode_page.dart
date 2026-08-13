@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/services/hadith_search_engine.dart';
 import '../../../../core/services/isnad_parser_service.dart';
 import '../../../../core/services/narrator_database_service.dart';
 import '../../../../core/services/share_as_image_service.dart';
+import '../../../../core/theme/design_system.dart';
 import '../../../../core/theme/noor_theme.dart';
 import '../hadith_book_names.dart';
+import '../widgets/hadith_share_sheet.dart';
 import '../widgets/narrator_profile_body.dart';
 
 /// 🎓 وضع طالب العلم - Scholar Mode for Hadith
@@ -58,15 +61,18 @@ class _ScholarModePageState extends State<ScholarModePage> {
   Future<void> _loadNote() async {
     final box = await Hive.openBox<dynamic>('hadith_notes');
     setState(() {
-      _note = (box.get(widget.hadith.id, defaultValue: '') ?? '') as String;
+      _note = (box.get(_noteKey, defaultValue: '') ?? '') as String;
     });
   }
 
   Future<void> _saveNote(String note) async {
     final box = await Hive.openBox<dynamic>('hadith_notes');
-    await box.put(widget.hadith.id, note);
+    await box.put(_noteKey, note);
     setState(() => _note = note);
   }
+
+  /// Canonical note key shared with the sharh sheet — book + in-book number.
+  String get _noteKey => 'note_${widget.hadith.book}_${widget.hadith.number}';
 
   Future<void> _loadSimilarHadiths() async {
     final similar = await HadithSearchEngine.getSimilar(widget.hadith);
@@ -689,7 +695,20 @@ ${widget.hadith.companion.isNotEmpty ? '👤 ${widget.hadith.companion}' : ''}
   }
 
   void _shareWithTakhrij() {
-    _copyWithTakhrij();
+    HadithShareSheet.show(
+      context,
+      hadith: Hadith(
+        id: widget.hadith.number,
+        idInBook: widget.hadith.number,
+        arabic: widget.hadith.text,
+        englishText: '',
+        narratorEnglish: widget.hadith.narrator,
+        chapterId: widget.hadith.chapter,
+        collectionId: widget.hadith.book,
+      ),
+      bookTitle: _getBookName(widget.hadith.book),
+      bookColor: NoorDesignSystem.emeraldGreen,
+    );
   }
 
   Future<void> _shareAsImage(BuildContext context) async {

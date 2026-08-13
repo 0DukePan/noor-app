@@ -31,12 +31,6 @@ final hadithCollectionsProvider = FutureProvider<List<HadithCollection>>((ref) a
   return repository.getCollections();
 });
 
-/// Specific book details (Metadata, Chapters)
-final hadithBookProvider = FutureProvider.family<HadithBook, String>((ref, bookId) async {
-  final repository = ref.watch(hadithRepositoryProvider);
-  return repository.getBook(bookId);
-});
-
 /// Lightweight book summary (metadata + chapters, no hadith rows).
 final hadithBookSummaryProvider =
     FutureProvider.family<HadithBook, String>((ref, bookId) async {
@@ -47,112 +41,6 @@ final hadithBookSummaryProvider =
 final hadithChapterCountsProvider =
     FutureProvider.family<Map<int, int>, String>((ref, bookId) async {
   return ref.watch(localHadithDataSourceProvider).getChapterHadithCounts(bookId);
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// PAGINATED HADITH LIST
-// ═══════════════════════════════════════════════════════════════════════════
-
-class PaginatedHadithsState extends Equatable {
-
-  const PaginatedHadithsState({
-    this.hadiths = const [],
-    this.isLoading = false,
-    this.error,
-    this.currentPage = 1,
-    this.hasMore = true,
-  });
-  final List<Hadith> hadiths;
-  final bool isLoading;
-  final String? error;
-  final int currentPage;
-  final bool hasMore;
-
-  PaginatedHadithsState copyWith({
-    List<Hadith>? hadiths,
-    bool? isLoading,
-    String? error,
-    int? currentPage,
-    bool? hasMore,
-  }) {
-    return PaginatedHadithsState(
-      hadiths: hadiths ?? this.hadiths,
-      isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
-      currentPage: currentPage ?? this.currentPage,
-      hasMore: hasMore ?? this.hasMore,
-    );
-  }
-
-  @override
-  List<Object?> get props => [hadiths, isLoading, error, currentPage, hasMore];
-}
-
-class PaginatedHadithsNotifier extends StateNotifier<PaginatedHadithsState> {
-
-  PaginatedHadithsNotifier(this._repository, this._bookId)
-      : super(const PaginatedHadithsState()) {
-    loadFirstPage();
-  }
-  final HadithRepository _repository;
-  final String _bookId;
-  static const int _limit = 50;
-
-  Future<void> loadFirstPage() async {
-    state = state.copyWith(isLoading: true);
-    try {
-      final hadiths = await _repository.getHadiths(_bookId, page: 1, limit: _limit);
-      state = state.copyWith(
-        hadiths: hadiths,
-        isLoading: false,
-        currentPage: 1,
-        hasMore: hadiths.length == _limit,
-      );
-    } on Exception catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
-    }
-  }
-
-  Future<void> loadNextPage() async {
-    if (state.isLoading || !state.hasMore) return;
-
-    state = state.copyWith(isLoading: true);
-    try {
-      final nextPage = state.currentPage + 1;
-      final newHadiths = await _repository.getHadiths(
-        _bookId, 
-        page: nextPage, 
-        limit: _limit,
-      );
-      
-      state = state.copyWith(
-        hadiths: [...state.hadiths, ...newHadiths],
-        isLoading: false,
-        currentPage: nextPage,
-        hasMore: newHadiths.length == _limit,
-      );
-    } on Exception catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
-    }
-  }
-}
-
-final paginatedHadithsProvider = StateNotifierProvider.family<PaginatedHadithsNotifier, PaginatedHadithsState, String>((ref, bookId) {
-  final repository = ref.watch(hadithRepositoryProvider);
-  return PaginatedHadithsNotifier(repository, bookId);
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// SEARCH
-// ═══════════════════════════════════════════════════════════════════════════
-
-final hadithSearchProvider = FutureProvider.family<List<Hadith>, String>((ref, query) async {
-  // NOTE: This search requires a bookId context. 
-  // Ideally, search should be handled within the page context or global search.
-  // For now, we assume search is within the *currently selected book* via a different provider/controller.
-  // BUT the architecture usually passes the scope.
-  // This simplistic provider might need to be scoped.
-  return []; 
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -346,13 +234,14 @@ class QuizNotifier extends StateNotifier<QuizState> {
   }
 
   /// Append the finished quiz result to the `quiz_history` Hive box so the
-  /// learning-statistics page can show real quiz data.
+  /// learning-statistics page can show real quiz data. Keys are timestamped
+  /// so multiple quizzes on the same day are all kept.
   Future<void> _saveQuizResult(int score, int total) async {
     try {
       final box = await Hive.openBox<dynamic>('quiz_history');
       final now = DateTime.now();
       await box.put(
-        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
+        'quiz_${now.millisecondsSinceEpoch}',
         {
           'score': score,
           'total': total,

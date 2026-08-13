@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/hadith_search_engine.dart';
 import '../../../../core/theme/noor_theme.dart';
+import 'advanced_hadith_browser_page.dart';
 
 /// شجرة الموضوعات - Topic Tree Page
 /// Dynamically loads topics and counts from HadithSearchEngine.
@@ -192,11 +193,12 @@ class _TopicTreePageState extends ConsumerState<TopicTreePage> {
 
   void _openTopic(_TopicItem topic) {
     HapticFeedback.mediumImpact();
-    // Navigate to hadiths filtered by topic
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('جارٍ تحميل أحاديث ${topic.name}...'),
-        duration: const Duration(seconds: 1),
+    // Open the topic-filtered search results in the advanced browser
+    // (the Topics tab there now has real index data).
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => const AdvancedHadithBrowserPage(),
       ),
     );
   }

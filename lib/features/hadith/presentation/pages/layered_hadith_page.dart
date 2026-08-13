@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/services/hadith_search_engine.dart';
+import '../../../../core/services/isnad_parser_service.dart';
 import '../../../../core/services/share_as_image_service.dart';
+import '../../../../core/theme/design_system.dart';
 import '../hadith_book_names.dart';
+import '../widgets/hadith_share_sheet.dart';
+import 'advanced_hadith_browser_page.dart';
 import 'scholar_mode_page.dart';
 
 /// 📜 طبقات الحديث - Layered Hadith View
@@ -198,8 +203,10 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
   // ═══════════════════════════════════════════════════════════════════════════
 
   Widget _buildSanadTab(ThemeData theme) {
-    // Parse the sanad into individual narrators
-    final narrators = _parseSanad(widget.hadith.narrator);
+    // Parse the Arabic sanad (the matn text contains it) — the English
+    // narrator field was never a valid chain.
+    final chain = IsnadParserService.parseChain(widget.hadith.text);
+    final narrators = chain.map((n) => n.name).toList();
     
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -301,34 +308,6 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
         ],
       ),
     );
-  }
-
-  List<String> _parseSanad(String sanad) {
-    // Split by common patterns
-    final patterns = ['عن', 'حدثنا', 'أخبرنا', 'قال'];
-    
-    var narrators = <String>[];
-    final current = sanad;
-    
-    for (final pattern in patterns) {
-      if (current.contains(pattern)) {
-        final parts = current.split(pattern);
-        for (final part in parts) {
-          final cleaned = part.trim();
-          if (cleaned.isNotEmpty && cleaned.length > 3) {
-            narrators.add(cleaned);
-          }
-        }
-        break;
-      }
-    }
-    
-    // If no pattern found, return the full sanad
-    if (narrators.isEmpty) {
-      narrators = [sanad];
-    }
-    
-    return narrators;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -669,7 +648,20 @@ ${widget.hadith.text}
   }
 
   void _share(BuildContext context) {
-    _copyFullTakhrij();
+    HadithShareSheet.show(
+      context,
+      hadith: Hadith(
+        id: widget.hadith.number,
+        idInBook: widget.hadith.number,
+        arabic: widget.hadith.text,
+        englishText: '',
+        narratorEnglish: widget.hadith.narrator,
+        chapterId: widget.hadith.chapter,
+        collectionId: widget.hadith.book,
+      ),
+      bookTitle: _getBookName(widget.hadith.book),
+      bookColor: NoorDesignSystem.emeraldGreen,
+    );
   }
 
   void _openScholarMode(BuildContext context) {
@@ -691,9 +683,14 @@ ${widget.hadith.text}
   }
 
   void _searchByCompanion(String companion) {
-    // Navigate back to search with companion filter
-    Navigator.pop(context);
-    // This would typically use a navigation callback
+    // The advanced browser's Companions tab now works; navigate to it so
+    // the user can explore the companion's narrations.
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => const AdvancedHadithBrowserPage(),
+      ),
+    );
   }
 
   String _getBookName(String book) => hadithBookName(book);

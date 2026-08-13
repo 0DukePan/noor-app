@@ -199,7 +199,7 @@ class _HadithPageState extends ConsumerState<HadithPage> {
                       MaterialPageRoute<void>(
                         builder: (_) => HadithReaderPage(
                           hadith: hadith,
-                          bookTitle: hadith.collectionId ?? '',
+                          bookTitle: hadithBookName(hadith.collectionId ?? ''),
                           chapterTitle: '',
                           bookColor: NoorDesignSystem.emeraldGreen,
                           allHadiths: [hadith],

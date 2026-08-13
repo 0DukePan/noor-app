@@ -63,7 +63,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
   Future<void> _loadNote() async {
     try {
       final box = await Hive.openBox<dynamic>('hadith_notes');
-      final note = box.get('note_${widget.hadith.id}', defaultValue: '') as String;
+      final note = box.get(_noteKey, defaultValue: '') as String;
       setState(() {
         _noteController.text = note;
       });
@@ -73,9 +73,13 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
   Future<void> _saveNote(String note) async {
     try {
       final box = await Hive.openBox<dynamic>('hadith_notes');
-      await box.put('note_${widget.hadith.id}', note);
+      await box.put(_noteKey, note);
     } on Exception catch (_) {}
   }
+
+  /// Canonical note key shared with Scholar Mode — book + in-book number.
+  String get _noteKey =>
+      'note_${widget.hadith.collectionId}_${widget.hadith.idInBook}';
 
   Future<void> _loadSimilarHadiths() async {
     try {
@@ -86,8 +90,13 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
         final results = await HadithSearchEngine.search(searchTerms, limit: 5);
         if (mounted) {
           setState(() {
+            // Exclude this exact hadith (same book + in-book number); the
+            // entry id format differs from the entity id, so matching on
+            // number is the reliable comparison.
             _similarHadiths = results
-                .where((r) => r.entry.id != widget.hadith.id.toString())
+                .where((r) =>
+                    !(r.entry.book == widget.hadith.collectionId &&
+                        r.entry.number == widget.hadith.idInBook),)
                 .take(3)
                 .toList();
             _loadingSimilar = false;
