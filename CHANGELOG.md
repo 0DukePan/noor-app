@@ -13,8 +13,9 @@ All notable changes to Noor (نور) are documented in this file.
 - CI job that produces a properly signed release AAB when signing secrets are
   configured
 - `docs/qa-checklist.md` — manual on-device QA checklist for the store run
-- CI now runs tests with coverage and uploads the lcov report (baseline:
-  58.5% lines hit)
+- CI now runs tests with coverage, uploads the lcov report, and enforces an
+  app-wide line-coverage floor via `tools/coverage_summary.py` (baseline:
+  2.6% of all `lib/` lines — measured honestly over the whole app)
 
 ### Changed
 - Adopted `very_good_analysis` (strict lints + strict-casts/inference/raw-types);

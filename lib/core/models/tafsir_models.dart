@@ -148,11 +148,10 @@ class SurahTafsir {
 
   /// الحصول على تفسير آية
   TafsirEntry? getAyah(int ayah) {
-    try {
-      return entries.firstWhere((e) => e.ayah == ayah);
-    } on Exception catch (_) {
-      return null;
+    for (final entry in entries) {
+      if (entry.ayah == ayah) return entry;
     }
+    return null;
   }
 
   /// عدد الآيات
