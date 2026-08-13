@@ -261,8 +261,10 @@ class HadithSearchEngine {
       return [];
     }
     
-    // Check cache first
-    final cacheKey = '${query}_${target.name}_${book}_${companion}_$topic';
+    // Check cache first — the key must cover EVERY filter, otherwise a
+    // grade/companion-filtered search poisons the cache for plain searches.
+    final cacheKey =
+        '${query}_${target.name}_${book}_${companion}_${topic}_$grade';
     final cached = _cacheBox?.get(cacheKey);
     if (cached != null) {
       return (cached as List)

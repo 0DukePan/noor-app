@@ -28,6 +28,26 @@ All notable changes to Noor (نور) are documented in this file.
 ### Fixed
 - Quran search missed matches containing the alef-wasla (ٱ) — e.g. «الرحمن»
   never matched «ٱلرحمن»; all three normalizers now map it to ا
+- Hadith index: companions/topics now extracted from de-diacritized text
+  (the Companions tab spun forever and the Topics tab was empty); search
+  cache key now covers every filter (a grade-filtered search no longer
+  poisons later plain searches)
+- Hadith grades: per-book basis (Sahihain = صحيح, others = من المصدر with
+  an honest explanation) instead of a dead empty grade
+- Hadith reader is paged — large chapters can be read end-to-end; resume
+  returns to the exact chapter + hadith (bookId/chapterId/number)
+- Musnad Ahmad filter/search now uses the correct `ahmed` collection id
+- Surah page menu (التفسير/مظهر القراءة), settings cache clear, per-prayer
+  adhan bell, and adhkar notification location all actually work now
+- Real share sheet everywhere (was copy-to-clipboard), Arabic sanad parsing
+  in the layered page, working topic/companion navigation, notes unified
+  between Scholar Mode and the sharh sheet, same-day quiz results kept
+- RTL: reader prev/next arrows, 10 trailing chevrons, 4 back buttons,
+  12 directional insets, text alignment
+- Dark mode on settings, adhkar, search, quran, hadith and tasbih pages;
+  ink-splash surfaces wrapped in Material; mounted guards after async gaps;
+  adhkar counter can no longer lose rapid taps; qibla dialog no longer
+  closes the page; version shown dynamically
 - Hadith database v2 migration: searches are normalized (de-diacritized) and
   the FTS index is rebuilt over the normalized text
 - Clearing the search cache could fail with a locked database file
