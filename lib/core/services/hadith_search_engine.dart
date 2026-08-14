@@ -1,7 +1,9 @@
-﻿import 'package:flutter/foundation.dart';
+﻿import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sqflite/sqflite.dart';
-
 import '../data/data_sources/hadith_database.dart';
 
 /// 🔍 محرك البحث العلمي للأحاديث - Scientific Hadith Search Engine
@@ -21,7 +23,11 @@ class HadithSearchEngine {
   static Map<String, List<String>>? _topicIndex;
 
   /// Bump to force a rebuild of cached indexes on existing installs.
-  static const int _indexVersion = 2;
+  static const int _indexVersion = 3;
+
+  /// أحكام منقّحة لكل حديث (كتاب → رقم الحديث → الحكم مع العالم).
+  /// تُحمّل من grades.json وتُستخدم قبل الاحتكام العام للكتاب.
+  static Map<String, Map<int, HadithGrade>> _gradeDataset = {};
 
   // ═══════════════════════════════════════════════════════════════════════════
   // INITIALIZATION
@@ -30,7 +36,8 @@ class HadithSearchEngine {
   static Future<void> init({Database? forTesting}) async {
     _indexBox = await Hive.openBox<dynamic>('hadith_search_index');
     _cacheBox = await Hive.openBox<dynamic>('hadith_search_cache');
-    
+    await _loadGradeDataset();
+
     // Build search index if not cached (or always when a test DB is passed).
     // The version bumps force a rebuild whenever the index derivation changes
     // (e.g. companion/topic extraction, grades) on existing installs.
@@ -41,6 +48,43 @@ class HadithSearchEngine {
     } else {
       _loadIndexFromCache();
     }
+  }
+
+  /// تحميل بيانات الأحكام المنقحة (ألباني…) — لا تفشل إن غابت.
+  static Future<void> _loadGradeDataset() async {
+    try {
+      final jsonString =
+          await rootBundle.loadString('assets/hadith/grades.json');
+      final json = jsonDecode(jsonString) as Map<String, dynamic>;
+      final dataset = <String, Map<int, HadithGrade>>{};
+      json.forEach((book, entries) {
+        if (book == '_meta') return;
+        final byNumber = <int, HadithGrade>{};
+        (entries as Map<String, dynamic>).forEach((number, gradeJson) {
+          final g = gradeJson as Map<String, dynamic>;
+          byNumber[int.parse(number)] = HadithGrade(
+            grade: (g['grade'] as String?) ?? '',
+            scholar: (g['scholar'] as String?) ?? '',
+          );
+        });
+        dataset[book] = byNumber;
+      });
+      _gradeDataset = dataset;
+    } on Exception {
+      _gradeDataset = {};
+    }
+  }
+
+  /// حكم حديث: المنقّح أولاً ثم الاحتكام العام للكتاب.
+  static String gradeFor(String bookId, int idInBook) {
+    final refined = _gradeDataset[bookId]?[idInBook];
+    if (refined != null && refined.grade.isNotEmpty) return refined.grade;
+    return gradeForBook(bookId);
+  }
+
+  /// عالم الحكم المنقّح (مثل الألباني) إن وجد.
+  static String? gradeScholarFor(String bookId, int idInBook) {
+    return _gradeDataset[bookId]?[idInBook]?.scholar;
   }
 
   /// بناء فهرس البحث
@@ -114,7 +158,8 @@ class HadithSearchEngine {
       narrator: narrator,
       normalizedNarrator: normalizedNarrator,
       companion: companion,
-      grade: gradeForBook(book),
+      grade: gradeFor(book, number),
+      gradeScholar: gradeScholarFor(book, number),
       topics: topics,
     );
   }
@@ -519,6 +564,7 @@ class HadithIndexEntry {
     required this.companion,
     required this.grade,
     required this.topics,
+    this.gradeScholar,
   });
 
   factory HadithIndexEntry.fromMap(Map<String, dynamic> map) {
@@ -533,6 +579,7 @@ class HadithIndexEntry {
       normalizedNarrator: (map['normalizedNarrator'] ?? '') as String,
       companion: (map['companion'] ?? '') as String,
       grade: (map['grade'] ?? '') as String,
+      gradeScholar: map['gradeScholar'] as String?,
       topics: List<String>.from(map['topics'] as List? ?? []),
     );
   }
@@ -546,6 +593,9 @@ class HadithIndexEntry {
   final String normalizedNarrator;
   final String companion;
   final String grade;
+
+  /// اسم العالم صاحب الحكم المنقّح (مثل الألباني) إن وُجد.
+  final String? gradeScholar;
   final List<String> topics;
 
   Map<String, dynamic> toMap() => {
@@ -559,8 +609,17 @@ class HadithIndexEntry {
     'normalizedNarrator': normalizedNarrator,
     'companion': companion,
     'grade': grade,
+    'gradeScholar': gradeScholar,
     'topics': topics,
   };
+}
+
+/// حكم منقّح من عالم معيّن
+class HadithGrade {
+
+  const HadithGrade({required this.grade, required this.scholar});
+  final String grade;
+  final String scholar;
 }
 
 /// نتيجة البحث

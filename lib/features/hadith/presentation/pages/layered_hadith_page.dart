@@ -319,6 +319,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
     final grade = widget.hadith.grade.isNotEmpty
         ? widget.hadith.grade
         : HadithSearchEngine.gradeForBook(widget.hadith.book);
+    final scholar = widget.hadith.gradeScholar;
     final gradeInfo = _getGradeInfo(grade);
     
     return SingleChildScrollView(
@@ -381,6 +382,17 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
                       textAlign: TextAlign.center,
                     ),
                   ),
+
+                  if (scholar != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      'الحكم بقول: $scholar',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ],
               ),
             ),
