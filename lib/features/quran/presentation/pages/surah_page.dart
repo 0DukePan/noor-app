@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/domain/entities/surah.dart';
 import '../../../../core/domain/policies/khushu_policy.dart';
+import '../../../../core/services/quran_translation_data_source.dart';
 import '../../../../core/services/services.dart';
 import '../../../../core/theme/design_system.dart';
 import '../../../../core/theme/noor_theme.dart';
@@ -29,6 +30,13 @@ class _SurahPageState extends ConsumerState<SurahPage>
   late Animation<double> _fadeAnimation;
   final KhushuModePolicy _khushuPolicy = const KhushuModePolicy();
 
+  /// آية التلاوة الحالية (تظليل أثناء الاستماع).
+  int? _playingAyah;
+  StreamSubscription<int>? _ayahSub;
+
+  /// ترجمة الآيات (ميسر) عند تفعيل «إظهار الترجمة».
+  Map<int, String>? _translations;
+
   @override
   void initState() {
     super.initState();
@@ -40,10 +48,23 @@ class _SurahPageState extends ConsumerState<SurahPage>
       parent: _khushuController,
       curve: Curves.easeInOut,
     );
+    _ayahSub = QuranAudioEngine.currentAyahStream.listen((ayah) {
+      if (!mounted) return;
+      setState(() => _playingAyah = ayah);
+    });
+  }
+
+  Future<void> _loadTranslations() async {
+    final translations = await QuranTranslationDataSource.getSurah(
+      widget.surahNumber,
+    );
+    if (!mounted) return;
+    setState(() => _translations = translations);
   }
 
   @override
   void dispose() {
+    _ayahSub?.cancel();
     _scrollController.dispose();
     _khushuController.dispose();
     super.dispose();
@@ -70,6 +91,11 @@ class _SurahPageState extends ConsumerState<SurahPage>
     
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
+    // Load translations once when the toggle is on.
+    if (settings.showTranslation && _translations == null) {
+      _loadTranslations();
+    }
 
     // Determine background color based on mode
     final backgroundColor = settings.isKhushuMode 
@@ -199,6 +225,11 @@ class _SurahPageState extends ConsumerState<SurahPage>
                               verse: verse,
                               isKhushuMode: settings.isKhushuMode,
                               isSelected: selectedVerseIndex == index,
+                              isPlaying:
+                                  _playingAyah == verse.numberInSurah,
+                              translation: settings.showTranslation
+                                  ? (_translations?[verse.numberInSurah])
+                                  : null,
                               onTap: () {
                                 if (!settings.isKhushuMode) {
                                   HapticFeedback.selectionClick();
@@ -502,12 +533,20 @@ class _DynamicVerseCard extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     required this.onLongPress,
+    this.isPlaying = false,
+    this.translation,
   });
   final Verse verse;
   final bool isKhushuMode;
   final bool isSelected;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
+
+  /// الآية قيد التلاوة حالياً (تظليل ذهبي خفيف).
+  final bool isPlaying;
+
+  /// ترجمة الآية (تفسير الميسر) — تُعرض عند تفعيل «إظهار الترجمة».
+  final String? translation;
 
   @override
   Widget build(BuildContext context) {
@@ -522,13 +561,17 @@ class _DynamicVerseCard extends StatelessWidget {
         margin: EdgeInsets.only(bottom: isKhushuMode ? 40 : 16),
         padding: EdgeInsets.all(isKhushuMode ? 24 : 16),
         decoration: BoxDecoration(
-          color: isSelected
-              ? theme.colorScheme.primary.withValues(alpha: isDark ? 0.2 : 0.05)
-              : Colors.transparent,
+          color: isPlaying
+              ? const Color(0xFFF3C623).withValues(alpha: 0.18)
+              : isSelected
+                  ? theme.colorScheme.primary.withValues(alpha: isDark ? 0.2 : 0.05)
+                  : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
-          border: isSelected
-              ? Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3))
-              : null,
+          border: isPlaying
+              ? Border.all(color: const Color(0xFFF3C623).withValues(alpha: 0.5))
+              : isSelected
+                  ? Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3))
+                  : null,
         ),
         child: Column(
           children: [
@@ -561,6 +604,28 @@ class _DynamicVerseCard extends StatelessWidget {
                 ),
               ),
             ),
+            if (translation != null) ...[
+              const SizedBox(height: 14),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  translation!,
+                  style: GoogleFonts.cairo(
+                    fontSize: isKhushuMode ? 16 : 14,
+                    height: 1.7,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                  textDirection: TextDirection.rtl,
+                ),
+              ),
+            ],
           ],
         ),
       ),

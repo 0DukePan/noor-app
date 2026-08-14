@@ -30,6 +30,8 @@ void main() {
   test('reciter catalogue is populated with known reciters', () {
     const reciters = QuranAudioEngine.reciters;
     expect(reciters, isNotEmpty);
+    // Expanded catalogue: at least a dozen reciters on the open CDN.
+    expect(reciters.length, greaterThanOrEqualTo(12));
     expect(reciters.containsKey('ar.alafasy'), isTrue);
     expect(
       reciters['ar.alafasy']!.baseUrl,

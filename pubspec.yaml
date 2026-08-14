@@ -1,4 +1,4 @@
-name: noor_app
+﻿name: noor_app
 description: A comprehensive Islamic app - Digital worship environment for Quran, Hadith, Prayer, and Adhkar.
 publish_to: 'none'
 version: 1.0.0+1
@@ -96,6 +96,7 @@ flutter:
     - assets/hadith/by_book/other_books/
     - assets/hadith/by_chapter/
     - assets/adhkar/
+    - assets/quran/translations/
     - assets/fonts/
     - assets/images/
     - assets/tafsir/muyassar/ar-tafsir-muyassar/
