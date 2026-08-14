@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/models/adhkar_models.dart';
 import '../../../../core/services/adhkar_data_source.dart';
 import '../../../../core/theme/design_system.dart';
+import 'adhkar_library_page.dart';
 
 /// 📿 Adhkar Page - Modern & Premium Redesign
 class AdhkarPage extends StatefulWidget {
@@ -194,6 +195,19 @@ class _AdhkarPageState extends State<AdhkarPage> {
                     colors: [Color(0xFF9C27B0), Color(0xFF7B1FA2)],
                   ),
                   onTap: () => _openAdhkar(context, AdhkarType.general),
+                ),
+                _ModernCategoryCard(
+                  title: 'مكتبة الأذكار',
+                  subtitle: 'أكثر من ١٠٠ ذكر بمصادرها',
+                  emoji: '📚',
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF8D6E63), Color(0xFF5D4037)],
+                  ),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const AdhkarLibraryPage(),
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -16,6 +16,24 @@ class AdhkarDataSource {
   // Cache للأذكار المحملة
   static final Map<AdhkarType, AdhkarCollection> _cache = {};
 
+  static AdhkarLibrary? _libraryCache;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LIBRARY (مكتبة الأذكار الموسعة)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// تحميل مكتبة الأذكار الموسعة (١٠٠+ ذكر بمصادرها).
+  static Future<AdhkarLibrary?> getLibrary() async {
+    if (_libraryCache != null) return _libraryCache;
+    try {
+      final jsonString = await rootBundle.loadString('assets/adhkar/library.json');
+      final json = jsonDecode(jsonString) as Map<String, dynamic>;
+      return _libraryCache = AdhkarLibrary.fromJson(json);
+    } on Exception {
+      return null;
+    }
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // INITIALIZATION
   // ═══════════════════════════════════════════════════════════════════════════

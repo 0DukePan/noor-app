@@ -19,6 +19,8 @@ class Zekr {
     required this.text,
     required this.repeat,
     required this.type, this.bless,
+    this.category,
+    this.reference,
   });
 
   factory Zekr.fromJson(Map<String, dynamic> json, int index, AdhkarType type) {
@@ -30,6 +32,8 @@ class Zekr {
           ? json['bless'] as String
           : null,
       type: type,
+      category: json['category'] as String?,
+      reference: json['reference'] as String?,
     );
   }
   final int index;
@@ -38,8 +42,70 @@ class Zekr {
   final String? bless;
   final AdhkarType type;
 
+  /// فئة الذكر في المكتبة الموسعة (مثل: sleep, eating…).
+  final String? category;
+
+  /// مصدر الذكر (مثال: «البخاري 2311»).
+  final String? reference;
+
   /// المفتاح الفريد
   String get key => '${type.name}:$index';
+}
+
+/// فئة من فئات مكتبة الأذكار الموسعة
+class AdhkarCategory {
+
+  const AdhkarCategory({
+    required this.id,
+    required this.title,
+    required this.icon,
+  });
+
+  factory AdhkarCategory.fromJson(Map<String, dynamic> json) {
+    return AdhkarCategory(
+      id: (json['id'] as String?) ?? '',
+      title: (json['title'] as String?) ?? '',
+      icon: (json['icon'] as String?) ?? '📿',
+    );
+  }
+  final String id;
+  final String title;
+  final String icon;
+}
+
+/// مكتبة الأذكار الموسعة (أكثر من ١٠٠ ذكر بمصادرها)
+class AdhkarLibrary {
+
+  const AdhkarLibrary({
+    required this.categories,
+    required this.items,
+  });
+
+  factory AdhkarLibrary.fromJson(Map<String, dynamic> json) {
+    final categories = (json['categories'] as List? ?? [])
+        .map((c) => AdhkarCategory.fromJson(Map<String, dynamic>.from(c as Map)))
+        .toList();
+    final content = json['content'] as List? ?? [];
+    final items = <Zekr>[];
+    for (final e in content.asMap().entries) {
+      items.add(Zekr.fromJson(
+        Map<String, dynamic>.from(e.value as Map),
+        e.key,
+        AdhkarType.general,
+      ),);
+    }
+    return AdhkarLibrary(categories: categories, items: items);
+  }
+  final List<AdhkarCategory> categories;
+  final List<Zekr> items;
+
+  /// الأذكار الخاصة بفئة معينة
+  List<Zekr> byCategory(String categoryId) {
+    return items.where((z) => z.category == categoryId).toList();
+  }
+
+  /// عدد أذكار فئة معينة
+  int countFor(String categoryId) => byCategory(categoryId).length;
 }
 
 /// مجموعة أذكار
