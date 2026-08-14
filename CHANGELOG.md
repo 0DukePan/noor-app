@@ -5,6 +5,18 @@ All notable changes to Noor (نور) are documented in this file.
 ## [Unreleased]
 
 ### Added
+- Adhkar library: 106 sourced duas in 20 categories with verbatim
+  references, browsable from a new category page (under scholarly review)
+- Quran: offline Arabic translation (تفسير الميسر, Tanzil data) shown via
+  the existing «إظهار الترجمة» toggle; reciters expanded 6 → 17 on the
+  open islamic.network CDN; the ayah currently playing is highlighted in
+  the surah page
+- Hadith refined grades: bundled scholar-verdict dataset (الألباني starter
+  set, under review) with per-hadith lookup, per-book fallback, and the
+  scholar's name shown in the hukm tab
+- Deferred (data sourcing pending a verified open dataset): tajweed-colored
+  mushaf and word-by-word Quran — no open bulk dataset with the required
+  markup/glosses was available from the sources probed
 - On-device integration test (boots the real app on an Android emulator in CI:
   first-launch DB import, onboarding, all five tabs) — the first automated
   "the app runs on Android" evidence
