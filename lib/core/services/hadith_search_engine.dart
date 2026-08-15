@@ -1,10 +1,11 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sqflite/sqflite.dart';
 import '../data/data_sources/hadith_database.dart';
+import 'isnad_parser_service.dart';
 
 /// 🔍 محرك البحث العلمي للأحاديث - Scientific Hadith Search Engine
 /// 
@@ -23,7 +24,19 @@ class HadithSearchEngine {
   static Map<String, List<String>>? _topicIndex;
 
   /// Bump to force a rebuild of cached indexes on existing installs.
-  static const int _indexVersion = 3;
+  static const int _indexVersion = 4;
+
+  /// فهرس معكوس: كلمة مُطبَّعة → أرقام الإدخالات التي تحتويها.
+  static Map<String, List<int>> _wordIndex = {};
+
+  /// كلمات كل إدخال (للتحقق الموضعي في بحث العبارة).
+  static List<List<String>> _entryWords = [];
+
+  /// فهرس الجذور: جذر تقريبي → أرقام الإدخالات.
+  static Map<String, List<int>> _rootIndex = {};
+
+  /// فهرس رواة السند: اسم راوٍ مُطبَّع → أرقام الإدخالات.
+  static Map<String, List<int>> _narratorIndex = {};
 
   /// أحكام منقّحة لكل حديث (كتاب → رقم الحديث → الحكم مع العالم).
   /// تُحمّل من grades.json وتُستخدم قبل الاحتكام العام للكتاب.
@@ -124,10 +137,92 @@ class HadithSearchEngine {
       }
     }
 
+    _buildIndexes();
+
     // Cache the index
     await _cacheIndex();
 
     debugPrint('Index built: ${_searchIndex!.length} hadiths');
+  }
+
+  /// يبني الفهارس المساعدة (كلمات، جذور، رواة) من الإدخالات الحالية.
+  /// تُستدعى بعد بناء الفهرس وبعد التحميل من الكاش.
+  static void _buildIndexes() {
+    final index = _searchIndex;
+    if (index == null) return;
+
+    _wordIndex = {};
+    _rootIndex = {};
+    _narratorIndex = {};
+    _entryWords = List.generate(index.length, (_) => const []);
+
+    for (var i = 0; i < index.length; i++) {
+      final entry = index[i];
+      final words = entry.normalizedText.split(' ');
+      _entryWords[i] = words;
+      for (final word in words) {
+        if (word.length < 2) continue;
+        (_wordIndex[word] ??= []).add(i);
+        final root = _approximateRoot(word);
+        if (root.isNotEmpty) {
+          (_rootIndex[root] ??= []).add(i);
+        }
+      }
+      for (final narrator in entry.sanadNarrators) {
+        final normalized = _looseNarrator(narrator);
+        if (normalized.length < 2) continue;
+        (_narratorIndex[normalized] ??= []).add(i);
+      }
+    }
+  }
+
+  /// تطبيع مروٍّ متسامح مع الإعراب: يتجاهل (أبو/أبي/أبا)، (ابن/بنت) وال
+  /// حتى يطابق «أبو هريرة» و«أبي هريرة» معاً.
+  static String _looseNarrator(String name) {
+    return _normalize(name)
+        .replaceAll(RegExp(r'^أبا\s'), '')
+        .replaceAll(RegExp(r'^أبي\s'), '')
+        .replaceAll(RegExp(r'^أبو\s'), '')
+        .replaceAll(RegExp(r'^(ابن|بنت)\s'), '')
+        .replaceAll(RegExp('^ال'), '')
+        .trim();
+  }
+
+  /// جذر تقريبي ذاتي الاتساق: إزالة السوابق واللواحق الشائعة وأخذ أول
+  /// ثلاثة أحرف. يضمن أن الكلمات المشتقة (كتب/كتاب/مكتب/كاتب) تتجمع تحت
+  /// الجذر نفسه — حتى لو لم يكن الاشتقاق لغوياً مثالياً.
+  static String _approximateRoot(String word) {
+    var stem = word;
+    const prefixes = ['وال', 'فال', 'بال', 'كال', 'لل', 'ال', 'وا', 'و', 'ف', 'ب', 'ل', 'ك', 'س', 'م', 'ت', 'ن', 'ي', 'ا'];
+    for (final prefix in prefixes) {
+      if (stem.length > prefix.length + 2 && stem.startsWith(prefix)) {
+        stem = stem.substring(prefix.length);
+        break;
+      }
+    }
+    const suffixes = ['كما', 'هما', 'تهم', 'كن', 'نا', 'كم', 'ها', 'هم', 'هن', 'ات', 'ون', 'ين', 'ية', 'ه', 'ا', 'ة', 'ي', 'ت', 'ك'];
+    for (final suffix in suffixes) {
+      if (stem.length > suffix.length + 2 && stem.endsWith(suffix)) {
+        stem = stem.substring(0, stem.length - suffix.length);
+        break;
+      }
+    }
+    if (stem.length >= 4) stem = stem.substring(0, 3);
+    return stem;
+  }
+
+  /// رواة السند المستخرجون من المتن العربي.
+  static List<String> _extractSanadNarrators(String arabicText) {
+    try {
+      // restoreOriginal: false — the bulk build only needs the names for
+      // matching; the diacritics-preserving variant is for on-screen use.
+      return IsnadParserService.parseChain(arabicText, restoreOriginal: false)
+          .map((n) => n.name)
+          .where((name) => name.trim().isNotEmpty)
+          .toList();
+    } on Object {
+      return const [];
+    }
   }
 
   static HadithIndexEntry _createIndexEntry(Map<String, dynamic> row) {
@@ -161,6 +256,7 @@ class HadithSearchEngine {
       grade: gradeFor(book, number),
       gradeScholar: gradeScholarFor(book, number),
       topics: topics,
+      sanadNarrators: _extractSanadNarrators(text),
     );
   }
 
@@ -257,7 +353,9 @@ class HadithSearchEngine {
     _topicIndex = Map<String, List<String>>.from(
       Map<String, dynamic>.from((_indexBox?.get('topic_index') ?? <dynamic, dynamic>{}) as Map),
     );
-    
+
+    _buildIndexes();
+
     debugPrint('Loaded ${_searchIndex?.length ?? 0} hadiths from cache');
   }
 
@@ -297,78 +395,240 @@ class HadithSearchEngine {
     String query, {
     SearchTarget target = SearchTarget.all,
     String? book,
+    List<String>? books,
     String? companion,
     String? topic,
     String? grade,
+    List<String>? grades,
+    String? narratorInChain,
+    int? numberFrom,
+    int? numberTo,
+    SearchMode mode = SearchMode.smart,
     int limit = 50,
   }) async {
-    if (query.isEmpty && companion == null && topic == null) {
+    final bookFilter = books ?? (book == null ? null : [book]);
+    final gradeFilter = grades ?? (grade == null ? null : [grade]);
+
+    if (query.trim().isEmpty &&
+        companion == null &&
+        topic == null &&
+        bookFilter == null &&
+        gradeFilter == null &&
+        narratorInChain == null) {
       return [];
     }
-    
+
     // Check cache first — the key must cover EVERY filter, otherwise a
-    // grade/companion-filtered search poisons the cache for plain searches.
-    final cacheKey =
-        '${query}_${target.name}_${book}_${companion}_${topic}_$grade';
+    // filtered search poisons the cache for plain searches.
+    final cacheKey = [
+      query,
+      target.name,
+      mode.name,
+      bookFilter?.join(','),
+      companion,
+      topic,
+      gradeFilter?.join(','),
+      narratorInChain,
+      numberFrom,
+      numberTo,
+    ].join('|');
     final cached = _cacheBox?.get(cacheKey);
     if (cached != null) {
       return (cached as List)
           .map((e) => HadithSearchResult.fromMap(Map<String, dynamic>.from(e as Map)))
           .toList();
     }
-    
+
     if (_searchIndex == null) return [];
-    
+
     final normalizedQuery = _normalize(query);
+    final queryWords = normalizedQuery.split(' ')
+        .where((w) => w.isNotEmpty)
+        .toList();
+
+    // Candidate selection: inverted-index based, no full scan unless the
+    // query is empty (filter-only searches scan but never score).
+    final candidateSet = <int>{};
+    if (queryWords.isNotEmpty) {
+      final perWord = <int>{};
+      for (final word in queryWords) {
+        final postings = _wordIndex[word] ?? const <int>[];
+        perWord.addAll(postings);
+      }
+      if (mode == SearchMode.allWords && queryWords.length > 1) {
+        final first = (_wordIndex[queryWords.first] ?? const <int>[]).toSet();
+        for (final word in queryWords.skip(1)) {
+          first.retainAll(_wordIndex[word] ?? const <int>[]);
+        }
+        perWord
+          ..clear()
+          ..addAll(first);
+      } else if (mode == SearchMode.root) {
+        final roots = queryWords.map(_approximateRoot).toSet();
+        final rootCandidates = <int>{};
+        for (final root in roots) {
+          rootCandidates.addAll(_rootIndex[root] ?? const <int>[]);
+        }
+        perWord
+          ..clear()
+          ..addAll(rootCandidates);
+      }
+      candidateSet.addAll(perWord);
+    }
+
     final results = <HadithSearchResult>[];
-    
-    for (final entry in _searchIndex!) {
+    final bookCounts = <String, int>{};
+
+    void processEntry(HadithIndexEntry entry, int index) {
       // Apply filters
-      if (book != null && entry.book != book) continue;
-      if (companion != null && entry.companion != companion) continue;
-      if (topic != null && !entry.topics.contains(topic)) continue;
-      if (grade != null && entry.grade != grade) continue;
-      
+      if (bookFilter != null && !bookFilter.contains(entry.book)) return;
+      if (companion != null && entry.companion != companion) return;
+      if (topic != null && !entry.topics.contains(topic)) return;
+      if (gradeFilter != null && !gradeFilter.contains(entry.grade)) return;
+      if (narratorInChain != null) {
+        final normalized = _looseNarrator(narratorInChain);
+        final hit = _narratorIndex[normalized]?.contains(index) ?? false;
+        if (!hit) {
+          final substringHit = entry.sanadNarrators
+              .any((n) => _looseNarrator(n).contains(normalized));
+          if (!substringHit) return;
+        }
+      }
+      if (numberFrom != null && entry.number < numberFrom) return;
+      if (numberTo != null && entry.number > numberTo) return;
+
       double score = 0;
-      
-      if (query.isNotEmpty) {
-        // Search based on target
+      var matchPositions = const <int>[];
+
+      if (queryWords.isNotEmpty) {
         switch (target) {
           case SearchTarget.matn:
-            score = _calculateScore(normalizedQuery, entry.normalizedText);
+            (score, matchPositions) =
+                _scoreWords(queryWords, entry.normalizedText, mode);
           case SearchTarget.sanad:
-            score = _calculateScore(normalizedQuery, entry.normalizedNarrator);
+            final sanadText = entry.sanadNarrators.join(' ');
+            score = _calculateScore(normalizedQuery, sanadText) == 0
+                ? 0
+                : 1;
+            matchPositions = _matchPositions(queryWords, entry.normalizedText);
           case SearchTarget.all:
-            final matnScore = _calculateScore(normalizedQuery, entry.normalizedText);
-            final sanadScore = _calculateScore(normalizedQuery, entry.normalizedNarrator);
-            score = matnScore > sanadScore ? matnScore : sanadScore;
+            final matn = _scoreWords(queryWords, entry.normalizedText, mode);
+            final sanadText = entry.sanadNarrators.join(' ');
+            final sanadScore =
+                _calculateScore(normalizedQuery, sanadText) == 0 ? 0.0 : 1.0;
+            score = matn.$1 > sanadScore ? matn.$1 : sanadScore;
+            matchPositions = matn.$2;
         }
-        
-        if (score == 0) continue;
+
+        if (score == 0) return;
       } else {
-        score = 1; // For filter-only searches
+        score = 1; // Filter-only search
       }
-      
+
       results.add(HadithSearchResult(
         entry: entry,
         score: score,
         matchType: target,
+        matchWordPositions: matchPositions,
+        bookCounts: bookCounts,
       ),);
+      bookCounts[entry.book] = (bookCounts[entry.book] ?? 0) + 1;
     }
-    
+
+    if (queryWords.isNotEmpty) {
+      // Phrase mode needs positional verification on the candidate set.
+      if (mode == SearchMode.phrase) {
+        for (final index in candidateSet) {
+          if (_containsPhrase(_entryWords[index], queryWords)) {
+            processEntry(_searchIndex![index], index);
+          }
+        }
+      } else {
+        for (final index in candidateSet) {
+          processEntry(_searchIndex![index], index);
+        }
+      }
+    } else {
+      for (var i = 0; i < _searchIndex!.length; i++) {
+        processEntry(_searchIndex![i], i);
+      }
+    }
+
     // Sort by score
     results.sort((a, b) => b.score.compareTo(a.score));
-    
+
     // Limit results
     final limited = results.take(limit).toList();
-    
+
     // Cache results
     await _cacheBox?.put(
       cacheKey,
       limited.map((e) => e.toMap()).toList(),
     );
-    
+
     return limited;
+  }
+
+  /// حساب الدرجة حسب الوضع مع مواضع الكلمات المتطابقة.
+  static (double, List<int>) _scoreWords(
+    List<String> queryWords,
+    String text,
+    SearchMode mode,
+  ) {
+    if (text.isEmpty) return (0, const []);
+    final wordList = text.split(' ');
+
+    if (mode == SearchMode.anyWord || mode == SearchMode.allWords) {
+      final matched = <int>[];
+      for (var i = 0; i < wordList.length; i++) {
+        if (queryWords.contains(wordList[i])) matched.add(i);
+      }
+      if (matched.isEmpty) return (0, const []);
+      return (1, matched);
+    }
+
+    if (mode == SearchMode.root) {
+      final roots = queryWords.map(_approximateRoot).toSet();
+      final matched = <int>[];
+      for (var i = 0; i < wordList.length; i++) {
+        if (roots.contains(_approximateRoot(wordList[i]))) matched.add(i);
+      }
+      if (matched.isEmpty) return (0, const []);
+      return (1, matched);
+    }
+
+    // smart: keep the original scoring.
+    final score = _calculateScore(queryWords.join(' '), text);
+    if (score == 0) return (0, const []);
+    return (score, _matchPositions(queryWords, text));
+  }
+
+  /// مواضع كلمات الاستعلام داخل النص المطبع.
+  static List<int> _matchPositions(List<String> queryWords, String text) {
+    final positions = <int>[];
+    final words = text.split(' ');
+    for (var i = 0; i < words.length; i++) {
+      if (queryWords.contains(words[i]) || _fuzzyMatch(words[i], queryWords.join(' '))) {
+        positions.add(i);
+      }
+    }
+    return positions;
+  }
+
+  /// هل تحتوي الكلمات على العبارة كاملة متتابعة؟
+  static bool _containsPhrase(List<String> words, List<String> phrase) {
+    if (phrase.isEmpty) return false;
+    for (var i = 0; i <= words.length - phrase.length; i++) {
+      var match = true;
+      for (var j = 0; j < phrase.length; j++) {
+        if (words[i + j] != phrase[j]) {
+          match = false;
+          break;
+        }
+      }
+      if (match) return true;
+    }
+    return false;
   }
 
   /// حساب درجة التطابق
@@ -492,7 +752,7 @@ class HadithSearchEngine {
   // SIMILAR HADITHS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// أحاديث مشابهة
+  /// أحاديث مشابهة — تُرتَّب بوزن مشترَك رواة السند (0.4) وتشابه المتن (0.6).
   static Future<List<HadithSearchResult>> getSimilar(
     HadithIndexEntry hadith, {
     int limit = 10,
@@ -517,12 +777,20 @@ class HadithSearchEngine {
           .length;
       score += commonTopics * 0.2;
       
-      // Text similarity
-      final textScore = _calculateScore(
-        hadith.normalizedText.substring(0, hadith.normalizedText.length.clamp(0, 50)),
-        entry.normalizedText,
-      );
-      score += textScore * 0.5;
+      // Shared sanad narrators (0.4)
+      final sharedNarrators = hadith.sanadNarrators
+          .where(entry.sanadNarrators.contains)
+          .length;
+      if (sharedNarrators > 0) {
+        score += (sharedNarrators * 0.4).clamp(0.0, 0.4);
+      }
+      
+      // Text similarity (0.6 max)
+      final probe = hadith.normalizedText.length <= 50
+          ? hadith.normalizedText
+          : hadith.normalizedText.substring(0, 50);
+      final textScore = _calculateScore(probe, entry.normalizedText);
+      score += textScore * 0.6;
       
       if (score > 0.3) {
         results.add(HadithSearchResult(
@@ -541,6 +809,24 @@ class HadithSearchEngine {
 // ═══════════════════════════════════════════════════════════════════════════
 // ENUMS & MODELS
 // ═══════════════════════════════════════════════════════════════════════════
+
+/// وضع البحث
+enum SearchMode {
+  /// البحث الذكي (السلوك الافتراضي: احتواء + كلمات + تقريبي).
+  smart,
+
+  /// أي كلمة من الاستعلام (اتحاد).
+  anyWord,
+
+  /// جميع كلمات الاستعلام (تقاطع).
+  allWords,
+
+  /// عبارة مطابقة متتابعة.
+  phrase,
+
+  /// بحث بالجذر التقريبي (مشتقات الكلمة).
+  root,
+}
 
 /// هدف البحث
 enum SearchTarget {
@@ -565,6 +851,7 @@ class HadithIndexEntry {
     required this.grade,
     required this.topics,
     this.gradeScholar,
+    this.sanadNarrators = const [],
   });
 
   factory HadithIndexEntry.fromMap(Map<String, dynamic> map) {
@@ -580,6 +867,7 @@ class HadithIndexEntry {
       companion: (map['companion'] ?? '') as String,
       grade: (map['grade'] ?? '') as String,
       gradeScholar: map['gradeScholar'] as String?,
+      sanadNarrators: List<String>.from(map['sanadNarrators'] as List? ?? const []),
       topics: List<String>.from(map['topics'] as List? ?? []),
     );
   }
@@ -596,6 +884,9 @@ class HadithIndexEntry {
 
   /// اسم العالم صاحب الحكم المنقّح (مثل الألباني) إن وُجد.
   final String? gradeScholar;
+
+  /// رواة السند المستخرجون من المتن العربي.
+  final List<String> sanadNarrators;
   final List<String> topics;
 
   Map<String, dynamic> toMap() => {
@@ -610,6 +901,7 @@ class HadithIndexEntry {
     'companion': companion,
     'grade': grade,
     'gradeScholar': gradeScholar,
+    'sanadNarrators': sanadNarrators,
     'topics': topics,
   };
 }
@@ -629,6 +921,8 @@ class HadithSearchResult {
     required this.entry,
     required this.score,
     required this.matchType,
+    this.matchWordPositions = const [],
+    this.bookCounts,
   });
 
   factory HadithSearchResult.fromMap(Map<String, dynamic> map) {
@@ -636,15 +930,30 @@ class HadithSearchResult {
       entry: HadithIndexEntry.fromMap(Map<String, dynamic>.from(map['entry'] as Map)),
       score: (map['score'] ?? 0) as double,
       matchType: SearchTarget.values[(map['matchType'] ?? 0) as int],
+      matchWordPositions:
+          List<int>.from(map['matchWordPositions'] as List? ?? const []),
+      bookCounts: map['bookCounts'] != null
+          ? Map<String, int>.from(
+              (map['bookCounts'] as Map).map((k, v) => MapEntry(k.toString(), v as int)),
+            )
+          : null,
     );
   }
   final HadithIndexEntry entry;
   final double score;
   final SearchTarget matchType;
 
+  /// مواضع كلمات الاستعلام داخل النص المطبع (لتمييز النتائج).
+  final List<int> matchWordPositions;
+
+  /// عدد النتائج لكل كتاب (يُملأ عند التجميع).
+  final Map<String, int>? bookCounts;
+
   Map<String, dynamic> toMap() => {
     'entry': entry.toMap(),
     'score': score,
     'matchType': matchType.index,
+    'matchWordPositions': matchWordPositions,
+    'bookCounts': bookCounts,
   };
 }

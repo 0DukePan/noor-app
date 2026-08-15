@@ -17,7 +17,14 @@ class IsnadParserService {
   /// "حَدَّثَنَا عِمْرَانُ بْنُ مَيْسَرَةَ، حَدَّثَنَا عَبْدُ الْوَارِثِ..."
   ///
   /// Returns a list of [NarratorInfo] from author → Prophet (top → bottom).
-  static List<NarratorInfo> parseChain(String arabicText) {
+  ///
+  /// When [restoreOriginal] is false the [NarratorInfo.name] is returned
+  /// diacritic-free — cheap, good for bulk indexing where the name is only
+  /// used for matching.
+  static List<NarratorInfo> parseChain(
+    String arabicText, {
+    bool restoreOriginal = true,
+  }) {
     if (arabicText.isEmpty) return [];
 
     final normalized = _stripDiacritics(arabicText);
@@ -57,12 +64,22 @@ class IsnadParserService {
       // Classify using the RAW name: honorifics (رضي الله عنه, صلى الله عليه
       // وسلم) are the most reliable signals for companion/prophet and are
       // stripped away by _cleanNarratorName.
-      final role = _classifyNarrator(rawName, arabicText);
+      final role = _classifyNarrator(
+        rawName,
+        arabicText,
+        strippedFullText: normalized,
+      );
       final isProphet = _isProphet(rawName);
-      final isCompanion = _isCompanion(rawName, arabicText);
+      final isCompanion = _isCompanion(
+        rawName,
+        arabicText,
+        strippedFullText: normalized,
+      );
 
       narrators.add(NarratorInfo(
-        name: _restoreOriginalName(cleanName, arabicText),
+        name: restoreOriginal
+            ? _restoreOriginalName(cleanName, arabicText)
+            : cleanName,
         normalizedName: cleanName,
         role: role,
         isProphet: isProphet,
@@ -78,7 +95,7 @@ class IsnadParserService {
 
     // If regex found nothing, try simpler splitting
     if (narrators.isEmpty) {
-      return _fallbackParse(arabicText);
+      return _fallbackParse(arabicText, restoreOriginal: restoreOriginal);
     }
 
     return narrators;
@@ -90,7 +107,10 @@ class IsnadParserService {
 
   /// Simpler parser for texts that don't match the standard patterns well.
   /// Splits by common separators: عن, حدثنا etc.
-  static List<NarratorInfo> _fallbackParse(String arabicText) {
+  static List<NarratorInfo> _fallbackParse(
+    String arabicText, {
+    bool restoreOriginal = true,
+  }) {
     final normalized = _stripDiacritics(arabicText);
     final narrators = <NarratorInfo>[];
 
@@ -115,11 +135,21 @@ class IsnadParserService {
       if (narrators.any((n) => n.normalizedName == cleanName)) continue;
 
       narrators.add(NarratorInfo(
-        name: _restoreOriginalName(cleanName, arabicText),
+        name: restoreOriginal
+            ? _restoreOriginalName(cleanName, arabicText)
+            : cleanName,
         normalizedName: cleanName,
-        role: _classifyNarrator(name, arabicText),
+        role: _classifyNarrator(
+          name,
+          arabicText,
+          strippedFullText: normalized,
+        ),
         isProphet: _isProphet(name),
-        isCompanion: _isCompanion(name, arabicText),
+        isCompanion: _isCompanion(
+          name,
+          arabicText,
+          strippedFullText: normalized,
+        ),
         level: narrators.length,
       ),);
 
@@ -251,9 +281,15 @@ class IsnadParserService {
   // ═══════════════════════════════════════════════════════════════════════════
 
   /// Classify narrator role
-  static String _classifyNarrator(String name, String fullText) {
+  static String _classifyNarrator(
+    String name,
+    String fullText, {
+    String? strippedFullText,
+  }) {
     if (_isProphet(name)) return 'النبي ﷺ';
-    if (_isCompanion(name, fullText)) return 'صحابي';
+    if (_isCompanion(name, fullText, strippedFullText: strippedFullText)) {
+      return 'صحابي';
+    }
     return 'راوي';
   }
 
@@ -272,8 +308,12 @@ class IsnadParserService {
   }
 
   /// Check if narrator is a Companion (Sahabi)
-  static bool _isCompanion(String name, String fullText) {
-    final strippedText = _stripDiacritics(fullText);
+  static bool _isCompanion(
+    String name,
+    String fullText, {
+    String? strippedFullText,
+  }) {
+    final strippedText = strippedFullText ?? _stripDiacritics(fullText);
 
     // Check for رضي الله عنه near the name
     final nameIdx = strippedText.indexOf(_stripDiacritics(name));
