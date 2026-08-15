@@ -507,16 +507,12 @@ class HadithSearchEngine {
             (score, matchPositions) =
                 _scoreWords(queryWords, entry.normalizedText, mode);
           case SearchTarget.sanad:
-            final sanadText = entry.sanadNarrators.join(' ');
-            score = _calculateScore(normalizedQuery, sanadText) == 0
-                ? 0
-                : 1;
-            matchPositions = _matchPositions(queryWords, entry.normalizedText);
+            score = _sanadScore(normalizedQuery, entry.sanadNarrators);
+            matchPositions = const [];
           case SearchTarget.all:
             final matn = _scoreWords(queryWords, entry.normalizedText, mode);
-            final sanadText = entry.sanadNarrators.join(' ');
             final sanadScore =
-                _calculateScore(normalizedQuery, sanadText) == 0 ? 0.0 : 1.0;
+                _sanadScore(normalizedQuery, entry.sanadNarrators);
             score = matn.$1 > sanadScore ? matn.$1 : sanadScore;
             matchPositions = matn.$2;
         }
@@ -639,6 +635,36 @@ class HadithSearchEngine {
       if (match) return true;
     }
     return false;
+  }
+
+  /// هل يحتوي سند الإدخال على الاستعلام؟ مقارنة متسامحة مع الإعراب.
+  static double _sanadScore(String query, List<String> narrators) {
+    final looseQuery = _looseNarrator(query);
+    if (looseQuery.length < 2) return 0;
+    for (final narrator in narrators) {
+      final loose = _looseNarrator(narrator);
+      if (loose.length < 2) continue;
+      if (loose.contains(looseQuery) || looseQuery.contains(loose)) return 1;
+    }
+    return 0;
+  }
+
+  /// عدد الرواة المشتركين بين سندين (مقارنة متسامحة).
+  static int _countSharedNarrators(List<String> a, List<String> b) {
+    var shared = 0;
+    for (final na in a) {
+      final la = _looseNarrator(na);
+      if (la.length < 2) continue;
+      for (final nb in b) {
+        final lb = _looseNarrator(nb);
+        if (lb.length < 2) continue;
+        if (la.contains(lb) || lb.contains(la)) {
+          shared++;
+          break;
+        }
+      }
+    }
+    return shared;
   }
 
   /// حساب درجة التطابق
@@ -800,9 +826,8 @@ class HadithSearchEngine {
       score += commonTopics * 0.2;
       
       // Shared sanad narrators (0.4)
-      final sharedNarrators = hadith.sanadNarrators
-          .where(entry.sanadNarrators.contains)
-          .length;
+      final sharedNarrators =
+          _countSharedNarrators(hadith.sanadNarrators, entry.sanadNarrators);
       if (sharedNarrators > 0) {
         score += (sharedNarrators * 0.4).clamp(0.0, 0.4);
       }

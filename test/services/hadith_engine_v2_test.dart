@@ -211,6 +211,73 @@ void main() {
     expect(counts['nawawi40'], greaterThanOrEqualTo(results.length));
   });
 
+  test('matn target matches text; sanad target matches chains', () async {
+    // A narrator whose chains occur across the nawawi corpus.
+    final bySanad = await HadithSearchEngine.search(
+      'أبي هريرة',
+      target: SearchTarget.sanad,
+      limit: 20,
+    );
+    expect(bySanad, isNotEmpty);
+    for (final r in bySanad) {
+      final hit = r.entry.sanadNarrators.any(
+        (n) {
+          final a = _loose(n);
+          final b = _loose('أبي هريرة');
+          return a.contains(b) || b.contains(a);
+        },
+      );
+      expect(hit, isTrue,
+          reason: 'sanad-target results must mention the narrator in-chain',);
+    }
+  });
+
+  test('getSimilar excludes self, sorts descending and surfaces narrator '
+      'overlaps', () async {
+    final results = await HadithSearchEngine.search('عن');
+    expect(results, isNotEmpty);
+    final target = results.first.entry;
+    final similar = await HadithSearchEngine.getSimilar(target);
+    expect(similar.every((r) => r.entry.id != target.id), isTrue);
+    for (var i = 1; i < similar.length; i++) {
+      expect(
+        similar[i - 1].score,
+        greaterThanOrEqualTo(similar[i].score),
+        reason: 'similar hadiths must be sorted by score descending',
+      );
+    }
+
+    // The nawawi corpus repeats chains (e.g. أبو هريرة) — at least one
+    // result must share a sanad narrator with the target.
+    final overlap = similar.where((r) {
+      for (final na in target.sanadNarrators) {
+        final la = _loose(na);
+        if (la.length < 2) continue;
+        for (final nb in r.entry.sanadNarrators) {
+          final lb = _loose(nb);
+          if (lb.length < 2) continue;
+          if (la.contains(lb) || lb.contains(la)) return true;
+        }
+      }
+      return false;
+    });
+    expect(
+      overlap.isNotEmpty,
+      isTrue,
+      reason: 'getSimilar must surface narrator-sharing hadiths',
+    );
+  });
+
+  test('search is deterministic for repeated identical queries', () async {
+    final first = await HadithSearchEngine.search('عن', limit: 10);
+    final second = await HadithSearchEngine.search('عن', limit: 10);
+    expect(
+      first.map((r) => r.entry.id).toList(),
+      second.map((r) => r.entry.id).toList(),
+      reason: 'identical queries must return identical ordering',
+    );
+  });
+
   fullCorpusBenchmark();
 }
 
