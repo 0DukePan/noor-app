@@ -26,10 +26,15 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
   
   // Search state
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _narratorController = TextEditingController();
   SearchTarget _searchTarget = SearchTarget.all;
+  SearchMode _searchMode = SearchMode.smart;
   String? _selectedBook;
   String? _selectedCompanion;
   String? _selectedTopic;
+  Set<String> _selectedGrades = {};
+  int? _numberFrom;
+  int? _numberTo;
   
   // Results
   List<HadithSearchResult> _searchResults = [];
@@ -38,6 +43,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
   // Indexes
   List<String> _companions = [];
   List<String> _topics = [];
+  Map<String, int> _grades = {};
 
   @override
   void initState() {
@@ -49,6 +55,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
   void _loadIndexes() {
     _companions = HadithSearchEngine.getCompanions();
     _topics = HadithSearchEngine.getTopics();
+    _grades = HadithSearchEngine.getGrades();
     setState(() {});
   }
 
@@ -56,13 +63,17 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
   void dispose() {
     _tabController.dispose();
     _searchController.dispose();
+    _narratorController.dispose();
     super.dispose();
   }
 
   Future<void> _performSearch() async {
-    if (_searchController.text.isEmpty && 
-        _selectedCompanion == null && 
-        _selectedTopic == null) {
+    if (_searchController.text.isEmpty &&
+        _selectedCompanion == null &&
+        _selectedTopic == null &&
+        _selectedBook == null &&
+        _selectedGrades.isEmpty &&
+        _narratorController.text.trim().isEmpty) {
       return;
     }
     
@@ -71,9 +82,16 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
     final results = await HadithSearchEngine.search(
       _searchController.text,
       target: _searchTarget,
+      mode: _searchMode,
       book: _selectedBook,
       companion: _selectedCompanion,
       topic: _selectedTopic,
+      grades: _selectedGrades.isEmpty ? null : _selectedGrades.toList(),
+      narratorInChain: _narratorController.text.trim().isEmpty
+          ? null
+          : _narratorController.text.trim(),
+      numberFrom: _numberFrom,
+      numberTo: _numberTo,
     );
     
     if (!mounted) return;
@@ -151,11 +169,14 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
   Widget _buildSearchTab(ThemeData theme) {
     return Column(
       children: [
-        // Search bar
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
+        // Search bar + filters: scrollable so small viewports never overflow.
+        Flexible(
+          flex: 0,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               Container(
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
@@ -249,6 +270,29 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                       ),
                     ),
                   ),
+                  if (_selectedGrades.isNotEmpty)
+                    InputChip(
+                      label: Text(
+                        _selectedGrades.join('، '),
+                        style: GoogleFonts.cairo(fontSize: 12),
+                      ),
+                      onDeleted: () => setState(() => _selectedGrades = {}),
+                      backgroundColor: theme.colorScheme.errorContainer,
+                      deleteIcon: const Icon(Icons.close_rounded, size: 16),
+                    ),
+                  if (_numberFrom != null || _numberTo != null)
+                    InputChip(
+                      label: Text(
+                        _numberRangeLabel(),
+                        style: GoogleFonts.cairo(fontSize: 12),
+                      ),
+                      onDeleted: () => setState(() {
+                        _numberFrom = null;
+                        _numberTo = null;
+                      }),
+                      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                      deleteIcon: const Icon(Icons.close_rounded, size: 16),
+                    ),
                   if (_selectedCompanion != null)
                     InputChip(
                       label: Text(_selectedCompanion!, style: GoogleFonts.cairo(fontSize: 12)),
@@ -265,7 +309,177 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                     ),
                 ],
               ),
-            ],
+
+              const SizedBox(height: 12),
+
+              // Search mode
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    Text(
+                      'وضع البحث:',
+                      style: GoogleFonts.cairo(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ...SearchMode.values.map(
+                      (mode) => Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: _FilterChip(
+                          label: _searchModeLabel(mode),
+                          isSelected: _searchMode == mode,
+                          onSelected: () => setState(() => _searchMode = mode),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Narrator + number range + grades
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _narratorController,
+                      style: GoogleFonts.cairo(fontSize: 13),
+                      textDirection: TextDirection.rtl,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        hintText: 'راوٍ في السند...',
+                        hintStyle: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          fontSize: 13,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.people_alt_outlined,
+                          size: 18,
+                          color: theme.colorScheme.primary,
+                        ),
+                        suffixIcon: _narratorController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.close_rounded, size: 16),
+                                onPressed: () {
+                                  _narratorController.clear();
+                                  setState(() {});
+                                },
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                          ),
+                        ),
+                      ),
+                      textInputAction: TextInputAction.search,
+                      onChanged: (_) => setState(() {}),
+                      onSubmitted: (_) => _performSearch(),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 64,
+                    child: TextField(
+                      keyboardType: TextInputType.number,
+                      style: GoogleFonts.cairo(fontSize: 13),
+                      textAlign: TextAlign.center,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        hintText: 'من',
+                        hintStyle: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          fontSize: 13,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                          ),
+                        ),
+                      ),
+                      onSubmitted: (_) => _performSearch(),
+                      onChanged: (value) =>
+                          setState(() => _numberFrom = int.tryParse(value)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 64,
+                    child: TextField(
+                      keyboardType: TextInputType.number,
+                      style: GoogleFonts.cairo(fontSize: 13),
+                      textAlign: TextAlign.center,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        hintText: 'إلى',
+                        hintStyle: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          fontSize: 13,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                          ),
+                        ),
+                      ),
+                      onSubmitted: (_) => _performSearch(),
+                      onChanged: (value) =>
+                          setState(() => _numberTo = int.tryParse(value)),
+                    ),
+                  ),
+                ],
+              ),
+
+              if (_grades.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      Text(
+                        'الحكم:',
+                        style: GoogleFonts.cairo(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ..._grades.keys.map(
+                        (grade) => Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: FilterChip(
+                            label: Text(
+                              '$grade (${_grades[grade]})',
+                              style: GoogleFonts.cairo(fontSize: 11),
+                            ),
+                            selected: _selectedGrades.contains(grade),
+                            onSelected: (selected) => setState(() {
+                              if (selected) {
+                                _selectedGrades.add(grade);
+                              } else {
+                                _selectedGrades.remove(grade);
+                              }
+                            }),
+                            showCheckmark: false,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              ],
+            ),
           ),
         ),
         
@@ -279,10 +493,11 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                   ),
                 )
               : _searchResults.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+                  ? SingleChildScrollView(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
                           Icon(
                             Icons.manage_search_rounded,
                             size: 80,
@@ -309,7 +524,8 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                           ),
                         ],
                       ),
-                    )
+                    ),
+                  )
                   : _buildResultsList(theme),
         ),
       ],
@@ -317,16 +533,62 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
   }
 
   Widget _buildResultsList(ThemeData theme) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: _searchResults.length,
-      itemBuilder: (context, index) {
-        final result = _searchResults[index];
-        return _HadithResultCard(
-          result: result,
-          onTap: () => _openScholarMode(result.entry),
-        );
-      },
+    final counts = _searchResults.isNotEmpty
+        ? _searchResults.first.bookCounts
+        : null;
+    final countEntries = counts?.entries.toList() ?? const [];
+
+    return Column(
+      children: [
+        if (countEntries.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: SizedBox(
+              height: 40,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: countEntries.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 6),
+                itemBuilder: (context, index) {
+                  final (book, count) = (
+                    countEntries[index].key,
+                    countEntries[index].value,
+                  );
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${_getBookName(book)}: $count',
+                        style: GoogleFonts.cairo(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: _searchResults.length,
+            itemBuilder: (context, index) {
+              final result = _searchResults[index];
+              return _HadithResultCard(
+                result: result,
+                onTap: () => _openScholarMode(result.entry),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -509,8 +771,30 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
     );
   }
 
-
   String _getBookName(String book) => hadithBookName(book);
+
+  String _searchModeLabel(SearchMode mode) {
+    switch (mode) {
+      case SearchMode.smart:
+        return 'ذكي';
+      case SearchMode.anyWord:
+        return 'أي كلمة';
+      case SearchMode.allWords:
+        return 'كل الكلمات';
+      case SearchMode.phrase:
+        return 'عبارة';
+      case SearchMode.root:
+        return 'بالجذر';
+    }
+  }
+
+  String _numberRangeLabel() {
+    if (_numberFrom != null && _numberTo != null) {
+      return 'رقم $_numberFrom - $_numberTo';
+    }
+    if (_numberFrom != null) return 'رقم ≥ $_numberFrom';
+    return 'رقم ≤ $_numberTo';
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -623,6 +907,8 @@ class _HadithResultCard extends StatelessWidget {
                       _TagChip(label: hadith.grade, color: theme.colorScheme.tertiary),
                     if (hadith.companion.isNotEmpty)
                       _TagChip(label: hadith.companion, color: theme.colorScheme.secondary),
+                    if (hadith.gradeScholar != null && hadith.gradeScholar!.isNotEmpty)
+                      _TagChip(label: hadith.gradeScholar!, color: theme.colorScheme.error),
                   ],
                 ),
               ],

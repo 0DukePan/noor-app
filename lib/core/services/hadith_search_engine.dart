@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -560,11 +561,20 @@ class HadithSearchEngine {
     // Limit results
     final limited = results.take(limit).toList();
 
-    // Cache results
-    await _cacheBox?.put(
-      cacheKey,
-      limited.map((e) => e.toMap()).toList(),
-    );
+    // Cache results — best-effort and non-blocking: the in-memory box map
+    // updates synchronously (so immediate re-queries hit the cache) while
+    // the disk write completes in the background. Search latency must never
+    // wait on persistence.
+    final box = _cacheBox;
+    if (box != null) {
+      unawaited(
+        box
+            .put(cacheKey, limited.map((e) => e.toMap()).toList())
+            .catchError((Object _) {
+          // A failed cache write must never break a search.
+        }),
+      );
+    }
 
     return limited;
   }
@@ -741,6 +751,18 @@ class HadithSearchEngine {
   /// عدد الأحاديث المفهرسة
   static int getSearchIndexCount() {
     return _searchIndex?.length ?? 0;
+  }
+
+  /// الأحكام المتوفرة في الفهرس مع عدد الأحاديث لكل حكم.
+  static Map<String, int> getGrades() {
+    final counts = <String, int>{};
+    final index = _searchIndex;
+    if (index == null) return counts;
+    for (final entry in index) {
+      if (entry.grade.isEmpty) continue;
+      counts[entry.grade] = (counts[entry.grade] ?? 0) + 1;
+    }
+    return counts;
   }
 
   /// الأحاديث حسب الموضوع

@@ -10,6 +10,7 @@ import 'package:noor_app/core/domain/entities/hadith.dart';
 import 'package:noor_app/core/services/adhkar_data_source.dart';
 import 'package:noor_app/core/services/mosque_mode_service.dart';
 import 'package:noor_app/features/adhkar/presentation/pages/adhkar_page.dart';
+import 'package:noor_app/features/hadith/presentation/pages/advanced_hadith_browser_page.dart';
 import 'package:noor_app/features/hadith/presentation/pages/hadith_page.dart';
 import 'package:noor_app/features/hadith/presentation/providers/hadith_providers.dart';
 import 'package:noor_app/features/prayer/presentation/pages/prayer_settings_page.dart';
@@ -142,6 +143,23 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('ابحث في القرآن والحديث...'), findsOneWidget);
+  }, timeout: const Timeout(Duration(seconds: 30)),);
+
+  testWidgets('hadith console exposes the P2.1 search modes and filters',
+      (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: AdvancedHadithBrowserPage()),
+    );
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('البحث المتقدم'), findsOneWidget);
+    expect(find.text('وضع البحث:'), findsOneWidget);
+    expect(find.text('عبارة'), findsOneWidget);
+    expect(find.text('بالجذر'), findsOneWidget);
+    expect(find.text('راوٍ في السند...'), findsOneWidget);
+    expect(find.text('الصحابة'), findsOneWidget);
+    expect(find.text('المواضيع'), findsOneWidget);
+    expect(find.text('الكتب'), findsOneWidget);
   }, timeout: const Timeout(Duration(seconds: 30)),);
 
   testWidgets('khatmah page renders the planner', (tester) async {
