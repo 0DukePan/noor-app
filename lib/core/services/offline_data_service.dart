@@ -91,25 +91,10 @@ class OfflineDataService {
     }
   }
 
-  /// Load pre-bundled popular hadiths from assets
+  /// Load pre-bundled data from assets. (The hadith corpus now lives in the
+  /// prebuilt SQLite database — see HadithDatabase; nothing to load here.)
   static Future<void> _loadBundledHadith() async {
-    try {
-      // Load 40 Nawawi
-      try {
-        final nawawiJson = await rootBundle.loadString('assets/hadith/40_nawawi.json');
-        await _hadithBox!.put('40_nawawi', jsonDecode(nawawiJson));
-      } on Exception catch (_) {}
-
-      // Load collection metadata (May be missing)
-      try {
-        final collectionsJson = await rootBundle.loadString('assets/hadith/collections.json');
-        await _hadithBox!.put('collections', jsonDecode(collectionsJson));
-      } on Exception catch (_) {
-        await _hadithBox!.put('collections', _getDefaultCollections());
-      }
-    } on Exception {
-      // Assets not found, will use API
-    }
+    // Intentionally empty: hadith content is served by the SQLite database.
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -174,56 +159,6 @@ class OfflineDataService {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // HADITH DATA ACCESS
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /// Get hadith collections
-  static Future<List<Map<String, dynamic>>> getCollections() async {
-    final cached = _hadithBox?.get('collections');
-    if (cached != null) {
-      return List<Map<String, dynamic>>.from(cached as List);
-    }
-
-    try {
-      final collections = await _api.fetchHadithCollections();
-      await _hadithBox?.put('collections', collections);
-      return collections;
-    } on Exception {
-      return _getDefaultCollections();
-    }
-  }
-
-  /// Get hadiths by collection
-  static Future<List<Map<String, dynamic>>> getHadithsByCollection(
-    String collection, {
-    int page = 1,
-  }) async {
-    final key = 'hadiths_${collection}_$page';
-    final cached = _hadithBox?.get(key);
-
-    if (cached != null) {
-      return List<Map<String, dynamic>>.from(cached as List);
-    }
-
-    try {
-      final hadiths = await _api.fetchHadithsByCollection(collection, page: page);
-      await _hadithBox?.put(key, hadiths);
-      return hadiths;
-    } on Exception {
-      return [];
-    }
-  }
-
-  /// Get 40 Nawawi hadiths (always available offline)
-  static Future<List<Map<String, dynamic>>> get40Nawawi() async {
-    final cached = _hadithBox?.get('40_nawawi');
-    if (cached != null) {
-      return List<Map<String, dynamic>>.from(cached as List);
-    }
-    return [];
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
   // DELTA UPDATES / SYNC
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -243,10 +178,6 @@ class OfflineDataService {
       // Refresh surahs metadata
       final surahs = await _api.fetchAllSurahs();
       await _quranBox?.put('surahs', surahs);
-
-      // Refresh collection metadata
-      final collections = await _api.fetchHadithCollections();
-      await _hadithBox?.put('collections', collections);
 
       await _quranBox?.put(_lastSyncKey, DateTime.now());
     } on Exception {
@@ -285,17 +216,6 @@ class OfflineDataService {
       {'number': 4, 'name': 'سُورَةُ النِّسَاءِ', 'englishName': 'An-Nisa', 'numberOfAyahs': 176, 'revelationType': 'Medinan'},
       {'number': 5, 'name': 'سُورَةُ المَائـِدَةِ', 'englishName': 'Al-Maida', 'numberOfAyahs': 120, 'revelationType': 'Medinan'},
       // ... more surahs would be here
-    ];
-  }
-
-  static List<Map<String, dynamic>> _getDefaultCollections() {
-    return [
-      {'name': 'bukhari', 'title': 'صحيح البخاري', 'hadithsCount': 7563},
-      {'name': 'muslim', 'title': 'صحيح مسلم', 'hadithsCount': 3032},
-      {'name': 'abudawud', 'title': 'سنن أبي داود', 'hadithsCount': 4590},
-      {'name': 'tirmidhi', 'title': 'جامع الترمذي', 'hadithsCount': 3956},
-      {'name': 'nasai', 'title': 'سنن النسائي', 'hadithsCount': 5758},
-      {'name': 'ibnmajah', 'title': 'سنن ابن ماجه', 'hadithsCount': 4341},
     ];
   }
 }

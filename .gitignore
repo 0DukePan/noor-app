@@ -50,3 +50,6 @@ android/app/*.keystore
 
 # Test coverage
 coverage/
+
+# Generated prebuilt hadith database
+assets/db/hadith.db

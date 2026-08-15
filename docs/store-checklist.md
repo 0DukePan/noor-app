@@ -72,9 +72,14 @@ Declared permissions and their justifications (required by Play review):
    `*.jks` are gitignored.)
 3. Build locally or via CI:
    ```bash
-   flutter build appbundle --release    # Play
-   flutter build apk --release          # sideload/CI artifact
+   dart run tool/build_hadith_db.dart        # generates assets/db/hadith.db
+   flutter build appbundle --release         # Play
+   flutter build apk --release               # sideload/CI artifact
    ```
+   The prebuilt database ships in the APK so the first launch copies it
+   (instant start) instead of importing 17 books from JSON. CI runs the
+   generation step automatically before every Android build; the hadith
+   JSON corpus lives in `tool/data/` and is **not** bundled.
    The GitHub Actions workflow builds a debug-signed APK on every push. To get
    a properly signed release AAB from CI, add these repository secrets
    (Settings > Secrets and variables > Actions): `KEYSTORE_BASE64` (base64 of

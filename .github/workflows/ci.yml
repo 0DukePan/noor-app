@@ -51,6 +51,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Generate prebuilt hadith database
+        run: dart run tool/build_hadith_db.dart
+
       - name: Build release APK (debug-signed fallback)
         run: flutter build apk --release
 
@@ -109,6 +112,9 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Generate prebuilt hadith database
+        run: dart run tool/build_hadith_db.dart
 
       - name: Configure signing key
         run: |

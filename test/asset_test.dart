@@ -16,12 +16,6 @@ void main() {
     expect(uthmani, isNotNull);
   });
 
-  test('Decode Hadith Asset', () async {
-    final bukhariStr = await rootBundle.loadString('assets/hadith/by_book/the_9_books/bukhari.json');
-    final bukhari = jsonDecode(bukhariStr);
-    expect(bukhari, isNotNull);
-  });
-
   test('Decode Tafsir Asset', () async {
     final tafsirStr = await rootBundle.loadString('assets/tafsir/muyassar/ar-tafsir-muyassar/1.json');
     final tafsir = jsonDecode(tafsirStr);
