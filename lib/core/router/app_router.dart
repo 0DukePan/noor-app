@@ -13,6 +13,7 @@ import '../../features/hadith/presentation/pages/memorization_page.dart';
 import '../../features/hadith/presentation/pages/quiz_page.dart';
 import '../../features/hadith/presentation/pages/tags_management_page.dart';
 import '../../features/hadith/presentation/pages/topic_tree_page.dart';
+import '../../features/hifz/presentation/pages/hifz_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/prayer/presentation/pages/prayer_page.dart';
@@ -137,6 +138,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     state,
                   );
                 },
+              ),
+              GoRoute(
+                path: 'hifz',
+                name: 'hifz',
+                pageBuilder: (context, state) => _buildPage(
+                  const HifzPage(),
+                  state,
+                ),
               ),
             ],
           ),

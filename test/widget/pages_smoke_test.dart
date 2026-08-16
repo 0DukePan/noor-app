@@ -13,6 +13,7 @@ import 'package:noor_app/features/adhkar/presentation/pages/adhkar_page.dart';
 import 'package:noor_app/features/hadith/presentation/pages/advanced_hadith_browser_page.dart';
 import 'package:noor_app/features/hadith/presentation/pages/hadith_page.dart';
 import 'package:noor_app/features/hadith/presentation/providers/hadith_providers.dart';
+import 'package:noor_app/features/hifz/presentation/pages/hifz_page.dart';
 import 'package:noor_app/features/prayer/presentation/pages/prayer_settings_page.dart';
 import 'package:noor_app/features/quran/presentation/pages/khatmah_page.dart';
 import 'package:noor_app/features/quran/presentation/pages/quran_page.dart';
@@ -52,6 +53,9 @@ void main() {
     Hive.init(tempDir.path);
     await AdhkarDataSource.init();
     await MosqueModeService.init();
+    // Pre-open the hifz box in the real zone: the notifier's openBox during
+    // the fake-async pump then resolves instantly instead of hanging.
+    await Hive.openBox<dynamic>('hifz_box');
   });
 
   tearDown(() async {
@@ -160,6 +164,19 @@ void main() {
     expect(find.text('الصحابة'), findsOneWidget);
     expect(find.text('المواضيع'), findsOneWidget);
     expect(find.text('الكتب'), findsOneWidget);
+  }, timeout: const Timeout(Duration(seconds: 30)),);
+
+  testWidgets('hifz page renders the dashboard with an empty library',
+      (tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(child: MaterialApp(home: HifzPage())),
+    );
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('الحفظ والمراجعة'), findsOneWidget);
+    expect(find.textContaining('سلسلة الممارسة'), findsOneWidget);
+    expect(find.textContaining('للحفظ'), findsOneWidget);
+    expect(find.textContaining('للمراجعة'), findsOneWidget);
   }, timeout: const Timeout(Duration(seconds: 30)),);
 
   testWidgets('khatmah page renders the planner', (tester) async {

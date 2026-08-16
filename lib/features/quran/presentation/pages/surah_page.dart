@@ -11,6 +11,7 @@ import '../../../../core/services/quran_translation_data_source.dart';
 import '../../../../core/services/services.dart';
 import '../../../../core/theme/design_system.dart';
 import '../../../../core/theme/noor_theme.dart';
+import '../../../hifz/presentation/providers/hifz_providers.dart';
 import '../providers/quran_providers.dart';
 
 /// صفحة السورة الديناميكية - Dynamic Surah Reading Page
@@ -410,6 +411,22 @@ class _SurahPageState extends ConsumerState<SurahPage>
               onTap: () {
                 Navigator.pop(context);
                 ref.read(surahSelectedVerseProvider(widget.surahNumber).notifier).state = verse.numberInSurah - 1;
+              },
+            ),
+            _OptionTile(
+              icon: Icons.auto_stories_rounded,
+              title: 'أضف للحفظ',
+              onTap: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                Navigator.pop(context);
+                await ref.read(hifzProvider.notifier).addAyah(
+                      surah: widget.surahNumber,
+                      ayah: verse.numberInSurah,
+                      arabicText: verse.textUthmani,
+                    );
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('أُضيفت الآية لبطاقات الحفظ')),
+                );
               },
             ),
             _OptionTile(

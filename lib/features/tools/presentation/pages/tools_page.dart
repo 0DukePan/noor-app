@@ -93,6 +93,19 @@ class ToolsPage extends StatelessWidget {
                     },
                   ),
                   _ToolCard(
+                    icon: Icons.auto_stories_rounded,
+                    title: 'الحفظ والمراجعة',
+                    subtitle: 'حفظ الآيات ومراجعتها',
+                    gradient: const [
+                      Color(0xFF00695C),
+                      Color(0xFF26A69A),
+                    ],
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      context.go('/quran/hifz');
+                    },
+                  ),
+                  _ToolCard(
                     icon: Icons.person_rounded,
                     title: 'ملفي الشخصي',
                     subtitle: 'الإحصائيات والتقدم',
