@@ -1,5 +1,6 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:noor_app/core/services/quran_translation_data_source.dart';
 
 import '../../../../core/data/data_sources/local_tafsir_data_source.dart';
 import '../../../../core/data/repositories/tafsir_repository_impl.dart';
@@ -103,16 +104,26 @@ class ReadingSettings {
     this.fontSize = 24.0,
     this.showTranslation = true,
     this.isKhushuMode = false,
+    this.translationLanguage = TranslationLanguage.arabic,
   });
   final double fontSize;
   final bool showTranslation;
   final bool isKhushuMode;
 
-  ReadingSettings copyWith({double? fontSize, bool? showTranslation, bool? isKhushuMode}) {
+  /// لغة الترجمة المعروضة أسفل الآية.
+  final TranslationLanguage translationLanguage;
+
+  ReadingSettings copyWith({
+    double? fontSize,
+    bool? showTranslation,
+    bool? isKhushuMode,
+    TranslationLanguage? translationLanguage,
+  }) {
     return ReadingSettings(
       fontSize: fontSize ?? this.fontSize,
       showTranslation: showTranslation ?? this.showTranslation,
       isKhushuMode: isKhushuMode ?? this.isKhushuMode,
+      translationLanguage: translationLanguage ?? this.translationLanguage,
     );
   }
 }
@@ -123,6 +134,8 @@ class ReadingSettingsNotifier extends StateNotifier<ReadingSettings> {
   void setFontSize(double size) => state = state.copyWith(fontSize: size);
   void toggleTranslation() => state = state.copyWith(showTranslation: !state.showTranslation);
   void toggleKhushuMode() => state = state.copyWith(isKhushuMode: !state.isKhushuMode);
+  void setTranslationLanguage(TranslationLanguage language) =>
+      state = state.copyWith(translationLanguage: language);
 }
 
 final readingSettingsProvider = StateNotifierProvider<ReadingSettingsNotifier, ReadingSettings>((ref) {

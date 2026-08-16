@@ -3,35 +3,61 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-/// مصدر الترجمة العربية (تفسير الميسر) — يُحمَّل مرة واحدة في خلفية
-/// ويُخزَّن في الذاكرة، وتبقى الترجمة محلية دون إنترنت.
-///
-/// البيانات من نص تنزيل (Tanzil) عبر API مفتوح — مراجعة المصدر مطلوبة.
+/// لغة الترجمة.
+enum TranslationLanguage {
+  /// العربية — تفسير الميسر (Tanzil).
+  arabic,
+
+  /// الإنجليزية — Saheeh International.
+  english,
+}
+
+/// مصدر ترجمات القرآن — عربية (الميسر) وإنجليزية (Saheeh International).
+/// تُحمَّل مرة واحدة في خلفية وتُخزَّن في الذاكرة، وتبقى الترجمة محلية دون إنترنت.
 class QuranTranslationDataSource {
-  static Map<int, Map<int, String>>? _cache;
+  static final Map<TranslationLanguage, Map<int, Map<int, String>>> _cache = {};
 
   /// ترجمة آية معينة، أو null إن لم تتوفر.
-  static Future<String?> getTranslation(int surah, int ayah) async {
-    final map = await ensureLoaded();
+  static Future<String?> getTranslation(
+    int surah,
+    int ayah, {
+    TranslationLanguage language = TranslationLanguage.arabic,
+  }) async {
+    final map = await ensureLoaded(language);
     return map[surah]?[ayah];
   }
 
   /// ترجمة سورة كاملة (رقم الآية → النص).
-  static Future<Map<int, String>?> getSurah(int surah) async {
-    final map = await ensureLoaded();
+  static Future<Map<int, String>?> getSurah(
+    int surah, {
+    TranslationLanguage language = TranslationLanguage.arabic,
+  }) async {
+    final map = await ensureLoaded(language);
     return map[surah];
   }
 
-  static Future<Map<int, Map<int, String>>> ensureLoaded() async {
-    if (_cache != null) return _cache!;
-    final jsonString =
-        await rootBundle.loadString('assets/quran/translations/ar_muyassar.json');
-    _cache = await compute(_parseTranslation, jsonString);
-    return _cache!;
+  static Future<Map<int, Map<int, String>>> ensureLoaded(
+    TranslationLanguage language,
+  ) async {
+    final cached = _cache[language];
+    if (cached != null) return cached;
+    final jsonString = await rootBundle.loadString(_assetPath(language));
+    final parsed = await compute(_parseTranslation, jsonString);
+    _cache[language] = parsed;
+    return parsed;
+  }
+
+  static String _assetPath(TranslationLanguage language) {
+    switch (language) {
+      case TranslationLanguage.arabic:
+        return 'assets/quran/translations/ar_muyassar.json';
+      case TranslationLanguage.english:
+        return 'assets/quran/translations/en_sahih.json';
+    }
   }
 
   /// إعادة تحميل (لأغراض الاختبار).
-  static void resetCache() => _cache = null;
+  static void resetCache() => _cache.clear();
 }
 
 /// دالة مستوى أعلى لـ compute — تحليل JSON في عزلة خلفية.

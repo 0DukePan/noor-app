@@ -33,10 +33,11 @@ class _SurahPageState extends ConsumerState<SurahPage>
 
   /// آية التلاوة الحالية (تظليل أثناء الاستماع).
   int? _playingAyah;
-  StreamSubscription<int>? _ayahSub;
 
-  /// ترجمة الآيات (ميسر) عند تفعيل «إظهار الترجمة».
+  /// ترجمة الآيات عند تفعيل «إظهار الترجمة» بلغة [TranslationLanguage].
   Map<int, String>? _translations;
+  TranslationLanguage _translationsLanguage = TranslationLanguage.arabic;
+  StreamSubscription<int>? _ayahSub;
 
   @override
   void initState() {
@@ -55,12 +56,16 @@ class _SurahPageState extends ConsumerState<SurahPage>
     });
   }
 
-  Future<void> _loadTranslations() async {
+  Future<void> _loadTranslations(TranslationLanguage language) async {
     final translations = await QuranTranslationDataSource.getSurah(
       widget.surahNumber,
+      language: language,
     );
     if (!mounted) return;
-    setState(() => _translations = translations);
+    setState(() {
+      _translations = translations;
+      _translationsLanguage = language;
+    });
   }
 
   @override
@@ -93,9 +98,11 @@ class _SurahPageState extends ConsumerState<SurahPage>
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Load translations once when the toggle is on.
-    if (settings.showTranslation && _translations == null) {
-      _loadTranslations();
+    // Load translations once when the toggle is on; reload on language change.
+    final wantsLanguage = settings.translationLanguage;
+    if (settings.showTranslation &&
+        (_translations == null || _translationsLanguage != wantsLanguage)) {
+      _loadTranslations(wantsLanguage);
     }
 
     // Determine background color based on mode
@@ -372,6 +379,39 @@ class _SurahPageState extends ConsumerState<SurahPage>
                     setSheetState(() {});
                   },
                 ),
+                if (settings.showTranslation)
+                  Row(
+                    children: [
+                      Text(
+                        'لغة الترجمة:',
+                        style: GoogleFonts.cairo(fontSize: 14),
+                      ),
+                      const SizedBox(width: 12),
+                      ChoiceChip(
+                        label: Text('العربية', style: GoogleFonts.cairo(fontSize: 12)),
+                        selected: settings.translationLanguage ==
+                            TranslationLanguage.arabic,
+                        onSelected: (_) {
+                          ref
+                              .read(readingSettingsProvider.notifier)
+                              .setTranslationLanguage(TranslationLanguage.arabic);
+                          setSheetState(() {});
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      ChoiceChip(
+                        label: Text('English', style: GoogleFonts.cairo(fontSize: 12)),
+                        selected: settings.translationLanguage ==
+                            TranslationLanguage.english,
+                        onSelected: (_) {
+                          ref
+                              .read(readingSettingsProvider.notifier)
+                              .setTranslationLanguage(TranslationLanguage.english);
+                          setSheetState(() {});
+                        },
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
