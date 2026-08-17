@@ -28,7 +28,7 @@ jobs:
         run: flutter test --coverage
 
       - name: Verify app-wide coverage floor
-        run: python3 tools/coverage_summary.py 7
+        run: python3 tools/coverage_summary.py 12
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -55,7 +55,14 @@ jobs:
         run: dart run tool/build_hadith_db.dart
 
       - name: Build release APK (debug-signed fallback)
-        run: flutter build apk --release
+        run: |
+          FLAGS=""
+          if [ -n "$SENTRY_DSN" ]; then
+            FLAGS="--dart-define=SENTRY_DSN=$SENTRY_DSN"
+          fi
+          flutter build apk --release $FLAGS
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
 
       - name: Report APK size
         run: |

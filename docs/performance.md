@@ -8,11 +8,12 @@ the automated ones; the device measurements are filled in from
 
 | Metric | Current | Target | Enforcement |
 |---|---|---|---|
-| Hadith search latency (full corpus) | — | < 150 ms single word, < 300 ms phrase/root | `hadith_engine_benchmark_test.dart` (Phase 2) |
-| App-wide line coverage | 7.4% | 25% (raised in steps) | `tools/coverage_summary.py` floor |
+| Hadith search latency (full corpus) | 1–3 ms | < 150 ms single word, < 300 ms phrase/root | `hadith_engine_v2_test.dart` full-corpus benchmark |
+| App-wide line coverage | 12.1% | 25% (raised in steps) | `tools/coverage_summary.py` floor (12 today) |
 | Analysis | 0 issues | 0 issues | `flutter analyze` in CI |
-| Tests | 181 | green always | `flutter test` in CI |
+| Tests | 228 | green always | `flutter test` in CI |
 | APK size | to be reported | < 150 MB compressed | CI "Report APK size" step |
+| Android boot | emulator integration suite | green always | CI `integration-test` job |
 
 ## First-launch experience
 
@@ -41,9 +42,17 @@ the automated ones; the device measurements are filled in from
 |---|---|---|
 | Prebuilt hadith DB | ~147 MB raw | Compressed in APK; ships in assets/db |
 | Tafsir JSONs | ~50 MB raw | In base APK today; candidate for asset pack if needed |
-| Quran text + translation | ~8 MB | quran_uthmani + muyassar |
+| Quran text + translations | ~10 MB | quran_uthmani + muyassar + en.sahih |
 | Adhkar + fonts + images | < 5 MB | |
 | Code (AOT) | — | From CI size report |
+
+## Hifz (P3) and English translation (P4) notes
+
+- The hifz store is a small Hive box (`hifz_box`) — negligible size and
+  zero cold-start cost (lazy `HifzNotifier.ready`).
+- The English translation (`en_sahih.json`, 1.6 MB) is parsed in an
+  isolate on first use and cached in memory; it loads only when the reader
+  asks for it.
 
 ## Optimization candidates (ordered by payoff)
 
