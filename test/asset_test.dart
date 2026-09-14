@@ -16,9 +16,10 @@ void main() {
     expect(uthmani, isNotNull);
   });
 
-  test('Decode Tafsir Asset', () async {
-    final tafsirStr = await rootBundle.loadString('assets/tafsir/muyassar/ar-tafsir-muyassar/1.json');
-    final tafsir = jsonDecode(tafsirStr);
-    expect(tafsir, isNotNull);
+  test('Tafsir database asset ships and is non-empty', () async {
+    // Content is guarded by test/tafsir_db_integrity_test.dart (checksum +
+    // corpus counts); here we only prove the prebuilt asset is bundled.
+    final bytes = await rootBundle.load('assets/db/tafsir.db');
+    expect(bytes.lengthInBytes, greaterThan(0));
   });
 }

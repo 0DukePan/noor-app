@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../../core/services/hadith_user_data_service.dart';
 import '../../../../core/theme/noor_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../hadith_book_names.dart';
 
 /// إحصائيات التعلم - Learning Statistics Page
@@ -118,10 +119,11 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: NoorTheme.bgMushaf,
       appBar: AppBar(
-        title: const Text('إحصائياتي'),
+        title: Text(l10n.lstatsTitle),
         backgroundColor: NoorTheme.bgMushaf,
         elevation: 0,
       ),
@@ -139,31 +141,31 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
                   // Main Stats Grid
                   Row(
                     children: [
-                      Expanded(child: _buildStatCard('محفوظات', '${_stats.totalBookmarked}', 'حديث', Icons.bookmark_rounded, NoorTheme.primary)),
+                      Expanded(child: _buildStatCard(l10n.lstatsBookmarks, '${_stats.totalBookmarked}', l10n.lstatsHadithUnit, Icons.bookmark_rounded, NoorTheme.primary)),
                       const SizedBox(width: NoorTheme.spacingSm),
-                      Expanded(child: _buildStatCard('ملاحظات', '${_stats.totalNotes}', 'ملاحظة', Icons.note_rounded, NoorTheme.hadithSahih)),
+                      Expanded(child: _buildStatCard(l10n.lstatsNotes, '${_stats.totalNotes}', l10n.lstatsNoteUnit, Icons.note_rounded, NoorTheme.hadithSahih)),
                     ],
                   ),
                   const SizedBox(height: NoorTheme.spacingSm),
                   Row(
                     children: [
-                      Expanded(child: _buildStatCard('اختبارات', '${_stats.quizzesTaken}', '${_stats.quizAverageScore}% متوسط', Icons.quiz_rounded, NoorTheme.accentGold)),
+                      Expanded(child: _buildStatCard(l10n.lstatsQuizzes, '${_stats.quizzesTaken}', l10n.lstatsQuizAvg(_stats.quizAverageScore), Icons.quiz_rounded, NoorTheme.accentGold)),
                       const SizedBox(width: NoorTheme.spacingSm),
-                      Expanded(child: _buildStatCard('حفظ', '${_stats.totalMemorized}', 'بطاقة', Icons.psychology_rounded, Colors.purple)),
+                      Expanded(child: _buildStatCard(l10n.lstatsMemorize, '${_stats.totalMemorized}', l10n.lstatsCardUnit, Icons.psychology_rounded, Colors.purple)),
                     ],
                   ),
 
                   const SizedBox(height: NoorTheme.spacingLg),
 
                   // Weekly Activity
-                  _buildSectionTitle('نشاط الأسبوع'),
+                  _buildSectionTitle(l10n.lstatsWeekActivity),
                   _buildWeeklyActivityChart(),
 
                   const SizedBox(height: NoorTheme.spacingLg),
 
                   // Books bookmarked
                   if (_stats.booksProgress.isNotEmpty) ...[
-                    _buildSectionTitle('المحفوظات حسب الكتب'),
+                    _buildSectionTitle(l10n.lstatsByBooks),
                     ..._stats.booksProgress.entries.map(
                       (e) => _buildBookProgress(_getBookName(e.key), e.value),
                     ),
@@ -177,6 +179,7 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
   }
 
   Widget _buildStreakCard() {
+    final l10n = AppLocalizations.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(NoorTheme.spacingLg),
@@ -192,9 +195,9 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                const Text(
-                  'سلسلة الأيام',
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                Text(
+                  l10n.lstatsStreak,
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -213,7 +216,7 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
                   ],
                 ),
                 Text(
-                  'أطول سلسلة: ${_stats.longestStreak} يوم',
+                  l10n.lstatsLongest(_stats.longestStreak),
                   style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
@@ -371,7 +374,7 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
             ),
           ),
           Text(
-            '${progress.read} محفوظ',
+            AppLocalizations.of(context).lstatsBookSaved(progress.read),
             style: const TextStyle(color: NoorTheme.textSecondary, fontSize: 12),
           ),
         ],

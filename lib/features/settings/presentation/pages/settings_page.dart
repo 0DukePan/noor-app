@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/hive_service.dart';
 import '../../../../core/services/quran_audio_engine.dart';
 import '../../../../core/theme/design_system.dart';
 import '../../../../core/theme/theme_service.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../../search/data/data_sources/search_local_data_source.dart';
 
 /// صفحة الإعدادات - Settings Page
@@ -42,6 +44,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final themeMode = ref.watch(themeModeProvider);
     final hapticEnabled = ref.watch(hapticEnabledProvider);
     final fontScale = ref.watch(fontScaleProvider);
@@ -52,7 +55,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return Scaffold(
       backgroundColor: isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.creamWhite,
       appBar: AppBar(
-        title: Text('الإعدادات', style: NoorDesignSystem.textTheme.titleLarge),
+        title: Text(l10n.settingsTitle, style: NoorDesignSystem.textTheme.titleLarge),
         backgroundColor: isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.creamWhite,
         centerTitle: true,
         elevation: 0,
@@ -74,11 +77,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'تخصيص التطبيق',
+                  l10n.settingsHeader,
                   style: NoorDesignSystem.textTheme.titleMedium,
                 ),
                 Text(
-                  'اجعل التطبيق مناسباً لاحتياجاتك',
+                  l10n.settingsHeaderSubtitle,
                   style: NoorDesignSystem.textTheme.bodyMedium,
                 ),
               ],
@@ -88,7 +91,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           const SizedBox(height: 32),
 
           // Theme Mode
-          _buildSectionHeader('المظهر', Icons.palette_rounded),
+          _buildSectionHeader(l10n.settingsAppearance, Icons.palette_rounded),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(4),
@@ -99,9 +102,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ),
             child: Row(
               children: [
-                _buildThemeModeChip(ThemeMode.light, 'فاتح', Icons.wb_sunny_rounded, themeMode),
-                _buildThemeModeChip(ThemeMode.dark, 'داكن', Icons.nightlight_round, themeMode),
-                _buildThemeModeChip(ThemeMode.system, 'تلقائي', Icons.brightness_auto_rounded, themeMode),
+                _buildThemeModeChip(ThemeMode.light, l10n.settingsThemeLight, Icons.wb_sunny_rounded, themeMode),
+                _buildThemeModeChip(ThemeMode.dark, l10n.settingsThemeDark, Icons.nightlight_round, themeMode),
+                _buildThemeModeChip(ThemeMode.system, l10n.settingsThemeSystem, Icons.brightness_auto_rounded, themeMode),
               ],
             ),
           ),
@@ -109,7 +112,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           const SizedBox(height: 32),
 
           // Display
-          _buildSectionHeader('القراءة', Icons.text_fields_rounded),
+          _buildSectionHeader(l10n.settingsReading, Icons.text_fields_rounded),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(20),
@@ -127,7 +130,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('حجم الخط', style: NoorDesignSystem.textTheme.labelLarge),
+                  Text(l10n.settingsFontSize, style: NoorDesignSystem.textTheme.labelLarge),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -171,7 +174,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           const SizedBox(height: 32),
 
           // Settings List
-          _buildSectionHeader('إعدادات عامة', Icons.tune_rounded),
+          _buildSectionHeader(l10n.settingsGeneral, Icons.tune_rounded),
           const SizedBox(height: 16),
           Container(
             decoration: BoxDecoration(
@@ -188,8 +191,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               child: Column(
                 children: [
                   _buildSwitchTile(
-                    title: 'الاهتزاز',
-                    subtitle: 'تفعيل الاستجابة اللمسية عند التفاعل',
+                    title: l10n.settingsHaptics,
+                    subtitle: l10n.settingsHapticsSubtitle,
                     value: hapticEnabled,
                     onChanged: (value) {
                       ref.read(hapticEnabledProvider.notifier).state = value;
@@ -198,9 +201,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     },
                   ),
                   const Divider(height: 1),
+                  // Anonymous usage statistics: off by default, persisted.
+                  _buildSwitchTile(
+                    title: l10n.settingsAnalytics,
+                    subtitle: AnalyticsService.optedIn
+                        ? l10n.settingsAnalyticsOn
+                        : l10n.settingsAnalyticsOff,
+                    value: AnalyticsService.optedIn,
+                    onChanged: (value) {
+                      AnalyticsService.setOptedIn(value: value);
+                      setState(() {});
+                    },
+                  ),
+                  const Divider(height: 1),
                   _buildListTile(
-                    title: 'مسح ذاكرة التخزين',
-                    subtitle: 'حذف البيانات المؤقتة لتحرير المساحة',
+                    title: l10n.settingsClearCache,
+                    subtitle: l10n.settingsClearCacheSubtitle,
                     icon: Icons.delete_outline_rounded,
                     onTap: _showClearCacheDialog,
                   ),
@@ -212,7 +228,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           const SizedBox(height: 32),
 
           // Advanced Settings Navigation
-          _buildSectionHeader('إعدادات متقدمة', Icons.widgets_rounded),
+          _buildSectionHeader(l10n.settingsAdvanced, Icons.widgets_rounded),
           const SizedBox(height: 16),
           Container(
             decoration: BoxDecoration(
@@ -229,15 +245,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               child: Column(
                 children: [
                   _buildListTile(
-                    title: 'الإشعارات',
-                    subtitle: 'أذكار الصباح والمساء، تنبيهات الصلاة',
+                    title: l10n.settingsNotifications,
+                    subtitle: l10n.settingsNotificationsSubtitle,
                     icon: Icons.notifications_rounded,
                     onTap: () => context.go('/tools/settings/notifications'),
                   ),
                   const Divider(height: 1),
                   _buildListTile(
-                    title: 'التخزين والأداء',
-                    subtitle: 'إدارة البيانات المحفوظة',
+                    title: l10n.settingsStorage,
+                    subtitle: l10n.settingsStorageSubtitle,
                     icon: Icons.storage_rounded,
                     onTap: () => context.go('/tools/settings/storage'),
                   ),
@@ -264,8 +280,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               child: Column(
                 children: [
                   _buildListTile(
-                    title: 'الخصوصية والبيانات',
-                    subtitle: 'لا نجمع أي بيانات شخصية',
+                    title: l10n.settingsPrivacy,
+                    subtitle: l10n.settingsPrivacySubtitle,
                     icon: Icons.privacy_tip_outlined,
                     onTap: () => _showPrivacySheet(context),
                   ),
@@ -292,7 +308,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               child: Column(
                 children: [
                   _buildListTile(
-                    title: 'حول التطبيق',
+                    title: l10n.settingsAbout,
                     icon: Icons.info_outline_rounded,
                     onTap: () => _showAboutSheet(context),
                   ),
@@ -304,7 +320,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           const SizedBox(height: 50),
           Center(
             child: Text(
-              'الإصدار $_version',
+              l10n.settingsAppVersion(_version),
               style: NoorDesignSystem.textTheme.bodySmall,
             ),
           ),
@@ -316,50 +332,55 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   /// Honest privacy statement — what the app collects and what it does not.
   void _showPrivacySheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (context) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'الخصوصية والبيانات',
+                l10n.settingsPrivacy,
                 style: NoorDesignSystem.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 16),
-              const _PrivacyRow(
+              _PrivacyRow(
                 icon: Icons.check_circle_outline,
-                text: 'التطبيق يعمل دون إنترنت للمحتوى الأساسي (القرآن، الحديث، التفسير، الأذكار).',
+                text: l10n.settingsPrivacyRowOffline,
               ),
-              const _PrivacyRow(
+              _PrivacyRow(
                 icon: Icons.check_circle_outline,
-                text: 'لا نستخدم أدوات تتبع أو تحليلات، ولا نشارك بياناتك مع أي طرف ثالث.',
+                text: l10n.settingsPrivacyRowTracking,
               ),
-              const _PrivacyRow(
+              _PrivacyRow(
+                icon: Icons.bar_chart_rounded,
+                text: l10n.settingsAnalyticsPrivacy,
+              ),
+              _PrivacyRow(
                 icon: Icons.location_on_outlined,
-                text: 'يُستخدم موقعك على الجهاز فقط لحساب مواقيت الصلاة واتجاه القبلة، ولا يُرسل لأي خادم.',
+                text: l10n.settingsPrivacyRowLocation,
               ),
-              const _PrivacyRow(
+              _PrivacyRow(
                 icon: Icons.bug_report_outlined,
-                text: 'عند حدوث خلل تقني فقط، تُرسل بيانات الخطأ إلى Sentry دون أي معلومات تعريف شخصية.',
+                text: l10n.settingsPrivacyRowCrash,
               ),
-              const _PrivacyRow(
+              _PrivacyRow(
                 icon: Icons.lock_outline,
-                text: 'ملاحظاتك الشخصية (محراب التدبر) تُشفَّر وتُحفظ على جهازك فقط.',
+                text: l10n.settingsPrivacyRowNotes,
               ),
-              const _PrivacyRow(
+              _PrivacyRow(
                 icon: Icons.cloud_off_outlined,
-                text: 'لا توجد مزامنة سحابية: كل بياناتك (المحفوظات، الإحصائيات، التقدم) محفوظة محلياً على جهازك.',
+                text: l10n.settingsPrivacyRowSync,
               ),
-              const _PrivacyRow(
+              _PrivacyRow(
                 icon: Icons.link_outlined,
-                text: 'قد يتصل التطبيق بخوادم عامة لتحميل بيانات مفقودة فقط (تفسير/تلاوة/مواقيت) دون إرسال أي من بياناتك.',
+                text: l10n.settingsPrivacyRowNetwork,
               ),
             ],
           ),
@@ -369,6 +390,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   void _showAboutSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showModalBottomSheet<void>(
       context: context,
       builder: (context) => SafeArea(
@@ -378,7 +400,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'نور',
+                l10n.settingsAppName,
                 style: NoorDesignSystem.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: NoorDesignSystem.emeraldGreen,
@@ -386,7 +408,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'تطبيق إسلامي شامل — القرآن، الحديث، مواقيت الصلاة، الأذكار والتفسير',
+                l10n.settingsAboutBody,
                 textAlign: TextAlign.center,
                 style: NoorDesignSystem.textTheme.bodyMedium?.copyWith(
                   color: NoorDesignSystem.textSecondary,
@@ -394,7 +416,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                'الإصدار $_version',
+                l10n.settingsAppVersion(_version),
                 style: NoorDesignSystem.textTheme.bodySmall,
               ),
             ],
@@ -499,19 +521,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   void _showClearCacheDialog() {
+    final l10n = AppLocalizations.of(context);
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).colorScheme.surface,
-        title: const Text('مسح الذاكرة المؤقتة', textAlign: TextAlign.start),
-        content: const Text(
-          'هل أنت متأكد؟ سيتم حذف ذاكرة التلاوة المحملة وفهرس البحث، ويعاد بناؤها تلقائياً عند الحاجة.',
+        title: Text(l10n.settingsClearCacheTitle, textAlign: TextAlign.start),
+        content: Text(
+          l10n.settingsClearCacheBody,
           textAlign: TextAlign.start,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء', style: TextStyle(color: NoorDesignSystem.textSecondary)),
+            child: Text(l10n.settingsCancel, style: const TextStyle(color: NoorDesignSystem.textSecondary)),
           ),
           FilledButton(
             onPressed: () async {
@@ -521,12 +544,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               await SearchLocalDataSource.clearIndex();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('تم مسح الذاكرة المؤقتة بنجاح')),
+                  SnackBar(content: Text(l10n.settingsCacheCleared)),
                 );
               }
             },
             style: FilledButton.styleFrom(backgroundColor: NoorDesignSystem.error),
-            child: const Text('مسح'),
+            child: Text(l10n.settingsClear),
           ),
         ],
       ),

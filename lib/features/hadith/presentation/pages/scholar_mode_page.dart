@@ -8,6 +8,7 @@ import '../../../../core/services/narrator_database_service.dart';
 import '../../../../core/services/share_as_image_service.dart';
 import '../../../../core/theme/design_system.dart';
 import '../../../../core/theme/noor_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../hadith_book_names.dart';
 import '../widgets/hadith_share_sheet.dart';
 import '../widgets/narrator_profile_body.dart';
@@ -110,17 +111,17 @@ class _ScholarModePageState extends State<ScholarModePage> {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('وضع طالب العلم'),
+        title: Text(AppLocalizations.of(context).schTitle),
         actions: [
           IconButton(
             icon: Icon(_highlightKeywords ? Icons.highlight : Icons.highlight_off),
             onPressed: () => setState(() => _highlightKeywords = !_highlightKeywords),
-            tooltip: 'تظليل الكلمات المهمة',
+            tooltip: AppLocalizations.of(context).schHighlightTooltip,
           ),
           IconButton(
             icon: const Icon(Icons.share),
             onPressed: _shareWithTakhrij,
-            tooltip: 'مشاركة مع التخريج',
+            tooltip: AppLocalizations.of(context).schShareTooltip,
           ),
         ],
       ),
@@ -177,7 +178,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                widget.hadith.grade.isEmpty ? 'غير محكوم' : widget.hadith.grade,
+                widget.hadith.grade.isEmpty ? AppLocalizations.of(context).schUngraded : widget.hadith.grade,
                 style: TextStyle(
                   color: _getGradeColor(widget.hadith.grade),
                   fontWeight: FontWeight.bold,
@@ -225,7 +226,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'الحديث رقم ${widget.hadith.number}',
+                  AppLocalizations.of(context).schHadithNumber(widget.hadith.number),
                   style: theme.textTheme.bodySmall,
                 ),
                 Text(
@@ -306,20 +307,20 @@ class _ScholarModePageState extends State<ScholarModePage> {
       child: ExpansionTile(
         initiallyExpanded: true,
         leading: const Icon(Icons.library_books),
-        title: const Text('التخريج'),
+        title: Text(AppLocalizations.of(context).schTakhrij),
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildTakhrijRow('الكتاب', _getBookName(widget.hadith.book)),
-                _buildTakhrijRow('الباب', 'الباب ${widget.hadith.chapter}'),
-                _buildTakhrijRow('رقم الحديث', widget.hadith.number.toString()),
+                _buildTakhrijRow(AppLocalizations.of(context).schBook, _getBookName(widget.hadith.book)),
+                _buildTakhrijRow(AppLocalizations.of(context).schChapter, AppLocalizations.of(context).schChapterValue(widget.hadith.chapter)),
+                _buildTakhrijRow(AppLocalizations.of(context).schNumber, widget.hadith.number.toString()),
                 if (widget.hadith.companion.isNotEmpty)
-                  _buildTakhrijRow('الصحابي', widget.hadith.companion),
+                  _buildTakhrijRow(AppLocalizations.of(context).schCompanion, widget.hadith.companion),
                 if (widget.hadith.topics.isNotEmpty)
-                  _buildTakhrijRow('المواضيع', widget.hadith.topics.join(', ')),
+                  _buildTakhrijRow(AppLocalizations.of(context).schTopics, widget.hadith.topics.join(', ')),
               ],
             ),
           ),
@@ -351,7 +352,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
     return Card(
       child: ExpansionTile(
         leading: const Icon(Icons.note),
-        title: const Text('ملاحظاتي'),
+        title: Text(AppLocalizations.of(context).schNotes),
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
@@ -359,16 +360,16 @@ class _ScholarModePageState extends State<ScholarModePage> {
               children: [
                 TextField(
                   maxLines: 4,
-                  decoration: const InputDecoration(
-                    hintText: 'أضف ملاحظاتك على هذا الحديث...',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context).schNotesHint,
+                    border: const OutlineInputBorder(),
                   ),
                   controller: _noteController,
                   onChanged: _saveNote,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'تُحفظ الملاحظات تلقائيًا',
+                  AppLocalizations.of(context).schNotesSaved,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.outline,
                   ),
@@ -385,7 +386,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
     return Card(
       child: ExpansionTile(
         leading: const Icon(Icons.compare_arrows),
-        title: const Text('أحاديث مشابهة'),
+        title: Text(AppLocalizations.of(context).sharhSimilar),
         children: [
           if (_loadingSimilar)
             const Padding(
@@ -393,9 +394,9 @@ class _ScholarModePageState extends State<ScholarModePage> {
               child: Center(child: CircularProgressIndicator()),
             )
           else if (_similarHadiths.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(20),
-              child: Text('لا توجد أحاديث مشابهة'),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Text(AppLocalizations.of(context).schNoSimilar),
             )
           else
             ListView.builder(
@@ -459,7 +460,7 @@ class _ScholarModePageState extends State<ScholarModePage> {
             children: [
               Icon(Icons.link_off_rounded, size: 32, color: Colors.grey.shade400),
               const SizedBox(height: 8),
-              const Text('لم يتم العثور على إسناد في هذا الحديث'),
+              Text(AppLocalizations.of(context).schNoIsnad),
             ],
           ),
         ),
@@ -475,8 +476,8 @@ class _ScholarModePageState extends State<ScholarModePage> {
       child: ExpansionTile(
         initiallyExpanded: true,
         leading: const Icon(Icons.link_rounded),
-        title: const Text('تحليل الإسناد'),
-        subtitle: Text('${_isnadChain.length} راوٍ في السلسلة'),
+        title: Text(AppLocalizations.of(context).schIsnadAnalysis),
+        subtitle: Text(AppLocalizations.of(context).schChainCount(_isnadChain.length)),
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -486,12 +487,12 @@ class _ScholarModePageState extends State<ScholarModePage> {
                 // Chain stats row
                 Row(
                   children: [
-                    _buildChainStat('الرواة', '$narratorCount', NoorTheme.primary),
+                    _buildChainStat(AppLocalizations.of(context).schStatNarrators, '$narratorCount', NoorTheme.primary),
                     const SizedBox(width: 8),
-                    _buildChainStat('الصحابة', '$companionCount', NoorTheme.hadithSahih),
+                    _buildChainStat(AppLocalizations.of(context).schStatCompanions, '$companionCount', NoorTheme.hadithSahih),
                     const SizedBox(width: 8),
                     if (prophetCount > 0)
-                      _buildChainStat('النبي ﷺ', '$prophetCount', NoorTheme.accentGold),
+                      _buildChainStat(AppLocalizations.of(context).schStatProphet, '$prophetCount', NoorTheme.accentGold),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -521,8 +522,8 @@ class _ScholarModePageState extends State<ScholarModePage> {
                       Expanded(
                         child: Text(
                           _isnadChain.length >= 3
-                              ? 'سلسلة متصلة (${_isnadChain.length} حلقات)'
-                              : 'سلسلة قصيرة (${_isnadChain.length} حلقات)',
+                              ? AppLocalizations.of(context).schChainConnected(_isnadChain.length)
+                              : AppLocalizations.of(context).schChainShort(_isnadChain.length),
                           style: TextStyle(
                             color: _isnadChain.length >= 3
                                 ? NoorTheme.hadithSahih
@@ -670,17 +671,17 @@ class _ScholarModePageState extends State<ScholarModePage> {
       children: [
         ActionChip(
           avatar: const Icon(Icons.copy, size: 18),
-          label: const Text('نسخ مع التخريج'),
+          label: Text(AppLocalizations.of(context).schCopyTakhrij),
           onPressed: _copyWithTakhrij,
         ),
         ActionChip(
           avatar: const Icon(Icons.image, size: 18),
-          label: const Text('مشاركة كصورة'),
+          label: Text(AppLocalizations.of(context).hshareTitle),
           onPressed: () => _shareAsImage(context),
         ),
         ActionChip(
           avatar: const Icon(Icons.bookmark_border, size: 18),
-          label: const Text('حفظ للمراجعة'),
+          label: Text(AppLocalizations.of(context).schSaveReview),
           onPressed: _addToReview,
         ),
       ],
@@ -688,20 +689,21 @@ class _ScholarModePageState extends State<ScholarModePage> {
   }
 
   void _copyWithTakhrij() {
+    final l10n = AppLocalizations.of(context);
     final takhrij = '''
 ${widget.hadith.text}
 
-📚 ${_getBookName(widget.hadith.book)}
-📖 الباب ${widget.hadith.chapter} - الحديث ${widget.hadith.number}
-${widget.hadith.grade.isNotEmpty ? '✓ ${widget.hadith.grade}' : ''}
-${widget.hadith.companion.isNotEmpty ? '👤 ${widget.hadith.companion}' : ''}
+${l10n.schTakhrijBook(_getBookName(widget.hadith.book))}
+${l10n.schTakhrijChapter(widget.hadith.chapter, widget.hadith.number)}
+${widget.hadith.grade.isNotEmpty ? l10n.schTakhrijGrade(widget.hadith.grade) : ''}
+${widget.hadith.companion.isNotEmpty ? l10n.schTakhrijCompanion(widget.hadith.companion) : ''}
 
-— تطبيق نور الإسلامي
+${l10n.schTakhrijApp}
 ''';
     
     Clipboard.setData(ClipboardData(text: takhrij));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تم النسخ مع التخريج ✓')),
+      SnackBar(content: Text(l10n.schCopiedTakhrij)),
     );
   }
 
@@ -741,7 +743,7 @@ ${widget.hadith.companion.isNotEmpty ? '👤 ${widget.hadith.companion}' : ''}
     }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تمت الإضافة للمراجعة ✓')),
+      SnackBar(content: Text(AppLocalizations.of(context).schAddedReview)),
     );
   }
 

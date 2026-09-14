@@ -7,7 +7,9 @@ import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/qibla_engine.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 /// 🧭 صفحة القبلة الاحترافية - Professional Qibla Page
 class QiblaPage extends StatefulWidget {
@@ -41,9 +43,20 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
+  // Locale cache (set in didChangeDependencies: safe before any channel
+  // future resumes, and never touches context across an async gap).
+  late AppLocalizations? _l10n;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _l10n = AppLocalizations.of(context);
+  }
+
   @override
   void initState() {
     super.initState();
+    AnalyticsService.record('qibla_viewed');
     
     _pulseController = AnimationController(
       vsync: this,
@@ -82,7 +95,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
       }
       
       if (permission == LocationPermission.deniedForever) {
-        _useFallbackLocation('الرجاء تفعيل صلاحية الموقع من الإعدادات');
+        _useFallbackLocation(_l10n!.qiblaPermWarning);
         return;
       }
 
@@ -105,7 +118,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
     } on Exception {
       // Location unavailable — show the fallback city's qibla with a warning
       // instead of blocking the whole screen on an error.
-      _useFallbackLocation('تعذّر تحديد موقعك، عرض الاتجاه من مدينة الرياض');
+      _useFallbackLocation(_l10n!.qiblaFallbackWarning);
     }
   }
 
@@ -122,14 +135,22 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
   }
 
   void _startCompass() {
-    _compassSubscription = FlutterCompass.events?.listen((event) {
-      if (!mounted || _isLocked) return;
-      
-      setState(() {
-        _currentHeading = event.heading ?? 0;
-        _compassAccuracy = event.accuracy ?? -1;
-      });
-    });
+    _compassSubscription = FlutterCompass.events?.listen(
+      (event) {
+        if (!mounted || _isLocked) return;
+
+        setState(() {
+          _currentHeading = event.heading ?? 0;
+          _compassAccuracy = event.accuracy ?? -1;
+        });
+      },
+      onError: (Object _) {
+        // Compass unavailable (no sensor, plugin failure): degrade to
+        // "unknown accuracy" instead of surfacing an unhandled stream error.
+        if (!mounted) return;
+        setState(() => _compassAccuracy = -1);
+      },
+    );
   }
 
   void _startAutoTimeout() {
@@ -144,23 +165,24 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
   }
 
   void _showTimeoutDialog() {
+    final l10n = AppLocalizations.of(context);
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         icon: const Icon(Icons.battery_saver),
-        title: Text('توفير الطاقة', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
-        content: Text('هل تريد متابعة تحديد القبلة؟', style: GoogleFonts.cairo()),
+        title: Text(l10n.qiblaTimeoutTitle, style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+        content: Text(l10n.qiblaTimeoutBody, style: GoogleFonts.cairo()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('إغلاق', style: GoogleFonts.cairo()),
+            child: Text(l10n.qiblaClose, style: GoogleFonts.cairo()),
           ),
           FilledButton(
             onPressed: () {
               Navigator.pop(context);
               _startAutoTimeout();
             },
-            child: Text('متابعة', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+            child: Text(l10n.qiblaContinue, style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -200,7 +222,9 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          _isDirectionLocked ? '🔒 تم تثبيت اتجاه القبلة' : 'تم إلغاء التثبيت',
+          _isDirectionLocked
+              ? AppLocalizations.of(context).qiblaLockedSnack
+              : AppLocalizations.of(context).qiblaUnlockedSnack,
           style: GoogleFonts.cairo(),
         ),
         backgroundColor: _isDirectionLocked ? Colors.green : null,
@@ -209,22 +233,23 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
   }
 
   void _showCalibrationHelp() {
+    final l10n = AppLocalizations.of(context);
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         icon: const Icon(Icons.help_outline, size: 48),
-        title: Text('معايرة البوصلة', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+        title: Text(l10n.qiblaCalibTitle, style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'لتحسين دقة البوصلة:',
+              l10n.qiblaCalibHint,
               style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            Text('1. أبعد الهاتف عن أي معادن', style: GoogleFonts.cairo()),
-            Text('2. حرّك الهاتف بشكل 8', style: GoogleFonts.cairo()),
-            Text('3. كرر حتى تتحسن الدقة', style: GoogleFonts.cairo()),
+            Text(l10n.qiblaCalib1, style: GoogleFonts.cairo()),
+            Text(l10n.qiblaCalib2, style: GoogleFonts.cairo()),
+            Text(l10n.qiblaCalib3, style: GoogleFonts.cairo()),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(16),
@@ -243,7 +268,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('فهمت', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+            child: Text(AppLocalizations.of(context).tadGotIt, style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -289,7 +314,10 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent, // Handled by gradient container
       appBar: AppBar(
-        title: Text('اتجاه القبلة', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+        title: Text(
+          AppLocalizations.of(context).qiblaTitle,
+          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -360,9 +388,9 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
           ),
           TextButton(
             onPressed: _getLocation,
-            child: const Text(
-              'إعادة المحاولة',
-              style: TextStyle(color: Colors.amber, fontSize: 12),
+            child: Text(
+              AppLocalizations.of(context).commonRetry,
+              style: const TextStyle(color: Colors.amber, fontSize: 12),
             ),
           ),
         ],
@@ -377,7 +405,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
           const CircularProgressIndicator(color: Colors.white),
           const SizedBox(height: 24),
           Text(
-            'جارٍ تحديد موقعك...',
+            AppLocalizations.of(context).qiblaLocating,
             style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
           ),
         ],
@@ -461,8 +489,10 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
           // Status message
           Expanded(
             child: Text(
-              _isLocked 
-                  ? (_isDirectionLocked ? '🔒 اتجاه مثبت' : '🔒 تم التثبيت')
+              _isLocked
+                  ? (_isDirectionLocked
+                      ? AppLocalizations.of(context).qiblaLockedBadge
+                      : AppLocalizations.of(context).qiblaPinned)
                   : alignment.message,
               style: GoogleFonts.cairo(
                 color: alignment.isAligned ? Colors.green : Colors.white,
@@ -478,7 +508,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
             IconButton(
               icon: const Icon(Icons.warning_amber, color: Colors.orange, size: 20),
               onPressed: _showCalibrationHelp,
-              tooltip: 'معايرة مطلوبة',
+              tooltip: AppLocalizations.of(context).qiblaCalibNeeded,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
             ),
@@ -552,7 +582,7 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
                     ),
                   ),
                   child: Text(
-                    '🕋 الكعبة',
+                    AppLocalizations.of(context).qiblaKaaba,
                     style: GoogleFonts.cairo(
                       color: alignment.isAligned ? const Color(0xFF4CAF50) : const Color(0xFFFFD700),
                       fontWeight: FontWeight.bold,
@@ -605,19 +635,19 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
         children: [
           _InfoItem(
             icon: Icons.explore_rounded,
-            label: 'اتجاه القبلة',
+            label: AppLocalizations.of(context).qiblaDirection,
             value: '${_qiblaResult!.trueQiblaDirection.toStringAsFixed(1)}°',
           ),
           Container(height: 40, width: 1, color: Colors.white.withValues(alpha: 0.1)),
           _InfoItem(
             icon: Icons.straighten_rounded,
-            label: 'المسافة',
+            label: AppLocalizations.of(context).qiblaDistance,
             value: QiblaEngine.formatDistance(_qiblaResult!.distanceToKaaba),
           ),
           Container(height: 40, width: 1, color: Colors.white.withValues(alpha: 0.1)),
           _InfoItem(
             icon: Icons.near_me_rounded,
-            label: 'الاتجاه',
+            label: AppLocalizations.of(context).qiblaBearing,
             value: _qiblaResult!.directionText,
           ),
         ],
@@ -636,7 +666,9 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
               onPressed: _toggleLock,
               icon: Icon(_isLocked ? Icons.lock_open_rounded : Icons.lock_rounded),
               label: Text(
-                _isLocked ? 'إلغاء' : 'تثبيت',
+                _isLocked
+                    ? AppLocalizations.of(context).qiblaUnlock
+                    : AppLocalizations.of(context).qiblaLock,
                 style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
               ),
               style: FilledButton.styleFrom(

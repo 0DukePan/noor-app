@@ -5,6 +5,7 @@ import '../../../../core/models/tafsir_models.dart';
 import '../../../../core/services/quran_data_source.dart';
 import '../../../../core/services/tafsir_data_source.dart';
 import '../../../../core/theme/tafsir_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 /// Tafsir reader page - tafsir_reader_page.dart
 /// Extracted from full_tafsir_reader.dart (Phase 1 god-file split); was a
@@ -233,6 +234,7 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
     }
 
     // Compare mode: multi-select chips + ayah selector
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       decoration: BoxDecoration(
@@ -282,7 +284,13 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.chevron_right_rounded, size: 20),
+                icon: Icon(
+                  isRtl
+                      ? Icons.chevron_right_rounded
+                      : Icons.chevron_left_rounded,
+                  size: 20,
+                ),
+                tooltip: AppLocalizations.of(context).a11yPrevious,
                 onPressed: _compareAyah > 1
                     ? () {
                         setState(() => _compareAyah--);
@@ -308,7 +316,13 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.chevron_left_rounded, size: 20),
+                icon: Icon(
+                  isRtl
+                      ? Icons.chevron_left_rounded
+                      : Icons.chevron_right_rounded,
+                  size: 20,
+                ),
+                tooltip: AppLocalizations.of(context).a11yNext,
                 onPressed: () {
                   setState(() => _compareAyah++);
                   _loadCompareData();

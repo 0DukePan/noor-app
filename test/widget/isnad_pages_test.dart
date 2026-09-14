@@ -11,6 +11,7 @@ import 'package:noor_app/features/hadith/presentation/pages/isnad_chain_page.dar
 import 'package:noor_app/features/hadith/presentation/pages/isnad_graph_page.dart';
 import 'package:noor_app/features/hadith/presentation/pages/narration_comparison_page.dart';
 import 'package:noor_app/features/hadith/presentation/pages/scholar_mode_page.dart';
+import 'package:noor_app/l10n/generated/app_localizations.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// The isnad pages render purely from the vocalized Arabic text (no SQLite)
@@ -63,6 +64,9 @@ void main() {
       (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
+        locale: Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: IsnadChainPage(hadithId: 'bukhari_1', hadithText: chainText),
       ),
     );
@@ -76,6 +80,9 @@ void main() {
   testWidgets('isnad graph page renders without crashing', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
+        locale: Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: IsnadGraphPage(hadithText: chainText, hadithSource: 'صحيح البخاري'),
       ),
     );
@@ -87,7 +94,12 @@ void main() {
   testWidgets('narration comparison page searches and renders narrations',
       (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(home: NarrationComparisonPage(hadithKeyword: 'الصلاة')),
+      const MaterialApp(
+        locale: Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: NarrationComparisonPage(hadithKeyword: 'الصلاة'),
+      ),
     );
     await tester.pump(const Duration(milliseconds: 400));
 
@@ -111,7 +123,12 @@ void main() {
       topics: ['النيات'],
     );
     await tester.pumpWidget(
-      const MaterialApp(home: ScholarModePage(hadith: entry)),
+      const MaterialApp(
+        locale: Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ScholarModePage(hadith: entry),
+      ),
     );
     await tester.pump(const Duration(milliseconds: 400));
 

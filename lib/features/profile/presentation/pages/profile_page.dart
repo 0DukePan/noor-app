@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/statistics_service.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/profile_providers.dart';
 
 /// 📊 صفحة الملف الشخصي — User Profile Dashboard
@@ -15,6 +16,7 @@ class ProfilePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final stats = ref.watch(profileStatsProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -110,9 +112,9 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   _StatCard(
                     icon: Icons.timer_outlined,
-                    title: 'وقت القراءة',
+                    title: l10n.proReadingTime,
                     value: stats.todayReading.formattedTime,
-                    subtitle: 'اليوم',
+                    subtitle: l10n.proToday,
                     gradient: const [Color(0xFF1565C0), Color(0xFF42A5F5)],
                     isDark: isDark,
                   ),
@@ -126,9 +128,9 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   _StatCard(
                     icon: Icons.local_fire_department_rounded,
-                    title: 'سلسلة الأذكار',
+                    title: l10n.proAdhkarStreak,
                     value: '${stats.adhkarStreak}',
-                    subtitle: stats.adhkarStreak == 1 ? 'يوم' : 'أيام',
+                    subtitle: stats.adhkarStreak == 1 ? l10n.proDayOne : l10n.proDays,
                     gradient: const [Color(0xFFE65100), Color(0xFFFF9800)],
                     isDark: isDark,
                   ),
@@ -147,7 +149,7 @@ class ProfilePage extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
                 child: Text(
-                  '🤲 أذكار اليوم',
+                  l10n.proAdhkarToday,
                   style: GoogleFonts.cairo(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -171,14 +173,14 @@ class ProfilePage extends ConsumerWidget {
                     children: [
                       _AdhkarCheckItem(
                         icon: Icons.wb_sunny_rounded,
-                        label: 'أذكار الصباح',
+                        label: l10n.adhkarMorning,
                         isComplete: stats.adhkarStatus.morningComplete,
                         color: NoorDesignSystem.morningColor,
                       ),
                       const SizedBox(width: 24),
                       _AdhkarCheckItem(
                         icon: Icons.nightlight_rounded,
-                        label: 'أذكار المساء',
+                        label: l10n.adhkarEvening,
                         isComplete: stats.adhkarStatus.eveningComplete,
                         color: NoorDesignSystem.eveningColor,
                       ),
@@ -194,7 +196,7 @@ class ProfilePage extends ConsumerWidget {
                             ),
                           ),
                           Text(
-                            'بعد الصلاة',
+                            l10n.proAfterPrayer,
                             style: GoogleFonts.cairo(
                               fontSize: 11,
                               color: theme.colorScheme.outline,
@@ -213,7 +215,7 @@ class ProfilePage extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
                 child: Text(
-                  '📖 تقدم الختمة',
+                  l10n.proKhatmah,
                   style: GoogleFonts.cairo(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -272,7 +274,7 @@ class ProfilePage extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'السورة ${stats.khatmah.surah} — الآية ${stats.khatmah.ayah}',
+                              l10n.proKhatmahAt(stats.khatmah.surah, stats.khatmah.ayah),
                               style: GoogleFonts.cairo(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
@@ -281,7 +283,7 @@ class ProfilePage extends ConsumerWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '${ stats.completedKhatmah} ختمات مكتملة',
+                              l10n.proKhatmahDone(stats.completedKhatmah),
                               style: GoogleFonts.cairo(
                                 fontSize: 13,
                                 color: theme.colorScheme.outline,
@@ -297,7 +299,7 @@ class ProfilePage extends ConsumerWidget {
                                   ref.invalidate(profileStatsProvider);
                                 },
                                 icon: const Icon(Icons.refresh_rounded, size: 16),
-                                label: Text('بدء ختمة جديدة',
+                                label: Text(l10n.khatmahStart,
                                   style: GoogleFonts.cairo(fontSize: 13),),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: NoorDesignSystem.primaryGreen,
@@ -325,7 +327,7 @@ class ProfilePage extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
                 child: Text(
-                  '📈 ملخص الأسبوع',
+                  l10n.proWeek,
                   style: GoogleFonts.cairo(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -349,28 +351,28 @@ class ProfilePage extends ConsumerWidget {
                     children: [
                       _WeeklyRow(
                         icon: Icons.menu_book_rounded,
-                        label: 'آيات مقروءة',
+                        label: l10n.proVersesRead,
                         value: '${stats.weekly.versesRead}',
                         color: NoorDesignSystem.primaryGreen,
                       ),
                       const Divider(height: 24),
                       _WeeklyRow(
                         icon: Icons.timer_outlined,
-                        label: 'وقت القراءة',
-                        value: _formatDuration(stats.weekly.readingTime),
+                        label: l10n.proReadingTime,
+                        value: _formatDuration(stats.weekly.readingTime, l10n),
                         color: const Color(0xFF1565C0),
                       ),
                       const Divider(height: 24),
                       _WeeklyRow(
                         icon: Icons.headphones_rounded,
-                        label: 'وقت الاستماع',
-                        value: _formatDuration(stats.weekly.listeningTime),
+                        label: l10n.proListenTime,
+                        value: _formatDuration(stats.weekly.listeningTime, l10n),
                         color: const Color(0xFF6A1B9A),
                       ),
                       const Divider(height: 24),
                       _WeeklyRow(
                         icon: Icons.check_circle_rounded,
-                        label: 'أيام أذكار كاملة',
+                        label: l10n.proFullAdhkarDays,
                         value: '${stats.weekly.completeAdhkarDays}/7',
                         color: NoorDesignSystem.morningColor,
                       ),
@@ -385,7 +387,7 @@ class ProfilePage extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
                 child: Text(
-                  '🏆 الإحصائيات الكلية',
+                  l10n.proTotal,
                   style: GoogleFonts.cairo(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -421,19 +423,19 @@ class ProfilePage extends ConsumerWidget {
                     children: [
                       _TotalStatBubble(
                         value: '${stats.totalReading.versesRead}',
-                        label: 'آية',
+                        label: l10n.proVerseUnit,
                         icon: Icons.menu_book_rounded,
                         color: NoorDesignSystem.primaryGreen,
                       ),
                       _TotalStatBubble(
                         value: stats.totalReading.formattedTime,
-                        label: 'قراءة',
+                        label: l10n.proReadUnit,
                         icon: Icons.timer_outlined,
                         color: const Color(0xFF1565C0),
                       ),
                       _TotalStatBubble(
                         value: '${stats.completedKhatmah}',
-                        label: 'ختمات',
+                        label: l10n.proKhatmahUnit,
                         icon: Icons.auto_stories_rounded,
                         color: NoorDesignSystem.goldAccent,
                       ),
@@ -448,10 +450,10 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  static String _formatDuration(Duration d) {
-    if (d.inMinutes < 1) return '${d.inSeconds} ثانية';
-    if (d.inHours < 1) return '${d.inMinutes} دقيقة';
-    return '${d.inHours} س ${d.inMinutes % 60} د';
+  static String _formatDuration(Duration d, AppLocalizations l10n) {
+    if (d.inMinutes < 1) return l10n.proSeconds(d.inSeconds);
+    if (d.inHours < 1) return l10n.proMinutes(d.inMinutes);
+    return l10n.proHoursMinutes(d.inHours, d.inMinutes % 60);
   }
 }
 

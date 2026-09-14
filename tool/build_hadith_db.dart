@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:noor_app/core/data/data_sources/hadith_db_builder.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -14,11 +15,14 @@ void main() async {
 
   Directory('assets/db').createSync(recursive: true);
   final outFile = File('assets/db/hadith.db');
-  final dbPath = outFile.absolute.path; // ffi resolves relative paths to its own dir
+  final dbPath =
+      outFile.absolute.path; // ffi resolves relative paths to its own dir
   if (outFile.existsSync()) outFile.deleteSync();
 
   final stopwatch = Stopwatch()..start();
-  stdout.writeln('Building prebuilt hadith database (${kHadithAllBookIds.length} books)...');
+  stdout.writeln(
+    'Building prebuilt hadith database (${kHadithAllBookIds.length} books)...',
+  );
 
   try {
     final db = await databaseFactory.openDatabase(
@@ -50,4 +54,10 @@ void main() async {
   stdout.writeln(
     'Built $dbPath (${sizeMb.toStringAsFixed(1)} MB) in ${stopwatch.elapsed.inSeconds}s',
   );
+
+  // Record the SHA-256 checksum next to the database so the integrity guard
+  // (test/hadith_db_integrity_test.dart) can detect drift on regeneration.
+  final checksum = sha256.convert(await outFile.readAsBytes()).toString();
+  await File('assets/db/hadith.db.sha256').writeAsString('$checksum\n');
+  stdout.writeln('Checksum: $checksum');
 }

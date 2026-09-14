@@ -1,17 +1,18 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'hive_box_registry.dart';
 import 'prayer_time_engine.dart';
 
 /// 🕌 وضع المسجد - Mosque Mode Service
 /// يحول الهاتف للصامت تلقائيًا عند دخول وقت الصلاة
 class MosqueModeService {
   static const _channelName = 'com.noor.app/adhan';
-  static const _cacheBoxName = 'mosque_mode';
-  
+  static const _cacheBoxName = HiveBoxes.mosqueMode;
+
   static const _channel = MethodChannel(_channelName);
   static Box<dynamic>? _cacheBox;
-  
+
   // Settings
   static bool _isEnabled = false;
   static int _durationMinutes = 20;
@@ -40,15 +41,18 @@ class MosqueModeService {
 
   /// Load saved settings
   static Future<void> _loadSettings() async {
-    _isEnabled = (_cacheBox?.get('enabled', defaultValue: false) ?? false) as bool;
-    _durationMinutes = (_cacheBox?.get('duration', defaultValue: 20) ?? 20) as int;
-    
+    _isEnabled =
+        (_cacheBox?.get('enabled', defaultValue: false) ?? false) as bool;
+    _durationMinutes =
+        (_cacheBox?.get('duration', defaultValue: 20) ?? 20) as int;
+
     for (final prayer in PrayerType.values) {
       if (prayer == PrayerType.sunrise) continue;
       _enabledPrayers[prayer] = (_cacheBox?.get(
-        'prayer_${prayer.name}', 
-        defaultValue: true,
-      ) ?? true) as bool;
+            'prayer_${prayer.name}',
+            defaultValue: true,
+          ) ??
+          true) as bool;
     }
   }
 
@@ -56,7 +60,7 @@ class MosqueModeService {
   static Future<void> _saveSettings() async {
     await _cacheBox?.put('enabled', _isEnabled);
     await _cacheBox?.put('duration', _durationMinutes);
-    
+
     for (final entry in _enabledPrayers.entries) {
       await _cacheBox?.put('prayer_${entry.key.name}', entry.value);
     }
@@ -76,7 +80,7 @@ class MosqueModeService {
   static Future<void> disable() async {
     _isEnabled = false;
     await _saveSettings();
-    
+
     // Deactivate if currently active
     if (_isCurrentlyActive) {
       await deactivate();
@@ -110,7 +114,8 @@ class MosqueModeService {
   static int get durationMinutes => _durationMinutes;
 
   /// Enable/disable for specific prayer
-  static Future<void> setPrayerEnabled(PrayerType prayer, {required bool enabled}) async {
+  static Future<void> setPrayerEnabled(PrayerType prayer,
+      {required bool enabled,}) async {
     _enabledPrayers[prayer] = enabled;
     await _saveSettings();
   }
@@ -130,19 +135,18 @@ class MosqueModeService {
   /// Activate mosque mode now
   static Future<void> activate({int? durationMinutes}) async {
     final duration = durationMinutes ?? _durationMinutes;
-    
+
     try {
       await _channel.invokeMethod('enableMosqueMode', {
         'durationMinutes': duration,
       });
-      
+
       _isCurrentlyActive = true;
       _activeUntil = DateTime.now().add(Duration(minutes: duration));
-      
+
       // Schedule deactivation
       _deactivateTimer?.cancel();
       _deactivateTimer = Timer(Duration(minutes: duration), deactivate);
-      
     } on Exception {
       // Native call failed, but we can still track state
       _isCurrentlyActive = true;
@@ -157,7 +161,7 @@ class MosqueModeService {
     } on Exception {
       // Native call failed
     }
-    
+
     _isCurrentlyActive = false;
     _activeUntil = null;
     _deactivateTimer?.cancel();
@@ -167,7 +171,7 @@ class MosqueModeService {
   static Future<void> onPrayerTime(PrayerType prayer) async {
     if (!_isEnabled) return;
     if (!isPrayerEnabled(prayer)) return;
-    
+
     await activate();
   }
 
@@ -193,10 +197,10 @@ class MosqueModeService {
   /// Extend current mosque mode by X minutes
   static Future<void> extend(int minutes) async {
     if (!_isCurrentlyActive || _activeUntil == null) return;
-    
+
     final newEndTime = _activeUntil!.add(Duration(minutes: minutes));
     final remainingMinutes = newEndTime.difference(DateTime.now()).inMinutes;
-    
+
     await activate(durationMinutes: remainingMinutes);
   }
 

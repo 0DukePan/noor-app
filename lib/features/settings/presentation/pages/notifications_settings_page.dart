@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/services/location_trust_engine.dart';
 import '../../../../core/services/smart_notification_engine.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 /// 🔔 إعدادات الإشعارات — Notification Settings
 /// Wires SmartNotificationEngine settings into a toggle-based UI
@@ -32,13 +33,14 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.bgLight,
       appBar: AppBar(
-        title: Text('الإشعارات', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+        title: Text(l10n.notifTitle, style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: ListView(
@@ -46,14 +48,14 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
         physics: const BouncingScrollPhysics(),
         children: [
           // ── Adhkar Reminders ──
-          const _SectionHeader(icon: Icons.wb_sunny_rounded, title: 'تذكيرات الأذكار'),
+          _SectionHeader(icon: Icons.wb_sunny_rounded, title: l10n.notifAdhkarSection),
           const SizedBox(height: 8),
           _buildCard(isDark, [
             _SettingsTile(
               icon: Icons.wb_sunny_rounded,
               iconColor: NoorDesignSystem.morningColor,
-              title: 'أذكار الصباح',
-              subtitle: 'بعد صلاة الفجر بـ 30 دقيقة',
+              title: l10n.notifMorning,
+              subtitle: l10n.notifMorningSubtitle,
               value: _settings.adhkarMorningEnabled,
               onChanged: (v) => _updateSettings(
                 _settings.copyWith(adhkarMorningEnabled: v),
@@ -63,8 +65,8 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
             _SettingsTile(
               icon: Icons.nightlight_rounded,
               iconColor: NoorDesignSystem.eveningColor,
-              title: 'أذكار المساء',
-              subtitle: 'قبل صلاة المغرب بـ 30 دقيقة',
+              title: l10n.notifEvening,
+              subtitle: l10n.notifEveningSubtitle,
               value: _settings.adhkarEveningEnabled,
               onChanged: (v) => _updateSettings(
                 _settings.copyWith(adhkarEveningEnabled: v),
@@ -74,14 +76,14 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
           const SizedBox(height: 24),
 
           // ── Prayer Notifications ──
-          const _SectionHeader(icon: Icons.mosque_rounded, title: 'إشعارات الصلاة'),
+          _SectionHeader(icon: Icons.mosque_rounded, title: l10n.notifPrayerSection),
           const SizedBox(height: 8),
           _buildCard(isDark, [
             _SettingsTile(
               icon: Icons.notifications_active_rounded,
               iconColor: NoorDesignSystem.primaryGreen,
-              title: 'تنبيه قبل الصلاة',
-              subtitle: 'قبل ${_settings.prayerNotificationMinutesBefore} دقائق',
+              title: l10n.notifBeforePrayer,
+              subtitle: l10n.notifBeforeMinutes(_settings.prayerNotificationMinutesBefore),
               value: _settings.prayerNotificationsEnabled,
               onChanged: (v) => _updateSettings(
                 _settings.copyWith(prayerNotificationsEnabled: v),
@@ -94,8 +96,8 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('قبل الصلاة بـ', style: GoogleFonts.cairo(fontSize: 13, color: Colors.grey)),
-                    Text('${_settings.prayerNotificationMinutesBefore} دقائق',
+                    Text(l10n.notifBeforeLabel, style: GoogleFonts.cairo(fontSize: 13, color: Colors.grey)),
+                    Text(l10n.notifBeforeMinutes(_settings.prayerNotificationMinutesBefore),
                         style: GoogleFonts.cairo(fontWeight: FontWeight.bold),),
                   ],
                 ),
@@ -106,7 +108,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                 max: 30,
                 divisions: 5,
                 activeColor: NoorDesignSystem.primaryGreen,
-                label: '${_settings.prayerNotificationMinutesBefore} د',
+                label: l10n.notifMinutesShort(_settings.prayerNotificationMinutesBefore),
                 onChanged: (v) => _updateSettings(
                   _settings.copyWith(prayerNotificationMinutesBefore: v.round()),
                 ),
@@ -116,16 +118,16 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
           const SizedBox(height: 24),
 
           // ── Khatmah Reminder ──
-          const _SectionHeader(icon: Icons.auto_stories_rounded, title: 'تذكير القراءة اليومية'),
+          _SectionHeader(icon: Icons.auto_stories_rounded, title: l10n.notifDailySection),
           const SizedBox(height: 8),
           _buildCard(isDark, [
             _SettingsTile(
               icon: Icons.auto_stories_rounded,
               iconColor: NoorDesignSystem.goldAccent,
-              title: 'تذكير الختمة اليومي',
+              title: l10n.notifKhatmah,
               subtitle: _settings.khatmahReminderEnabled
-                  ? 'الساعة ${_settings.khatmahReminderHour.toString().padLeft(2, '0')}:${_settings.khatmahReminderMinute.toString().padLeft(2, '0')}'
-                  : 'معطل',
+                  ? l10n.notifAtTime('${_settings.khatmahReminderHour.toString().padLeft(2, '0')}:${_settings.khatmahReminderMinute.toString().padLeft(2, '0')}')
+                  : l10n.notifDisabled,
               value: _settings.khatmahReminderEnabled,
               onChanged: (v) => _updateSettings(
                 _settings.copyWith(khatmahReminderEnabled: v),
@@ -139,7 +141,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                   children: [
                     const Icon(Icons.access_time_rounded, size: 20, color: NoorDesignSystem.goldAccent),
                     const SizedBox(width: 12),
-                    Text('وقت التذكير', style: GoogleFonts.cairo(fontSize: 14)),
+                    Text(l10n.notifReminderTime, style: GoogleFonts.cairo(fontSize: 14)),
                     const Spacer(),
                     OutlinedButton(
                       onPressed: _pickTime,
@@ -161,16 +163,16 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
           const SizedBox(height: 24),
 
           // ── Quiet Hours ──
-          const _SectionHeader(icon: Icons.do_not_disturb_rounded, title: 'ساعات الهدوء'),
+          _SectionHeader(icon: Icons.do_not_disturb_rounded, title: l10n.notifQuietSection),
           const SizedBox(height: 8),
           _buildCard(isDark, [
             _SettingsTile(
               icon: Icons.do_not_disturb_on_rounded,
               iconColor: NoorDesignSystem.sleepColor,
-              title: 'ساعات الهدوء',
+              title: l10n.notifQuiet,
               subtitle: _settings.quietHoursEnabled
-                  ? 'من ${_settings.quietHoursStart}:00 إلى ${_settings.quietHoursEnd}:00'
-                  : 'معطل',
+                  ? l10n.notifQuietRange(_settings.quietHoursStart, _settings.quietHoursEnd)
+                  : l10n.notifDisabled,
               value: _settings.quietHoursEnabled,
               onChanged: (v) => _updateSettings(
                 _settings.copyWith(quietHoursEnabled: v),
@@ -203,20 +205,20 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                   await SmartNotificationEngine.scheduleKhatmahReminder(
                     hour: _settings.khatmahReminderHour,
                     minute: _settings.khatmahReminderMinute,
-                    message: 'حان وقت ورد القراءة اليومي',
+                    message: l10n.notifKhatmahMessage,
                   );
                 }
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('✅ تم تحديث الإشعارات', style: GoogleFonts.cairo()),
+                      content: Text(l10n.notifUpdated, style: GoogleFonts.cairo()),
                       backgroundColor: NoorDesignSystem.primaryGreen,
                     ),
                   );
                 }
               },
               icon: const Icon(Icons.check_rounded),
-              label: Text('تطبيق الإعدادات', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+              label: Text(l10n.notifApply, style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
               style: FilledButton.styleFrom(
                 backgroundColor: NoorDesignSystem.primaryGreen,
                 padding: const EdgeInsets.symmetric(vertical: 14),

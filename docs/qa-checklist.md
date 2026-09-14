@@ -52,7 +52,7 @@ only be checked on real hardware.
 - [ ] Adhan sounds at the right time (or fires in preview if you don't want to
       wait). Test with notifications disabled then enabled.
 - [ ] Qibla compass points plausibly (compare with a physical compass / mosque
-      direction in your city); AR mode shows the camera feed.
+      direction in your city).
 - [ ] Qada tracker, tasbih counter, day-state card on home update correctly.
 
 ## 5. Adhkar

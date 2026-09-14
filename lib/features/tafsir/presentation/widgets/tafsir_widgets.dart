@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/models/tafsir_models.dart';
 import '../../../../core/services/tafsir_data_source.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 /// 📖 TafsirInlineView - عرض التفسير المختصر تحت الآية
 class TafsirInlineView extends StatefulWidget {
@@ -94,7 +95,7 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
     } on Exception {
       if (mounted) {
         setState(() {
-          _error = 'فشل في تحميل التفسير';
+          _error = AppLocalizations.of(context).tfwLoadError;
           _isLoading = false;
         });
       }
@@ -243,10 +244,10 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
     }
 
     if (_tafsir == null) {
-      return const Padding(
-        padding: EdgeInsets.all(16),
+      return Padding(
+        padding: const EdgeInsets.all(16),
         child: Text(
-          'لا يوجد تفسير لهذه الآية',
+          AppLocalizations.of(context).tfwNoAyahTafsir,
           textAlign: TextAlign.center,
         ),
       );
@@ -285,7 +286,7 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
                   _showFullScreen(context);
                 },
                 icon: const Icon(Icons.fullscreen, size: 18),
-                label: const Text('عرض كامل'),
+                label: Text(AppLocalizations.of(context).tfwFullView),
                 style: TextButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                 ),
@@ -295,7 +296,7 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
               TextButton.icon(
                 onPressed: () => _showCompare(context),
                 icon: const Icon(Icons.compare_arrows, size: 18),
-                label: const Text('مقارنة'),
+                label: Text(AppLocalizations.of(context).tfwCompare),
                 style: TextButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                 ),
@@ -417,7 +418,7 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _surahTafsir == null
-              ? const Center(child: Text('لا يوجد تفسير'))
+              ? Center(child: Text(AppLocalizations.of(context).tfwNoTafsir))
               : PageView.builder(
                   controller: _pageController,
                   itemCount: _surahTafsir!.length,
@@ -439,7 +440,7 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              'الآية ${entry.ayah}',
+                              AppLocalizations.of(context).tafsirAyahBadge(entry.ayah),
                               style: TextStyle(
                                 color: theme.colorScheme.onPrimaryContainer,
                                 fontWeight: FontWeight.bold,
@@ -494,7 +495,7 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
                     icon: const Icon(Icons.arrow_forward_ios),
                   ),
                   Text(
-                    'سورة ${widget.surah}',
+                    AppLocalizations.of(context).tfwSurahOf(widget.surah),
                     style: theme.textTheme.titleMedium,
                   ),
                   IconButton(
@@ -522,7 +523,7 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('حجم الخط'),
+          title: Text(AppLocalizations.of(context).settingsFontSize),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -539,7 +540,7 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
                 },
               ),
               Text(
-                'معاينة النص',
+                AppLocalizations.of(context).tfwPreviewText,
                 style: TextStyle(fontSize: settings.fontSize),
               ),
             ],
@@ -547,7 +548,7 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('إلغاء'),
+              child: Text(AppLocalizations.of(context).settingsCancel),
             ),
             FilledButton(
               onPressed: () {
@@ -555,7 +556,7 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
                 Navigator.pop(context);
                 setState(() {});
               },
-              child: const Text('حفظ'),
+              child: Text(AppLocalizations.of(context).tadSave),
             ),
           ],
         ),
@@ -644,12 +645,12 @@ class _TafsirCompareSheetState extends State<TafsirCompareSheet> {
             child: Row(
               children: [
                 Text(
-                  'مقارنة التفاسير',
+                  AppLocalizations.of(context).tfwCompareTitle,
                   style: theme.textTheme.titleLarge,
                 ),
                 const Spacer(),
                 Text(
-                  'الآية ${widget.ayah}',
+                  AppLocalizations.of(context).tafsirAyahBadge(widget.ayah),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.primary,
                   ),
@@ -741,7 +742,7 @@ class _TafsirCompareSheetState extends State<TafsirCompareSheet> {
                                       ),
                                       textDirection: TextDirection.rtl,
                                     ) else Text(
-                                      'لا يوجد تفسير',
+                                      AppLocalizations.of(context).tfwNoTafsir,
                                       style: TextStyle(
                                         color: theme.colorScheme.error,
                                       ),
@@ -887,7 +888,7 @@ class _TafsirSheetContentState extends State<TafsirSheetContent> {
                       ),
                     ),
                     Text(
-                      'سورة ${widget.surah} - الآية ${widget.ayah}',
+                      AppLocalizations.of(context).tfwSheetRef(widget.surah, widget.ayah),
                       style: theme.textTheme.bodySmall,
                     ),
                   ],
@@ -917,7 +918,7 @@ class _TafsirSheetContentState extends State<TafsirSheetContent> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _tafsir == null
-                  ? const Center(child: Text('لا يوجد تفسير'))
+                  ? Center(child: Text(AppLocalizations.of(context).tfwNoTafsir))
                   : SingleChildScrollView(
                       controller: widget.scrollController,
                       padding: const EdgeInsets.all(20),

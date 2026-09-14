@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'adhkar_timer_service.dart';
 
@@ -43,7 +44,7 @@ class SilentUIController extends ChangeNotifier {
     }
     
     // Rate limiting
-    final now = DateTime.now();
+    final now = clock.now();
     _recentNotifications.removeWhere(
       (time) => now.difference(time) > _notificationCooldown,
     );
@@ -98,7 +99,7 @@ class SilentUIController extends ChangeNotifier {
 
   /// Record notification shown
   void recordNotification() {
-    _recentNotifications.add(DateTime.now());
+    _recentNotifications.add(clock.now());
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

@@ -16,6 +16,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LIB = os.path.join(ROOT, 'lib')
 LCOV = os.path.join(ROOT, 'coverage', 'lcov.info')
 
+# Generated code is excluded from the denominator (and the numerator via
+# lcov's own filters): gen-l10n output, *.g.dart, *.freezed.dart. Counting it
+# would make the number meaningless in both directions.
+GENERATED_MARKERS = ('/generated/', '.g.dart', '.freezed.dart')
+
+def is_generated(path: str) -> bool:
+    normalized = path.replace(os.sep, '/')
+    return any(marker in normalized for marker in GENERATED_MARKERS)
+
 def main() -> int:
     threshold = float(sys.argv[1]) if len(sys.argv) > 1 else None
 
@@ -25,6 +34,8 @@ def main() -> int:
             if not name.endswith('.dart'):
                 continue
             path = os.path.join(dirpath, name)
+            if is_generated(path):
+                continue
             with open(path, encoding='utf-8') as f:
                 total_lines += sum(1 for line in f if line.strip())
 

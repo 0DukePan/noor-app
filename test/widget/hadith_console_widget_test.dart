@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:noor_app/core/data/data_sources/hadith_database.dart';
 import 'package:noor_app/core/services/hadith_search_engine.dart';
 import 'package:noor_app/features/hadith/presentation/pages/advanced_hadith_browser_page.dart';
+import 'package:noor_app/l10n/generated/app_localizations.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// Each real-async hop (Hive/SQLite) needs its own runAsync window and the
@@ -65,7 +66,12 @@ void main() {
   testWidgets('query renders results with the grade row and book counts',
       (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(home: AdvancedHadithBrowserPage()),
+      const MaterialApp(
+        locale: Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: AdvancedHadithBrowserPage(),
+      ),
     );
     await tester.pump(const Duration(milliseconds: 400));
 
@@ -87,7 +93,12 @@ void main() {
 
   testWidgets('narrator field accepts input without crashing', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(home: AdvancedHadithBrowserPage()),
+      const MaterialApp(
+        locale: Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: AdvancedHadithBrowserPage(),
+      ),
     );
     await tester.pump(const Duration(milliseconds: 400));
 

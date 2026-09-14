@@ -1,19 +1,22 @@
-﻿import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
+import 'hive_box_registry.dart';
 import 'prayer_time_engine.dart';
 
 /// خدمة Hive للتخزين المحلي - Hive Storage Service
 class HiveService {
-  static const String _surahsBox = 'surahs';
-  static const String _versesBox = 'verses';
-  static const String _tafsirBox = 'tafsir';
-  static const String _hadithsBox = 'hadiths';
-  static const String _adhkarBox = 'adhkar';
-  static const String _progressBox = 'reading_progress';
-  static const String _bookmarksBox = 'bookmarks';
-  static const String _tadabburBox = 'tadabbur';
-  static const String _settingsBox = 'settings';
-  static const String _qadaBox = 'qada';
+  // Box name constants now live in HiveBoxes — kept as aliases here so the
+  // rest of this file (getters, clearAll, etc.) doesn't need a big diff.
+  static const String _surahsBox = HiveBoxes.surahs;
+  static const String _versesBox = HiveBoxes.verses;
+  static const String _tafsirBox = HiveBoxes.tafsir;
+  static const String _hadithsBox = HiveBoxes.hadiths;
+  static const String _adhkarBox = HiveBoxes.adhkar;
+  static const String _progressBox = HiveBoxes.readingProgress;
+  static const String _bookmarksBox = HiveBoxes.bookmarks;
+  static const String _tadabburBox = HiveBoxes.tadabbur;
+  static const String _settingsBox = HiveBoxes.settings;
+  static const String _qadaBox = HiveBoxes.qada;
 
   /// Initialize all Hive boxes
   static Future<void> initialize() async {

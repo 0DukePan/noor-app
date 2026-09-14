@@ -22,6 +22,7 @@ import 'package:noor_app/features/search/domain/repositories/search_repository.d
 import 'package:noor_app/features/search/presentation/pages/search_page.dart';
 import 'package:noor_app/features/search/presentation/providers/search_provider.dart';
 import 'package:noor_app/features/tools/presentation/pages/tools_page.dart';
+import 'package:noor_app/l10n/generated/app_localizations.dart';
 
 /// Stub notifier that never touches SQLite.
 class _StubSearchNotifier extends SearchNotifier {
@@ -65,7 +66,14 @@ void main() {
 
   testWidgets('quran page renders the surah index', (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: QuranPage())),
+      const ProviderScope(
+        child: MaterialApp(
+          locale: Locale('ar'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: QuranPage(),
+        ),
+      ),
     );
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(seconds: 2)),
@@ -78,7 +86,14 @@ void main() {
 
   testWidgets('adhkar page shows the six collection cards', (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: AdhkarPage())),
+      const ProviderScope(
+        child: MaterialApp(
+          locale: Locale('ar'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: AdhkarPage(),
+        ),
+      ),
     );
     await tester.pump(const Duration(milliseconds: 400));
 
@@ -88,7 +103,14 @@ void main() {
 
   testWidgets('tools page shows the tool grid', (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: ToolsPage())),
+      const ProviderScope(
+        child: MaterialApp(
+          locale: Locale('ar'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: ToolsPage(),
+        ),
+      ),
     );
     await tester.pump(const Duration(milliseconds: 400));
 
@@ -104,7 +126,14 @@ void main() {
       await Hive.openBox<Map<dynamic, dynamic>>('settings');
     });
     await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: PrayerSettingsPage())),
+      const ProviderScope(
+        child: MaterialApp(
+          locale: Locale('ar'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: PrayerSettingsPage(),
+        ),
+      ),
     );
     await tester.pump(const Duration(milliseconds: 400));
 
@@ -119,7 +148,12 @@ void main() {
         overrides: [
           localHadithDataSourceProvider.overrideWithValue(fake),
         ],
-        child: const MaterialApp(home: HadithPage()),
+        child: const MaterialApp(
+          locale: Locale('ar'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: HadithPage(),
+        ),
       ),
     );
     await tester.runAsync(
@@ -141,7 +175,12 @@ void main() {
             (ref) => _StubSearchNotifier(),
           ),
         ],
-        child: const MaterialApp(home: SearchPage()),
+        child: const MaterialApp(
+          locale: Locale('ar'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SearchPage(),
+        ),
       ),
     );
     await tester.pump(const Duration(milliseconds: 400));
@@ -152,7 +191,12 @@ void main() {
   testWidgets('hadith console exposes the P2.1 search modes and filters',
       (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(home: AdvancedHadithBrowserPage()),
+      const MaterialApp(
+        locale: Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: AdvancedHadithBrowserPage(),
+      ),
     );
     await tester.pump(const Duration(milliseconds: 400));
 
@@ -169,7 +213,14 @@ void main() {
   testWidgets('hifz page renders the dashboard with an empty library',
       (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: HifzPage())),
+      const ProviderScope(
+        child: MaterialApp(
+          locale: Locale('ar'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: HifzPage(),
+        ),
+      ),
     );
     await tester.pump(const Duration(milliseconds: 400));
 
@@ -181,7 +232,14 @@ void main() {
 
   testWidgets('khatmah page renders the planner', (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: KhatmahPlannerPage())),
+      const ProviderScope(
+        child: MaterialApp(
+          locale: Locale('ar'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: KhatmahPlannerPage(),
+        ),
+      ),
     );
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 300)),

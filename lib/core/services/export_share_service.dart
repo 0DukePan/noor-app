@@ -1,16 +1,17 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 
-/// خدمة التصدير والمشاركة - Export & Share Service
+/// �����.�� ���"������S�� �^���"�.�����럝� - Export & Share Service
 class ExportShareService {
   /// Generate PDF from list of verses or hadiths
   static Future<Uint8List> generatePdf({
@@ -21,9 +22,10 @@ class ExportShareService {
   }) async {
     final pdf = pw.Document();
 
-    // Load Arabic font
-    final arabicFont = await PdfGoogleFonts.amiriRegular();
-    final arabicBoldFont = await PdfGoogleFonts.amiriBold();
+    // Load the Arabic font — bundled Amiri first (offline-first, hermetic),
+    // with the Google Fonts fetch as a fallback.
+    final arabicFont = await _loadAmiriFont(bold: false);
+    final arabicBoldFont = await _loadAmiriFont(bold: true);
 
     pdf.addPage(
       pw.MultiPage(
@@ -37,6 +39,25 @@ class ExportShareService {
     );
 
     return pdf.save();
+  }
+
+  /// Loads the bundled Amiri font (offline-first) with a network fallback.
+  static Future<pw.Font> _loadAmiriFont({required bool bold}) async {
+    try {
+      final data = await rootBundle.load(
+        bold ? 'assets/fonts/Amiri-Bold.ttf' : 'assets/fonts/Amiri-Regular.ttf',
+      );
+      return pw.Font.ttf(data);
+    } on Object catch (e) {
+      // Missing/broken bundled font (FlutterError) or other asset failure:
+      // fall back to the network Google Fonts fetch. Anything else rethrows.
+      if (e is FlutterError || e is Exception) {
+        return bold
+            ? await PdfGoogleFonts.amiriBold()
+            : await PdfGoogleFonts.amiriRegular();
+      }
+      rethrow;
+    }
   }
 
   static pw.Widget _buildPdfHeader(String title, String? subtitle, pw.Font font) {

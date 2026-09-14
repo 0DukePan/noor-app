@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/adhan_scheduler_service.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/day_state_machine.dart';
 import '../../../../core/services/prayer_time_engine.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/prayer_providers.dart';
 
 /// 🕌 صفحة مواقيت الصلاة — Reactive Prayer Times Page
@@ -17,26 +19,36 @@ class PrayerPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     final prayerAsync = ref.watch(prayerDataProvider);
 
+    // Count one page view per successful data load (no-op unless the user
+    // opted into anonymous usage statistics).
+    ref.listen(prayerDataProvider, (previous, next) {
+      if (next is AsyncData && previous is! AsyncData) {
+        AnalyticsService.record('prayer_viewed');
+      }
+    });
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('مواقيت الصلاة', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+        title: Text(l10n.prayerTitle, style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.event_note_rounded),
-            tooltip: 'قضاء الصلوات',
+            tooltip: l10n.prayerQadaTooltip,
             onPressed: () => context.go('/tools/prayer/qada'),
           ),
           IconButton(
             icon: const Icon(Icons.settings_rounded),
+            tooltip: l10n.settingsTitle,
             onPressed: () => context.go('/tools/prayer/settings'),
           ),
         ],
@@ -62,14 +74,14 @@ class PrayerPage extends ConsumerWidget {
                 Icon(Icons.error_outline_rounded, size: 48, color: Colors.red.withValues(alpha: 0.6)),
                 const SizedBox(height: 16),
                 Text(
-                  'تعذر تحميل أوقات الصلاة',
+                  l10n.prayerLoadError,
                   style: GoogleFonts.cairo(fontSize: 16, color: isDark ? Colors.white70 : NoorDesignSystem.textSecondary),
                 ),
                 const SizedBox(height: 12),
                 FilledButton.icon(
                   onPressed: () => ref.invalidate(prayerDataProvider),
                   icon: const Icon(Icons.refresh_rounded),
-                  label: Text('إعادة المحاولة', style: GoogleFonts.cairo()),
+                  label: Text(l10n.commonRetry, style: GoogleFonts.cairo()),
                 ),
               ],
             ),
@@ -304,9 +316,10 @@ class _NextPrayerCountdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (nextPrayer == null) {
       return Text(
-        'انتهت صلوات اليوم',
+        l10n.prayerDayDone,
         style: GoogleFonts.cairo(fontSize: 16, color: NoorDesignSystem.primaryGreen, fontWeight: FontWeight.w600),
       );
     }
@@ -320,7 +333,7 @@ class _NextPrayerCountdown extends StatelessWidget {
     return Column(
       children: [
         Text(
-          'الصلاة القادمة: ${nextPrayer!['name']}',
+          l10n.prayerNext(nextPrayer!['name'] as String),
           style: GoogleFonts.cairo(
             fontSize: 16,
             color: NoorDesignSystem.primaryGreen,
@@ -338,7 +351,7 @@ class _NextPrayerCountdown extends StatelessWidget {
           ),
         ),
         Text(
-          'متبقي حتى الأذان',
+          l10n.prayerUntilAdhan,
           style: GoogleFonts.cairo(
             fontSize: 12,
             color: NoorDesignSystem.textSecondary,

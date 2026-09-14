@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../l10n/generated/app_localizations.dart';
 import '../theme/design_system.dart';
 
 /// الإطار الرئيسي - Main Shell
@@ -29,6 +30,7 @@ class _NoorBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -60,31 +62,31 @@ class _NoorBottomNav extends StatelessWidget {
               children: [
                 _NavItem(
                   icon: Icons.home_rounded,
-                  label: 'الرئيسية',
+                  label: l10n.navHome,
                   isSelected: location == '/',
                   onTap: () => context.go('/'),
                 ),
                 _NavItem(
                   icon: Icons.menu_book_rounded,
-                  label: 'القرآن',
+                  label: l10n.navQuran,
                   isSelected: location.startsWith('/quran'),
                   onTap: () => context.go('/quran'),
                 ),
                 _NavItem(
                   icon: Icons.auto_stories_rounded,
-                  label: 'الحديث',
+                  label: l10n.navHadith,
                   isSelected: location.startsWith('/hadith'),
                   onTap: () => context.go('/hadith'),
                 ),
                 _NavItem(
                   icon: Icons.favorite_rounded,
-                  label: 'الأذكار',
+                  label: l10n.navAdhkar,
                   isSelected: location == '/adhkar',
                   onTap: () => context.go('/adhkar'),
                 ),
                 _NavItem(
                   icon: Icons.grid_view_rounded,
-                  label: 'الأدوات',
+                  label: l10n.navTools,
                   isSelected: location.startsWith('/tools'),
                   onTap: () => context.go('/tools'),
                 ),
@@ -140,60 +142,68 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
-      onTapUp: (_) {
-        _controller.reverse();
-        HapticFeedback.selectionClick();
-        widget.onTap();
-      },
-      onTapCancel: () => _controller.reverse(),
-      behavior: HitTestBehavior.opaque,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOutCubic,
-          padding: EdgeInsets.symmetric(
-            horizontal: widget.isSelected ? 16 : 12,
-            vertical: 8,
-          ),
-          decoration: BoxDecoration(
-            gradient: widget.isSelected
-                ? LinearGradient(
-                    colors: [
-                      NoorDesignSystem.emeraldGreen.withValues(alpha: isDark ? 0.25 : 0.12),
-                      NoorDesignSystem.deepTeal.withValues(alpha: isDark ? 0.15 : 0.06),
-                    ],
-                  )
-                : null,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                child: Icon(
-                  widget.icon,
-                  size: widget.isSelected ? 24 : 22,
-                  color: widget.isSelected
-                      ? NoorDesignSystem.emeraldGreen
-                      : (isDark ? Colors.white54 : NoorDesignSystem.textSecondary),
-                ),
-              ),
-              if (widget.isSelected) ...[
-                const SizedBox(width: 6),
-                Text(
-                  widget.label,
-                  style: GoogleFonts.cairo(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: NoorDesignSystem.emeraldGreen,
+    return Semantics(
+      button: true,
+      selected: widget.isSelected,
+      label: widget.label,
+      onTap: widget.onTap,
+      excludeSemantics: true,
+      child: GestureDetector(
+        excludeFromSemantics: true,
+        onTapDown: (_) => _controller.forward(),
+        onTapUp: (_) {
+          _controller.reverse();
+          HapticFeedback.selectionClick();
+          widget.onTap();
+        },
+        onTapCancel: () => _controller.reverse(),
+        behavior: HitTestBehavior.opaque,
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+            padding: EdgeInsets.symmetric(
+              horizontal: widget.isSelected ? 16 : 14,
+              vertical: 14,
+            ),
+            decoration: BoxDecoration(
+              gradient: widget.isSelected
+                  ? LinearGradient(
+                      colors: [
+                        NoorDesignSystem.emeraldGreen.withValues(alpha: isDark ? 0.25 : 0.12),
+                        NoorDesignSystem.deepTeal.withValues(alpha: isDark ? 0.15 : 0.06),
+                      ],
+                    )
+                  : null,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  child: Icon(
+                    widget.icon,
+                    size: widget.isSelected ? 24 : 22,
+                    color: widget.isSelected
+                        ? NoorDesignSystem.emeraldGreen
+                        : (isDark ? Colors.white54 : NoorDesignSystem.textSecondary),
                   ),
                 ),
+                if (widget.isSelected) ...[
+                  const SizedBox(width: 6),
+                  Text(
+                    widget.label,
+                    style: GoogleFonts.cairo(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: NoorDesignSystem.emeraldGreen,
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

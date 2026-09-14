@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/hadith_search_engine.dart';
 import '../../../../core/theme/noor_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import 'advanced_hadith_browser_page.dart';
 
 /// شجرة الموضوعات - Topic Tree Page
@@ -86,7 +87,7 @@ class _TopicTreePageState extends ConsumerState<TopicTreePage> {
     return Scaffold(
       backgroundColor: NoorTheme.bgMushaf,
       appBar: AppBar(
-        title: const Text('التصنيف الموضوعي'),
+        title: Text(AppLocalizations.of(context).topicTitle),
         backgroundColor: NoorTheme.bgMushaf,
         elevation: 0,
       ),
@@ -111,13 +112,13 @@ class _TopicTreePageState extends ConsumerState<TopicTreePage> {
         children: [
           Icon(Icons.topic_rounded, size: 64, color: NoorTheme.textSecondary.withValues(alpha: 0.3)),
           const SizedBox(height: 16),
-          const Text(
-            'لا توجد مواضيع بعد',
-            style: TextStyle(color: NoorTheme.textSecondary, fontSize: 16),
+          Text(
+            AppLocalizations.of(context).topicEmpty,
+            style: const TextStyle(color: NoorTheme.textSecondary, fontSize: 16),
           ),
           const SizedBox(height: 8),
           Text(
-            'يتم بناء الفهرس عند أول تحميل للأحاديث',
+            AppLocalizations.of(context).topicEmptyHint,
             style: TextStyle(color: NoorTheme.textSecondary.withValues(alpha: 0.6), fontSize: 13),
           ),
         ],
@@ -168,7 +169,7 @@ class _TopicTreePageState extends ConsumerState<TopicTreePage> {
                         textDirection: TextDirection.rtl,
                       ),
                       Text(
-                        '${topic.hadithCount} حديث',
+                        AppLocalizations.of(context).topicHadithCount(topic.hadithCount),
                         style: const TextStyle(
                           fontSize: 12,
                           color: NoorTheme.textSecondary,

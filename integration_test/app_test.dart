@@ -115,4 +115,47 @@ void main() {
     // No unhandled exceptions during the whole run.
     expect(tester.takeException(), isNull);
   }, timeout: const Timeout(Duration(minutes: 12)),);
+
+  testWidgets('startup benchmark: measures cold-start to interactive',
+      (tester) async {
+    // Fresh boot (no prior service state in this process run): time from
+    // app.main() until the home shell is interactive. The first frame is the
+    // biggest chunk; the DB copy / import happens before onboarding on a
+    // first launch. Assertions are generous emulator-safe ceilings — the
+    // printed numbers feed the performance ledger (docs/performance.md).
+    final clock = Stopwatch()..start();
+    unawaited(app.main());
+    await tester.pump();
+    await _pumpUntil(tester, find.byType(Scaffold), timeout: _bootTimeout);
+    final firstFrame = clock.elapsedMilliseconds;
+    // The timing output is the performance ledger input (docs/performance.md).
+    // ignore: avoid_print
+    print('STARTUP first-frame: ${firstFrame}ms');
+
+    await _pumpUntil(
+      tester,
+      find.byWidgetPredicate((widget) {
+        if (widget is! Text) return false;
+        final text = widget.data;
+        return text == 'أهلاً بك في نور' || text == 'الرئيسية';
+      }),
+      timeout: _bootTimeout,
+    );
+    final interactive = clock.elapsedMilliseconds;
+    // The timing output is the performance ledger input (docs/performance.md).
+    // ignore: avoid_print
+    print('STARTUP interactive: ${interactive}ms');
+
+    if (find.text('أهلاً بك في نور').evaluate().isNotEmpty) {
+      await tester.tap(find.text('تخطي'));
+      await _pumpUntil(tester, find.text('الرئيسية'));
+    }
+
+    expect(find.text('الرئيسية'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    // Ceilings: emulator cold boot + first-launch DB copy. Mid-range devices
+    // should land far below; a slow CI emulator is still allowed to pass.
+    expect(firstFrame, lessThan(120000));
+    expect(interactive, lessThan(180000));
+  }, timeout: const Timeout(Duration(minutes: 12)),);
 }

@@ -5,13 +5,26 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:noor_app/core/models/tafsir_models.dart';
 import 'package:noor_app/core/services/tafsir_data_source.dart';
 
-/// Tests TafsirDataSource: bundled asset loading, bookmarks, highlights,
-/// annotations, reading history, and settings persistence.
+import '../test_utils/tafsir_test_db.dart';
+
+/// Tests TafsirDataSource: database-backed tafsir loading, bookmarks,
+/// highlights, annotations, reading history, and settings persistence.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late Directory tempDir;
+  late Directory dbDir;
+
+  setUpAll(() async {
+    dbDir = await setUpTafsirTestDb();
+  });
+
+  tearDownAll(() async {
+    await tearDownTafsirTestDb(dbDir);
+  });
 
   setUp(() async {
+    // Fresh DB connection per test (see tafsir_test_db.dart zone note).
+    await resetTafsirTestDb();
     tempDir = await Directory.systemTemp.createTemp('noor_tafsir_test');
     Hive.init(tempDir.path);
     await TafsirDataSource.init();
@@ -23,7 +36,7 @@ void main() {
     await tempDir.delete(recursive: true);
   });
 
-  test('Muyassar tafsir for Al-Fatihah loads from bundled assets', () async {
+  test('Muyassar tafsir for Al-Fatihah loads from the database', () async {
     final surah = await TafsirDataSource.getSurahTafsir(
       surah: 1,
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class HadithOfDayCard extends StatelessWidget {
 
@@ -10,6 +11,7 @@ class HadithOfDayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final text = hadith['arabic'] ?? hadith['hadith_text'] ?? hadith['text'] ?? '';
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
@@ -54,7 +56,7 @@ class HadithOfDayCard extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Text(
-                'حديث اليوم',
+                l10n.hpageToday,
                 style: GoogleFonts.cairo(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,

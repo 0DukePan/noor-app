@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/prayer_time_engine.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/home_provider.dart';
 
 /// Premium Next Prayer Card with gradient, depth, and progress bar
@@ -14,8 +15,9 @@ class NextPrayerCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final now = ref.watch(currentTimeProvider).valueOrNull ?? DateTime.now();
-    final nextInfo = _getNextPrayer(now);
+    final nextInfo = _getNextPrayer(now, l10n);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Container(
@@ -66,7 +68,7 @@ class NextPrayerCard extends ConsumerWidget {
                     const Icon(Icons.schedule_rounded, color: Colors.white, size: 14),
                     const SizedBox(width: 6),
                     Text(
-                      'الصلاة القادمة',
+                      l10n.npcBadge,
                       style: GoogleFonts.cairo(
                         fontSize: 12,
                         color: Colors.white.withValues(alpha: 0.95),
@@ -79,7 +81,7 @@ class NextPrayerCard extends ConsumerWidget {
               const SizedBox(height: 18),
               // Prayer name
               Text(
-                (nextInfo?['name'] ?? 'جاري التحميل...') as String,
+                (nextInfo?['name'] ?? l10n.npcLoading) as String,
                 style: GoogleFonts.cairo(
                   fontSize: 34,
                   color: Colors.white,
@@ -119,7 +121,7 @@ class NextPrayerCard extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'بعد ${nextInfo?['remaining'] ?? '...'}',
+                          l10n.npcAfter('${nextInfo?['remaining'] ?? '...'}'),
                           style: GoogleFonts.cairo(
                             fontSize: 15,
                             color: Colors.white.withValues(alpha: 0.9),
@@ -128,7 +130,7 @@ class NextPrayerCard extends ConsumerWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'إن شاء الله',
+                          l10n.npcInshallah,
                           style: GoogleFonts.cairo(
                             fontSize: 11,
                             color: Colors.white.withValues(alpha: 0.5),
@@ -157,7 +159,7 @@ class NextPrayerCard extends ConsumerWidget {
     );
   }
 
-  Map<String, dynamic>? _getNextPrayer(DateTime now) {
+  Map<String, dynamic>? _getNextPrayer(DateTime now, AppLocalizations l10n) {
     if (prayerTimes == null) return null;
     
     final schedule = [
@@ -187,7 +189,9 @@ class NextPrayerCard extends ConsumerWidget {
         return {
           'name': schedule[i]['name']! as String,
           'time': '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
-          'remaining': hours > 0 ? '$hours ساعة و ${minutes.toString().padLeft(2, '0')} د' : '$minutes دقيقة',
+          'remaining': hours > 0
+            ? l10n.proHoursMinutes(hours, minutes)
+            : l10n.proMinutes(minutes),
           'progress': progress,
         };
       }
@@ -196,7 +200,7 @@ class NextPrayerCard extends ConsumerWidget {
     return {
       'name': 'الفجر',
       'time': '${prayerTimes!.fajr.hour.toString().padLeft(2, '0')}:${prayerTimes!.fajr.minute.toString().padLeft(2, '0')}',
-      'remaining': 'غداً',
+      'remaining': l10n.npcTomorrow,
       'progress': 0.0,
     };
   }

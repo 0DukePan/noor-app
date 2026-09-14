@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/hadith_providers.dart';
 import 'hadith_reader_page.dart';
 
@@ -96,7 +97,7 @@ class _HadithChapterHadithsPageState
       body: _isLoading && _hadiths.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : _hadiths.isEmpty
-              ? const Center(child: Text('لا توجد أحاديث في هذا الباب'))
+              ? Center(child: Text(AppLocalizations.of(context).hchEmpty))
               : ListView.builder(
                   controller: _scrollController,
                   physics: const BouncingScrollPhysics(),

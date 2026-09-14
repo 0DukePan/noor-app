@@ -8,6 +8,7 @@ import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/services/hadith_user_data_service.dart';
 import '../../../../core/theme/design_system.dart';
 import '../../../../core/widgets/book_card.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../hadith_book_names.dart';
 import '../providers/hadith_providers.dart';
 import 'bookmarked_hadiths_page.dart';
@@ -62,6 +63,7 @@ class _HadithPageState extends ConsumerState<HadithPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final collectionsAsync = ref.watch(hadithCollectionsProvider);
     final dailyHadith = ref.watch(hadithOfTheDayProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -98,12 +100,12 @@ class _HadithPageState extends ConsumerState<HadithPage> {
                     children: [
                       const SizedBox(height: 20),
                       Text(
-                        'جوامع الكلم',
+                        l10n.hpageTitle,
                         style: NoorDesignSystem.textTheme.displayMedium,
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'مكتبة السنة النبوية الشريفة',
+                        l10n.hpageSubtitle,
                         style: NoorDesignSystem.textTheme.titleMedium?.copyWith(
                           color: NoorDesignSystem.textSecondary,
                         ),
@@ -117,7 +119,7 @@ class _HadithPageState extends ConsumerState<HadithPage> {
               // Bookmarks
               IconButton(
                 icon: const Icon(Icons.bookmark_rounded),
-                tooltip: 'المحفوظات',
+                tooltip: l10n.hpageBookmarksTooltip,
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -138,7 +140,7 @@ class _HadithPageState extends ConsumerState<HadithPage> {
               // Quiz
               IconButton(
                 icon: const Icon(Icons.quiz_rounded),
-                tooltip: 'اختبار الحديث',
+                tooltip: l10n.hpageQuizTooltip,
                 onPressed: _startQuiz,
               ),
             ],
@@ -226,10 +228,10 @@ class _HadithPageState extends ConsumerState<HadithPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('الكتب والمجاميع', style: NoorDesignSystem.textTheme.titleLarge),
+                  Text(l10n.hpageBooks, style: NoorDesignSystem.textTheme.titleLarge),
                   const SizedBox(height: 4),
                   Text(
-                    'اختر كتاباً لتصفح الأحاديث',
+                    l10n.hpageBooksHint,
                     style: NoorDesignSystem.textTheme.labelMedium?.copyWith(
                       color: NoorDesignSystem.textSecondary,
                     ),
@@ -256,7 +258,7 @@ class _HadithPageState extends ConsumerState<HadithPage> {
                       final book = collections[index];
                       return BookCard(
                         title: book.titleArabic,
-                        subtitle: 'مجموعة أحاديث',
+                        subtitle: l10n.hpageBookCollection,
                         count: book.hadithsCount,
                         color: _getBookColor(book.id),
                         onTap: () {
@@ -282,7 +284,7 @@ class _HadithPageState extends ConsumerState<HadithPage> {
               child: Center(child: CircularProgressIndicator()),
             ),
             error: (e, s) => SliverFillRemaining(
-              child: Center(child: Text('حدث خطأ: $e')),
+              child: Center(child: Text(l10n.hpageError(e.toString()))),
             ),
           ),
 
@@ -294,7 +296,7 @@ class _HadithPageState extends ConsumerState<HadithPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'أدوات الدراسة',
+                    l10n.hpageStudyTools,
                     style: GoogleFonts.cairo(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -308,31 +310,31 @@ class _HadithPageState extends ConsumerState<HadithPage> {
                     children: [
                       _StudyToolTile(
                         icon: Icons.psychology_rounded,
-                        label: 'الحفظ بالتكرار',
+                        label: l10n.hpageToolMemorize,
                         color: NoorDesignSystem.primaryGreen,
                         onTap: () => context.go('/hadith/memorization'),
                       ),
                       _StudyToolTile(
                         icon: Icons.insights_rounded,
-                        label: 'الإحصائيات',
+                        label: l10n.hpageToolStats,
                         color: NoorDesignSystem.goldAccent,
                         onTap: () => context.go('/hadith/stats'),
                       ),
                       _StudyToolTile(
                         icon: Icons.label_outline_rounded,
-                        label: 'الوسوم',
+                        label: l10n.hpageToolTags,
                         color: NoorDesignSystem.deepTeal,
                         onTap: () => context.go('/hadith/tags'),
                       ),
                       _StudyToolTile(
                         icon: Icons.account_tree_outlined,
-                        label: 'شجرة المواضيع',
+                        label: l10n.hpageToolTopics,
                         color: const Color(0xFF5D4037),
                         onTap: () => context.go('/hadith/topics'),
                       ),
                       _StudyToolTile(
                         icon: Icons.travel_explore_rounded,
-                        label: 'المتصفح المتقدم',
+                        label: l10n.hpageToolAdvanced,
                         color: const Color(0xFF6A1B9A),
                         onTap: () => context.go('/hadith/advanced'),
                       ),
@@ -375,6 +377,7 @@ class _ContinueReadingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final bookId = progress['bookId'] as String? ?? '';
     final knownName = hadithBookName(bookId);
     final bookTitle = knownName == bookId
@@ -426,7 +429,7 @@ class _ContinueReadingCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'مواصلة القراءة',
+                      l10n.hpageContinue,
                       style: GoogleFonts.cairo(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
@@ -435,7 +438,7 @@ class _ContinueReadingCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '$bookTitle  •  حديث ${hadithIndex + 1} / $totalHadiths',
+                      l10n.hpageContinueAt(bookTitle, hadithIndex + 1, totalHadiths),
                       style: GoogleFonts.cairo(
                         fontSize: 11,
                         color: NoorDesignSystem.textSecondary,
@@ -477,6 +480,7 @@ class _HadithOfTheDayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
       child: GestureDetector(
@@ -534,7 +538,7 @@ class _HadithOfTheDayCard extends StatelessWidget {
                               const Icon(Icons.wb_sunny_rounded, size: 14, color: Colors.amber),
                               const SizedBox(width: 4),
                               Text(
-                                'حديث اليوم',
+                                l10n.hpageToday,
                                 style: GoogleFonts.cairo(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -572,7 +576,7 @@ class _HadithOfTheDayCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
-                          'اقرأ المزيد',
+                          l10n.hpageReadMore,
                           style: GoogleFonts.cairo(
                             fontSize: 12,
                             color: Colors.white70,

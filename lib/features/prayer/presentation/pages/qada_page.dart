@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/noor_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/prayer_entities.dart';
 import '../providers/prayer_providers.dart';
 
@@ -35,19 +36,20 @@ class _QadaTrackerPageState extends ConsumerState<QadaTrackerPage>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final qada = ref.watch(qadaProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('متتبع القضاء', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+        title: Text(l10n.qadaTitle, style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
         centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
           labelStyle: GoogleFonts.cairo(fontWeight: FontWeight.bold),
           unselectedLabelStyle: GoogleFonts.cairo(),
-          tabs: const [
-            Tab(text: 'الصلاة', icon: Icon(Icons.mosque_rounded)),
-            Tab(text: 'الصيام', icon: Icon(Icons.nights_stay_rounded)),
+          tabs: [
+            Tab(text: l10n.qadaTabPrayer, icon: const Icon(Icons.mosque_rounded)),
+            Tab(text: l10n.qadaTabFast, icon: const Icon(Icons.nights_stay_rounded)),
           ],
         ),
       ),
@@ -95,16 +97,17 @@ class _QadaTrackerPageState extends ConsumerState<QadaTrackerPage>
   }
 
   void _showCompletionDialog() {
+    final l10n = AppLocalizations.of(context);
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text('🎉 تهانينا!'),
-        content: Text('لقد أتممت قضاء هذا السجل', style: GoogleFonts.cairo()),
+        title: Text(l10n.qadaCongrats),
+        content: Text(l10n.qadaCongratsBody, style: GoogleFonts.cairo()),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('الحمد لله', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+            child: Text(l10n.qadaPraiseGod, style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -129,6 +132,7 @@ class _QadaList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (records.isEmpty) {
       return Center(
         child: Column(
@@ -144,8 +148,8 @@ class _QadaList extends StatelessWidget {
             const SizedBox(height: NoorTheme.spacingMd),
             Text(
               type == QadaType.prayer
-                  ? 'لا توجد صلوات فائتة للقضاء'
-                  : 'لا توجد أيام صيام للقضاء',
+                  ? l10n.qadaEmptyPrayer
+                  : l10n.qadaEmptyFast,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: NoorTheme.textSecondary,
                   ),
@@ -154,7 +158,7 @@ class _QadaList extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onAdd,
               icon: const Icon(Icons.add_rounded),
-              label: const Text('إضافة'),
+              label: Text(l10n.qadaAdd),
             ),
           ],
         ),
@@ -171,7 +175,7 @@ class _QadaList extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: onAdd,
               icon: const Icon(Icons.add_rounded),
-              label: const Text('إضافة سجل جديد'),
+              label: Text(l10n.qadaAddNew),
             ),
           );
         }
@@ -203,6 +207,7 @@ class _QadaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final remaining = record.remainingCount;
     final progress = record.progressPercentage;
@@ -303,7 +308,7 @@ class _QadaCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'تم: ${record.completedCount} من ${record.totalCount}',
+                      l10n.qadaProgress(record.completedCount, record.totalCount),
                       style: GoogleFonts.cairo(
                         fontSize: 12,
                         color: theme.colorScheme.onSurfaceVariant,
@@ -311,8 +316,10 @@ class _QadaCard extends StatelessWidget {
                     ),
                     Text(
                       isComplete
-                          ? '✓ مكتمل'
-                          : 'متبقي: $remaining ${type == QadaType.prayer ? 'صلاة' : 'يوم'}',
+                          ? l10n.qadaComplete
+                          : type == QadaType.prayer
+                              ? l10n.qadaRemainingPrayer(remaining)
+                              : l10n.qadaRemainingFast(remaining),
                       style: GoogleFonts.cairo(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -342,7 +349,7 @@ class _QadaCard extends StatelessWidget {
                       Icon(Icons.add_rounded, color: theme.colorScheme.primary),
                       const SizedBox(width: 8),
                       Text(
-                        type == QadaType.prayer ? 'قضيت صلاة واحدة' : 'صمت يوماً واحداً',
+                        type == QadaType.prayer ? l10n.qadaDidPrayer : l10n.qadaDidFast,
                         style: GoogleFonts.cairo(
                           color: theme.colorScheme.primary,
                           fontWeight: FontWeight.bold,
@@ -388,12 +395,13 @@ class _AddQadaDialogState extends State<_AddQadaDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       title: Text(
         widget.type == QadaType.prayer
-            ? 'إضافة صلوات للقضاء'
-            : 'إضافة أيام صيام للقضاء',
+            ? l10n.qadaAddPrayerTitle
+            : l10n.qadaAddFastTitle,
         style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
         textAlign: TextAlign.center,
       ),
@@ -405,8 +413,8 @@ class _AddQadaDialogState extends State<_AddQadaDialog> {
               controller: _nameController,
               textDirection: TextDirection.rtl,
               decoration: InputDecoration(
-                labelText: 'الاسم (اختياري)',
-                hintText: 'مثال: صلوات سنة 2020',
+                labelText: l10n.qadaNameLabel,
+                hintText: l10n.qadaNameHint,
                 hintTextDirection: TextDirection.rtl,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -417,10 +425,10 @@ class _AddQadaDialogState extends State<_AddQadaDialog> {
               controller: _countController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: 'العدد *',
+                labelText: l10n.qadaCountLabel,
                 hintText: widget.type == QadaType.prayer
-                    ? 'عدد الصلوات'
-                    : 'عدد الأيام',
+                    ? l10n.qadaCountPrayerHint
+                    : l10n.qadaCountFastHint,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               style: GoogleFonts.cairo(),
@@ -431,8 +439,8 @@ class _AddQadaDialogState extends State<_AddQadaDialog> {
               textDirection: TextDirection.rtl,
               maxLines: 2,
               decoration: InputDecoration(
-                labelText: 'ملاحظات (اختياري)',
-                hintText: 'أي ملاحظات إضافية',
+                labelText: l10n.qadaNotesLabel,
+                hintText: l10n.qadaNotesHint,
                 hintTextDirection: TextDirection.rtl,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -445,7 +453,7 @@ class _AddQadaDialogState extends State<_AddQadaDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('إلغاء', style: GoogleFonts.cairo(color: Colors.grey)),
+          child: Text(l10n.settingsCancel, style: GoogleFonts.cairo(color: Colors.grey)),
         ),
         FilledButton(
           onPressed: () {
@@ -453,7 +461,7 @@ class _AddQadaDialogState extends State<_AddQadaDialog> {
             if (count == null || count <= 0) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('الرجاء إدخال عدد صحيح', style: GoogleFonts.cairo()),
+                  content: Text(l10n.qadaInvalidCount, style: GoogleFonts.cairo()),
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -463,8 +471,8 @@ class _AddQadaDialogState extends State<_AddQadaDialog> {
             final name = _nameController.text.isNotEmpty
                 ? _nameController.text
                 : widget.type == QadaType.prayer
-                    ? 'صلوات قضاء'
-                    : 'أيام صيام';
+                    ? l10n.qadaDefaultPrayerName
+                    : l10n.qadaDefaultFastName;
 
             widget.onAdd(
               name,
@@ -473,7 +481,7 @@ class _AddQadaDialogState extends State<_AddQadaDialog> {
             );
             Navigator.pop(context);
           },
-          child: Text('إضافة', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+          child: Text(l10n.qadaAdd, style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
         ),
       ],
     );

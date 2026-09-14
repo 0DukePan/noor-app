@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'hive_box_registry.dart';
 import 'prayer_time_engine.dart';
 
 /// 🕐 آلة حالات اليوم - Day State Machine
-/// 
+///
 /// تقنية أنظمة الطيران لإدارة حالات اليوم الإسلامي
-/// 
+///
 /// الحالات:
 /// - قبل الفجر (الثلث الأخير)
 /// - وقت الفجر
@@ -21,11 +22,11 @@ class DayStateMachine {
   static Box<dynamic>? _stateBox;
   static Timer? _stateTimer;
   static PrayerTimes? _todayTimes;
-  
+
   // State stream
   static final _stateController = StreamController<DayState>.broadcast();
   static Stream<DayState> get stateStream => _stateController.stream;
-  
+
   static DayState _currentState = DayState.unknown;
   static DayState get currentState => _currentState;
 
@@ -104,7 +105,8 @@ class DayStateMachine {
     if (set.length == 5) {
       final today = _todayKey();
       if (_stateBox?.get('_counted_$today') != true) {
-        final yesterday = _dateKey(DateTime.now().subtract(const Duration(days: 1)));
+        final yesterday =
+            _dateKey(DateTime.now().subtract(const Duration(days: 1)));
         final lastComplete = _stateBox?.get(_lastCompleteKey) as String?;
         final newStreak = lastComplete == yesterday ? (streak + 1) : 1;
         await _stateBox?.put(_streakKey, newStreak);
@@ -119,8 +121,8 @@ class DayStateMachine {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static Future<void> init() async {
-    _stateBox = await Hive.openBox<dynamic>('day_state');
-    
+    _stateBox = await Hive.openBox<dynamic>(HiveBoxes.dayState);
+
     // Start state checking
     _startStateMonitoring();
   }
@@ -137,7 +139,7 @@ class DayStateMachine {
     _stateTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       _checkAndUpdateState();
     });
-    
+
     // Initial check
     _checkAndUpdateState();
   }
@@ -157,10 +159,10 @@ class DayStateMachine {
     }
 
     if (_todayTimes == null) return;
-    
+
     final now = DateTime.now();
     final newState = _determineState(now, _todayTimes!);
-    
+
     if (newState != _currentState) {
       final oldState = _currentState;
       _currentState = newState;
@@ -175,7 +177,7 @@ class DayStateMachine {
       DateTime(now.year, now.month, now.day),
     );
     final lastThird = times.fajr.subtract(midnightToFajr ~/ 3);
-    
+
     // Determine state based on time
     if (now.isBefore(lastThird)) {
       return DayState.lateNight; // قبل الثلث الأخير
@@ -213,11 +215,11 @@ class DayStateMachine {
 
   static void _onStateChange(DayState oldState, DayState newState) {
     debugPrint('Day state changed: ${oldState.name} → ${newState.name}');
-    
+
     // Save state
     _stateBox?.put('current_state', newState.index);
     _stateBox?.put('last_update', DateTime.now().toIso8601String());
-    
+
     // Trigger appropriate actions
     _triggerStateActions(newState);
   }
@@ -257,10 +259,10 @@ class DayStateMachine {
 
   static Duration _getTimeToNextState() {
     if (_todayTimes == null) return Duration.zero;
-    
+
     final now = DateTime.now();
     final times = _todayTimes!;
-    
+
     switch (_currentState) {
       case DayState.lastThird:
         return times.fajr.difference(now);
@@ -269,7 +271,9 @@ class DayStateMachine {
       case DayState.sunrise:
         return times.sunrise.add(const Duration(minutes: 15)).difference(now);
       case DayState.duha:
-        return times.dhuhr.subtract(const Duration(minutes: 10)).difference(now);
+        return times.dhuhr
+            .subtract(const Duration(minutes: 10))
+            .difference(now);
       case DayState.dhuhr:
         return times.asr.difference(now);
       case DayState.asr:
@@ -299,61 +303,90 @@ class DayStateMachine {
 
 /// حالات اليوم الإسلامي
 enum DayState {
-  unknown,     // غير معروف
-  lateNight,   // الليل (قبل الثلث الأخير)
-  lastThird,   // الثلث الأخير من الليل
-  fajr,        // وقت الفجر
-  sunrise,     // الشروق
-  duha,        // الضحى
-  dhuhr,       // الظهر
-  asr,         // العصر
-  maghrib,     // المغرب
-  isha,        // العشاء
-  sleep,       // وقت النوم
+  unknown, // غير معروف
+  lateNight, // الليل (قبل الثلث الأخير)
+  lastThird, // الثلث الأخير من الليل
+  fajr, // وقت الفجر
+  sunrise, // الشروق
+  duha, // الضحى
+  dhuhr, // الظهر
+  asr, // العصر
+  maghrib, // المغرب
+  isha, // العشاء
+  sleep, // وقت النوم
 }
 
 extension DayStateInfo on DayState {
   String get arabicName {
     switch (this) {
-      case DayState.unknown: return 'غير معروف';
-      case DayState.lateNight: return 'الليل';
-      case DayState.lastThird: return 'الثلث الأخير';
-      case DayState.fajr: return 'الفجر';
-      case DayState.sunrise: return 'الشروق';
-      case DayState.duha: return 'الضحى';
-      case DayState.dhuhr: return 'الظهر';
-      case DayState.asr: return 'العصر';
-      case DayState.maghrib: return 'المغرب';
-      case DayState.isha: return 'العشاء';
-      case DayState.sleep: return 'النوم';
+      case DayState.unknown:
+        return 'غير معروف';
+      case DayState.lateNight:
+        return 'الليل';
+      case DayState.lastThird:
+        return 'الثلث الأخير';
+      case DayState.fajr:
+        return 'الفجر';
+      case DayState.sunrise:
+        return 'الشروق';
+      case DayState.duha:
+        return 'الضحى';
+      case DayState.dhuhr:
+        return 'الظهر';
+      case DayState.asr:
+        return 'العصر';
+      case DayState.maghrib:
+        return 'المغرب';
+      case DayState.isha:
+        return 'العشاء';
+      case DayState.sleep:
+        return 'النوم';
     }
   }
 
   String get icon {
     switch (this) {
-      case DayState.unknown: return '❓';
-      case DayState.lateNight: return '🌃';
-      case DayState.lastThird: return '🌙';
-      case DayState.fajr: return '🌅';
-      case DayState.sunrise: return '☀️';
-      case DayState.duha: return '🌤️';
-      case DayState.dhuhr: return '☀️';
-      case DayState.asr: return '🌇';
-      case DayState.maghrib: return '🌆';
-      case DayState.isha: return '🌙';
-      case DayState.sleep: return '😴';
+      case DayState.unknown:
+        return '❓';
+      case DayState.lateNight:
+        return '🌃';
+      case DayState.lastThird:
+        return '🌙';
+      case DayState.fajr:
+        return '🌅';
+      case DayState.sunrise:
+        return '☀️';
+      case DayState.duha:
+        return '🌤️';
+      case DayState.dhuhr:
+        return '☀️';
+      case DayState.asr:
+        return '🌇';
+      case DayState.maghrib:
+        return '🌆';
+      case DayState.isha:
+        return '🌙';
+      case DayState.sleep:
+        return '😴';
     }
   }
 
   String get suggestedAdhkar {
     switch (this) {
-      case DayState.lastThird: return 'الاستغفار والدعاء';
-      case DayState.fajr: return 'أذكار الصباح';
-      case DayState.duha: return 'صلاة الضحى';
-      case DayState.asr: return 'أذكار المساء';
-      case DayState.maghrib: return 'أذكار المساء';
-      case DayState.isha: return 'أذكار النوم';
-      case DayState.sleep: return 'أذكار النوم';
+      case DayState.lastThird:
+        return 'الاستغفار والدعاء';
+      case DayState.fajr:
+        return 'أذكار الصباح';
+      case DayState.duha:
+        return 'صلاة الضحى';
+      case DayState.asr:
+        return 'أذكار المساء';
+      case DayState.maghrib:
+        return 'أذكار المساء';
+      case DayState.isha:
+        return 'أذكار النوم';
+      case DayState.sleep:
+        return 'أذكار النوم';
       case DayState.unknown:
       case DayState.lateNight:
       case DayState.sunrise:
@@ -364,15 +397,24 @@ extension DayStateInfo on DayState {
 
   String get suggestedAction {
     switch (this) {
-      case DayState.lastThird: return 'قم للتهجد';
-      case DayState.fajr: return 'صلِّ الفجر';
-      case DayState.sunrise: return 'انتظر حتى ترتفع الشمس';
-      case DayState.duha: return 'صلِّ الضحى';
-      case DayState.dhuhr: return 'صلِّ الظهر';
-      case DayState.asr: return 'صلِّ العصر';
-      case DayState.maghrib: return 'صلِّ المغرب';
-      case DayState.isha: return 'صلِّ العشاء';
-      case DayState.sleep: return 'نم مبكرًا للفجر';
+      case DayState.lastThird:
+        return 'قم للتهجد';
+      case DayState.fajr:
+        return 'صلِّ الفجر';
+      case DayState.sunrise:
+        return 'انتظر حتى ترتفع الشمس';
+      case DayState.duha:
+        return 'صلِّ الضحى';
+      case DayState.dhuhr:
+        return 'صلِّ الظهر';
+      case DayState.asr:
+        return 'صلِّ العصر';
+      case DayState.maghrib:
+        return 'صلِّ المغرب';
+      case DayState.isha:
+        return 'صلِّ العشاء';
+      case DayState.sleep:
+        return 'نم مبكرًا للفجر';
       case DayState.unknown:
       case DayState.lateNight:
         return '';
@@ -382,22 +424,20 @@ extension DayStateInfo on DayState {
   /// هل يسمح بالأذان في هذه الحالة؟
   bool get allowsAdhan {
     return this == DayState.fajr ||
-           this == DayState.dhuhr ||
-           this == DayState.asr ||
-           this == DayState.maghrib ||
-           this == DayState.isha;
+        this == DayState.dhuhr ||
+        this == DayState.asr ||
+        this == DayState.maghrib ||
+        this == DayState.isha;
   }
 
   /// هل هذا وقت هادئ؟
   bool get isQuietTime {
-    return this == DayState.lateNight ||
-           this == DayState.sleep;
+    return this == DayState.lateNight || this == DayState.sleep;
   }
 }
 
 /// معلومات الحالة الكاملة
 class StateInfo {
-
   const StateInfo({
     required this.state,
     required this.nextState,

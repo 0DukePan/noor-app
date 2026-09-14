@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../../../../core/domain/entities/surah_names.dart';
 import '../../../../core/services/quran_audio_engine.dart';
 import '../../../../core/services/quran_data_source.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 /// 🔊 صفحة مشغل الصوت الاحترافية - Professional Audio Player Page
 class AudioPlayerPage extends StatefulWidget {
@@ -67,22 +68,23 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
   Future<void> _checkResume() async {
     final resumeInfo = await QuranAudioEngine.getLastPosition();
     if (resumeInfo != null && mounted) {
+      final l10n = AppLocalizations.of(context);
       final shouldResume = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
           icon: const Icon(Icons.play_circle_outline, size: 48),
-          title: const Text('استئناف التلاوة؟'),
+          title: Text(l10n.audioResumeTitle),
           content: Text(
-            'هل تريد متابعة التلاوة من سورة ${_getSurahName(resumeInfo.surah)} - الآية ${resumeInfo.ayah}؟',
+            l10n.audioResumeBody(_getSurahName(resumeInfo.surah), resumeInfo.ayah),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('لا'),
+              child: Text(l10n.audioNo),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('استئناف'),
+              child: Text(l10n.audioResume),
             ),
           ],
         ),
@@ -118,7 +120,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ في تحميل السورة: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context).audioLoadError(e.toString()))),
         );
       }
     }
@@ -146,11 +148,12 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     
     return Scaffold(
       appBar: AppBar(
-        title: Text('سورة ${_getSurahName(_currentSurah)}'),
+        title: Text(l10n.audioTitle(_getSurahName(_currentSurah))),
         actions: [
           // Surah selector
           IconButton(
@@ -183,7 +186,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
           if (_showSpeedControl) _buildSpeedControl(theme),
           
           // Player controls
-          _buildPlayerControls(theme),
+          _buildPlayerControls(theme, l10n),
         ],
       ),
     );
@@ -241,7 +244,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
     );
   }
 
-  Widget _buildPlayerControls(ThemeData theme) {
+  Widget _buildPlayerControls(ThemeData theme, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -400,7 +403,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
             
             // Current ayah indicator
             Text(
-              'الآية $_currentAyah من ${_verses.length}',
+              l10n.audioAyahOf(_currentAyah, _verses.length),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -435,6 +438,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
   }
 
   void _showSurahSelector() {
+    final l10n = AppLocalizations.of(context);
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -448,7 +452,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'اختر السورة',
+                l10n.audioPickSurah,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -505,35 +509,51 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
   }
 
   void _showReciterSelector() {
+    final l10n = AppLocalizations.of(context);
+    // NOTE: 16 reciter tiles + header exceed a phone screen (measured ~3000px
+    // of content), so the list must scroll — a plain Column overflows here.
     showModalBottomSheet<void>(
       context: context,
-      builder: (context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'اختر القارئ',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
+              l10n.audioPickReciter,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
-          ...QuranAudioEngine.reciters.values.map((reciter) => ListTile(
-            leading: Text(reciter.flag, style: const TextStyle(fontSize: 24)),
-            title: Text(reciter.arabicName),
-            subtitle: Text(reciter.englishName),
-            trailing: QuranAudioEngine.currentReciterInfo.id == reciter.id
-                ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
-                : null,
-            onTap: () {
-              QuranAudioEngine.setReciter(reciter.id);
-              Navigator.pop(context);
-              setState(() {});
-            },
-          ),),
-          const SizedBox(height: 16),
-        ],
+            Expanded(
+              child: ListView(
+                controller: scrollController,
+                children: [
+                  ...QuranAudioEngine.reciters.values.map((reciter) => ListTile(
+                    leading: Text(reciter.flag, style: const TextStyle(fontSize: 24)),
+                    title: Text(reciter.arabicName),
+                    subtitle: Text(reciter.englishName),
+                    trailing: QuranAudioEngine.currentReciterInfo.id == reciter.id
+                        ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                        : null,
+                    onTap: () {
+                      QuranAudioEngine.setReciter(reciter.id);
+                      Navigator.pop(context);
+                      setState(() {});
+                    },
+                  ),),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -640,14 +660,14 @@ class _VerseCard extends StatelessWidget {
                       color: theme.colorScheme.primary,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.volume_up, size: 14, color: Colors.white),
-                        SizedBox(width: 4),
+                        const Icon(Icons.volume_up, size: 14, color: Colors.white),
+                        const SizedBox(width: 4),
                         Text(
-                          'يُتلى الآن',
-                          style: TextStyle(
+                          AppLocalizations.of(context).audioNowPlaying,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,

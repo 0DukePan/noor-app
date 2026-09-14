@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../../core/theme/noor_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 /// الوسوم الشخصية - Personal Tags System
 class PersonalTagsService {
@@ -147,6 +148,7 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
   }
 
   void _showCreateTagDialog() {
+    final l10n = AppLocalizations.of(context);
     _nameController.clear();
     _selectedColor = NoorTheme.primary;
     _selectedIcon = '🏷️';
@@ -173,7 +175,7 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  'إنشاء وسم جديد',
+                  l10n.tagsNew,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: NoorTheme.spacingLg),
@@ -183,7 +185,7 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
                   controller: _nameController,
                   textDirection: TextDirection.rtl,
                   decoration: InputDecoration(
-                    hintText: 'اسم الوسم (مثال: للمراجعة)',
+                    hintText: l10n.tagsNameHint,
                     hintTextDirection: TextDirection.rtl,
                     prefixIcon: Text(
                       _selectedIcon,
@@ -197,7 +199,7 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
                 const SizedBox(height: NoorTheme.spacingMd),
 
                 // Icon selector
-                Text('الأيقونة', style: Theme.of(context).textTheme.titleSmall),
+                Text(l10n.tagsIcon, style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -226,7 +228,7 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
                 const SizedBox(height: NoorTheme.spacingMd),
 
                 // Color selector
-                Text('اللون', style: Theme.of(context).textTheme.titleSmall),
+                Text(l10n.tagsColor, style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -267,7 +269,7 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _createTag,
-                    child: const Text('إنشاء'),
+                    child: Text(l10n.tagsCreate),
                   ),
                 ),
               ],
@@ -297,10 +299,11 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: NoorTheme.bgMushaf,
       appBar: AppBar(
-        title: const Text('وسوماتي'),
+        title: Text(l10n.tagsTitle),
         backgroundColor: NoorTheme.bgMushaf,
         elevation: 0,
       ),
@@ -312,13 +315,13 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
                   const Text('🏷️', style: TextStyle(fontSize: 64)),
                   const SizedBox(height: 16),
                   Text(
-                    'لا توجد وسومات بعد',
+                    l10n.tagsEmpty,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'أنشئ وسوماً لتنظيم أحاديثك المفضلة',
-                    style: TextStyle(color: NoorTheme.textSecondary),
+                  Text(
+                    l10n.tagsEmptyHint,
+                    style: const TextStyle(color: NoorTheme.textSecondary),
                   ),
                 ],
               ),
@@ -365,7 +368,7 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
                                     style: const TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                   Text(
-                                    '${tag.hadithIds.length} حديث',
+                                    l10n.topicHadithCount(tag.hadithIds.length),
                                     style: const TextStyle(
                                       color: NoorTheme.textSecondary,
                                       fontSize: 12,
@@ -402,7 +405,7 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showCreateTagDialog,
         icon: const Icon(Icons.add_rounded),
-        label: const Text('وسم جديد'),
+        label: Text(l10n.tagsNewFab),
       ),
     );
   }
@@ -418,18 +421,19 @@ class _TagsManagementPageState extends State<TagsManagementPage> {
     final hadithId = widget.hadithId;
     if (hadithId == null) return;
 
+    final l10n = AppLocalizations.of(context);
     if (tag.hadithIds.contains(hadithId)) {
       await PersonalTagsService.removeHadithFromTag(tag.id, hadithId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تمت إزالة الحديث من الوسم')),
+          SnackBar(content: Text(l10n.tagsRemoved)),
         );
       }
     } else {
       await PersonalTagsService.addHadithToTag(tag.id, hadithId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تمت إضافة الحديث إلى الوسم ✓')),
+          SnackBar(content: Text(l10n.tagsAdded)),
         );
       }
     }

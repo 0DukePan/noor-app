@@ -17,7 +17,6 @@ class TafsirSource {
     required this.arabicName,
     required this.englishName,
     required this.author,
-    required this.assetPath,
     this.isFullyBundled = true,
     this.apiEndpoint,
   });
@@ -25,39 +24,38 @@ class TafsirSource {
   final String arabicName;
   final String englishName;
   final String author;
-  final String assetPath;
   final bool isFullyBundled;
   final String? apiEndpoint;
 
   /// المصادر المتاحة
+  ///
+  /// NOTE: the per-surah JSON files these sources used to point at were
+  /// consolidated into the prebuilt `assets/db/tafsir.db`
+  /// (`tool/build_tafsir_db.dart`); there are no loose asset paths anymore.
   static const Map<TafsirSourceId, TafsirSource> sources = {
     TafsirSourceId.muyassar: TafsirSource(
       id: TafsirSourceId.muyassar,
       arabicName: 'التفسير الميسر',
       englishName: 'Al-Muyassar',
       author: 'مجمع الملك فهد',
-      assetPath: 'assets/tafsir/muyassar/ar-tafsir-muyassar',
     ),
     TafsirSourceId.saadi: TafsirSource(
       id: TafsirSourceId.saadi,
       arabicName: 'تفسير السعدي',
       englishName: 'As-Saadi',
       author: 'الشيخ عبد الرحمن السعدي',
-      assetPath: 'assets/tafsir/saadi/ar-tafseer-al-saddi',
     ),
     TafsirSourceId.tabari: TafsirSource(
       id: TafsirSourceId.tabari,
       arabicName: 'تفسير الطبري',
       englishName: 'At-Tabari',
       author: 'الإمام ابن جرير الطبري',
-      assetPath: 'assets/tafsir/tabari/ar-tafsir-al-tabari',
     ),
     TafsirSourceId.ibnKathir: TafsirSource(
       id: TafsirSourceId.ibnKathir,
       arabicName: 'تفسير ابن كثير',
       englishName: 'Ibn Kathir',
       author: 'الإمام ابن كثير',
-      assetPath: 'assets/tafsir/ibn_kathir/full/ar-tafsir-ibn-kathir',
     ),
   };
 

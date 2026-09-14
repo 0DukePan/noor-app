@@ -38,7 +38,6 @@ Declared permissions and their justifications (required by Play review):
   so adhan alarms are not deferred. Declare its purpose.
 - **Do not disturb access (ACCESS_NOTIFICATION_POLICY)** — optional override
   so the adhan is heard in DND.
-- **Camera** — optional AR Qibla overlay.
 - **Foreground service (media playback)** — playing the adhan from the alarm.
 
 ## 3. App Store — Privacy nutrition labels
@@ -96,7 +95,30 @@ flutter build ipa --release   # after signing setup in Xcode
 - Upload via Xcode/Transporter.
 - Permission strings are already in `ios/Runner/Info.plist` (Arabic).
 
-## 6. Store assets
+## 6. Bundle size & on-demand assets (decision D2 — recorded 2026-09-05)
+
+**Decision: keep content bundled for v1.** Bundled size 221.8 MB (budget
+230 MB); the tafsir SQLite consolidation already cut it from 272.2 MB.
+On-demand DB download is the post-v1 option (needs hosting + sha256 resume +
+offline fallback) — nothing in the code blocks it (static assets, no
+tracking), but it is feature-sized work, so it is deferred.
+
+Measured 2026-09-05 (`assets/db/hadith.db`, 154 MB file):
+
+| Content | Logical size |
+|---|---|
+| `hadiths` rows (50,884) | 63.2 MB |
+| `hadiths_fts` FTS5 index (shadow blocks) | 23.9 MB |
+| chapters/collections | <0.1 MB |
+
+An external-content FTS or build-index-on-first-import would reclaim at most
+~24 MB of the 154 MB DB — not worth the first-run cost while 10 MB of budget
+headroom remains. Revisit if the budget ratchets below ~205 MB.
+
+The Play listing's download-size line is filled at submission time from the
+actual AAB/APK; keep the 230 MB CI gate as the regression guard until then.
+
+## 7. Store assets
 
 - **Icon**: already generated (`assets/icon/app_icon.png` applied to
   Android/iOS launchers).
@@ -109,12 +131,12 @@ flutter build ipa --release   # after signing setup in Xcode
   `docs/store/privacy-policy.html` somewhere public (GitHub Pages, a simple
   host) and link it.
 
-## 7. Versioning
+## 8. Versioning
 
 - `pubspec.yaml` version: `1.0.0+1` — bump `+N` per release build.
 - CHANGELOG.md exists — keep it updated.
 
-## 8. On-device QA
+## 9. On-device QA
 
 - Run the full manual checklist in **`docs/qa-checklist.md`** on a real phone
   (automated checks — analyze, tests, goldens, emulator integration test —

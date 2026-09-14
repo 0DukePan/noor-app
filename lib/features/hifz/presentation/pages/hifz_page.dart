@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../data/hifz_ayah_card.dart';
 import '../providers/hifz_providers.dart';
 import 'hifz_session_page.dart';
@@ -18,6 +19,7 @@ class HifzPage extends ConsumerStatefulWidget {
 class _HifzPageState extends ConsumerState<HifzPage> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final hifz = ref.watch(hifzProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -29,7 +31,7 @@ class _HifzPageState extends ConsumerState<HifzPage> {
       backgroundColor: isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.creamWhite,
       appBar: AppBar(
         title: Text(
-          'الحفظ والمراجعة',
+          l10n.toolsHifz,
           style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -56,7 +58,7 @@ class _HifzPageState extends ConsumerState<HifzPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${hifz.streak.streakEmoji} سلسلة الممارسة',
+                      l10n.hifzStreakLine(hifz.streak.streakEmoji),
                       style: GoogleFonts.cairo(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -65,7 +67,7 @@ class _HifzPageState extends ConsumerState<HifzPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${hifz.streak.currentStreak} يوم',
+                      l10n.hifzDays(hifz.streak.currentStreak),
                       style: GoogleFonts.cairo(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -78,12 +80,12 @@ class _HifzPageState extends ConsumerState<HifzPage> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     _StatChip(
-                      label: 'للحفظ',
+                      label: l10n.hifzToMemorize,
                       value: newCards.length,
                     ),
                     const SizedBox(height: 8),
                     _StatChip(
-                      label: 'للمراجعة',
+                      label: l10n.hifzToReview,
                       value: due.length,
                     ),
                   ],
@@ -101,8 +103,8 @@ class _HifzPageState extends ConsumerState<HifzPage> {
               icon: const Icon(Icons.play_arrow_rounded),
               label: Text(
                 due.isNotEmpty
-                    ? 'بدء المراجعة (${due.length})'
-                    : 'بدء حفظ ${newCards.length} آية جديدة',
+                    ? l10n.hifzStartReview(due.length)
+                    : l10n.hifzStartNew(newCards.length),
                 style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
               ),
               style: FilledButton.styleFrom(
@@ -125,7 +127,7 @@ class _HifzPageState extends ConsumerState<HifzPage> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'أضف آيات من صفحة السورة\nلتبدأ رحلة الحفظ',
+                    l10n.hifzEmpty,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.cairo(
                       fontSize: 15,
@@ -138,7 +140,7 @@ class _HifzPageState extends ConsumerState<HifzPage> {
             ),
           ] else ...[
             Text(
-              'بطاقاتي (${hifz.cards.length})',
+              l10n.hifzMyCards(hifz.cards.length),
               style: GoogleFonts.cairo(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -211,6 +213,7 @@ class _HifzCardTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -248,7 +251,7 @@ class _HifzCardTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    'سورة ${card.surah} : آية ${card.ayah}',
+                    l10n.hifzCardRef(card.surah, card.ayah),
                     style: GoogleFonts.cairo(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
@@ -257,10 +260,10 @@ class _HifzCardTile extends StatelessWidget {
                   ),
                   Text(
                     card.isNew
-                        ? 'جديدة'
+                        ? l10n.hifzNew
                         : card.isDue
-                            ? 'مستحقة اليوم'
-                            : 'بعد ${card.daysUntilReview} يوم',
+                            ? l10n.hifzDueToday
+                            : l10n.hifzAfterDays(card.daysUntilReview),
                     style: GoogleFonts.cairo(
                       fontSize: 11,
                       color: card.isDue
@@ -289,7 +292,7 @@ class _HifzCardTile extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Text(
-                'التكرار: ',
+                AppLocalizations.of(context).hifzRepeat,
                 style: GoogleFonts.cairo(
                   fontSize: 12,
                   color: theme.colorScheme.onSurfaceVariant,

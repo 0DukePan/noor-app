@@ -101,4 +101,34 @@ void main() {
     );
     expect(shifted, base.add(const Duration(minutes: 4)));
   });
+
+  test('season follows the prayer date, not today (regression)', () async {
+    // Regression: applyOffset used DateTime.now() for the season, so the
+    // same August prayer time got the summer offset in July but the winter
+    // offset in September. The season must come from the prayer date.
+    await SeasonalOffsetsEngine.setCustomOffset(
+      prayer: 'maghrib',
+      summerMinutes: 4,
+      winterMinutes: 0,
+    );
+    final august = DateTime(2026, 8, 1, 18, 30);
+    expect(
+      SeasonalOffsetsEngine.applyOffset(august, 'maghrib', latitude: 21.4),
+      august.add(const Duration(minutes: 4)),
+    );
+    final january = DateTime(2026, 1, 15, 18, 30);
+    expect(
+      SeasonalOffsetsEngine.applyOffset(january, 'maghrib', latitude: 21.4),
+      january,
+    );
+    // getOffset honours an explicit date too.
+    expect(
+      SeasonalOffsetsEngine.getOffset('maghrib', latitude: 21.4, date: august),
+      const Duration(minutes: 4),
+    );
+    expect(
+      SeasonalOffsetsEngine.getOffset('maghrib', latitude: 21.4, date: january),
+      Duration.zero,
+    );
+  });
 }

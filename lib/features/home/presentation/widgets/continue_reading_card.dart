@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/home_provider.dart';
 
 class ContinueReadingCard extends StatelessWidget {
@@ -13,6 +14,7 @@ class ContinueReadingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -62,7 +64,7 @@ class ContinueReadingCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        lastRead != null ? lastRead!.surahName : 'ابدأ القراءة',
+                        lastRead != null ? lastRead!.surahName : l10n.continueStart,
                         style: GoogleFonts.cairo(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -71,7 +73,7 @@ class ContinueReadingCard extends StatelessWidget {
                       ),
                       if (lastRead != null)
                         Text(
-                          'محفوظ',
+                          l10n.continueSaved,
                           style: GoogleFonts.outfit(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -83,7 +85,7 @@ class ContinueReadingCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   if (lastRead != null)
                     Text(
-                      'الآية ${lastRead!.ayah}',
+                      l10n.continueAyah(lastRead!.ayah),
                       style: GoogleFonts.cairo(
                         fontSize: 13,
                         color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
@@ -91,7 +93,7 @@ class ContinueReadingCard extends StatelessWidget {
                     )
                   else
                     Text(
-                      'اضغط للانتقال إلى المصحف',
+                      l10n.continueGo,
                       style: GoogleFonts.cairo(
                         fontSize: 13,
                         color: theme.colorScheme.onSurface.withValues(alpha: 0.6),

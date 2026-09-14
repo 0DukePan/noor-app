@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/algorithms/fsrs_algorithm.dart';
 import '../../../../core/theme/noor_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../hadith_book_names.dart';
 import '../providers/hadith_providers.dart';
 
@@ -71,12 +72,13 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final state = ref.watch(memorizationProvider);
 
     return Scaffold(
       backgroundColor: NoorTheme.bgMushaf,
       appBar: AppBar(
-        title: const Text('حفظ الأحاديث'),
+        title: Text(l10n.memTitle),
         backgroundColor: NoorTheme.bgMushaf,
         elevation: 0,
         actions: [
@@ -104,7 +106,7 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
           ),
         ],
       ),
-      body: state.currentCard == null
+      body: state.isComplete || state.currentCard == null
           ? _buildEmptyState()
           : Column(
               children: [
@@ -150,6 +152,7 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
   }
 
   Widget _buildProgressHeader(MemorizationState state) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(NoorTheme.spacingMd),
       child: Row(
@@ -157,19 +160,19 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
         children: [
           _StatCard(
             icon: Icons.pending_actions_rounded,
-            label: 'متبقي اليوم',
+            label: l10n.memDueToday,
             value: '${state.dueCards.length}',
             color: NoorTheme.primary,
           ),
           _StatCard(
             icon: Icons.check_circle_rounded,
-            label: 'راجعت اليوم',
+            label: l10n.memReviewedToday,
             value: '${state.todayReviewed}',
             color: NoorTheme.hadithSahih,
           ),
           _StatCard(
             icon: Icons.bookmark_rounded,
-            label: 'إجمالي الحفظ',
+            label: l10n.memTotal,
             value: '${state.totalMemorized}',
             color: NoorTheme.accentGold,
           ),
@@ -179,9 +182,10 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
   }
 
   Widget _buildCardFront(MemorizationState state) {
+    final l10n = AppLocalizations.of(context);
     final hadith = state.currentCard;
     final hint = hadith == null
-        ? 'قال رسول الله ﷺ: "…'
+        ? l10n.memHintFallback
         : _truncate(hadith.arabic, 60);
 
     return Container(
@@ -207,9 +211,9 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
             color: NoorTheme.accentGold.withValues(alpha: 0.5),
           ),
           const SizedBox(height: NoorTheme.spacingLg),
-          const Text(
-            'تذكّر الحديث...',
-            style: TextStyle(
+          Text(
+            l10n.memRemember,
+            style: const TextStyle(
               fontSize: 18,
               color: NoorTheme.textSecondary,
             ),
@@ -230,7 +234,7 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
           ),
           const Spacer(),
           Text(
-            'اضغط لإظهار الإجابة',
+            l10n.memShowAnswer,
             style: TextStyle(
               color: NoorTheme.textSecondary.withValues(alpha: 0.6),
               fontSize: 14,
@@ -242,8 +246,9 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
   }
 
   Widget _buildCardBack(MemorizationState state) {
+    final l10n = AppLocalizations.of(context);
     final hadith = state.currentCard;
-    final text = hadith?.arabic ?? 'قال رسول الله ﷺ: "…';
+    final text = hadith?.arabic ?? l10n.memHintFallback;
     final source = hadithBookName(hadith?.collectionId ?? '');
 
     return Container(
@@ -320,13 +325,14 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
   }
 
   Widget _buildRatingButtons(MemorizationState state) {
+    final l10n = AppLocalizations.of(context);
     final intervals = ref.read(memorizationProvider.notifier).getIntervalPreviews();
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: NoorTheme.spacingMd),
       child: Row(
         children: Rating.values.map((rating) {
-          final intervalText = intervals[rating.index + 1] ?? '1 يوم';
+          final intervalText = intervals[rating.index + 1] ?? l10n.memDayFallback;
           return Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -343,6 +349,7 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
   }
 
   Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -353,19 +360,19 @@ class _MemorizationPageState extends ConsumerState<MemorizationPage>
           ),
           const SizedBox(height: NoorTheme.spacingLg),
           Text(
-            'أحسنت! أنهيت مراجعة اليوم',
+            l10n.memDone,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: NoorTheme.spacingSm),
-          const Text(
-            'عد غداً لمواصلة الحفظ',
-            style: TextStyle(color: NoorTheme.textSecondary),
+          Text(
+            l10n.memComeBack,
+            style: const TextStyle(color: NoorTheme.textSecondary),
           ),
           const SizedBox(height: NoorTheme.spacingXl),
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(context),
             icon: Transform.flip(flipX: true, child: const Icon(Icons.arrow_back_rounded)),
-            label: const Text('العودة'),
+            label: Text(l10n.memBack),
           ),
         ],
       ),

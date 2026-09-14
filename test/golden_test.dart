@@ -9,6 +9,7 @@ import 'package:noor_app/core/services/day_state_machine.dart';
 import 'package:noor_app/core/services/prayer_time_engine.dart';
 import 'package:noor_app/features/home/presentation/widgets/day_state_card.dart';
 import 'package:noor_app/features/onboarding/presentation/pages/onboarding_page.dart';
+import 'package:noor_app/l10n/generated/app_localizations.dart';
 
 /// Golden (visual regression) tests.
 ///
@@ -33,6 +34,9 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(
         debugShowCheckedModeBanner: false,
+        locale: Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           backgroundColor: Color(0xFFF5F2EA),
           body: Center(
@@ -63,6 +67,9 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(
         debugShowCheckedModeBanner: false,
+        locale: Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: OnboardingPage(onComplete: _noop),
       ),
     );

@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hijri/hijri_calendar.dart';
 
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/home_provider.dart';
 import '../widgets/adhkar_status_card.dart';
 import '../widgets/continue_reading_card.dart';
@@ -88,14 +89,14 @@ class _HomePageState extends ConsumerState<HomePage> {
           Icon(Icons.cloud_off_rounded, size: 64, color: isDark ? Colors.white54 : Colors.black45),
           const SizedBox(height: 16),
           Text(
-            'تعذر جلب البيانات',
+            AppLocalizations.of(context).homeLoadError,
             style: GoogleFonts.cairo(fontSize: 18, color: isDark ? Colors.white70 : Colors.black87),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () => ref.invalidate(homeDataProvider),
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('إعادة المحاولة'),
+            label: Text(AppLocalizations.of(context).commonRetry),
             style: ElevatedButton.styleFrom(
               backgroundColor: NoorDesignSystem.primaryGreen,
               foregroundColor: Colors.white,
@@ -147,7 +148,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    'نور',
+                    AppLocalizations.of(context).appTitle,
                     style: GoogleFonts.cairo(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -160,11 +161,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                 IconButton(
                   icon: const Icon(Icons.search_rounded),
                   color: isDark ? Colors.white70 : NoorDesignSystem.textSecondary,
+                  tooltip: AppLocalizations.of(context).toolsSearch,
                   onPressed: () => context.go('/tools/search'),
                 ),
                 IconButton(
                   icon: const Icon(Icons.settings_outlined),
                   color: isDark ? Colors.white70 : NoorDesignSystem.textSecondary,
+                  tooltip: AppLocalizations.of(context).settingsTitle,
                   onPressed: () => context.go('/tools/settings'),
                 ),
               ],
@@ -253,7 +256,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'متابعة القراءة',
+                        AppLocalizations.of(context).homeContinueReading,
                         style: GoogleFonts.cairo(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -278,7 +281,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'المفضلة',
+                            AppLocalizations.of(context).homeFavorites,
                             style: GoogleFonts.cairo(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -305,7 +308,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'أذكار اليوم',
+                        AppLocalizations.of(context).homeTodayAdhkar,
                         style: GoogleFonts.cairo(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -330,7 +333,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'نور النبوة',
+                        AppLocalizations.of(context).homePropheticLight,
                         style: GoogleFonts.cairo(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

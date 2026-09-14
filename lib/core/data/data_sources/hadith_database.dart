@@ -218,8 +218,9 @@ class HadithDatabase {
     int? chapterId,
     int limit = 50,
     int offset = 0,
+    Database? db,
   }) async {
-    final db = await database;
+    final database = db ?? await HadithDatabase.database;
     var where = 'collection_id = ?';
     final args = <dynamic>[collectionId];
 
@@ -228,7 +229,7 @@ class HadithDatabase {
       args.add(chapterId);
     }
 
-    return db.query(
+    return database.query(
       'hadiths',
       where: where,
       whereArgs: args,
@@ -239,9 +240,13 @@ class HadithDatabase {
   }
 
   /// Get a single hadith
-  static Future<Map<String, dynamic>?> getHadithById(String collectionId, int hadithId) async {
-    final db = await database;
-    final results = await db.query(
+  static Future<Map<String, dynamic>?> getHadithById(
+    String collectionId,
+    int hadithId, {
+    Database? db,
+  }) async {
+    final database = db ?? await HadithDatabase.database;
+    final results = await database.query(
       'hadiths',
       where: 'collection_id = ? AND id = ?',
       whereArgs: [collectionId, hadithId],
@@ -251,9 +256,12 @@ class HadithDatabase {
   }
 
   /// Count hadiths per chapter (for display)
-  static Future<Map<int, int>> getChapterHadithCounts(String collectionId) async {
-    final db = await database;
-    final results = await db.rawQuery(
+  static Future<Map<int, int>> getChapterHadithCounts(
+    String collectionId, {
+    Database? db,
+  }) async {
+    final database = db ?? await HadithDatabase.database;
+    final results = await database.rawQuery(
       'SELECT chapter_id, COUNT(*) as cnt FROM hadiths WHERE collection_id = ? GROUP BY chapter_id',
       [collectionId],
     );
@@ -327,9 +335,13 @@ class HadithDatabase {
   static String normalizeForSearch(String input) => builder.normalizeForSearch(input);
 
   /// Search by narrator name
-  static Future<List<Map<String, dynamic>>> searchByNarrator(String narrator, {int limit = 50}) async {
-    final db = await database;
-    return db.query(
+  static Future<List<Map<String, dynamic>>> searchByNarrator(
+    String narrator, {
+    int limit = 50,
+    Database? db,
+  }) async {
+    final database = db ?? await HadithDatabase.database;
+    return database.query(
       'hadiths',
       where: 'english_narrator LIKE ?',
       whereArgs: ['%$narrator%'],

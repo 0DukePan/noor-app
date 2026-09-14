@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 /// Bottom sheet that previews and shares a beautifully formatted Hadith image.
 class HadithShareSheet extends StatefulWidget {
@@ -48,6 +49,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
   Future<void> _captureAndShare() async {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
+    final l10n = AppLocalizations.of(context);
 
     try {
       // 1. Capture widget as image
@@ -66,7 +68,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
       // 3. Share
       await Share.shareXFiles(
         [XFile(imagePath)],
-        text: '📖 ${widget.bookTitle} - حديث رقم ${widget.hadith.idInBook}\n\nتطبيق نور الإسلامي',
+        text: l10n.hshareText(widget.bookTitle, widget.hadith.idInBook),
       );
 
       // Close bottom sheet if needed
@@ -76,7 +78,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('حدث خطأ أثناء حفظ الصورة: $e', style: GoogleFonts.cairo()),
+            content: Text(l10n.hshareError(e.toString()), style: GoogleFonts.cairo()),
             backgroundColor: Colors.red[700],
           ),
         );
@@ -90,6 +92,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: const BoxDecoration(
         color: NoorDesignSystem.creamWhite,
@@ -111,7 +114,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
           const SizedBox(height: 24),
           
           Text(
-            'مشاركة كصورة',
+            l10n.hshareTitle,
             style: GoogleFonts.cairo(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -135,7 +138,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
               borderRadius: BorderRadius.circular(20),
               child: RepaintBoundary(
                 key: _globalKey,
-                child: _buildShareCard(),
+                child: _buildShareCard(l10n),
               ),
             ),
           ),
@@ -158,7 +161,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : const Icon(Icons.share_rounded),
               label: Text(
-                _isProcessing ? 'جاري التجهيز...' : 'مشاركة الآن',
+                _isProcessing ? l10n.hshareProcessing : l10n.hshareNow,
                 style: GoogleFonts.cairo(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -172,7 +175,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
   }
 
   /// The actual layout of the image to be exported
-  Widget _buildShareCard() {
+  Widget _buildShareCard(AppLocalizations l10n) {
     // Determine gradient based on book color
     final Gradient bgGradient = LinearGradient(
       begin: Alignment.topLeft,
@@ -204,7 +207,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
               Icon(Icons.mosque_rounded, color: widget.bookColor, size: 24),
               const SizedBox(width: 8),
               Text(
-                'نور',
+                l10n.settingsAppName,
                 style: GoogleFonts.cairo(
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
@@ -274,7 +277,7 @@ class _HadithShareSheetState extends State<HadithShareSheet> {
               ),
               const Spacer(),
               Text(
-                'حديث رقم ${widget.hadith.idInBook}',
+                l10n.hsearchHadithNumber(widget.hadith.idInBook),
                 style: GoogleFonts.cairo(
                   fontSize: 12,
                   color: NoorDesignSystem.textSecondary,

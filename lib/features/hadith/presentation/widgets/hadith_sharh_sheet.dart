@@ -7,6 +7,7 @@ import '../../../../core/data/data_sources/hadith_database.dart';
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/services/hadith_search_engine.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../hadith_book_names.dart';
 import '../pages/isnad_chain_page.dart';
 import '../pages/isnad_graph_page.dart';
@@ -119,6 +120,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? NoorDesignSystem.surfaceDark : const Color(0xFFFAF8F5);
 
@@ -162,7 +164,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'شرح الحديث #${widget.hadith.idInBook}',
+                        l10n.sharhTitle(widget.hadith.idInBook),
                         style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -186,7 +188,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                     // 1. Hadith Text (Preview)
                     _buildSection(
                       icon: Icons.format_quote_rounded,
-                      title: 'متن الحديث',
+                      title: l10n.sharhMatn,
                       color: widget.bookColor,
                       child: Text(
                         widget.hadith.arabic,
@@ -201,17 +203,17 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                     // 2. Source & Grade
                     _buildSection(
                       icon: Icons.verified_rounded,
-                      title: 'التخريج والدرجة',
+                      title: l10n.sharhTakhrij,
                       color: NoorDesignSystem.primaryGreen,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _InfoRow(label: 'الكتاب', value: widget.bookTitle),
-                          _InfoRow(label: 'رقم الحديث', value: '#${widget.hadith.idInBook}'),
+                          _InfoRow(label: l10n.sharhBook, value: widget.bookTitle),
+                          _InfoRow(label: l10n.sharhNumber, value: '#${widget.hadith.idInBook}'),
                           if (widget.hadith.narratorEnglish.isNotEmpty)
-                            _InfoRow(label: 'الراوي', value: widget.hadith.narratorEnglish),
+                            _InfoRow(label: l10n.sharhNarrator, value: widget.hadith.narratorEnglish),
                           _InfoRow(
-                            label: 'المصدر',
+                            label: l10n.sharhSource,
                             value: _getCollectionFullName(widget.hadith.collectionId ?? ''),
                           ),
                         ],
@@ -222,7 +224,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                     // 3. Benefits / Key Points
                     _buildSection(
                       icon: Icons.lightbulb_rounded,
-                      title: 'فوائد الحديث',
+                      title: l10n.sharhBenefits,
                       color: NoorDesignSystem.goldAccent,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,7 +250,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                     // 4. User Notes
                     _buildSection(
                       icon: Icons.edit_note_rounded,
-                      title: 'ملاحظاتي',
+                      title: l10n.sharhNotes,
                       color: Colors.orange,
                       child: Column(
                         children: [
@@ -256,7 +258,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                             controller: _noteController,
                             maxLines: 4,
                             decoration: InputDecoration(
-                              hintText: 'اكتب ملاحظاتك وتأملاتك هنا...',
+                              hintText: l10n.sharhNotesHint,
                               hintStyle: GoogleFonts.cairo(color: Colors.grey),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -280,13 +282,13 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                                 HapticFeedback.lightImpact();
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('✅ تم حفظ الملاحظة', style: GoogleFonts.cairo()),
+                                    content: Text(l10n.sharhNoteSaved, style: GoogleFonts.cairo()),
                                     backgroundColor: NoorDesignSystem.primaryGreen,
                                   ),
                                 );
                               },
                               icon: const Icon(Icons.save_rounded, size: 16),
-                              label: Text('حفظ', style: GoogleFonts.cairo()),
+                              label: Text(l10n.tadSave, style: GoogleFonts.cairo()),
                               style: FilledButton.styleFrom(
                                 backgroundColor: NoorDesignSystem.primaryGreen,
                               ),
@@ -301,7 +303,7 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                     if (_similarHadiths.isNotEmpty || _loadingSimilar)
                       _buildSection(
                         icon: Icons.compare_arrows_rounded,
-                        title: 'أحاديث مشابهة',
+                        title: l10n.sharhSimilar,
                         color: Colors.blue,
                         child: _loadingSimilar
                             ? const Center(child: Padding(
@@ -340,17 +342,17 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                     const SizedBox(height: 16),
 
                     // 6. Study Tools (Isnad & Cross-References)
-                    _buildSection(
-                      icon: Icons.school_rounded,
-                      title: 'أدوات دراسية',
+                      _buildSection(
+                        icon: Icons.school_rounded,
+                        title: l10n.sharhTools,
                       color: Colors.deepPurple,
                       child: Column(
                         children: [
                           // Isnad Chain
                           _StudyToolButton(
                             icon: Icons.account_tree_rounded,
-                            label: 'خريطة الإسناد',
-                            subtitle: 'سلسلة رواة الحديث',
+                            label: l10n.sharhIsnadMap,
+                            subtitle: l10n.sharhIsnadMapSub,
                             color: Colors.deepPurple,
                             onTap: () {
                               Navigator.pop(context);
@@ -366,8 +368,8 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                           // Isnad Graph
                           _StudyToolButton(
                             icon: Icons.hub_rounded,
-                            label: 'الرسم البياني للإسناد',
-                            subtitle: 'عرض تفاعلي لسلسلة الرواة',
+                            label: l10n.igTitle,
+                            subtitle: l10n.sharhIsnadGraphSub,
                             color: Colors.indigo,
                             onTap: () {
                               Navigator.pop(context);
@@ -382,8 +384,8 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                           // Cross-References
                           _StudyToolButton(
                             icon: Icons.compare_arrows_rounded,
-                            label: 'مقارنة الروايات',
-                            subtitle: 'ألفاظ مختلفة للحديث في كتب متعددة',
+                            label: l10n.sharhCompare,
+                            subtitle: l10n.sharhCompareSub,
                             color: Colors.teal,
                             onTap: () {
                               Navigator.pop(context);
@@ -397,8 +399,8 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
                           // Add to a personal tag
                           _StudyToolButton(
                             icon: Icons.label_outline_rounded,
-                            label: 'إضافة إلى وسم',
-                            subtitle: 'تنظيم الحديث في قوائمك الخاصة',
+                            label: l10n.sharhAddTag,
+                            subtitle: l10n.sharhAddTagSub,
                             color: Colors.brown,
                             onTap: () {
                               Navigator.pop(context);

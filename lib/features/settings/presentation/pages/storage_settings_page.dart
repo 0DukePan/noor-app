@@ -6,6 +6,7 @@ import '../../../../core/services/hive_service.dart';
 import '../../../../core/services/quran_audio_engine.dart';
 import '../../../../core/services/silent_ui_controller.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../../search/data/data_sources/search_local_data_source.dart';
 
 /// 🗄️ إعدادات التخزين والأداء — Storage & Performance Settings
@@ -43,13 +44,14 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.bgLight,
       appBar: AppBar(
-        title: Text('التخزين والأداء', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+        title: Text(l10n.storageTitle, style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: ListView(
@@ -57,28 +59,28 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
         physics: const BouncingScrollPhysics(),
         children: [
           // ── Cache Stats ──
-          const _SectionHeader(icon: Icons.storage_rounded, title: 'التخزين المؤقت'),
+          _SectionHeader(icon: Icons.storage_rounded, title: l10n.storageCacheSection),
           const SizedBox(height: 8),
-          _buildCacheStatsCard(isDark),
+          _buildCacheStatsCard(isDark, l10n),
           const SizedBox(height: 24),
 
           // ── Cache Actions ──
-          const _SectionHeader(icon: Icons.cleaning_services_rounded, title: 'إدارة البيانات'),
+          _SectionHeader(icon: Icons.cleaning_services_rounded, title: l10n.storageManageSection),
           const SizedBox(height: 8),
-          _buildCacheActionsCard(isDark),
+          _buildCacheActionsCard(isDark, l10n),
           const SizedBox(height: 24),
 
           // ── Silent UI ──
-          const _SectionHeader(icon: Icons.notifications_paused_rounded, title: 'الواجهة الهادئة'),
+          _SectionHeader(icon: Icons.notifications_paused_rounded, title: l10n.storageSilentSection),
           const SizedBox(height: 8),
-          _buildSilentUICard(isDark),
+          _buildSilentUICard(isDark, l10n),
           const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  Widget _buildCacheStatsCard(bool isDark) {
+  Widget _buildCacheStatsCard(bool isDark, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -89,11 +91,11 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
       child: Column(
         children: [
           if (_cacheStats != null) ...[
-            _StatRow(label: 'سور محفوظة', value: '${_cacheStats!['surahs_cached'] ?? 0}', icon: Icons.auto_stories_rounded),
+            _StatRow(label: l10n.storageSurahs, value: '${_cacheStats!['surahs_cached'] ?? 0}', icon: Icons.auto_stories_rounded),
             const Divider(height: 20),
-            _StatRow(label: 'أحاديث محفوظة', value: '${_cacheStats!['hadiths_cached'] ?? 0}', icon: Icons.format_quote_rounded),
+            _StatRow(label: l10n.storageHadiths, value: '${_cacheStats!['hadiths_cached'] ?? 0}', icon: Icons.format_quote_rounded),
             const Divider(height: 20),
-            _StatRow(label: 'أذكار محفوظة', value: '${_cacheStats!['adhkar_cached'] ?? 0}', icon: Icons.spa_rounded),
+            _StatRow(label: l10n.storageAdhkar, value: '${_cacheStats!['adhkar_cached'] ?? 0}', icon: Icons.spa_rounded),
           ] else
             const Center(child: CircularProgressIndicator()),
         ],
@@ -101,7 +103,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
     );
   }
 
-  Widget _buildCacheActionsCard(bool isDark) {
+  Widget _buildCacheActionsCard(bool isDark, AppLocalizations l10n) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
@@ -126,8 +128,8 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
               ),
               child: const Icon(Icons.delete_sweep_rounded, color: Colors.red, size: 20),
             ),
-            title: Text('مسح التخزين المؤقت', style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
-            subtitle: Text('إعادة تحميل البيانات من المصدر', style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey)),
+            title: Text(l10n.storageClearTitle, style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
+            subtitle: Text(l10n.storageClearSubtitle, style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey)),
             trailing: _clearing
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
@@ -147,8 +149,8 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
               ),
               child: const Icon(Icons.refresh_rounded, color: NoorDesignSystem.primaryGreen, size: 20),
             ),
-            title: Text('تحديث الإحصائيات', style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
-            subtitle: Text('إعادة قراءة البيانات المعروضة', style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey)),
+            title: Text(l10n.storageRefreshTitle, style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
+            subtitle: Text(l10n.storageRefreshSubtitle, style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey)),
             trailing: _syncing
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
@@ -162,7 +164,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
     );
   }
 
-  Widget _buildSilentUICard(bool isDark) {
+  Widget _buildSilentUICard(bool isDark, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -174,8 +176,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'تطبيق نور يستخدم واجهة هادئة بدون نوافذ منبثقة مزعجة. '
-            'جميع الإشعارات تظهر بشكل لطيف وتختفي تلقائيًا.',
+            l10n.storageSilentBody,
             style: GoogleFonts.cairo(fontSize: 13, color: Colors.grey, height: 1.6),
           ),
           const SizedBox(height: 16),
@@ -188,12 +189,12 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
                 HapticFeedback.selectionClick();
                 SilentUIController.showGentleNotification(
                   context,
-                  message: '✨ هذا مثال على الإشعار الهادئ',
+                  message: l10n.storageGentleSample,
                   icon: Icons.info_outline_rounded,
                 );
               },
               icon: const Icon(Icons.preview_rounded, size: 18),
-              label: Text('معاينة الإشعار الهادئ', style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
+              label: Text(l10n.storagePreviewGentle, style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
               style: OutlinedButton.styleFrom(
                 foregroundColor: NoorDesignSystem.primaryGreen,
                 side: const BorderSide(color: NoorDesignSystem.primaryGreen),
@@ -211,10 +212,10 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
             child: OutlinedButton.icon(
               onPressed: () {
                 HapticFeedback.selectionClick();
-                SilentUIController.showSuccess(context, 'تم الحفظ بنجاح!');
+                SilentUIController.showSuccess(context, l10n.storageSavedOk);
               },
               icon: const Icon(Icons.check_circle_outline_rounded, size: 18),
-              label: Text('معاينة إشعار النجاح', style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
+              label: Text(l10n.storagePreviewSuccess, style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
               style: OutlinedButton.styleFrom(
                 foregroundColor: NoorDesignSystem.goldAccent,
                 side: const BorderSide(color: NoorDesignSystem.goldAccent),
@@ -238,7 +239,8 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
       await SearchLocalDataSource.clearIndex();
       _loadStats();
       if (mounted) {
-        SilentUIController.showSuccess(context, 'تم مسح التخزين المؤقت');
+        final l10n = AppLocalizations.of(context);
+        SilentUIController.showSuccess(context, l10n.storageCacheCleared);
       }
     } finally {
       if (mounted) setState(() => _clearing = false);
@@ -250,7 +252,8 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
     try {
       _loadStats();
       if (mounted) {
-        SilentUIController.showSuccess(context, 'تم تحديث الإحصائيات');
+        final l10n = AppLocalizations.of(context);
+        SilentUIController.showSuccess(context, l10n.storageStatsUpdated);
       }
     } finally {
       if (mounted) setState(() => _syncing = false);

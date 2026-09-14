@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/domain/entities/hadith.dart'; // Use the core entity
 import '../../../../core/theme/noor_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/hadith_providers.dart';
 
 /// صفحة الاختبارات - Quiz Page
@@ -43,7 +44,7 @@ class _QuizPageState extends ConsumerState<QuizPage> {
     return Scaffold(
       backgroundColor: NoorTheme.bgMushaf,
       appBar: AppBar(
-        title: Text(_getQuizTitle(state.type)),
+        title: Text(_getQuizTitle(context, state.type)),
         backgroundColor: NoorTheme.bgMushaf,
         elevation: 0,
         actions: [
@@ -76,21 +77,23 @@ class _QuizPageState extends ConsumerState<QuizPage> {
     );
   }
 
-  String _getQuizTitle(QuizType type) {
+  String _getQuizTitle(BuildContext context, QuizType type) {
+    final l10n = AppLocalizations.of(context);
     switch (type) {
       case QuizType.completeHadith:
-        return 'أكمل الحديث';
+        return l10n.quizComplete;
       case QuizType.chooseCorrect:
-        return 'اختر الصحيح';
+        return l10n.quizChoose;
       case QuizType.identifyNarrator:
-        return 'حدد الراوي';
+        return l10n.quizNarrator;
       case QuizType.gradeHadith:
-        return 'درجة الحديث';
+        return l10n.quizGrade;
     }
   }
 
   Widget _buildQuestionScreen(QuizState state) {
     final question = state.currentQuestion!;
+    final l10n = AppLocalizations.of(context);
     final progress = state.questions.isEmpty 
         ? 0.0 
         : (state.currentIndex + 1) / state.questions.length;
@@ -106,7 +109,7 @@ class _QuizPageState extends ConsumerState<QuizPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'السؤال ${state.currentIndex + 1} من ${state.questions.length}',
+                    l10n.quizQuestion(state.currentIndex + 1, state.questions.length),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Text(
@@ -242,6 +245,7 @@ class _QuizPageState extends ConsumerState<QuizPage> {
   }
 
   Widget _buildResultScreen(QuizState state) {
+    final l10n = AppLocalizations.of(context);
     final percentage = state.questions.isEmpty 
         ? 0 
         : ((state.score / state.questions.length) * 100).round();
@@ -273,7 +277,7 @@ class _QuizPageState extends ConsumerState<QuizPage> {
 
             // Title
             Text(
-              isPassed ? 'أحسنت!' : 'حاول مرة أخرى',
+              isPassed ? l10n.quizPassed : l10n.quizFailed,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -300,7 +304,7 @@ class _QuizPageState extends ConsumerState<QuizPage> {
             const SizedBox(height: 8),
 
             Text(
-              '${state.score} من ${state.questions.length} إجابات صحيحة',
+              l10n.quizScore(state.score, state.questions.length),
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 48),
@@ -313,7 +317,7 @@ class _QuizPageState extends ConsumerState<QuizPage> {
                 );
               },
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('إعادة الاختبار'),
+              label: Text(l10n.quizRetry),
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               ),
@@ -323,7 +327,7 @@ class _QuizPageState extends ConsumerState<QuizPage> {
             // Back Button
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('العودة'),
+              child: Text(l10n.memBack),
             ),
           ],
         ),

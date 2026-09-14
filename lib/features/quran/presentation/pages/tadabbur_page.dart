@@ -8,6 +8,7 @@ import '../../../../core/domain/policies/privacy_policy.dart';
 import '../../../../core/services/hive_service.dart';
 import '../../../../core/services/secure_key_service.dart';
 import '../../../../core/theme/noor_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 /// صفحة محراب التدبر - Tadabbur Mihrab Page
 /// Personal reflections on Quran verses with local encryption
@@ -90,8 +91,8 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم حفظ ملاحظتك بشكل آمن 🔒'),
+      SnackBar(
+        content: Text(AppLocalizations.of(context).tadSaved),
         backgroundColor: NoorTheme.hadithSahih,
       ),
     );
@@ -112,9 +113,10 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('محراب التدبر'),
+        title: Text(l10n.tadTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline_rounded),
@@ -151,7 +153,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
                   ),
                   const SizedBox(height: NoorTheme.spacingSm),
                   Text(
-                    'سورة ${widget.surahNumber} - آية ${widget.verseNumber}',
+                    l10n.tadRef(widget.surahNumber, widget.verseNumber),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -174,7 +176,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
                       textDirection: TextDirection.rtl,
                       
                       decoration: InputDecoration(
-                        hintText: 'اكتب تدبرك وخواطرك هنا...',
+                        hintText: l10n.tadHint,
                         hintTextDirection: TextDirection.rtl,
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.all(NoorTheme.spacingMd),
@@ -200,7 +202,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
                       child: Row(
                         children: [
                           Text(
-                            '🔒 ملاحظاتك مشفرة محلياً',
+                            l10n.tadEncrypted,
                             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                   color: NoorTheme.primary,
                                 ),
@@ -209,7 +211,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
                           TextButton.icon(
                             onPressed: _saveNote,
                             icon: const Icon(Icons.save_rounded, size: 16),
-                            label: const Text('حفظ'),
+                            label: Text(l10n.tadSave),
                           ),
                         ],
                       ),
@@ -228,7 +230,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
                 child: Row(
                   children: [
                     Text(
-                      'ملاحظاتك السابقة',
+                      l10n.tadPrevious,
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                     const Spacer(),
@@ -256,7 +258,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
                               ),
                               const SizedBox(height: NoorTheme.spacingMd),
                               Text(
-                                'لا توجد ملاحظات بعد',
+                                l10n.tadEmpty,
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       color: NoorTheme.textSecondary,
                                     ),
@@ -284,28 +286,29 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
   }
 
   void _showPrivacyInfo() {
+    final l10n = AppLocalizations.of(context);
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.security_rounded, color: NoorTheme.primary),
-            SizedBox(width: 8),
-            Text('خصوصية ملاحظاتك'),
+            const Icon(Icons.security_rounded, color: NoorTheme.primary),
+            const SizedBox(width: 8),
+            Text(l10n.tadPrivacyTitle),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('🔒 ملاحظاتك مشفرة محلياً على جهازك'),
+            Text(l10n.tadPrivacy1),
             const SizedBox(height: 8),
-            const Text('☁️ لا يتم رفعها للسحابة أبداً'),
+            Text(l10n.tadPrivacy2),
             const SizedBox(height: 8),
-            const Text('👁️ لا أحد يستطيع قراءتها سواك'),
+            Text(l10n.tadPrivacy3),
             const SizedBox(height: 16),
             Text(
-              'تستخدم تشفير AES-256 لحماية أفكارك.',
+              l10n.tadPrivacyAes,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -313,7 +316,7 @@ class _TadabburMihrabPageState extends ConsumerState<TadabburMihrabPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('فهمت'),
+            child: Text(l10n.tadGotIt),
           ),
         ],
       ),

@@ -53,3 +53,11 @@ coverage/
 
 # Generated prebuilt hadith database
 assets/db/hadith.db
+
+# Generated Flutter golden-test failure diagnostics
+# Approved baselines belong in test/goldens/; failure artifacts do not.
+test/failures/
+test_run_output.txt
+
+# Assistant/tool-local state (Command Code taste + session data)
+.commandcode/

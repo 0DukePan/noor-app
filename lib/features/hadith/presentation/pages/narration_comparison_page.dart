@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../core/services/hadith_search_engine.dart';
 import '../../../../core/theme/noor_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../hadith_book_names.dart';
 
 /// مقارنة الروايات المتعددة - Multi-Narration Comparison Page
@@ -82,10 +83,11 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: NoorTheme.bgMushaf,
       appBar: AppBar(
-        title: const Text('مقارنة الروايات'),
+        title: Text(l10n.cmpTitle),
         backgroundColor: NoorTheme.bgMushaf,
         elevation: 0,
         actions: [
@@ -95,7 +97,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
               _showDiff ? Icons.highlight : Icons.highlight_off,
               color: _showDiff ? NoorTheme.primary : NoorTheme.textSecondary,
             ),
-            tooltip: 'إظهار الفروقات',
+            tooltip: l10n.cmpDiffTooltip,
             onPressed: () => setState(() => _showDiff = !_showDiff),
           ),
         ],
@@ -168,7 +170,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
                       child: ElevatedButton.icon(
                         onPressed: _showSideBySideComparison,
                         icon: const Icon(Icons.compare_arrows_rounded),
-                        label: const Text('عرض جنباً إلى جنب'),
+                        label: Text(l10n.cmpSideBySide),
                         style: ElevatedButton.styleFrom(
                           minimumSize: const Size(double.infinity, 48),
                         ),
@@ -180,19 +182,20 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
   }
 
   Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.search_off_rounded, size: 64, color: NoorTheme.textSecondary.withValues(alpha: 0.3)),
           const SizedBox(height: 16),
-          const Text(
-            'لم يتم العثور على روايات مطابقة',
-            style: TextStyle(color: NoorTheme.textSecondary, fontSize: 16),
+          Text(
+            l10n.cmpEmpty,
+            style: const TextStyle(color: NoorTheme.textSecondary, fontSize: 16),
           ),
           const SizedBox(height: 8),
           Text(
-            'حاول بكلمة مفتاحية مختلفة',
+            l10n.cmpEmptyHint,
             style: TextStyle(color: NoorTheme.textSecondary.withValues(alpha: 0.6), fontSize: 13),
           ),
         ],
@@ -201,8 +204,9 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
   }
 
   Widget _buildNarrationCard(_ComparisonNarration narration) {
+    final l10n = AppLocalizations.of(context);
     final gradeColor = _getGradeColor(narration.grade);
-    final gradeLabel = narration.grade.isNotEmpty ? narration.grade : 'غير محكوم';
+    final gradeLabel = narration.grade.isNotEmpty ? narration.grade : l10n.cmpUngraded;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(NoorTheme.spacingMd),
@@ -232,7 +236,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'حديث رقم ${narration.hadithNumber}',
+                  AppLocalizations.of(context).hsearchHadithNumber(narration.hadithNumber),
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 14,
@@ -305,7 +309,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
                     const Spacer(),
                     if (narration.differences.isNotEmpty && _showDiff)
                       Text(
-                        '${narration.differences.length} اختلاف',
+                        AppLocalizations.of(context).cmpDiffCount(narration.differences.length),
                         style: const TextStyle(
                           color: NoorTheme.accentGold,
                           fontSize: 12,
@@ -412,7 +416,7 @@ class _NarrationComparisonPageState extends State<NarrationComparisonPage> {
                 Padding(
                   padding: const EdgeInsets.all(NoorTheme.spacingMd),
                   child: Text(
-                    'مقارنة جنباً إلى جنب',
+                    AppLocalizations.of(context).cmpSideTitle,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),

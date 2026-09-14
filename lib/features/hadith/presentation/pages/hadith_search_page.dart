@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/theme/noor_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../hadith_book_names.dart';
 import '../providers/hadith_providers.dart';
 import 'hadith_reader_page.dart';
@@ -69,12 +70,31 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
     }
   }
 
+  String _modeLabel(_SearchMode mode) {
+    switch (mode) {
+      case _SearchMode.text:
+        return AppLocalizations.of(context).hsearchByText;
+      case _SearchMode.narrator:
+        return AppLocalizations.of(context).hsearchByNarrator;
+    }
+  }
+
+  String _modeHint(_SearchMode mode) {
+    switch (mode) {
+      case _SearchMode.text:
+        return AppLocalizations.of(context).hsearchTextHint;
+      case _SearchMode.narrator:
+        return AppLocalizations.of(context).hsearchNarratorHint;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: NoorTheme.bgMushaf,
       appBar: AppBar(
-        title: Text('البحث المتقدم', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+        title: Text(l10n.hsearchTitle, style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
         backgroundColor: NoorTheme.bgMushaf,
         elevation: 0,
         centerTitle: true,
@@ -125,7 +145,7 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  mode.label,
+                                  _modeLabel(mode),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: isSelected ? Colors.white : NoorTheme.textSecondary,
@@ -149,7 +169,7 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
                   controller: _searchController,
                   textDirection: _searchMode == _SearchMode.narrator ? TextDirection.ltr : TextDirection.rtl,
                   decoration: InputDecoration(
-                    hintText: _searchMode.hint,
+                    hintText: _modeHint(_searchMode),
                     hintTextDirection: TextDirection.rtl,
                     prefixIcon: Icon(_searchMode.icon, color: NoorTheme.primary),
                     suffixIcon: _searchController.text.isNotEmpty
@@ -196,10 +216,10 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
                       value: _selectedCollectionId,
                       isExpanded: true,
                       underline: const SizedBox(),
-                      hint: Text('جميع الكتب', style: GoogleFonts.cairo()),
+                      hint: Text(l10n.hsearchAllBooks, style: GoogleFonts.cairo()),
                       items: [
                         DropdownMenuItem<String?>(
-                          child: Text('جميع الكتب', style: GoogleFonts.cairo()),
+                          child: Text(l10n.hsearchAllBooks, style: GoogleFonts.cairo()),
                         ),
                         ...kHadithBookNames.entries
                             .where((e) => e.key != 'ahmad') // skip alias
@@ -222,7 +242,7 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
                   child: ElevatedButton.icon(
                     onPressed: _searchController.text.trim().isNotEmpty ? _performSearch : null,
                     icon: const Icon(Icons.search_rounded),
-                    label: Text('بحث', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+                    label: Text(l10n.hsearchButton, style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       backgroundColor: NoorTheme.primary,
@@ -252,6 +272,7 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
   }
 
   Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -259,12 +280,12 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
           Icon(Icons.manage_search_rounded, size: 72, color: NoorTheme.textSecondary.withValues(alpha: 0.2)),
           const SizedBox(height: 16),
           Text(
-            'ابحث في الكتب التسعة',
+            l10n.hsearchEmpty,
             style: GoogleFonts.cairo(color: NoorTheme.textSecondary, fontSize: 16),
           ),
           const SizedBox(height: 4),
           Text(
-            'البحث يشمل النص العربي والإنجليزي',
+            l10n.hsearchEmptySub,
             style: GoogleFonts.cairo(color: NoorTheme.textSecondary.withValues(alpha: 0.6), fontSize: 13),
           ),
         ],
@@ -273,6 +294,7 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
   }
 
   Widget _buildNoResults() {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -280,7 +302,7 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
           Icon(Icons.search_off_rounded, size: 64, color: NoorTheme.textSecondary.withValues(alpha: 0.3)),
           const SizedBox(height: 16),
           Text(
-            'لم يتم العثور على نتائج',
+            l10n.hsearchNoResults,
             style: GoogleFonts.cairo(color: NoorTheme.textSecondary, fontSize: 16),
           ),
         ],
@@ -289,6 +311,7 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
   }
 
   Widget _buildResultsList() {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         // Result count
@@ -303,7 +326,7 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  '${_results.length} نتيجة',
+                  l10n.hsearchCount(_results.length),
                   style: GoogleFonts.cairo(
                     color: NoorTheme.primary,
                     fontWeight: FontWeight.bold,
@@ -356,24 +379,6 @@ class _HadithSearchPageState extends ConsumerState<HadithSearchPage> {
 enum _SearchMode {
   text,
   narrator;
-
-  String get label {
-    switch (this) {
-      case _SearchMode.text:
-        return 'بحث بالنص';
-      case _SearchMode.narrator:
-        return 'بحث بالراوي';
-    }
-  }
-
-  String get hint {
-    switch (this) {
-      case _SearchMode.text:
-        return 'ابحث بكلمة أو عبارة...';
-      case _SearchMode.narrator:
-        return 'اسم الراوي بالإنجليزية...';
-    }
-  }
 
   IconData get icon {
     switch (this) {
@@ -445,7 +450,7 @@ class _SearchResultCard extends StatelessWidget {
                     ),
                     const Spacer(),
                     Text(
-                      'حديث رقم ${hadith.idInBook}',
+                      AppLocalizations.of(context).hsearchHadithNumber(hadith.idInBook),
                       style: GoogleFonts.cairo(
                         fontSize: 12,
                         color: NoorTheme.textSecondary,

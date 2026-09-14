@@ -7,6 +7,7 @@ import '../../../../core/services/hadith_search_engine.dart';
 import '../../../../core/services/isnad_parser_service.dart';
 import '../../../../core/services/share_as_image_service.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../hadith_book_names.dart';
 import '../widgets/hadith_share_sheet.dart';
 import 'advanced_hadith_browser_page.dart';
@@ -82,7 +83,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
           IconButton(
             icon: const Icon(Icons.school),
             onPressed: () => _openScholarMode(context),
-            tooltip: 'وضع طالب العلم',
+            tooltip: AppLocalizations.of(context).layScholarTooltip,
           ),
           IconButton(
             icon: const Icon(Icons.share),
@@ -91,11 +92,11 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
         ],
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.article), text: 'المتن'),
-            Tab(icon: Icon(Icons.link), text: 'السند'),
-            Tab(icon: Icon(Icons.gavel), text: 'الحكم'),
-            Tab(icon: Icon(Icons.library_books), text: 'التخريج'),
+          tabs: [
+            Tab(icon: const Icon(Icons.article), text: AppLocalizations.of(context).layTabMatn),
+            Tab(icon: const Icon(Icons.link), text: AppLocalizations.of(context).layTabSanad),
+            Tab(icon: const Icon(Icons.gavel), text: AppLocalizations.of(context).layTabHukm),
+            Tab(icon: const Icon(Icons.library_books), text: AppLocalizations.of(context).schTakhrij),
           ],
         ),
       ),
@@ -161,13 +162,13 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
               IconButton.filled(
                 icon: const Icon(Icons.copy),
                 onPressed: () => _copyText(widget.hadith.text),
-                tooltip: 'نسخ المتن',
+                tooltip: AppLocalizations.of(context).layCopyMatn,
               ),
               const SizedBox(width: 8),
               IconButton.filled(
                 icon: const Icon(Icons.image),
                 onPressed: () => _shareAsImage(context),
-                tooltip: 'مشاركة كصورة',
+                tooltip: AppLocalizations.of(context).hshareTitle,
               ),
             ],
           ),
@@ -177,7 +178,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
           // Keywords
           if (widget.hadith.topics.isNotEmpty) ...[
             Text(
-              'المواضيع',
+              AppLocalizations.of(context).advTabTopics,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -221,7 +222,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
               child: Column(
                 children: [
                   Text(
-                    'سلسلة الرواة',
+                    AppLocalizations.of(context).layChainTitle,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -270,7 +271,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
                       const Icon(Icons.format_quote),
                       const SizedBox(width: 8),
                       Text(
-                        'السند الكامل',
+                        AppLocalizations.of(context).layFullSanad,
                         style: theme.textTheme.titleMedium,
                       ),
                     ],
@@ -298,7 +299,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
               child: ListTile(
                 leading: const CircleAvatar(child: Icon(Icons.person)),
                 title: Text(widget.hadith.companion),
-                subtitle: const Text('الصحابي رضي الله عنه'),
+                subtitle: Text(AppLocalizations.of(context).layCompanionRaa),
                 trailing: IconButton(
                   icon: const Icon(Icons.search),
                   onPressed: () => _searchByCompanion(widget.hadith.companion),
@@ -450,7 +451,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
                       const Icon(Icons.info_outline),
                       const SizedBox(width: 8),
                       Text(
-                        'دليل الأحكام',
+                        AppLocalizations.of(context).layGradeGuide,
                         style: theme.textTheme.titleMedium,
                       ),
                     ],
@@ -529,7 +530,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'الباب ${widget.hadith.chapter}',
+                    AppLocalizations.of(context).layChapterOf(widget.hadith.chapter),
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -545,7 +546,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'الحديث رقم ${widget.hadith.number}',
+                      AppLocalizations.of(context).layHadithOf(widget.hadith.number),
                       style: TextStyle(
                         color: theme.colorScheme.onPrimaryContainer,
                         fontWeight: FontWeight.bold,
@@ -569,7 +570,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
             )
           else ...[
             Text(
-              'الحديث في كتب أخرى',
+              AppLocalizations.of(context).layOtherBooks,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -581,7 +582,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Text(
-                    'لم يُوجد في كتب أخرى',
+                    AppLocalizations.of(context).layNotInOthers,
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.outline,
                     ),
@@ -599,7 +600,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
                         child: Text(result.entry.book[0].toUpperCase()),
                       ),
                       title: Text(_getBookName(result.entry.book)),
-                      subtitle: Text('الحديث ${result.entry.number}'),
+                      subtitle: Text(AppLocalizations.of(context).laySimilarNumber(result.entry.number)),
                       trailing: Text(
                         '${(result.score * 100).toStringAsFixed(0)}%',
                         style: TextStyle(
@@ -617,7 +618,7 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
           // Copy takhrij
           FilledButton.icon(
             icon: const Icon(Icons.copy),
-            label: const Text('نسخ التخريج الكامل'),
+            label: Text(AppLocalizations.of(context).layCopyTakhrij),
             onPressed: _copyFullTakhrij,
           ),
         ],
@@ -632,17 +633,18 @@ class _LayeredHadithPageState extends State<LayeredHadithPage>
   void _copyText(String text) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تم النسخ ✓')),
+      SnackBar(content: Text(AppLocalizations.of(context).layCopied)),
     );
   }
 
   void _copyFullTakhrij() {
+    final l10n = AppLocalizations.of(context);
     final takhrij = '''
-📚 ${_getBookName(widget.hadith.book)}
-📖 الباب ${widget.hadith.chapter}
-🔢 الحديث ${widget.hadith.number}
-${widget.hadith.grade.isNotEmpty ? '⚖️ الحكم: ${widget.hadith.grade}' : ''}
-${widget.hadith.companion.isNotEmpty ? '👤 الصحابي: ${widget.hadith.companion}' : ''}
+${l10n.schTakhrijBook(_getBookName(widget.hadith.book))}
+${l10n.layTakhrijChapter(widget.hadith.chapter)}
+${l10n.layTakhrijNumber(widget.hadith.number)}
+${widget.hadith.grade.isNotEmpty ? l10n.layTakhrijGrade(widget.hadith.grade) : ''}
+${widget.hadith.companion.isNotEmpty ? l10n.layTakhrijCompanion(widget.hadith.companion) : ''}
 
 ${widget.hadith.text}
 ''';

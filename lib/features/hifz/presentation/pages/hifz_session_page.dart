@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/algorithms/fsrs_algorithm.dart';
 import '../../../../core/services/quran_audio_engine.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../data/hifz_ayah_card.dart';
 import '../providers/hifz_providers.dart';
 
@@ -96,12 +97,13 @@ class _HifzSessionPageState extends ConsumerState<HifzSessionPage> {
   }
 
   void _showSessionComplete() {
+    final l10n = AppLocalizations.of(context);
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('ما شاء الله 🎉', style: GoogleFonts.cairo()),
+        title: Text(l10n.hsessionDoneTitle, style: GoogleFonts.cairo()),
         content: Text(
-          'أتممت الجلسة بنجاح. استمر في الممارسة اليومية لتثبيت الحفظ.',
+          l10n.hsessionDoneBody,
           style: GoogleFonts.cairo(fontSize: 14),
           textAlign: TextAlign.center,
         ),
@@ -111,7 +113,7 @@ class _HifzSessionPageState extends ConsumerState<HifzSessionPage> {
               Navigator.of(context).pop();
               Navigator.of(context).pop();
             },
-            child: Text('إنهاء', style: GoogleFonts.cairo()),
+            child: Text(l10n.hsessionFinish, style: GoogleFonts.cairo()),
           ),
         ],
       ),
@@ -120,6 +122,7 @@ class _HifzSessionPageState extends ConsumerState<HifzSessionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final card = _current;
@@ -129,7 +132,7 @@ class _HifzSessionPageState extends ConsumerState<HifzSessionPage> {
       backgroundColor: isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.creamWhite,
       appBar: AppBar(
         title: Text(
-          'جلسة حفظ (${_index + 1}/${_queue.length})',
+          l10n.hsessionCounter(_index + 1, _queue.length),
           style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -144,7 +147,7 @@ class _HifzSessionPageState extends ConsumerState<HifzSessionPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'سورة ${card.surah} — آية ${card.ayah}',
+                  l10n.hsessionCardRef(card.surah, card.ayah),
                   style: GoogleFonts.cairo(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
@@ -197,7 +200,7 @@ class _HifzSessionPageState extends ConsumerState<HifzSessionPage> {
                 ),
                 const SizedBox(width: 16),
                 Text(
-                  'التكرار ×${card.repeatCount}',
+                  l10n.hsessionRepeatCount(card.repeatCount),
                   style: GoogleFonts.cairo(
                     fontSize: 13,
                     color: theme.colorScheme.onSurfaceVariant,
@@ -210,7 +213,7 @@ class _HifzSessionPageState extends ConsumerState<HifzSessionPage> {
 
             // FSRS rating buttons
             Text(
-              'كيف كان تذكُّرُك؟',
+              l10n.hsessionRatePrompt,
               style: GoogleFonts.cairo(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
@@ -254,6 +257,7 @@ class _RatingButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
@@ -280,7 +284,7 @@ class _RatingButton extends StatelessWidget {
               ),
             ),
             Text(
-              '$intervalDays يوم',
+              l10n.hsessionIntervalDays(intervalDays),
               style: GoogleFonts.cairo(
                 fontSize: 10,
                 color: theme.colorScheme.onSurfaceVariant,

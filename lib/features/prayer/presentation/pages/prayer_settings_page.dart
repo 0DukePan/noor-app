@@ -10,6 +10,7 @@ import '../../../../core/services/prayer_health_check.dart';
 import '../../../../core/services/prayer_time_engine.dart';
 import '../../../../core/services/seasonal_offsets_engine.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/prayer_providers.dart';
 
 /// ⚙️ إعدادات الصلاة المتقدمة — Advanced Prayer Settings
@@ -33,6 +34,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -40,7 +42,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
       backgroundColor:
           isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.bgLight,
       appBar: AppBar(
-        title: Text('إعدادات الصلاة',
+        title: Text(l10n.psetTitle,
             style: GoogleFonts.cairo(fontWeight: FontWeight.bold),),
         centerTitle: true,
       ),
@@ -49,44 +51,44 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
         physics: const BouncingScrollPhysics(),
         children: [
           // ── Section 1: Adhan Sounds ──
-          const _SectionHeader(
-              icon: Icons.volume_up_rounded, title: 'الأذان والتنبيهات',),
+          _SectionHeader(
+              icon: Icons.volume_up_rounded, title: l10n.psetAdhanSection,),
           const SizedBox(height: 8),
-          _buildAdhanSection(theme, isDark),
+          _buildAdhanSection(theme, isDark, l10n),
           const SizedBox(height: 24),
 
           // ── Section 2: Mosque Mode ──
-          const _SectionHeader(icon: Icons.mosque_rounded, title: 'وضع المسجد'),
+          _SectionHeader(icon: Icons.mosque_rounded, title: l10n.psetMosqueSection),
           const SizedBox(height: 8),
-          _buildMosqueModeSection(theme, isDark),
+          _buildMosqueModeSection(theme, isDark, l10n),
           const SizedBox(height: 24),
 
           // ── Section 3: Calculation Method ──
-          const _SectionHeader(
-              icon: Icons.calculate_rounded, title: 'طريقة حساب المواقيت',),
+          _SectionHeader(
+              icon: Icons.calculate_rounded, title: l10n.psetMethodSection,),
           const SizedBox(height: 8),
-          _buildMethodSection(theme, isDark),
+          _buildMethodSection(theme, isDark, l10n),
           const SizedBox(height: 24),
 
           // ── Section 4: Seasonal Offsets ──
-          const _SectionHeader(
-              icon: Icons.tune_rounded, title: 'الإزاحات الموسمية',),
+          _SectionHeader(
+              icon: Icons.tune_rounded, title: l10n.psetOffsetsSection,),
           const SizedBox(height: 8),
-          _buildOffsetsSection(theme, isDark),
+          _buildOffsetsSection(theme, isDark, l10n),
           const SizedBox(height: 24),
 
           // ── Section 5: Prayer Health Check ──
-          const _SectionHeader(
-              icon: Icons.health_and_safety_rounded, title: 'فحص النظام',),
+          _SectionHeader(
+              icon: Icons.health_and_safety_rounded, title: l10n.psetHealthSection,),
           const SizedBox(height: 8),
-          _buildHealthSection(theme, isDark),
+          _buildHealthSection(theme, isDark, l10n),
           const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  Widget _buildMethodSection(ThemeData theme, bool isDark) {
+  Widget _buildMethodSection(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final selected =
         HiveService.getCalculationMethod() ?? CalculationMethod.ummAlQura;
 
@@ -101,7 +103,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'الطريقة المستخدمة لحساب جميع المواقيت',
+            l10n.psetMethodHint,
             style: GoogleFonts.cairo(
               fontSize: 13,
               color: NoorDesignSystem.textSecondary,
@@ -144,7 +146,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
   // ADHAN SECTION
   // ═══════════════════════════════════════════════════════════════════════════
 
-  Widget _buildAdhanSection(ThemeData theme, bool isDark) {
+  Widget _buildAdhanSection(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final settings = ref.watch(prayerSettingsProvider);
     final notifier = ref.read(prayerSettingsProvider.notifier);
 
@@ -170,7 +172,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                   title: Text(label,
                       style: GoogleFonts.cairo(fontWeight: FontWeight.w600),),
                   subtitle: Text(
-                    enabled ? 'الأذان مفعل' : 'الأذان معطل',
+                    enabled ? l10n.psetAdhanOn : l10n.psetAdhanOff,
                     style: GoogleFonts.cairo(
                       fontSize: 12,
                       color:
@@ -208,7 +210,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
   // MOSQUE MODE SECTION
   // ═══════════════════════════════════════════════════════════════════════════
 
-  Widget _buildMosqueModeSection(ThemeData theme, bool isDark) {
+  Widget _buildMosqueModeSection(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final settings = ref.watch(prayerSettingsProvider);
     final notifier = ref.read(prayerSettingsProvider.notifier);
 
@@ -230,13 +232,13 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
             children: [
               // Global toggle
               SwitchListTile(
-                title: Text('وضع المسجد',
+                title: Text(l10n.psetMosque,
                     style: GoogleFonts.cairo(
                         fontWeight: FontWeight.bold, fontSize: 16,),),
                 subtitle: Text(
                   settings.mosqueModeGlobal
-                      ? 'يتم كتم الهاتف تلقائيًا عند وقت الصلاة'
-                      : 'معطل — يدوي فقط',
+                      ? l10n.psetMosqueOn
+                      : l10n.psetMosqueOff,
                   style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey),
                 ),
                 value: settings.mosqueModeGlobal,
@@ -254,10 +256,10 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('المدة',
+                  Text(l10n.psetDuration,
                       style:
                           GoogleFonts.cairo(fontSize: 14, color: Colors.grey),),
-                  Text('${settings.mosqueDuration} دقيقة',
+                  Text(l10n.psetDurationMinutes(settings.mosqueDuration),
                       style: GoogleFonts.cairo(fontWeight: FontWeight.bold),),
                 ],
               ),
@@ -267,14 +269,14 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                 max: 60,
                 divisions: 5,
                 activeColor: NoorDesignSystem.primaryGreen,
-                label: '${settings.mosqueDuration} د',
+                label: l10n.notifMinutesShort(settings.mosqueDuration),
                 onChanged: (v) => notifier.setMosqueDuration(v.round()),
               ),
 
               const Divider(height: 16),
 
               // Quick buttons
-              Text('تفعيل سريع',
+              Text(l10n.psetQuick,
                   style: GoogleFonts.cairo(fontSize: 13, color: Colors.grey),),
               const SizedBox(height: 8),
               Row(
@@ -286,7 +288,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                       MosqueModeService.quick10Minutes();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                            content: Text('🕌 وضع المسجد — 10 دقائق',
+                            content: Text(l10n.psetQuick10,
                                 style: GoogleFonts.cairo(),),),
                       );
                     },
@@ -299,7 +301,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                       MosqueModeService.quick20Minutes();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                            content: Text('🕌 وضع المسجد — 20 دقيقة',
+                            content: Text(l10n.psetQuick20,
                                 style: GoogleFonts.cairo(),),),
                       );
                     },
@@ -312,7 +314,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                       MosqueModeService.quick30Minutes();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                            content: Text('🕌 وضع المسجد — 30 دقيقة',
+                            content: Text(l10n.psetQuick30,
                                 style: GoogleFonts.cairo(),),),
                       );
                     },
@@ -330,7 +332,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
   // SEASONAL OFFSETS SECTION
   // ═══════════════════════════════════════════════════════════════════════════
 
-  Widget _buildOffsetsSection(ThemeData theme, bool isDark) {
+  Widget _buildOffsetsSection(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final season = SeasonalOffsetsEngine.getCurrentSeason();
     final offsets = SeasonalOffsetsEngine.getAllCurrentOffsets();
 
@@ -383,7 +385,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                       max: 10,
                       divisions: 20,
                       activeColor: NoorDesignSystem.goldAccent,
-                      label: '${offsetMinutes > 0 ? '+' : ''}$offsetMinutes د',
+                      label: '${offsetMinutes > 0 ? '+' : ''}${l10n.notifMinutesShort(offsetMinutes)}',
                       onChanged: (v) {
                         SeasonalOffsetsEngine.setCustomOffset(
                           prayer: entry.key,
@@ -426,7 +428,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
               },
               icon: const Icon(Icons.replay_rounded, size: 16),
               label:
-                  Text('إعادة تعيين', style: GoogleFonts.cairo(fontSize: 12)),
+                  Text(l10n.psetReset, style: GoogleFonts.cairo(fontSize: 12)),
               style: TextButton.styleFrom(foregroundColor: Colors.grey),
             ),
           ),
@@ -439,7 +441,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
   // HEALTH CHECK SECTION
   // ═══════════════════════════════════════════════════════════════════════════
 
-  Widget _buildHealthSection(ThemeData theme, bool isDark) {
+  Widget _buildHealthSection(ThemeData theme, bool isDark, AppLocalizations l10n) {
     final settings = ref.watch(prayerSettingsProvider);
     final notifier = ref.read(prayerSettingsProvider.notifier);
 
@@ -466,7 +468,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                           strokeWidth: 2, color: Colors.white,),)
                   : const Icon(Icons.health_and_safety_rounded),
               label: Text(
-                settings.healthLoading ? 'جاري الفحص...' : 'تشغيل فحص النظام',
+                settings.healthLoading ? l10n.psetHealthRunning : l10n.psetHealthRun,
                 style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
               ),
               style: FilledButton.styleFrom(
@@ -491,7 +493,7 @@ class _PrayerSettingsPageState extends ConsumerState<PrayerSettingsPage> {
                     const Icon(Icons.check_circle_rounded,
                         color: Colors.green, size: 48,),
                     const SizedBox(height: 8),
-                    Text('كل شيء يعمل بشكل ممتاز!',
+                    Text(l10n.psetAllGood,
                         style: GoogleFonts.cairo(fontWeight: FontWeight.w600),),
                   ],
                 ),
@@ -562,7 +564,7 @@ class _QuickMosqueButton extends StatelessWidget {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(vertical: 12),
         ),
-        child: Text('$minutes د',
+        child: Text(AppLocalizations.of(context).notifMinutesShort(minutes),
             style: GoogleFonts.cairo(fontWeight: FontWeight.bold),),
       ),
     );
@@ -579,15 +581,16 @@ class _HealthStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = {
       HealthStatus.healthy: Colors.green,
       HealthStatus.warning: Colors.orange,
       HealthStatus.critical: Colors.red,
     };
     final labels = {
-      HealthStatus.healthy: 'النظام سليم',
-      HealthStatus.warning: 'يوجد تحذيرات',
-      HealthStatus.critical: 'يوجد مشاكل حرجة',
+      HealthStatus.healthy: l10n.psetBadgeHealthy,
+      HealthStatus.warning: l10n.psetBadgeWarning,
+      HealthStatus.critical: l10n.psetBadgeCritical,
     };
 
     return Container(
@@ -626,6 +629,7 @@ class _HealthIssueCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final severityColors = {
       IssueSeverity.info: Colors.blue,
       IssueSeverity.warning: Colors.orange,
@@ -659,7 +663,7 @@ class _HealthIssueCard extends StatelessWidget {
             TextButton(
               onPressed: onFix,
               style: TextButton.styleFrom(foregroundColor: color),
-              child: Text('إصلاح',
+              child: Text(l10n.psetFix,
                   style: GoogleFonts.cairo(
                       fontWeight: FontWeight.bold, fontSize: 12,),),
             ),

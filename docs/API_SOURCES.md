@@ -1,24 +1,32 @@
 # مصادر البيانات الشرعية - Islamic Data Sources & APIs
 
-## 📖 القرآن الكريم (Quran APIs)
+> **Accuracy note (2026-08-19):** Noor is **offline-first**. The primary data
+> ships inside the app (Quran JSON, hadith SQLite `hadith.db`, tafsir DB,
+> adhkar JSON), and prayer times / Qibla direction are computed locally by
+> `prayer_time_engine.dart` / `qibla_engine.dart` — no network required.
+> The endpoints below are the capabilities of `ApiFetcherService`
+> (`lib/core/services/api_fetcher_service.dart`), used as network fallbacks
+> (e.g. the mosque finder in the quran data source). Supabase is **not**
+> part of the stack — earlier versions of this doc referenced it; it has
+> been removed.
+
+## 📖 القرآن الكريم (Quran APIs — implemented in `ApiFetcherService`)
 
 ### 1. Al Quran Cloud ⭐ Primary
 | | |
 |---|---|
 | **URL** | `https://api.alquran.cloud/v1/` |
 | **Docs** | [alquran.cloud/api](https://alquran.cloud/api) |
-| **Features** | Ayah, Surah, Juz, 90+ editions, audio recitations |
+| **Features** | Ayah, Surah, Juz, editions, audio recitations |
 | **Auth** | None required |
-| **Rate Limit** | Generous (no strict limit) |
 
-**Endpoints:**
+**Endpoints implemented:**
 ```
 GET /surah                    # All surahs
-GET /surah/{number}           # Surah with verses
-GET /surah/{number}/{edition} # Specific edition (Hafs/Warsh)
-GET /ayah/{ref}/{edition}     # Single ayah
+GET /surah/{number}/{edition} # Surah with verses (default quran-uthmani)
 GET /edition                  # Available editions
-GET /edition/type/tafsir      # Tafsir editions
+GET /edition/type/{type}      # Editions by type
+GET /ayah/{ref}/{edition}     # Single ayah (tafsir / recitation URL)
 ```
 
 ### 2. fawazahmed0/quran-api ⭐ Backup
@@ -29,16 +37,12 @@ GET /edition/type/tafsir      # Tafsir editions
 | **Features** | 400+ translations, 90+ languages, no rate limit |
 | **Format** | Static JSON files (CDN) |
 
-### 3. Tafsir API
-| | |
-|---|---|
-| **URL** | `https://api.quran.com/api/v4/` |
-| **Docs** | [api-docs.quran.com](https://api-docs.quran.com/) |
-| **Features** | 25+ tafsirs, word-by-word, translations |
+Used as the automatic fallback when the primary Quran API fails
+(`chapters.json` / `chapters/{number}.json`).
 
 ---
 
-## 📚 السنة النبوية (Hadith APIs)
+## 📚 السنة النبوية (Hadith APIs — implemented in `ApiFetcherService`)
 
 ### 1. Sunnah.com API ⭐ Primary
 | | |
@@ -46,27 +50,22 @@ GET /edition/type/tafsir      # Tafsir editions
 | **URL** | `https://api.sunnah.com/v1/` |
 | **Docs** | [sunnah.stoplight.io/docs/api](https://sunnah.stoplight.io/docs/api/) |
 | **Collections** | Bukhari, Muslim, Abu Dawud, Tirmidhi, Ibn Majah, Nasai |
-| **Auth** | API Key (request via GitHub issue) |
+| **Auth** | API key via `hadithApiKey` (X-API-Key header) |
 
-**Endpoints:**
+**Endpoints implemented:**
 ```
 GET /collections           # All collections
-GET /collections/{name}    # Collection info
-GET /hadiths?collection=   # Hadiths by collection
+GET /hadiths?collection=   # Hadiths by collection (page/limit)
 GET /hadiths/{urn}         # Single hadith
 ```
 
-### 2. HadeethEnc.com API ⭐ Backup
-| | |
-|---|---|
-| **URL** | `https://hadeethenc.com/api/v1/` |
-| **Docs** | [hadeethenc.com/en/info/api](https://hadeethenc.com/en/info/api) |
-| **Features** | Authentic hadiths with explanations, multi-language |
-| **Auth** | None |
+> Note: the bundled app content comes from the prebuilt `hadith.db`
+> (9 books + forties + other books, SQLite). The API path is a capability
+> of the fetcher service, not the source of the shipped corpus.
 
 ---
 
-## 🕌 مواقيت الصلاة (Prayer Times APIs)
+## 🕌 مواقيت الصلاة (Prayer Times APIs — implemented in `ApiFetcherService`)
 
 ### 1. Aladhan API ⭐ Primary
 | | |
@@ -76,7 +75,7 @@ GET /hadiths/{urn}         # Single hadith
 | **Features** | 15+ calculation methods, calendar, Qibla |
 | **Auth** | None required |
 
-**Endpoints:**
+**Endpoints implemented:**
 ```
 GET /timings/{date}?latitude=&longitude=&method=  # Daily times
 GET /calendar/{year}/{month}?latitude=&longitude= # Monthly calendar
@@ -86,42 +85,39 @@ GET /methods                                        # Calculation methods
 
 **Methods:** MWL(3), ISNA(2), Egypt(5), Makkah(4), Karachi(1), Tehran(7)
 
-### 2. adhan Package (Offline) ⭐ Local Calculation
-| | |
-|---|---|
-| **Package** | `adhan: ^2.0.0` |
-| **Docs** | [pub.dev/packages/adhan](https://pub.dev/packages/adhan) |
-| **Features** | Offline calculation, same accuracy as API |
+> Note: the app computes prayer times **locally** with
+> `prayer_time_engine.dart` (19 calculation methods incl. Umm al-Qura) and
+> Qibla with `qibla_engine.dart` (great-circle bearing + magnetic
+> declination). The API is not required at runtime.
 
 ---
 
-## 🧭 اتجاه القبلة (Qibla APIs)
+## 🧭 اتجاه القبلة (Qibla)
 
-### Aladhan Qibla
+### Aladhan Qibla (fetcher capability)
 ```
 GET https://api.aladhan.com/v1/qibla/{latitude}/{longitude}
 ```
 Response: `{ "data": { "latitude": 21.4225, "longitude": 39.8261, "direction": 152.89 }}`
 
-**Local Calculation:** Use spherical bearing formula (implemented in `CompassService`).
+**Local Calculation (what the app actually uses):** great-circle bearing
+formula implemented in `lib/core/services/qibla_engine.dart`, with magnetic
+declination correction by region.
 
 ---
 
-## 🕋 المساجد (Mosque Finder APIs)
+## 🕋 المساجد (Mosque Finder — wired into the quran data source)
 
-### 1. MasjidNear.me API
+### MasjidNear.me API ⭐ Primary
 | | |
 |---|---|
 | **URL** | `https://masjidnear.me/api/v1/` |
 | **Endpoint** | `GET /masjid?lat=&long=&radius=` |
 | **Auth** | None |
+| **Failure mode** | Returns an empty list (graceful offline fallback) |
 
-### 2. OpenStreetMap (Overpass API)
-```
-[out:json];
-node["amenity"="place_of_worship"]["religion"="muslim"](around:5000,lat,lon);
-out;
-```
+This is the one genuinely wired network call: the quran/mosque data source
+uses it as a fallback when the local dataset has no nearby mosques.
 
 ---
 
@@ -134,96 +130,67 @@ out;
 | **Morning/Evening** | `github.com/Seen-Arabic/Morning-And-Evening-Adhkar-DB` |
 | **MuslimKit** | `github.com/ahegazy/muslimKit` |
 
+Bundled assets: `assets/adhkar/morning.json`, `assets/adhkar/evening.json`,
+`assets/adhkar/after_prayer.json` (loaded via `AdhkarDataSource`).
+
 ---
 
-## 🔄 Integration Stack Diagram
+## 🔄 Integration Stack (actual, 2026-08-19)
 
 ```mermaid
 graph TB
-    subgraph "External APIs"
-        QuranAPI[AlQuran.cloud]
-        HadithAPI[Sunnah.com]
-        PrayerAPI[Aladhan.com]
+    subgraph "External APIs (fallbacks)"
+        QuranAPI[AlQuran.cloud + fawazahmed0 backup]
         MosqueAPI[MasjidNear.me]
     end
-    
-    subgraph "API Layer"
-        Fetcher[API Fetcher Service]
-        Cache[Cache Manager]
+
+    subgraph "Pre-bundled (offline-first, primary)"
+        QuranJSON[quran_uthmani.json + translations]
+        HadithDB[hadith.db SQLite + FTS5]
+        Tafsir[tafsir assets]
+        Adhkar[adhkar JSON]
     end
-    
-    subgraph "Data Layer"
-        Supabase[(Supabase)]
-        Hive[(Hive Local)]
-        Assets[Pre-bundled Assets]
+
+    subgraph "Local computation"
+        PrayerEngine[prayer_time_engine.dart]
+        QiblaEngine[qibla_engine.dart]
     end
-    
+
     subgraph "App"
+        Hive[(Hive local storage)]
         Features[Features]
     end
-    
-    QuranAPI --> Fetcher
-    HadithAPI --> Fetcher
-    PrayerAPI --> Fetcher
-    MosqueAPI --> Fetcher
-    
-    Fetcher --> Cache
-    Cache --> Supabase
-    Cache --> Hive
-    Assets --> Hive
-    
-    Hive --> Features
-    Supabase --> Features
+
+    QuranAPI --> Features
+    MosqueAPI --> Features
+    QuranJSON --> Features
+    HadithDB --> Features
+    Tafsir --> Features
+    Adhkar --> Features
+    PrayerEngine --> Features
+    QiblaEngine --> Features
+    Features --> Hive
 ```
 
 ---
 
-## 🛡️ Integration Strategies
+## 🛡️ Integration Strategy (offline-first)
 
-### 1. Pre-bundle Essential Data
-```yaml
-assets/quran/quran_hafs.json    # 604 pages Uthmani text
-assets/adhkar/hisn_muslim.json  # All adhkar
-assets/hadith/arbaeen.json      # 40 Nawawi hadith
-```
+1. **Pre-bundle essential data** — Quran text, hadith corpus (SQLite), tafsir,
+   adhkar all ship with the app.
+2. **Compute locally** — prayer times and Qibla direction are calculated
+   on-device; no API dependency.
+3. **Network as fallback only** — the fetcher service covers Quran/hadith/
+   prayer/Qibla endpoints; the mosque finder is the currently wired caller.
+4. **API abstraction layer** — `quran_datasources.dart` exposes the local
+   source with the network fallback seam.
 
-### 2. Lazy Fetch with Delta Updates
-```dart
-class ApiCacheManager {
-  Future<void> syncIfNeeded(String resource) async {
-    final lastSync = await _getLastSyncTime(resource);
-    if (_isStale(lastSync)) {
-      await _fetchAndCache(resource);
-    }
-  }
-}
-```
+## ⚠️ Known limitations
 
-### 3. Failover Chain
-```dart
-Primary: AlQuran.cloud → Backup: fawazahmed0 → Fallback: Local Assets
-```
-
-### 4. API Abstraction Layer
-```dart
-abstract class QuranDataSource {
-  Future<Surah> getSurah(int number);
-}
-
-class AlQuranCloudSource implements QuranDataSource { ... }
-class FawazQuranSource implements QuranDataSource { ... }
-class LocalQuranSource implements QuranDataSource { ... }
-```
-
----
-
-## ⚠️ Challenges & Solutions
-
-| Challenge | Solution |
-|-----------|----------|
-| API downtime | Failover chain + local fallback |
-| Rate limiting | Aggressive caching, delta updates |
-| Large data size | Lazy loading, pagination |
-| Network offline | Pre-bundled essentials |
-| Data freshness | Background sync, TTL caching |
-| API key security | Store in Flutter secure storage |
+| Challenge | Status |
+|-----------|--------|
+| API downtime | Offline-first: pre-bundled data means downtime does not affect core features |
+| Rate limiting | Not applicable to primary data (bundled); network calls are best-effort fallbacks |
+| Large data size | hadith.db ships prebuilt; tafsir is bundled per-book |
+| Network offline | Core worship features (prayer, qibla, quran, hadith, adhkar) work fully offline |
+| API key security | `hadithApiKey` is held in memory only, set by the caller |

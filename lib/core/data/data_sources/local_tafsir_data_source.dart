@@ -1,7 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/tafsir.dart';
-import '../../utils/isolate_parser.dart';
+import 'tafsir_database.dart';
 
 class LocalTafsirDataSource {
   // Cache structure: Map<"bookId-surahId", Map<verseId, TafsirVerse>>
@@ -22,22 +21,39 @@ class LocalTafsirDataSource {
     return _cache[cacheKey]?[verseId];
   }
 
-  /// Loads and parses the JSON file for a specific surah and tafsir book.
+  /// Loads a surah's tafsir with one indexed query against the prebuilt
+  /// `tafsir.db` (see `tool/build_tafsir_db.dart`).
+  ///
+  /// Unknown book IDs fall back to Muyassar's data under the requested label
+  /// — the long-standing contract the fallback test pins. Row order is the
+  /// corpus order, so the last-wins overwrite behavior for duplicate ayah
+  /// keys matches the old JSON loader exactly.
   Future<void> _loadSurahTafsir(int surahId, String bookId) async {
     try {
-      final book = TafsirBook.values.firstWhere(
-        (b) => b.id == bookId,
-        orElse: () => TafsirBook.muyassar,
+      final dbSource = switch (bookId) {
+        'muyassar' => 'muyassar',
+        'saadi' => 'saadi',
+        'tabari' => 'tabari',
+        // DB keys use the enum name; the book id uses snake_case.
+        'ibn_kathir' => 'ibnKathir',
+        _ => 'muyassar',
+      };
+      final rows = await TafsirDatabase.querySurahEntries(
+        source: dbSource,
+        surah: surahId,
       );
-
-      // Path construction: assets/tafsir/[id]/[folderName]/[surahId].json
-      final path = 'assets/tafsir/${book.id}/${book.folderName}/$surahId.json';
-
-      final tafsirMap = await IsolateParser.parseInBackground(
-        assetPath: path,
-        parser: (json) => _parseTafsirJson(json, surahId, bookId),
-      );
-
+      final tafsirMap = <int, TafsirVerse>{};
+      for (final row in rows) {
+        final ayah = row['ayah'];
+        final text = row['text'];
+        if (ayah is! int || text is! String) continue;
+        tafsirMap[ayah] = TafsirVerse(
+          surahId: surahId,
+          verseId: ayah,
+          text: text,
+          source: bookId,
+        );
+      }
       _cache['$bookId-$surahId'] = tafsirMap;
     } on Exception catch (e) {
       debugPrint('Error loading tafsir ($bookId) for surah $surahId: $e');
@@ -45,29 +61,6 @@ class LocalTafsirDataSource {
     }
   }
 
-  static Map<int, TafsirVerse> _parseTafsirJson(String jsonString, int surahId, String bookId) {
-    final json = Map<String, dynamic>.from(jsonDecode(jsonString) as Map);
-    final result = <int, TafsirVerse>{};
-
-    if (json.containsKey('ayahs')) {
-      final ayahs = json['ayahs'] as List;
-      for (final item in ayahs) {
-        final map = item as Map;
-        final verseId = map['ayah'] as int;
-        final text = map['text'] as String;
-        
-        result[verseId] = TafsirVerse(
-          surahId: surahId,
-          verseId: verseId,
-          text: text,
-          source: bookId,
-        );
-      }
-    }
-    
-    return result;
-  }
-  
   /// Clears cache to free memory if needed (e.g. when switching surahs excessively)
   void clearCache() {
     _cache.clear();

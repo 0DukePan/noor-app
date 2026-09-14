@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class TasbihPage extends StatefulWidget {
   const TasbihPage({super.key});
@@ -66,6 +67,7 @@ class _TasbihPageState extends State<TasbihPage> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final progress = _target > 0 ? (_count / _target).clamp(0.0, 1.0) : 0.0;
     final isComplete = _target > 0 && _count >= _target;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -74,7 +76,7 @@ class _TasbihPageState extends State<TasbihPage> with SingleTickerProviderStateM
       backgroundColor: isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.background,
       appBar: AppBar(
         title: Text(
-          'المسبحة الإلكترونية',
+          l10n.tasbihTitle,
           style: GoogleFonts.cairo(
             fontWeight: FontWeight.bold,
             color: isDark ? Colors.white : NoorDesignSystem.naskhBlack,
@@ -90,7 +92,7 @@ class _TasbihPageState extends State<TasbihPage> with SingleTickerProviderStateM
               color: isDark ? Colors.white : NoorDesignSystem.naskhBlack,
             ),
             onPressed: _reset,
-            tooltip: 'تصفير',
+            tooltip: l10n.tasbihReset,
           ),
         ],
       ),
@@ -107,21 +109,21 @@ class _TasbihPageState extends State<TasbihPage> with SingleTickerProviderStateM
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _PresetChip(
-                      label: '٣٣',
+                      label: l10n.tasbihPreset33,
                       value: 33,
                       selectedValue: _target,
                       onTap: () => _setTarget(33),
                     ),
                     const SizedBox(width: 12),
                     _PresetChip(
-                      label: '١٠٠',
+                      label: l10n.tasbihPreset100,
                       value: 100,
                       selectedValue: _target,
                       onTap: () => _setTarget(100),
                     ),
                     const SizedBox(width: 12),
                     _PresetChip(
-                      label: 'مفتوح',
+                      label: l10n.tasbihOpen,
                       value: 0,
                       selectedValue: _target,
                       onTap: () => _setTarget(0),
@@ -133,74 +135,82 @@ class _TasbihPageState extends State<TasbihPage> with SingleTickerProviderStateM
             
             // Immersive Tap Area
             Expanded(
-              child: GestureDetector(
+              child: Semantics(
+                button: true,
+                liveRegion: true,
+                label: l10n.a11yTasbihCount(_count),
                 onTap: _increment,
-                behavior: HitTestBehavior.opaque,
-                child: Center(
-                  child: ScaleTransition(
-                    scale: _pulseAnimation,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Progress Circle
-                        if (_target > 0)
-                          SizedBox(
-                            width: 280,
-                            height: 280,
-                            child: CircularProgressIndicator(
-                              value: progress,
-                              strokeWidth: 12,
-                              backgroundColor: NoorDesignSystem.primaryContainer,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                isComplete ? NoorDesignSystem.goldAccent : NoorDesignSystem.primaryGreen,
+                excludeSemantics: true,
+                child: GestureDetector(
+                  excludeFromSemantics: true,
+                  onTap: _increment,
+                  behavior: HitTestBehavior.opaque,
+                  child: Center(
+                    child: ScaleTransition(
+                      scale: _pulseAnimation,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Progress Circle
+                          if (_target > 0)
+                            SizedBox(
+                              width: 280,
+                              height: 280,
+                              child: CircularProgressIndicator(
+                                value: progress,
+                                strokeWidth: 12,
+                                backgroundColor: NoorDesignSystem.primaryContainer,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  isComplete ? NoorDesignSystem.goldAccent : NoorDesignSystem.primaryGreen,
+                                ),
                               ),
                             ),
-                          ),
-                        
-                        // Main Counter Container
-                        Container(
-                          width: 250,
-                          height: 250,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isComplete 
-                                ? NoorDesignSystem.goldAccent.withValues(alpha: 0.1) 
-                                : isDark
-                                    ? NoorDesignSystem.surfaceDark
-                                    : Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: (isComplete ? NoorDesignSystem.goldAccent : NoorDesignSystem.primaryGreen).withValues(alpha: 0.2),
-                                blurRadius: 30,
-                                spreadRadius: 10,
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                '$_count',
-                                style: GoogleFonts.cairo(
-                                  fontSize: 80,
-                                  fontWeight: FontWeight.bold,
-                                  height: 1,
-                                  color: isComplete ? NoorDesignSystem.goldAccent : NoorDesignSystem.primaryGreen,
+
+                          // Main Counter Container
+                          Container(
+                            width: 250,
+                            height: 250,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isComplete
+                                  ? NoorDesignSystem.goldAccent.withValues(alpha: 0.1)
+                                  : isDark
+                                      ? NoorDesignSystem.surfaceDark
+                                      : Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (isComplete ? NoorDesignSystem.goldAccent : NoorDesignSystem.primaryGreen).withValues(alpha: 0.2),
+                                  blurRadius: 30,
+                                  spreadRadius: 10,
                                 ),
-                              ),
-                              if (_target > 0)
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
                                 Text(
-                                  '/ $_target',
+                                  '$_count',
                                   style: GoogleFonts.cairo(
-                                    fontSize: 24,
-                                    color: NoorDesignSystem.textSecondary,
-                                    fontWeight: FontWeight.w600,
+                                    fontSize: 80,
+                                    fontWeight: FontWeight.bold,
+                                    height: 1,
+                                    color: isComplete ? NoorDesignSystem.goldAccent : NoorDesignSystem.primaryGreen,
                                   ),
                                 ),
-                            ],
+                                if (_target > 0)
+                                  Text(
+                                    '/ $_target',
+                                    style: GoogleFonts.cairo(
+                                      fontSize: 24,
+                                      color: NoorDesignSystem.textSecondary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -211,7 +221,7 @@ class _TasbihPageState extends State<TasbihPage> with SingleTickerProviderStateM
             Padding(
               padding: const EdgeInsets.only(bottom: 40),
               child: Text(
-                'اضغط في أي مكان للشاشة للعد',
+                l10n.tasbihHint,
                 style: GoogleFonts.cairo(
                   fontSize: 16,
                   color: NoorDesignSystem.textSecondary,
@@ -242,36 +252,44 @@ class _PresetChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final isSelected = value == selectedValue;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return GestureDetector(
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: label,
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? NoorDesignSystem.primaryGreen
-              : isDark
-                  ? NoorDesignSystem.surfaceDark
-                  : Colors.white,
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(
-            color: isSelected ? NoorDesignSystem.primaryGreen : NoorDesignSystem.primaryContainer,
-            width: 2,
-          ),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+      excludeSemantics: true,
+      child: GestureDetector(
+        excludeFromSemantics: true,
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? NoorDesignSystem.primaryGreen
+                : isDark
+                    ? NoorDesignSystem.surfaceDark
+                    : Colors.white,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(
+              color: isSelected ? NoorDesignSystem.primaryGreen : NoorDesignSystem.primaryContainer,
+              width: 2,
             ),
-          ] : null,
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.cairo(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: isSelected ? Colors.white : NoorDesignSystem.primaryGreen,
+            boxShadow: isSelected ? [
+              BoxShadow(
+                color: NoorDesignSystem.primaryGreen.withValues(alpha: 0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ] : null,
+          ),
+          child: Text(
+            label,
+            style: GoogleFonts.cairo(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isSelected ? Colors.white : NoorDesignSystem.primaryGreen,
+            ),
           ),
         ),
       ),

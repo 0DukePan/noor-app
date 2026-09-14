@@ -11,9 +11,10 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../domain/entities/surah_names.dart';
+import 'hive_box_registry.dart';
 
 /// 🔊 محرك الصوت الاحترافي - Professional Quran Audio Engine
-/// 
+///
 /// Features:
 /// - Background playback (lock screen controls)
 /// - Offline smart caching
@@ -25,18 +26,18 @@ class QuranAudioEngine {
   static final AudioPlayer _player = AudioPlayer();
   static Box<dynamic>? _cacheBox;
   static Box<dynamic>? _progressBox;
-  
+
   // State
   static int _currentSurah = 1;
   static int _currentAyah = 1;
   static String _currentReciter = 'ar.alafasy';
   static RepeatMode repeatMode = RepeatMode.none;
   static double _speed = 1;
-  
+
   // Streams
   static final _currentAyahController = StreamController<int>.broadcast();
   static Stream<int> get currentAyahStream => _currentAyahController.stream;
-  
+
   static final _playStateController = StreamController<PlayState>.broadcast();
   static Stream<PlayState> get playStateStream => _playStateController.stream;
 
@@ -47,34 +48,39 @@ class QuranAudioEngine {
   /// تهيئة المحرك
   static Future<void> init() async {
     // Initialize Hive boxes
-    _cacheBox = await Hive.openBox<dynamic>('audio_cache');
-    _progressBox = await Hive.openBox<dynamic>('audio_progress');
-    
+    _cacheBox = await Hive.openBox<dynamic>(HiveBoxes.audioCache);
+    _progressBox = await Hive.openBox<dynamic>(HiveBoxes.audioProgress);
+
     // Initialize audio session for background playback
     final session = await AudioSession.instance;
-    await session.configure(const AudioSessionConfiguration(
-      avAudioSessionCategory: AVAudioSessionCategory.playback,
-      avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.mixWithOthers,
-      avAudioSessionMode: AVAudioSessionMode.spokenAudio,
-      androidAudioAttributes: AndroidAudioAttributes(
-        contentType: AndroidAudioContentType.music,
-        usage: AndroidAudioUsage.media,
+    await session.configure(
+      const AudioSessionConfiguration(
+        avAudioSessionCategory: AVAudioSessionCategory.playback,
+        avAudioSessionCategoryOptions:
+            AVAudioSessionCategoryOptions.mixWithOthers,
+        avAudioSessionMode: AVAudioSessionMode.spokenAudio,
+        androidAudioAttributes: AndroidAudioAttributes(
+          contentType: AndroidAudioContentType.music,
+          usage: AndroidAudioUsage.media,
+        ),
       ),
-    ),);
-    
+    );
+
     // Listen to player state
     _player.playerStateStream.listen((state) {
-      _playStateController.add(PlayState(
-        isPlaying: state.playing,
-        processingState: state.processingState,
-      ),);
-      
+      _playStateController.add(
+        PlayState(
+          isPlaying: state.playing,
+          processingState: state.processingState,
+        ),
+      );
+
       // Handle completion
       if (state.processingState == ProcessingState.completed) {
         _onAyahComplete();
       }
     });
-    
+
     // Listen to position for progress saving
     _player.positionStream.listen(_saveProgress);
   }
@@ -95,7 +101,8 @@ class QuranAudioEngine {
       id: 'ar.abdulbasit',
       arabicName: 'عبد الباسط عبد الصمد',
       englishName: 'Abdul Basit Abdul Samad',
-      baseUrl: 'https://cdn.islamic.network/quran/audio/128/ar.abdulbasitmurattal',
+      baseUrl:
+          'https://cdn.islamic.network/quran/audio/128/ar.abdulbasitmurattal',
       flag: '🇪🇬',
     ),
     'ar.minshawi': ReciterInfo(
@@ -116,7 +123,8 @@ class QuranAudioEngine {
       id: 'ar.sudais',
       arabicName: 'عبد الرحمن السديس',
       englishName: 'Abdurrahman As-Sudais',
-      baseUrl: 'https://cdn.islamic.network/quran/audio/128/ar.abdurrahmaansudais',
+      baseUrl:
+          'https://cdn.islamic.network/quran/audio/128/ar.abdurrahmaansudais',
       flag: '🇸🇦',
     ),
     'ar.shuraym': ReciterInfo(
@@ -193,12 +201,13 @@ class QuranAudioEngine {
       id: 'ar.abdulmuhsenalqasim',
       arabicName: 'عبد المحسن القاسم',
       englishName: 'Abdul Muhsin Al-Qasim',
-      baseUrl: 'https://cdn.islamic.network/quran/audio/128/ar.abdulmuhsenalqasim',
+      baseUrl:
+          'https://cdn.islamic.network/quran/audio/128/ar.abdulmuhsenalqasim',
       flag: '🇸🇦',
     ),
   };
 
-  static ReciterInfo get currentReciterInfo => 
+  static ReciterInfo get currentReciterInfo =>
       reciters[_currentReciter] ?? reciters.values.first;
 
   static void setReciter(String reciterId) {
@@ -220,16 +229,16 @@ class QuranAudioEngine {
     _currentSurah = surah;
     _currentAyah = ayah;
     if (reciter != null) _currentReciter = reciter;
-    
+
     _currentAyahController.add(ayah);
-    
+
     try {
       final audioSource = await _getAudioSource(surah, ayah);
-      
+
       await _player.setAudioSource(audioSource);
       await _player.setSpeed(_speed);
       await _player.play();
-      
+
       // Check for saved position
       final savedPosition = _getSavedPosition(surah, ayah);
       if (savedPosition != null && savedPosition.inSeconds > 3) {
@@ -306,11 +315,11 @@ class QuranAudioEngine {
   static Future<AudioSource> _getAudioSource(int surah, int ayah) async {
     final reciterInfo = currentReciterInfo;
     final verseNumber = _getAbsoluteVerseNumber(surah, ayah);
-    
+
     // Check local cache first
     final localPath = await _getLocalPath(surah, ayah);
     final localFile = File(localPath);
-    
+
     if (localFile.existsSync()) {
       debugPrint('Playing from cache: $localPath');
       return AudioSource.file(
@@ -318,14 +327,14 @@ class QuranAudioEngine {
         tag: _createMediaItem(surah, ayah),
       );
     }
-    
+
     // Stream from network
     final url = '${reciterInfo.baseUrl}/$verseNumber.mp3';
     debugPrint('Streaming: $url');
-    
+
     // Start background download for caching
     unawaited(_downloadForCache(surah, ayah, url));
-    
+
     return AudioSource.uri(
       Uri.parse(url),
       tag: _createMediaItem(surah, ayah),
@@ -341,10 +350,10 @@ class QuranAudioEngine {
         final file = File(localPath);
         await file.parent.create(recursive: true);
         await file.writeAsBytes(response.bodyBytes);
-        
+
         // Update cache index
         await _updateCacheIndex(surah, ayah, localPath);
-        
+
         debugPrint('Cached: $localPath');
       }
     } on Exception catch (e) {
@@ -359,7 +368,8 @@ class QuranAudioEngine {
   }
 
   /// تحديث فهرس الكاش
-  static Future<void> _updateCacheIndex(int surah, int ayah, String path) async {
+  static Future<void> _updateCacheIndex(
+      int surah, int ayah, String path,) async {
     final key = '$_currentReciter:$surah:$ayah';
     await _cacheBox?.put(key, {
       'path': path,
@@ -373,10 +383,11 @@ class QuranAudioEngine {
   static Future<void> cleanOldCache() async {
     final now = DateTime.now();
     final keysToRemove = <String>[];
-    
+
     _cacheBox?.toMap().forEach((key, value) {
       if (value is Map) {
-        final timestamp = DateTime.tryParse((value['timestamp'] ?? '') as String);
+        final timestamp =
+            DateTime.tryParse((value['timestamp'] ?? '') as String);
         if (timestamp != null && now.difference(timestamp).inDays > 7) {
           // Delete file
           final path = value['path'];
@@ -387,11 +398,11 @@ class QuranAudioEngine {
         }
       }
     });
-    
+
     for (final key in keysToRemove) {
       await _cacheBox?.delete(key);
     }
-    
+
     debugPrint('Cleaned ${keysToRemove.length} old cached files');
   }
 
@@ -399,14 +410,14 @@ class QuranAudioEngine {
   static Future<String> getCacheSize() async {
     final dir = await getApplicationDocumentsDirectory();
     final audioDir = Directory('${dir.path}/audio');
-    
+
     if (!audioDir.existsSync()) return '0 MB';
-    
+
     var totalSize = 0;
     audioDir.listSync(recursive: true).whereType<File>().forEach((file) {
       totalSize += file.lengthSync();
     });
-    
+
     if (totalSize < 1024 * 1024) {
       return '${(totalSize / 1024).toStringAsFixed(1)} KB';
     }
@@ -417,7 +428,7 @@ class QuranAudioEngine {
   static Future<void> clearCache() async {
     final dir = await getApplicationDocumentsDirectory();
     final audioDir = Directory('${dir.path}/audio');
-    
+
     if (audioDir.existsSync()) {
       await audioDir.delete(recursive: true);
     }
@@ -431,7 +442,7 @@ class QuranAudioEngine {
   /// حفظ التقدم
   static Future<void> _saveProgress(Duration position) async {
     if (position.inSeconds < 3) return;
-    
+
     await _progressBox?.put('last_position', {
       'surah': _currentSurah,
       'ayah': _currentAyah,
@@ -445,7 +456,7 @@ class QuranAudioEngine {
   static Future<ResumeInfo?> getLastPosition() async {
     final data = _progressBox?.get('last_position') as Map<dynamic, dynamic>?;
     if (data == null) return null;
-    
+
     return ResumeInfo(
       surah: (data['surah'] ?? 1) as int,
       ayah: (data['ayah'] ?? 1) as int,
@@ -466,7 +477,7 @@ class QuranAudioEngine {
   static Future<void> resumeLastPosition() async {
     final info = await getLastPosition();
     if (info == null) return;
-    
+
     await playAyah(
       surah: info.surah,
       ayah: info.ayah,
@@ -500,15 +511,122 @@ class QuranAudioEngine {
   static int _getAbsoluteVerseNumber(int surah, int ayah) {
     // Verse counts per surah
     const verseCounts = [
-      7, 286, 200, 176, 120, 165, 206, 75, 129, 109, 123, 111, 43, 52, 99, 128,
-      111, 110, 98, 135, 112, 78, 118, 64, 77, 227, 93, 88, 69, 60, 34, 30,
-      73, 54, 45, 83, 182, 88, 75, 85, 54, 53, 89, 59, 37, 35, 38, 29,
-      18, 45, 60, 49, 62, 55, 78, 96, 29, 22, 24, 13, 14, 11, 11, 18,
-      12, 12, 30, 52, 52, 44, 28, 28, 20, 56, 40, 31, 50, 40, 46, 42,
-      29, 19, 36, 25, 22, 17, 19, 26, 30, 20, 15, 21, 11, 8, 8, 19,
-      5, 8, 8, 11, 11, 8, 3, 9, 5, 4, 7, 3, 6, 3, 5, 4, 5, 6,
+      7,
+      286,
+      200,
+      176,
+      120,
+      165,
+      206,
+      75,
+      129,
+      109,
+      123,
+      111,
+      43,
+      52,
+      99,
+      128,
+      111,
+      110,
+      98,
+      135,
+      112,
+      78,
+      118,
+      64,
+      77,
+      227,
+      93,
+      88,
+      69,
+      60,
+      34,
+      30,
+      73,
+      54,
+      45,
+      83,
+      182,
+      88,
+      75,
+      85,
+      54,
+      53,
+      89,
+      59,
+      37,
+      35,
+      38,
+      29,
+      18,
+      45,
+      60,
+      49,
+      62,
+      55,
+      78,
+      96,
+      29,
+      22,
+      24,
+      13,
+      14,
+      11,
+      11,
+      18,
+      12,
+      12,
+      30,
+      52,
+      52,
+      44,
+      28,
+      28,
+      20,
+      56,
+      40,
+      31,
+      50,
+      40,
+      46,
+      42,
+      29,
+      19,
+      36,
+      25,
+      22,
+      17,
+      19,
+      26,
+      30,
+      20,
+      15,
+      21,
+      11,
+      8,
+      8,
+      19,
+      5,
+      8,
+      8,
+      11,
+      11,
+      8,
+      3,
+      9,
+      5,
+      4,
+      7,
+      3,
+      6,
+      3,
+      5,
+      4,
+      5,
+      6,
     ];
-    
+
     var absoluteNumber = 0;
     for (var i = 0; i < surah - 1; i++) {
       absoluteNumber += verseCounts[i];
@@ -527,6 +645,11 @@ class QuranAudioEngine {
   }
 
   static String _getSurahName(int surah) => surahName(surah);
+
+  /// رقم الآية المطلق — مُكشوف للاختبارات (نفس حساب [_getAbsoluteVerseNumber]).
+  @visibleForTesting
+  static int absoluteVerseNumber(int surah, int ayah) =>
+      _getAbsoluteVerseNumber(surah, ayah);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // GETTERS
@@ -548,7 +671,6 @@ class QuranAudioEngine {
 
 /// معلومات القارئ
 class ReciterInfo {
-
   const ReciterInfo({
     required this.id,
     required this.arabicName,
@@ -565,32 +687,37 @@ class ReciterInfo {
 
 /// وضع التكرار
 enum RepeatMode {
-  none,   // لا تكرار - تقدم تلقائي
-  ayah,   // تكرار الآية الحالية
-  surah,  // تكرار السورة
+  none, // لا تكرار - تقدم تلقائي
+  ayah, // تكرار الآية الحالية
+  surah, // تكرار السورة
 }
 
 extension RepeatModeInfo on RepeatMode {
   String get arabicName {
     switch (this) {
-      case RepeatMode.none: return 'بدون تكرار';
-      case RepeatMode.ayah: return 'تكرار الآية';
-      case RepeatMode.surah: return 'تكرار السورة';
+      case RepeatMode.none:
+        return 'بدون تكرار';
+      case RepeatMode.ayah:
+        return 'تكرار الآية';
+      case RepeatMode.surah:
+        return 'تكرار السورة';
     }
   }
 
   IconData get icon {
     switch (this) {
-      case RepeatMode.none: return Icons.repeat;
-      case RepeatMode.ayah: return Icons.repeat_one;
-      case RepeatMode.surah: return Icons.repeat;
+      case RepeatMode.none:
+        return Icons.repeat;
+      case RepeatMode.ayah:
+        return Icons.repeat_one;
+      case RepeatMode.surah:
+        return Icons.repeat;
     }
   }
 }
 
 /// حالة التشغيل
 class PlayState {
-
   const PlayState({
     required this.isPlaying,
     required this.processingState,
@@ -598,14 +725,14 @@ class PlayState {
   final bool isPlaying;
   final ProcessingState processingState;
 
-  bool get isLoading => processingState == ProcessingState.loading ||
+  bool get isLoading =>
+      processingState == ProcessingState.loading ||
       processingState == ProcessingState.buffering;
   bool get isCompleted => processingState == ProcessingState.completed;
 }
 
 /// معلومات الاستئناف
 class ResumeInfo {
-
   const ResumeInfo({
     required this.surah,
     required this.ayah,

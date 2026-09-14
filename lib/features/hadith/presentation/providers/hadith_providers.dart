@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -356,17 +358,18 @@ class MemorizationNotifier extends StateNotifier<MemorizationState> {
   }
 
   /// Review the current card with a 1..4 rating (1 = again, 4 = easy).
+  ///
+  /// In-memory state updates FIRST so the UI advances instantly; persistence
+  /// follows fire-and-forget and must never block or fail the review (the
+  /// qada notifier uses the same pattern: memory authoritative, Hive best
+  /// effort). Awaiting the puts here would also stall forever inside
+  /// widget tests, where Hive write-flushes never complete.
   Future<void> reviewCard(int rating) async {
     final card = state.currentFsrsCard;
     if (card == null) return;
-
-    await _ensureBox();
     card.review(_ratingFromInt(rating));
 
     final streak = state.streak..recordPractice();
-    await _box?.put(card.hadithId, card.toJson());
-    await _box?.put('_streak', streak.toJson());
-
     final nextIndex = state.currentIndex + 1;
     final isComplete = nextIndex >= state.deck.length;
 
@@ -376,6 +379,22 @@ class MemorizationNotifier extends StateNotifier<MemorizationState> {
       currentIndex: isComplete ? state.currentIndex : nextIndex,
       isComplete: isComplete,
     );
+    unawaited(_persistReview(card, streak));
+  }
+
+  Future<void> _persistReview(
+    MemorizationCard card,
+    StreakTracker streak,
+  ) async {
+    try {
+      await _ensureBox();
+      await _box?.put(card.hadithId, card.toJson());
+      await _box?.put('_streak', streak.toJson());
+    } on Object catch (e) {
+      // Persistence failure must never surface an unhandled async error;
+      // in-memory state stays authoritative. Anything else rethrows.
+      if (e is! HiveError) rethrow;
+    }
   }
 
   Map<int, String> getIntervalPreviews() {

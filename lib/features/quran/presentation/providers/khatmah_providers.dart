@@ -303,8 +303,12 @@ class CompletedKhatmah {
 class KhatmahNotifier extends StateNotifier<Khatmah?> {
 
   KhatmahNotifier() : super(null) {
-    _loadFromHive();
+    ready = _loadFromHive();
   }
+
+  /// Completes when the initial Hive load has finished. Callers (and tests)
+  /// can await this instead of racing the unawaited constructor load.
+  late final Future<void> ready;
   static const _boxName = 'khatmah_box';
   static const _activeKey = 'active_khatmah';
   static const _completedKey = 'completed_khatmahs';
@@ -321,19 +325,33 @@ class KhatmahNotifier extends StateNotifier<Khatmah?> {
   }
 
   Future<void> _loadFromHive() async {
-    final box = await _getBox();
-    final data = box.get(_activeKey);
-    if (data != null) {
-      state = Khatmah.fromMap(Map<dynamic, dynamic>.from(data as Map));
+    try {
+      final box = await _getBox();
+      final data = box.get(_activeKey);
+      if (data != null) {
+        state = Khatmah.fromMap(Map<dynamic, dynamic>.from(data as Map));
+      }
+    } on Object catch (e) {
+      // Narrow by effect: only Hive lifecycle errors (HiveError, an Error
+      // subclass) and corrupt-data cast errors are absorbed — anything else
+      // rethrows.
+      if (e is! HiveError && e is! TypeError) rethrow;
     }
   }
 
   Future<void> _saveToHive() async {
-    final box = await _getBox();
-    if (state != null) {
-      await box.put(_activeKey, state!.toMap());
-    } else {
-      await box.delete(_activeKey);
+    try {
+      final box = await _getBox();
+      if (state != null) {
+        await box.put(_activeKey, state!.toMap());
+      } else {
+        await box.delete(_activeKey);
+      }
+    } on Object catch (e) {
+      // Persistence failure (closed/unavailable box, HiveError) must never
+      // surface an unhandled async error; in-memory state stays authoritative.
+      // Anything else rethrows.
+      if (e is! HiveError) rethrow;
     }
   }
 

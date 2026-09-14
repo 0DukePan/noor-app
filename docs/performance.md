@@ -9,9 +9,9 @@ the automated ones; the device measurements are filled in from
 | Metric | Current | Target | Enforcement |
 |---|---|---|---|
 | Hadith search latency (full corpus) | 1–3 ms | < 150 ms single word, < 300 ms phrase/root | `hadith_engine_v2_test.dart` full-corpus benchmark |
-| App-wide line coverage | 12.1% | 25% (raised in steps) | `tools/coverage_summary.py` floor (12 today) |
+| App-wide line coverage | 30.70% | raised in steps as pages land | `tools/coverage_summary.py` floor (30 today) |
 | Analysis | 0 issues | 0 issues | `flutter analyze` in CI |
-| Tests | 228 | green always | `flutter test` in CI |
+| Tests | 651, all green | green always | `flutter test` in CI |
 | APK size | to be reported | < 150 MB compressed | CI "Report APK size" step |
 | Android boot | emulator integration suite | green always | CI `integration-test` job |
 
@@ -36,15 +36,17 @@ the automated ones; the device measurements are filled in from
    controls respond within 1 s.
 5. **App size:** Play Console "App size" per device, and the CI APK report.
 
-## Size ledger (fill in after first CI build)
+## Size ledger (measured via `tools/check_assets_size.py`)
+
+Total bundled: **221.8 MB** against the 230 MB CI budget.
 
 | Item | Size (raw) | Notes |
 |---|---|---|
-| Prebuilt hadith DB | ~147 MB raw | Compressed in APK; ships in assets/db |
-| Tafsir JSONs | ~50 MB raw | In base APK today; candidate for asset pack if needed |
-| Quran text + translations | ~10 MB | quran_uthmani + muyassar + en.sahih |
-| Adhkar + fonts + images | < 5 MB | |
-| Code (AOT) | — | From CI size report |
+| Content databases (`assets/db/`) | 210.1 MB | `hadith.db` (content + FTS index) and the consolidated `tafsir.db`; compressed in the APK |
+| Quran text + translations | 8.3 MB | `quran_uthmani` + Saheeh International + other translations |
+| Fonts | 1.4 MB | Cairo (variable) + Amiri |
+| Adhkar + misc | < 0.5 MB | |
+| Code (AOT) | — | From the CI size report |
 
 ## Hifz (P3) and English translation (P4) notes
 
@@ -56,10 +58,15 @@ the automated ones; the device measurements are filled in from
 
 ## Optimization candidates (ordered by payoff)
 
-1. **Tafsir into the prebuilt DB** (`tafsir_verses` table) — removes the
-   tafsir JSONs from the APK and makes tafsir lookups indexed.
-2. **Split tafsir into a fast-follow asset pack** if the base APK exceeds
-   Play's install-time limits (~200 MB compressed).
+1. ~~**Tafsir into the prebuilt DB**~~ — **done**: the 25,401 loose tafsir files
+   were consolidated into `assets/db/tafsir.db` (272.2 -> 221.5 MB at the time,
+   the same pattern as `hadith.db`).
+2. **Asset packs / Play Feature Delivery** to get the base install under
+   ~100 MB — consciously deferred post-1.0 (`docs/store-checklist.md`, decision
+   D2); the FTS index measured ~24 MB of the bundled DB, so an on-device rebuild
+   is not worth it while headroom remains.
 3. **SQLite `VACUUM`/page-size tuning** on the prebuilt DB at build time.
-4. **Startup: lazy-load non-critical services** behind the first frame
-   (audit `_initializeServices` order).
+4. **Startup: keep deferring non-critical work past the first frame** — the
+   service init is already parallelised (`Future.wait`) with the DB warm-up,
+   search-index build and offline sync left `unawaited`; anything new added to
+   `_initializeServices` should justify blocking the first frame.

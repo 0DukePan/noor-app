@@ -25,15 +25,15 @@ abstract class QuranLocalDataSource {
   Future<void> cacheQuranData(List<SurahModel> surahs);
 }
 
-/// مصدر البيانات البعيد للقرآن - Quran Remote Data Source (Supabase)
+/// مصدر البيانات البعيد للقرآن - Quran Remote Data Source (network fallback)
 abstract class QuranRemoteDataSource {
-  /// Fetch Quran data from Supabase
+  /// Fetch Quran data from the remote API
   Future<List<SurahModel>> fetchAllSurahs();
 
-  /// Fetch Tafsir from Supabase
+  /// Fetch Tafsir from the remote API
   Future<TafsirModel> fetchTafsir(int surahNumber, int verseNumber, String source);
 
-  /// Fetch revelation causes from Supabase
+  /// Fetch revelation causes from the remote API
   Future<RevelationCauseModel?> fetchRevelationCause(int surahNumber, int verseNumber);
 
   /// Sync local data with server

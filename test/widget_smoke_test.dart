@@ -6,12 +6,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'package:noor_app/core/services/analytics_service.dart';
 import 'package:noor_app/core/services/day_state_machine.dart';
 import 'package:noor_app/core/services/hive_service.dart';
 import 'package:noor_app/core/services/prayer_time_engine.dart';
 import 'package:noor_app/features/home/presentation/widgets/day_state_card.dart';
 import 'package:noor_app/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:noor_app/features/settings/presentation/pages/settings_page.dart';
+import 'package:noor_app/l10n/generated/app_localizations.dart';
 
 void main() {
   late Directory tempDir;
@@ -35,6 +37,9 @@ void main() {
 
     var completed = false;
     await tester.pumpWidget(MaterialApp(
+      locale: const Locale('ar'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: OnboardingPage(onComplete: () => completed = true),
     ),);
 
@@ -58,6 +63,9 @@ void main() {
     });
 
     await tester.pumpWidget(MaterialApp(
+      locale: const Locale('ar'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: OnboardingPage(onComplete: () {}),
     ),);
 
@@ -81,6 +89,9 @@ void main() {
     });
 
     await tester.pumpWidget(const MaterialApp(
+      locale: Locale('ar'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: DayStateCard()),
     ),);
 
@@ -98,7 +109,12 @@ void main() {
     });
 
     await tester.pumpWidget(const ProviderScope(
-      child: MaterialApp(home: SettingsPage()),
+      child: MaterialApp(
+        locale: Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsPage(),
+      ),
     ),);
 
     // The privacy tile sits below the fold of the lazy ListView.
@@ -115,7 +131,68 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(BottomSheet), findsOneWidget);
-    expect(find.textContaining('لا نستخدم أدوات تتبع'), findsOneWidget);
+    expect(find.textContaining('لا أدوات تتبع'), findsOneWidget);
+    expect(
+      find.textContaining('إحصائيات الاستخدام المجهولة: مغلقة افتراضياً'),
+      findsOneWidget,
+    );
     expect(find.textContaining('Sentry'), findsOneWidget);
+  }, timeout: const Timeout(Duration(seconds: 30)),);
+
+  testWidgets('settings: analytics toggle opts in, persists, and reverts',
+      (tester) async {
+    await tester.runAsync(() async {
+      Hive.init(tempDir.path);
+      await Hive.openBox<Map<dynamic, dynamic>>('settings');
+      await Hive.openBox<Map<dynamic, dynamic>>('theme_settings');
+      await AnalyticsService.init();
+      await AnalyticsService.setOptedIn(value: false);
+    });
+
+    await tester.pumpWidget(const ProviderScope(
+      child: MaterialApp(
+        locale: Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsPage(),
+      ),
+    ),);
+
+    // The analytics tile lives in the general section, below the fold.
+    final tile = find.ancestor(
+      of: find.text('إحصائيات الاستخدام'),
+      matching: find.byType(ListTile),
+    );
+    await tester.scrollUntilVisible(
+      tile,
+      200,
+      scrollable: find.byType(Scrollable),
+    );
+    await tester.ensureVisible(tile);
+    await tester.pump();
+    expect(find.textContaining('مغلقة افتراضياً'), findsWidgets);
+    expect(AnalyticsService.optedIn, isFalse);
+
+    // Flip the analytics toggle on (never the haptics switch above it): the
+    // flag flips and the subtitle updates.
+    final analyticsSwitch = find.descendant(
+      of: tile,
+      matching: find.byType(Switch),
+    );
+    await tester.tap(analyticsSwitch);
+    await tester.pump();
+    expect(AnalyticsService.optedIn, isTrue);
+    expect(find.textContaining('مفعلة'), findsOneWidget);
+
+    // A fresh init (app restart) restores the persisted choice.
+    await tester.runAsync(AnalyticsService.init);
+    expect(AnalyticsService.optedIn, isTrue);
+
+    // Toggle off restores the default.
+    await tester.tap(analyticsSwitch);
+    await tester.pump();
+    expect(AnalyticsService.optedIn, isFalse);
+    await tester.runAsync(AnalyticsService.init);
+    expect(AnalyticsService.optedIn, isFalse);
   }, timeout: const Timeout(Duration(seconds: 30)),);
 }

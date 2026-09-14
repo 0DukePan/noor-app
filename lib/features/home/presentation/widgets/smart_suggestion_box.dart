@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/home_provider.dart';
 
 class SmartSuggestionBox extends ConsumerWidget {
@@ -10,6 +11,7 @@ class SmartSuggestionBox extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     // Select precisely what we need so it doesn't rebuild entire home page
     final suggestion = ref.watch(smartSuggestionProvider.select((s) => s));
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -27,7 +29,7 @@ class SmartSuggestionBox extends ConsumerWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              '💡 اقتراح ذكي الآن:\n$suggestion',
+              '${l10n.sugTipTitle}\n$suggestion',
               style: GoogleFonts.cairo(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,

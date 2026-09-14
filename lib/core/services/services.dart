@@ -2,6 +2,7 @@ export 'adhan_scheduler_service.dart';
 // Adhkar System
 export 'adhkar_data_source.dart';
 export 'adhkar_timer_service.dart';
+export 'analytics_service.dart';
 export 'api_fetcher_service.dart';
 // Mosque-Grade Prayer System (Better than Mawaqit)
 export 'day_state_machine.dart';

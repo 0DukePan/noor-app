@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/domain/entities/hadith.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/hadith_user_data_service.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/hadith_providers.dart';
 import '../widgets/hadith_share_sheet.dart';
 import '../widgets/hadith_sharh_sheet.dart';
@@ -58,6 +60,7 @@ class _HadithReaderPageState extends ConsumerState<HadithReaderPage> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.record('hadith_opened');
     _hadiths.addAll(widget.allHadiths);
     _currentIndex = widget.currentIndex;
     _pageController = PageController(initialPage: _currentIndex);
@@ -140,13 +143,14 @@ class _HadithReaderPageState extends ConsumerState<HadithReaderPage> {
 
   Future<void> _toggleBookmark() async {
     unawaited(HapticFeedback.mediumImpact());
+    final l10n = AppLocalizations.of(context);
     final nowBookmarked = await HadithUserDataService.toggleBookmark(_currentHadith);
     if (!mounted) return;
     setState(() => _isBookmarked = nowBookmarked);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          nowBookmarked ? 'تمت إضافة الحديث للمحفوظات' : 'تمت إزالة الحديث من المحفوظات',
+          nowBookmarked ? l10n.hreaderBookmarked : l10n.hbmRemoved,
           style: GoogleFonts.cairo(),
         ),
         backgroundColor: nowBookmarked ? NoorDesignSystem.primaryGreen : Colors.grey[700],
@@ -160,12 +164,17 @@ class _HadithReaderPageState extends ConsumerState<HadithReaderPage> {
   Hadith get _currentHadith => _hadiths[_currentIndex];
 
   void _copyHadith() {
-    final text =
-        '${_currentHadith.arabic}\n\n${_currentHadith.narratorEnglish}\n\n— ${widget.bookTitle} #${_currentHadith.idInBook}';
+    final l10n = AppLocalizations.of(context);
+    final text = l10n.hreaderCopyTemplate(
+      _currentHadith.arabic,
+      widget.bookTitle,
+      _currentHadith.idInBook,
+      _currentHadith.narratorEnglish,
+    );
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('تم نسخ الحديث', style: GoogleFonts.cairo()),
+        content: Text(l10n.hreaderCopied, style: GoogleFonts.cairo()),
         backgroundColor: NoorDesignSystem.primaryGreen,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -230,7 +239,7 @@ class _HadithReaderPageState extends ConsumerState<HadithReaderPage> {
         surfaceTintColor: Colors.transparent,
         foregroundColor: NoorDesignSystem.textPrimary,
         title: Text(
-          '${widget.bookTitle} — #${_currentHadith.idInBook}',
+          AppLocalizations.of(context).hreaderTitle(widget.bookTitle, _currentHadith.idInBook),
           style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
@@ -244,7 +253,7 @@ class _HadithReaderPageState extends ConsumerState<HadithReaderPage> {
               bookTitle: widget.bookTitle,
               bookColor: widget.bookColor,
             ),
-            tooltip: 'شرح',
+            tooltip: AppLocalizations.of(context).hreaderSharahTooltip,
           ),
           IconButton(
             icon: Icon(
@@ -253,17 +262,17 @@ class _HadithReaderPageState extends ConsumerState<HadithReaderPage> {
               color: _isBookmarked ? NoorDesignSystem.goldAccent : null,
             ),
             onPressed: _toggleBookmark,
-            tooltip: 'حفظ',
+            tooltip: AppLocalizations.of(context).tadSave,
           ),
           IconButton(
             icon: const Icon(Icons.copy_rounded, size: 20),
             onPressed: _copyHadith,
-            tooltip: 'نسخ',
+            tooltip: AppLocalizations.of(context).mushafCopy,
           ),
           IconButton(
             icon: const Icon(Icons.share_rounded, size: 20),
             onPressed: _shareHadith,
-            tooltip: 'مشاركة',
+            tooltip: AppLocalizations.of(context).verseShare,
           ),
         ],
       ),
@@ -509,7 +518,7 @@ class _MetadataCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'حديث #$hadithNumber',
+                  AppLocalizations.of(context).hreaderNumberBadge(hadithNumber),
                   style: GoogleFonts.cairo(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -593,6 +602,7 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
     return Container(
       padding: EdgeInsets.only(
         left: 20,
@@ -613,10 +623,12 @@ class _BottomNav extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Previous — in RTL, "back/previous" points right.
+          // Previous — "back" points left in LTR, right in RTL.
           _NavButton(
-            icon: Icons.arrow_forward_ios_rounded,
-            label: 'السابق',
+            icon: isRtl
+                ? Icons.arrow_forward_ios_rounded
+                : Icons.arrow_back_ios_rounded,
+            label: AppLocalizations.of(context).hreaderPrev,
             onTap: onPrevious,
             color: bookColor,
           ),
@@ -649,10 +661,12 @@ class _BottomNav extends StatelessWidget {
             ],
           ),
 
-          // Next — in RTL, "forward/next" points left.
+          // Next — "forward" points right in LTR, left in RTL.
           _NavButton(
-            icon: Icons.arrow_back_ios_rounded,
-            label: 'التالي',
+            icon: isRtl
+                ? Icons.arrow_back_ios_rounded
+                : Icons.arrow_forward_ios_rounded,
+            label: AppLocalizations.of(context).hreaderNext,
             onTap: onNext,
             color: bookColor,
             isForward: true,
@@ -682,27 +696,35 @@ class _NavButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final enabled = onTap != null;
 
-    return GestureDetector(
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: label,
       onTap: onTap,
-      child: AnimatedOpacity(
-        opacity: enabled ? 1.0 : 0.3,
-        duration: const Duration(milliseconds: 200),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (!isForward) Icon(icon, size: 16, color: color),
-            if (!isForward) const SizedBox(width: 4),
-            Text(
-              label,
-              style: GoogleFonts.cairo(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: color,
+      excludeSemantics: true,
+      child: GestureDetector(
+        excludeFromSemantics: true,
+        onTap: onTap,
+        child: AnimatedOpacity(
+          opacity: enabled ? 1.0 : 0.3,
+          duration: const Duration(milliseconds: 200),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!isForward) Icon(icon, size: 16, color: color),
+              if (!isForward) const SizedBox(width: 4),
+              Text(
+                label,
+                style: GoogleFonts.cairo(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
               ),
-            ),
-            if (isForward) const SizedBox(width: 4),
-            if (isForward) Icon(icon, size: 16, color: color),
-          ],
+              if (isForward) const SizedBox(width: 4),
+              if (isForward) Icon(icon, size: 16, color: color),
+            ],
+          ),
         ),
       ),
     );

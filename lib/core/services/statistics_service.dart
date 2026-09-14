@@ -1,5 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'hive_box_registry.dart';
+
 /// 📊 خدمة الإحصائيات الاحترافية - Professional Statistics Service
 /// 
 /// Features:
@@ -16,8 +18,8 @@ class StatisticsService {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static Future<void> init() async {
-    _statsBox = await Hive.openBox<dynamic>('app_statistics');
-    _historyBox = await Hive.openBox<dynamic>('activity_history');
+    _statsBox = await Hive.openBox<dynamic>(HiveBoxes.appStatistics);
+    _historyBox = await Hive.openBox<dynamic>(HiveBoxes.activityHistory);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

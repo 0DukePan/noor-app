@@ -1,0 +1,3305 @@
+{
+  "@@locale": "en",
+  "appTitle": "Noor",
+  "@appTitle": {
+    "description": "The app name shown in the title bar and launcher context."
+  },
+  "navHome": "Home",
+  "@navHome": {
+    "description": "Bottom navigation label for the home dashboard tab."
+  },
+  "navQuran": "Quran",
+  "@navQuran": {
+    "description": "Bottom navigation label for the Quran tab."
+  },
+  "navHadith": "Hadith",
+  "@navHadith": {
+    "description": "Bottom navigation label for the Hadith tab."
+  },
+  "navAdhkar": "Adhkar",
+  "@navAdhkar": {
+    "description": "Bottom navigation label for the Adhkar tab."
+  },
+  "navTools": "Tools",
+  "@navTools": {
+    "description": "Bottom navigation label for the Tools tab."
+  },
+  "dbImportTitle": "Preparing the hadith database...",
+  "@dbImportTitle": {
+    "description": "Shown on the one-time first-launch import screen."
+  },
+  "dbImportSubtitle": "The first launch imports the hadith collections. This happens only once.",
+  "@dbImportSubtitle": {
+    "description": "Explains the one-time first-launch database import."
+  },
+  "appTagline": "A comprehensive Islamic app serving as a digital worship environment",
+  "commonRetry": "Retry",
+  "@commonRetry": {
+    "description": "Generic retry button label used on error states."
+  },
+  "homeLoadError": "Couldn't load data",
+  "@homeLoadError": {
+    "description": "Home page error state when dashboard data fails to load."
+  },
+  "homeContinueReading": "Continue reading",
+  "@homeContinueReading": {
+    "description": "Home section header for the continue-reading card."
+  },
+  "homeFavorites": "Favorites",
+  "@homeFavorites": {
+    "description": "Home section header for the favorites strip."
+  },
+  "homeTodayAdhkar": "Today's adhkar",
+  "@homeTodayAdhkar": {
+    "description": "Home section header for today's adhkar status."
+  },
+  "homePropheticLight": "Prophetic light",
+  "@homePropheticLight": {
+    "description": "Home section header for the hadith-of-the-day card."
+  },
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Settings page app-bar title."
+  },
+  "settingsHeader": "Customize the app",
+  "@settingsHeader": {
+    "description": "Settings page header title."
+  },
+  "settingsHeaderSubtitle": "Make the app fit your needs",
+  "@settingsHeaderSubtitle": {
+    "description": "Settings page header subtitle."
+  },
+  "settingsAppearance": "Appearance",
+  "@settingsAppearance": {
+    "description": "Settings section header for theme mode."
+  },
+  "settingsThemeLight": "Light",
+  "@settingsThemeLight": {
+    "description": "Light theme chip label."
+  },
+  "settingsThemeDark": "Dark",
+  "@settingsThemeDark": {
+    "description": "Dark theme chip label."
+  },
+  "settingsThemeSystem": "System",
+  "@settingsThemeSystem": {
+    "description": "Follow-system theme chip label."
+  },
+  "settingsReading": "Reading",
+  "@settingsReading": {
+    "description": "Settings section header for reading display options."
+  },
+  "settingsFontSize": "Font size",
+  "@settingsFontSize": {
+    "description": "Font-size slider label."
+  },
+  "settingsGeneral": "General settings",
+  "@settingsGeneral": {
+    "description": "Settings section header for general toggles."
+  },
+  "settingsHaptics": "Haptics",
+  "@settingsHaptics": {
+    "description": "Haptic feedback toggle title."
+  },
+  "settingsHapticsSubtitle": "Tactile feedback on interaction",
+  "@settingsHapticsSubtitle": {
+    "description": "Haptic feedback toggle subtitle."
+  },
+  "settingsClearCache": "Clear cache",
+  "@settingsClearCache": {
+    "description": "Clear-cache row title."
+  },
+  "settingsClearCacheSubtitle": "Delete temporary data to free space",
+  "@settingsClearCacheSubtitle": {
+    "description": "Clear-cache row subtitle."
+  },
+  "settingsAdvanced": "Advanced settings",
+  "@settingsAdvanced": {
+    "description": "Settings section header for advanced navigation rows."
+  },
+  "settingsNotifications": "Notifications",
+  "@settingsNotifications": {
+    "description": "Notifications settings row title."
+  },
+  "settingsNotificationsSubtitle": "Morning/evening adhkar, prayer alerts",
+  "@settingsNotificationsSubtitle": {
+    "description": "Notifications settings row subtitle."
+  },
+  "settingsStorage": "Storage & performance",
+  "@settingsStorage": {
+    "description": "Storage settings row title."
+  },
+  "settingsStorageSubtitle": "Manage stored data",
+  "@settingsStorageSubtitle": {
+    "description": "Storage settings row subtitle."
+  },
+  "settingsPrivacy": "Privacy & data",
+  "@settingsPrivacy": {
+    "description": "Privacy sheet entry title."
+  },
+  "settingsPrivacySubtitle": "We collect no personal data",
+  "@settingsPrivacySubtitle": {
+    "description": "Privacy sheet entry subtitle."
+  },
+  "settingsAbout": "About the app",
+  "@settingsAbout": {
+    "description": "About row title."
+  },
+  "settingsAppName": "Noor",
+  "@settingsAppName": {
+    "description": "App name in the about sheet."
+  },
+  "settingsAboutBody": "A comprehensive Islamic app — Quran, hadith, prayer times, adhkar and tafsir",
+  "@settingsAboutBody": {
+    "description": "About sheet description."
+  },
+  "settingsAppVersion": "Version {version}",
+  "@settingsAppVersion": {
+    "description": "Version footer with the version string.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsPrivacyRowOffline": "The app works offline for core content (Quran, hadith, tafsir, adhkar).",
+  "@settingsPrivacyRowOffline": {
+    "description": "Privacy sheet row: offline-first."
+  },
+  "settingsPrivacyRowTracking": "No trackers; anonymous usage statistics are off by default and only collected if you enable them. Your data is never shared with any third party.",
+  "@settingsPrivacyRowTracking": {
+    "description": "Privacy sheet row: no tracking."
+  },
+  "settingsPrivacyRowLocation": "Your location is used on-device only to compute prayer times and the qibla; it is never sent to any server.",
+  "@settingsPrivacyRowLocation": {
+    "description": "Privacy sheet row: location use."
+  },
+  "settingsPrivacyRowCrash": "Only on a technical crash, error data goes to Sentry with no personally identifying information.",
+  "@settingsPrivacyRowCrash": {
+    "description": "Privacy sheet row: crash reports."
+  },
+  "settingsPrivacyRowNotes": "Your personal notes (tadabbur mihrab) are encrypted and kept on your device only.",
+  "@settingsPrivacyRowNotes": {
+    "description": "Privacy sheet row: encrypted notes."
+  },
+  "settingsPrivacyRowSync": "No cloud sync: all your data (bookmarks, statistics, progress) stays on your device.",
+  "@settingsPrivacyRowSync": {
+    "description": "Privacy sheet row: local-only."
+  },
+  "settingsPrivacyRowNetwork": "The app may contact public servers only to fetch missing data (tafsir/recitation/times) without sending any of your data.",
+  "@settingsPrivacyRowNetwork": {
+    "description": "Privacy sheet row: rare network fetches."
+  },
+  "settingsClearCacheTitle": "Clear cache",
+  "@settingsClearCacheTitle": {
+    "description": "Clear-cache dialog title."
+  },
+  "settingsClearCacheBody": "Are you sure? The downloaded recitation cache and search index will be deleted and rebuilt automatically when needed.",
+  "@settingsClearCacheBody": {
+    "description": "Clear-cache dialog body."
+  },
+  "settingsCancel": "Cancel",
+  "@settingsCancel": {
+    "description": "Generic cancel button."
+  },
+  "settingsClear": "Clear",
+  "@settingsClear": {
+    "description": "Confirm-clear button."
+  },
+  "settingsCacheCleared": "Cache cleared successfully",
+  "@settingsCacheCleared": {
+    "description": "Snackbar after clearing the cache."
+  },
+  "settingsAnalytics": "Usage statistics",
+  "@settingsAnalytics": {
+    "description": "Settings toggle title for the anonymous usage statistics opt-in."
+  },
+  "settingsAnalyticsOff": "Off by default — anonymous counts stay on your device",
+  "@settingsAnalyticsOff": {
+    "description": "Subtitle when usage statistics are disabled (the default)."
+  },
+  "settingsAnalyticsOn": "On — anonymous usage counts are collected",
+  "@settingsAnalyticsOn": {
+    "description": "Subtitle when usage statistics are enabled."
+  },
+  "settingsAnalyticsPrivacy": "Anonymous usage statistics: off by default; if you enable them, only aggregate counts are collected — never your identity or content.",
+  "@settingsAnalyticsPrivacy": {
+    "description": "Privacy sheet row describing the opt-in anonymous statistics."
+  },
+  "notifTitle": "Notifications",
+  "@notifTitle": {
+    "description": "Notification settings app-bar title."
+  },
+  "notifAdhkarSection": "Adhkar reminders",
+  "@notifAdhkarSection": {
+    "description": "Adhkar reminders section header."
+  },
+  "notifMorning": "Morning adhkar",
+  "@notifMorning": {
+    "description": "Morning adhkar toggle title."
+  },
+  "notifMorningSubtitle": "30 minutes after Fajr",
+  "@notifMorningSubtitle": {
+    "description": "Morning adhkar toggle subtitle."
+  },
+  "notifEvening": "Evening adhkar",
+  "@notifEvening": {
+    "description": "Evening adhkar toggle title."
+  },
+  "notifEveningSubtitle": "30 minutes before Maghrib",
+  "@notifEveningSubtitle": {
+    "description": "Evening adhkar toggle subtitle."
+  },
+  "notifPrayerSection": "Prayer notifications",
+  "@notifPrayerSection": {
+    "description": "Prayer notifications section header."
+  },
+  "notifBeforePrayer": "Pre-prayer alert",
+  "@notifBeforePrayer": {
+    "description": "Pre-prayer alert toggle title."
+  },
+  "notifBeforeMinutes": "{minutes} minutes before",
+  "@notifBeforeMinutes": {
+    "description": "Pre-prayer subtitle with the lead minutes.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "notifBeforeLabel": "Before prayer by",
+  "@notifBeforeLabel": {
+    "description": "Lead-time row label."
+  },
+  "notifMinutesShort": "{minutes} min",
+  "@notifMinutesShort": {
+    "description": "Compact minutes label for the slider.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "notifDailySection": "Daily reading reminder",
+  "@notifDailySection": {
+    "description": "Daily reading reminder section header."
+  },
+  "notifKhatmah": "Daily khatmah reminder",
+  "@notifKhatmah": {
+    "description": "Daily khatmah toggle title."
+  },
+  "notifAtTime": "At {time}",
+  "@notifAtTime": {
+    "description": "Khatmah reminder time subtitle.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notifDisabled": "Off",
+  "@notifDisabled": {
+    "description": "Disabled-state subtitle for reminder toggles."
+  },
+  "notifReminderTime": "Reminder time",
+  "@notifReminderTime": {
+    "description": "Reminder time row label."
+  },
+  "notifQuietSection": "Quiet hours",
+  "@notifQuietSection": {
+    "description": "Quiet hours section header."
+  },
+  "notifQuiet": "Quiet hours",
+  "@notifQuiet": {
+    "description": "Quiet hours toggle title."
+  },
+  "notifQuietRange": "From {start}:00 to {end}:00",
+  "@notifQuietRange": {
+    "description": "Quiet hours active-range subtitle.",
+    "placeholders": {
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      }
+    }
+  },
+  "notifApply": "Apply settings",
+  "@notifApply": {
+    "description": "Apply notification settings button."
+  },
+  "notifUpdated": "Notifications updated",
+  "@notifUpdated": {
+    "description": "Snackbar after applying notification settings."
+  },
+  "notifKhatmahMessage": "Time for your daily reading portion",
+  "@notifKhatmahMessage": {
+    "description": "Scheduled khatmah reminder message."
+  },
+  "storageTitle": "Storage & performance",
+  "@storageTitle": {
+    "description": "Storage settings app-bar title."
+  },
+  "storageCacheSection": "Cache",
+  "@storageCacheSection": {
+    "description": "Cache stats section header."
+  },
+  "storageManageSection": "Manage data",
+  "@storageManageSection": {
+    "description": "Cache actions section header."
+  },
+  "storageSilentSection": "Quiet interface",
+  "@storageSilentSection": {
+    "description": "Silent-UI section header."
+  },
+  "storageSurahs": "Saved surahs",
+  "@storageSurahs": {
+    "description": "Cached surahs stat label."
+  },
+  "storageHadiths": "Saved hadiths",
+  "@storageHadiths": {
+    "description": "Cached hadiths stat label."
+  },
+  "storageAdhkar": "Saved adhkar",
+  "@storageAdhkar": {
+    "description": "Cached adhkar stat label."
+  },
+  "storageClearTitle": "Clear cache",
+  "@storageClearTitle": {
+    "description": "Clear-cache action title."
+  },
+  "storageClearSubtitle": "Reload data from source",
+  "@storageClearSubtitle": {
+    "description": "Clear-cache action subtitle."
+  },
+  "storageRefreshTitle": "Refresh statistics",
+  "@storageRefreshTitle": {
+    "description": "Refresh-stats action title."
+  },
+  "storageRefreshSubtitle": "Re-read displayed data",
+  "@storageRefreshSubtitle": {
+    "description": "Refresh-stats action subtitle."
+  },
+  "storageSilentBody": "Noor uses a quiet interface with no annoying popups. All notifications appear gently and disappear automatically.",
+  "@storageSilentBody": {
+    "description": "Silent-UI explainer paragraph."
+  },
+  "storagePreviewGentle": "Preview gentle notification",
+  "@storagePreviewGentle": {
+    "description": "Gentle-notification preview button."
+  },
+  "storagePreviewSuccess": "Preview success notification",
+  "@storagePreviewSuccess": {
+    "description": "Success-notification preview button."
+  },
+  "storageGentleSample": "This is a gentle notification sample",
+  "@storageGentleSample": {
+    "description": "Sample gentle notification message."
+  },
+  "storageSavedOk": "Saved successfully!",
+  "@storageSavedOk": {
+    "description": "Sample success notification message."
+  },
+  "storageCacheCleared": "Cache cleared",
+  "@storageCacheCleared": {
+    "description": "Toast after clearing storage."
+  },
+  "storageStatsUpdated": "Statistics updated",
+  "@storageStatsUpdated": {
+    "description": "Toast after refreshing statistics."
+  },
+  "qadaTitle": "Qada tracker",
+  "@qadaTitle": {
+    "description": "Qada tracker app-bar title."
+  },
+  "qadaTabPrayer": "Prayer",
+  "@qadaTabPrayer": {
+    "description": "Qada prayers tab."
+  },
+  "qadaTabFast": "Fasting",
+  "@qadaTabFast": {
+    "description": "Qada fasting tab."
+  },
+  "qadaCongrats": "Congratulations!",
+  "@qadaCongrats": {
+    "description": "Qada completion dialog title."
+  },
+  "qadaCongratsBody": "You have completed this record",
+  "@qadaCongratsBody": {
+    "description": "Qada completion dialog body."
+  },
+  "qadaPraiseGod": "Praise be to God",
+  "@qadaPraiseGod": {
+    "description": "Qada completion dialog button."
+  },
+  "qadaEmptyPrayer": "No missed prayers to make up",
+  "@qadaEmptyPrayer": {
+    "description": "Empty state for the prayers tab."
+  },
+  "qadaEmptyFast": "No fasting days to make up",
+  "@qadaEmptyFast": {
+    "description": "Empty state for the fasting tab."
+  },
+  "qadaAdd": "Add",
+  "@qadaAdd": {
+    "description": "Add-record button."
+  },
+  "qadaAddNew": "Add new record",
+  "@qadaAddNew": {
+    "description": "Add-record button under the list."
+  },
+  "qadaProgress": "Done: {done} of {total}",
+  "@qadaProgress": {
+    "description": "Record progress fraction.",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "qadaComplete": "Complete",
+  "@qadaComplete": {
+    "description": "Completed-record badge."
+  },
+  "qadaRemainingPrayer": "Remaining: {remaining} prayers",
+  "@qadaRemainingPrayer": {
+    "description": "Remaining prayers count.",
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "qadaRemainingFast": "Remaining: {remaining} days",
+  "@qadaRemainingFast": {
+    "description": "Remaining fasting days count.",
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "qadaDidPrayer": "I made up one prayer",
+  "@qadaDidPrayer": {
+    "description": "Log-one-prayer button."
+  },
+  "qadaDidFast": "I fasted one day",
+  "@qadaDidFast": {
+    "description": "Log-one-fast button."
+  },
+  "qadaAddPrayerTitle": "Add prayers to make up",
+  "@qadaAddPrayerTitle": {
+    "description": "Add-dialog title for prayers."
+  },
+  "qadaAddFastTitle": "Add fasting days to make up",
+  "@qadaAddFastTitle": {
+    "description": "Add-dialog title for fasting."
+  },
+  "qadaNameLabel": "Name (optional)",
+  "@qadaNameLabel": {
+    "description": "Record name field label."
+  },
+  "qadaNameHint": "E.g. 2020 prayers",
+  "@qadaNameHint": {
+    "description": "Record name field hint."
+  },
+  "qadaCountLabel": "Count *",
+  "@qadaCountLabel": {
+    "description": "Record count field label."
+  },
+  "qadaCountPrayerHint": "Number of prayers",
+  "@qadaCountPrayerHint": {
+    "description": "Prayer count field hint."
+  },
+  "qadaCountFastHint": "Number of days",
+  "@qadaCountFastHint": {
+    "description": "Fasting count field hint."
+  },
+  "qadaNotesLabel": "Notes (optional)",
+  "@qadaNotesLabel": {
+    "description": "Record notes field label."
+  },
+  "qadaNotesHint": "Any extra notes",
+  "@qadaNotesHint": {
+    "description": "Record notes field hint."
+  },
+  "qadaInvalidCount": "Please enter a valid count",
+  "@qadaInvalidCount": {
+    "description": "Invalid-count snackbar."
+  },
+  "qadaDefaultPrayerName": "Qada prayers",
+  "@qadaDefaultPrayerName": {
+    "description": "Default prayer record name."
+  },
+  "qadaDefaultFastName": "Fasting days",
+  "@qadaDefaultFastName": {
+    "description": "Default fasting record name."
+  },
+  "prayerTitle": "Prayer times",
+  "@prayerTitle": {
+    "description": "Prayer page app-bar title."
+  },
+  "prayerQadaTooltip": "Missed prayers",
+  "@prayerQadaTooltip": {
+    "description": "Qada navigation button tooltip."
+  },
+  "prayerLoadError": "Couldn't load prayer times",
+  "@prayerLoadError": {
+    "description": "Prayer page error state."
+  },
+  "prayerDayDone": "Today's prayers are done",
+  "@prayerDayDone": {
+    "description": "Shown when no prayers remain today."
+  },
+  "prayerNext": "Next prayer: {name}",
+  "@prayerNext": {
+    "description": "Next-prayer countdown header.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "prayerUntilAdhan": "Time until adhan",
+  "@prayerUntilAdhan": {
+    "description": "Countdown caption."
+  },
+  "psetTitle": "Prayer settings",
+  "@psetTitle": {
+    "description": "Prayer settings app-bar title."
+  },
+  "psetAdhanSection": "Adhan & alerts",
+  "@psetAdhanSection": {
+    "description": "Adhan section header."
+  },
+  "psetMosqueSection": "Mosque mode",
+  "@psetMosqueSection": {
+    "description": "Mosque mode section header."
+  },
+  "psetMethodSection": "Calculation method",
+  "@psetMethodSection": {
+    "description": "Calculation method section header."
+  },
+  "psetOffsetsSection": "Seasonal offsets",
+  "@psetOffsetsSection": {
+    "description": "Seasonal offsets section header."
+  },
+  "psetHealthSection": "System check",
+  "@psetHealthSection": {
+    "description": "Health check section header."
+  },
+  "psetMethodHint": "The method used for all prayer times",
+  "@psetMethodHint": {
+    "description": "Calculation method explainer."
+  },
+  "psetAdhanOn": "Adhan on",
+  "@psetAdhanOn": {
+    "description": "Adhan enabled subtitle."
+  },
+  "psetAdhanOff": "Adhan off",
+  "@psetAdhanOff": {
+    "description": "Adhan disabled subtitle."
+  },
+  "psetMosque": "Mosque mode",
+  "@psetMosque": {
+    "description": "Mosque mode toggle title."
+  },
+  "psetMosqueOn": "Phone silenced automatically at prayer time",
+  "@psetMosqueOn": {
+    "description": "Mosque mode enabled subtitle."
+  },
+  "psetMosqueOff": "Off — manual only",
+  "@psetMosqueOff": {
+    "description": "Mosque mode disabled subtitle."
+  },
+  "psetDuration": "Duration",
+  "@psetDuration": {
+    "description": "Mosque mode duration row label."
+  },
+  "psetDurationMinutes": "{minutes} minutes",
+  "@psetDurationMinutes": {
+    "description": "Mosque mode duration value.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "psetQuick": "Quick enable",
+  "@psetQuick": {
+    "description": "Quick mosque-mode label."
+  },
+  "psetQuick10": "Mosque mode — 10 minutes",
+  "@psetQuick10": {
+    "description": "10-minute mosque-mode snackbar."
+  },
+  "psetQuick20": "Mosque mode — 20 minutes",
+  "@psetQuick20": {
+    "description": "20-minute mosque-mode snackbar."
+  },
+  "psetQuick30": "Mosque mode — 30 minutes",
+  "@psetQuick30": {
+    "description": "30-minute mosque-mode snackbar."
+  },
+  "psetReset": "Reset",
+  "@psetReset": {
+    "description": "Reset seasonal offsets button."
+  },
+  "psetHealthRun": "Run system check",
+  "@psetHealthRun": {
+    "description": "Run health check button."
+  },
+  "psetHealthRunning": "Checking...",
+  "@psetHealthRunning": {
+    "description": "Health check running label."
+  },
+  "psetAllGood": "Everything works perfectly!",
+  "@psetAllGood": {
+    "description": "Healthy report message."
+  },
+  "psetFix": "Fix",
+  "@psetFix": {
+    "description": "Auto-fix issue button."
+  },
+  "psetBadgeHealthy": "System healthy",
+  "@psetBadgeHealthy": {
+    "description": "Healthy status badge."
+  },
+  "psetBadgeWarning": "There are warnings",
+  "@psetBadgeWarning": {
+    "description": "Warning status badge."
+  },
+  "psetBadgeCritical": "There are critical issues",
+  "@psetBadgeCritical": {
+    "description": "Critical status badge."
+  },
+  "tasbihTitle": "Electronic tasbih",
+  "@tasbihTitle": {
+    "description": "Tasbih page app-bar title."
+  },
+  "tasbihReset": "Reset",
+  "@tasbihReset": {
+    "description": "Reset counter tooltip."
+  },
+  "tasbihPreset33": "33",
+  "@tasbihPreset33": {
+    "description": "33-count preset chip."
+  },
+  "tasbihPreset100": "100",
+  "@tasbihPreset100": {
+    "description": "100-count preset chip."
+  },
+  "tasbihOpen": "Open",
+  "@tasbihOpen": {
+    "description": "Open-ended target chip."
+  },
+  "tasbihHint": "Tap anywhere on screen to count",
+  "@tasbihHint": {
+    "description": "Tasbih hint footer."
+  },
+  "toolsTitle": "Tools",
+  "@toolsTitle": {
+    "description": "Tools page header."
+  },
+  "toolsPrayer": "Prayer times",
+  "@toolsPrayer": {
+    "description": "Prayer tool card title."
+  },
+  "toolsPrayerSub": "Times & alerts",
+  "@toolsPrayerSub": {
+    "description": "Prayer tool card subtitle."
+  },
+  "toolsQibla": "Qibla",
+  "@toolsQibla": {
+    "description": "Qibla tool card title."
+  },
+  "toolsQiblaSub": "Qibla direction",
+  "@toolsQiblaSub": {
+    "description": "Qibla tool card subtitle."
+  },
+  "toolsTasbih": "Tasbih",
+  "@toolsTasbih": {
+    "description": "Tasbih tool card title."
+  },
+  "toolsTasbihSub": "Dhikr counter",
+  "@toolsTasbihSub": {
+    "description": "Tasbih tool card subtitle."
+  },
+  "toolsSearch": "Search",
+  "@toolsSearch": {
+    "description": "Search tool card title."
+  },
+  "toolsSearchSub": "Search Quran & hadith",
+  "@toolsSearchSub": {
+    "description": "Search tool card subtitle."
+  },
+  "toolsHifz": "Memorization & review",
+  "@toolsHifz": {
+    "description": "Hifz tool card title."
+  },
+  "toolsHifzSub": "Memorize & review verses",
+  "@toolsHifzSub": {
+    "description": "Hifz tool card subtitle."
+  },
+  "toolsProfile": "My profile",
+  "@toolsProfile": {
+    "description": "Profile tool card title."
+  },
+  "toolsProfileSub": "Statistics & progress",
+  "@toolsProfileSub": {
+    "description": "Profile tool card subtitle."
+  },
+  "toolsSettingsSub": "General & appearance settings",
+  "@toolsSettingsSub": {
+    "description": "Settings tool card subtitle."
+  },
+  "audioTitle": "Surah {name}",
+  "@audioTitle": {
+    "description": "Audio player app-bar title with the surah name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "audioResumeTitle": "Resume recitation?",
+  "@audioResumeTitle": {
+    "description": "Resume dialog title."
+  },
+  "audioResumeBody": "Continue reciting from surah {surah} - verse {ayah}?",
+  "@audioResumeBody": {
+    "description": "Resume dialog body.",
+    "placeholders": {
+      "surah": {
+        "type": "String"
+      },
+      "ayah": {
+        "type": "int"
+      }
+    }
+  },
+  "audioNo": "No",
+  "@audioNo": {
+    "description": "Decline resume button."
+  },
+  "audioResume": "Resume",
+  "@audioResume": {
+    "description": "Confirm resume button."
+  },
+  "audioAyahOf": "Verse {ayah} of {total}",
+  "@audioAyahOf": {
+    "description": "Current-verse indicator.",
+    "placeholders": {
+      "ayah": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "audioPickSurah": "Pick a surah",
+  "@audioPickSurah": {
+    "description": "Surah selector sheet title."
+  },
+  "audioPickReciter": "Pick a reciter",
+  "@audioPickReciter": {
+    "description": "Reciter selector sheet title."
+  },
+  "audioLoadError": "Failed to load the surah: {error}",
+  "@audioLoadError": {
+    "description": "Surah-load error snackbar with the error text.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "audioNowPlaying": "Now reciting",
+  "@audioNowPlaying": {
+    "description": "Now-playing badge on the reciter bar."
+  },
+  "mushafEmpty": "Empty page",
+  "@mushafEmpty": {
+    "description": "Empty mushaf page placeholder."
+  },
+  "mushafError": "Error: {error}",
+  "@mushafError": {
+    "description": "Mushaf page load error.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "mushafJuz": "Juz {juz}",
+  "@mushafJuz": {
+    "description": "Page header juz label.",
+    "placeholders": {
+      "juz": {
+        "type": "int"
+      }
+    }
+  },
+  "mushafAppearanceTooltip": "Appearance",
+  "@mushafAppearanceTooltip": {
+    "description": "Reading-appearance button tooltip."
+  },
+  "mushafPageIndicator": "Page {page} / 604",
+  "@mushafPageIndicator": {
+    "description": "Mushaf page indicator.",
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "mushafCopy": "Copy",
+  "@mushafCopy": {
+    "description": "Copy-verse action."
+  },
+  "mushafSave": "Save",
+  "@mushafSave": {
+    "description": "Bookmark-verse action."
+  },
+  "mushafSaved": "Bookmark saved",
+  "@mushafSaved": {
+    "description": "Bookmark-saved snackbar."
+  },
+  "mushafShareCopied": "Copied for sharing",
+  "@mushafShareCopied": {
+    "description": "Share-copy snackbar."
+  },
+  "mushafTafsirTitle": "Al-Muyassar tafsir",
+  "@mushafTafsirTitle": {
+    "description": "Tafsir preview header."
+  },
+  "mushafTafsirMissing": "Tafsir currently unavailable",
+  "@mushafTafsirMissing": {
+    "description": "Missing-tafsir placeholder."
+  },
+  "mushafReadMore": "Read more",
+  "@mushafReadMore": {
+    "description": "Expand-tafsir link."
+  },
+  "mushafOpenFull": "Open full tafsir",
+  "@mushafOpenFull": {
+    "description": "Open full tafsir button."
+  },
+  "mushafAyahLabel": "{name} ({ayah})",
+  "@mushafAyahLabel": {
+    "description": "Ayah sheet label with surah name and verse number.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "ayah": {
+        "type": "int"
+      }
+    }
+  },
+  "mushafShareTemplate": "{verse} — Holy Quran (surah {surah}, verse {ayah})",
+  "@mushafShareTemplate": {
+    "description": "Verse share text.",
+    "placeholders": {
+      "verse": {
+        "type": "String"
+      },
+      "surah": {
+        "type": "String"
+      },
+      "ayah": {
+        "type": "int"
+      }
+    }
+  },
+  "surahLoadError": "Failed to load the surah",
+  "@surahLoadError": {
+    "description": "Surah page error state."
+  },
+  "surahFallback": "Surah {number}",
+  "@surahFallback": {
+    "description": "Surah title fallback when metadata is missing.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "surahKhushuTooltip": "Khushu mode",
+  "@surahKhushuTooltip": {
+    "description": "Khushu mode button tooltip."
+  },
+  "surahListenTooltip": "Listen",
+  "@surahListenTooltip": {
+    "description": "Audio button tooltip."
+  },
+  "surahAppearance": "Reading appearance",
+  "@surahAppearance": {
+    "description": "Reading-appearance sheet title."
+  },
+  "surahShowTranslation": "Show translation",
+  "@surahShowTranslation": {
+    "description": "Translation toggle."
+  },
+  "surahTrLang": "Translation language:",
+  "@surahTrLang": {
+    "description": "Translation language label."
+  },
+  "verseTafsir": "Verse tafsir",
+  "@verseTafsir": {
+    "description": "Verse options: open tafsir."
+  },
+  "verseAddHifz": "Add to memorization",
+  "@verseAddHifz": {
+    "description": "Verse options: add to hifz."
+  },
+  "verseHifzAdded": "Verse added to memorization cards",
+  "@verseHifzAdded": {
+    "description": "Added-to-hifz snackbar."
+  },
+  "verseAddBookmark": "Add bookmark",
+  "@verseAddBookmark": {
+    "description": "Verse options: bookmark."
+  },
+  "verseBookmarkSaved": "Bookmark saved",
+  "@verseBookmarkSaved": {
+    "description": "Bookmark-saved snackbar."
+  },
+  "verseShare": "Share",
+  "@verseShare": {
+    "description": "Verse options: share."
+  },
+  "verseShareCopied": "Verse copied for sharing",
+  "@verseShareCopied": {
+    "description": "Share-copy snackbar."
+  },
+  "versePlayAudio": "Play audio",
+  "@versePlayAudio": {
+    "description": "Verse options: play audio."
+  },
+  "verseCopy": "Copy verse",
+  "@verseCopy": {
+    "description": "Verse options: copy."
+  },
+  "verseCopied": "Verse copied",
+  "@verseCopied": {
+    "description": "Copied snackbar."
+  },
+  "verseShareTemplate": "{verse} — Holy Quran (surah {surah}, verse {ayah})",
+  "@verseShareTemplate": {
+    "description": "Verse share text.",
+    "placeholders": {
+      "verse": {
+        "type": "String"
+      },
+      "surah": {
+        "type": "int"
+      },
+      "ayah": {
+        "type": "int"
+      }
+    }
+  },
+  "quranTitle": "Holy Quran",
+  "@quranTitle": {
+    "description": "Quran library header."
+  },
+  "quranSurahCount": "{count} surahs",
+  "@quranSurahCount": {
+    "description": "Surah count badge.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "quranContinue": "Continue reading",
+  "@quranContinue": {
+    "description": "Continue-reading card title."
+  },
+  "quranSurahNumber": "Surah no. {number}",
+  "@quranSurahNumber": {
+    "description": "Continue-reading surah line.",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "quranNoResults": "No results",
+  "@quranNoResults": {
+    "description": "Empty search state."
+  },
+  "quranMushaf": "Mushaf",
+  "@quranMushaf": {
+    "description": "Mushaf shortcut button."
+  },
+  "quranKhatmahPlan": "Khatmah plan",
+  "@quranKhatmahPlan": {
+    "description": "Khatmah shortcut button."
+  },
+  "quranTafsir": "Tafsir",
+  "@quranTafsir": {
+    "description": "Tafsir shortcut button."
+  },
+  "quranFilterAll": "All",
+  "@quranFilterAll": {
+    "description": "Show-all filter chip."
+  },
+  "quranMeccan": "Makki",
+  "@quranMeccan": {
+    "description": "Makki filter chip and badge."
+  },
+  "quranMedinan": "Madani",
+  "@quranMedinan": {
+    "description": "Madani filter chip and badge."
+  },
+  "quranSearchHint": "Search for a surah...",
+  "@quranSearchHint": {
+    "description": "Surah search hint."
+  },
+  "quranAyahCount": "{count} verses",
+  "@quranAyahCount": {
+    "description": "Verse count per surah tile.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "quranError": "Something went wrong",
+  "@quranError": {
+    "description": "Quran list error title."
+  },
+  "khatmahTitle": "Khatmah plan",
+  "@khatmahTitle": {
+    "description": "Khatmah page app-bar title."
+  },
+  "khatmahEmpty": "No active khatmah",
+  "@khatmahEmpty": {
+    "description": "Empty khatmah state."
+  },
+  "khatmahStart": "Start a new khatmah",
+  "@khatmahStart": {
+    "description": "Start-khatmah button."
+  },
+  "khatmahSchedule": "Reading schedule",
+  "@khatmahSchedule": {
+    "description": "Schedule section header."
+  },
+  "khatmahHistory": "Your past khatmahs",
+  "@khatmahHistory": {
+    "description": "History section header."
+  },
+  "khatmahNoneDone": "No khatmah completed yet",
+  "@khatmahNoneDone": {
+    "description": "Empty history state."
+  },
+  "khatmahActive": "Active",
+  "@khatmahActive": {
+    "description": "Active khatmah badge."
+  },
+  "khatmahPageOfTotal": "Page {current} of {total}",
+  "@khatmahPageOfTotal": {
+    "description": "Progress page fraction.",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "khatmahLastPosition": "Last position",
+  "@khatmahLastPosition": {
+    "description": "Last-position label."
+  },
+  "khatmahPositionAt": "Surah {surah} - verse {ayah}",
+  "@khatmahPositionAt": {
+    "description": "Last-position line.",
+    "placeholders": {
+      "surah": {
+        "type": "String"
+      },
+      "ayah": {
+        "type": "int"
+      }
+    }
+  },
+  "khatmahResume": "Resume",
+  "@khatmahResume": {
+    "description": "Resume-reading button."
+  },
+  "khatmahGoal": "Goal: {date}",
+  "@khatmahGoal": {
+    "description": "Target-date line.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "khatmahDailyGoal": "Today's goal",
+  "@khatmahDailyGoal": {
+    "description": "Daily goal card title."
+  },
+  "khatmahPagesToday": "{read} / {need} pages",
+  "@khatmahPagesToday": {
+    "description": "Daily pages fraction.",
+    "placeholders": {
+      "read": {
+        "type": "int"
+      },
+      "need": {
+        "type": "int"
+      }
+    }
+  },
+  "khatmahGoalDone": "Well done! Daily goal complete",
+  "@khatmahGoalDone": {
+    "description": "Goal-complete celebration."
+  },
+  "khatmahSchedulePages": "{pages} pages",
+  "@khatmahSchedulePages": {
+    "description": "Schedule row pages.",
+    "placeholders": {
+      "pages": {
+        "type": "String"
+      }
+    }
+  },
+  "khatmahDoneIn": "Completed in {days} days",
+  "@khatmahDoneIn": {
+    "description": "Past-khatmah duration.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "khatmahNew": "New khatmah",
+  "@khatmahNew": {
+    "description": "New-khatmah dialog title."
+  },
+  "khatmahNameHint": "Khatmah name (optional)",
+  "@khatmahNameHint": {
+    "description": "Khatmah name hint."
+  },
+  "khatmahDuration": "Duration:",
+  "@khatmahDuration": {
+    "description": "Duration row label."
+  },
+  "khatmahDaysOption": "{days} days",
+  "@khatmahDaysOption": {
+    "description": "Duration dropdown option.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "khatmahPerDay": "About {pages} pages per day",
+  "@khatmahPerDay": {
+    "description": "Pages-per-day estimate.",
+    "placeholders": {
+      "pages": {
+        "type": "int"
+      }
+    }
+  },
+  "khatmahStartButton": "Start khatmah",
+  "@khatmahStartButton": {
+    "description": "Confirm-start button."
+  },
+  "tadTitle": "Tadabbur mihrab",
+  "@tadTitle": {
+    "description": "Tadabbur page title."
+  },
+  "tadSaved": "Your note was saved securely",
+  "@tadSaved": {
+    "description": "Note-saved snackbar."
+  },
+  "tadRef": "Surah {surah} - verse {ayah}",
+  "@tadRef": {
+    "description": "Verse reference line.",
+    "placeholders": {
+      "surah": {
+        "type": "int"
+      },
+      "ayah": {
+        "type": "int"
+      }
+    }
+  },
+  "tadHint": "Write your reflections here...",
+  "@tadHint": {
+    "description": "Note input hint."
+  },
+  "tadEncrypted": "Your notes are encrypted locally",
+  "@tadEncrypted": {
+    "description": "Encryption reassurance line."
+  },
+  "tadSave": "Save",
+  "@tadSave": {
+    "description": "Save-note button."
+  },
+  "tadPrevious": "Your previous notes",
+  "@tadPrevious": {
+    "description": "Saved-notes header."
+  },
+  "tadEmpty": "No notes yet",
+  "@tadEmpty": {
+    "description": "Empty notes state."
+  },
+  "tadPrivacyTitle": "Your notes' privacy",
+  "@tadPrivacyTitle": {
+    "description": "Privacy dialog title."
+  },
+  "tadPrivacy1": "Your notes are encrypted locally on your device",
+  "@tadPrivacy1": {
+    "description": "Privacy row 1."
+  },
+  "tadPrivacy2": "Never uploaded to any cloud",
+  "@tadPrivacy2": {
+    "description": "Privacy row 2."
+  },
+  "tadPrivacy3": "Nobody can read them but you",
+  "@tadPrivacy3": {
+    "description": "Privacy row 3."
+  },
+  "tadPrivacyAes": "Uses AES-256 encryption to protect your thoughts.",
+  "@tadPrivacyAes": {
+    "description": "Privacy AES note."
+  },
+  "tadGotIt": "Got it",
+  "@tadGotIt": {
+    "description": "Privacy dialog dismiss button."
+  },
+  "topicTitle": "Topic taxonomy",
+  "@topicTitle": {
+    "description": "Topic tree app-bar title."
+  },
+  "topicEmpty": "No topics yet",
+  "@topicEmpty": {
+    "description": "Empty topic index state."
+  },
+  "topicEmptyHint": "The index builds on the first hadith load",
+  "@topicEmptyHint": {
+    "description": "Empty topic index hint."
+  },
+  "topicHadithCount": "{count} hadith",
+  "@topicHadithCount": {
+    "description": "Hadith count per topic.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "memTitle": "Hadith memorization",
+  "@memTitle": {
+    "description": "Memorization page title."
+  },
+  "memDueToday": "Due today",
+  "@memDueToday": {
+    "description": "Due-cards stat label."
+  },
+  "memReviewedToday": "Reviewed today",
+  "@memReviewedToday": {
+    "description": "Reviewed-today stat label."
+  },
+  "memTotal": "Total memorized",
+  "@memTotal": {
+    "description": "Total-memorized stat label."
+  },
+  "memHintFallback": "The Prophet said: ...",
+  "@memHintFallback": {
+    "description": "Card-front hint when no card is loaded."
+  },
+  "memRemember": "Recall the hadith...",
+  "@memRemember": {
+    "description": "Card-front prompt."
+  },
+  "memShowAnswer": "Tap to reveal the answer",
+  "@memShowAnswer": {
+    "description": "Reveal-answer hint."
+  },
+  "memDayFallback": "1 day",
+  "@memDayFallback": {
+    "description": "Fallback review-interval label."
+  },
+  "memDone": "Well done! Today's review is complete",
+  "@memDone": {
+    "description": "Completion empty state title."
+  },
+  "memComeBack": "Come back tomorrow to keep memorizing",
+  "@memComeBack": {
+    "description": "Completion empty state subtitle."
+  },
+  "memBack": "Back",
+  "@memBack": {
+    "description": "Leave-completed-deck button."
+  },
+  "lstatsTitle": "My statistics",
+  "@lstatsTitle": {
+    "description": "Learning statistics title."
+  },
+  "lstatsBookmarks": "Bookmarks",
+  "@lstatsBookmarks": {
+    "description": "Bookmarks stat."
+  },
+  "lstatsHadithUnit": "hadith",
+  "@lstatsHadithUnit": {
+    "description": "Bookmarks unit."
+  },
+  "lstatsNotes": "Notes",
+  "@lstatsNotes": {
+    "description": "Notes stat."
+  },
+  "lstatsNoteUnit": "notes",
+  "@lstatsNoteUnit": {
+    "description": "Notes unit."
+  },
+  "lstatsQuizzes": "Quizzes",
+  "@lstatsQuizzes": {
+    "description": "Quizzes stat."
+  },
+  "lstatsQuizAvg": "{score}% average",
+  "@lstatsQuizAvg": {
+    "description": "Quiz average subtitle.",
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "lstatsMemorize": "Memorized",
+  "@lstatsMemorize": {
+    "description": "Memorized stat."
+  },
+  "lstatsCardUnit": "cards",
+  "@lstatsCardUnit": {
+    "description": "Memorized unit."
+  },
+  "lstatsWeekActivity": "Week activity",
+  "@lstatsWeekActivity": {
+    "description": "Weekly chart header."
+  },
+  "lstatsByBooks": "Bookmarks by book",
+  "@lstatsByBooks": {
+    "description": "Per-book section header."
+  },
+  "lstatsStreak": "Day streak",
+  "@lstatsStreak": {
+    "description": "Streak card title."
+  },
+  "lstatsLongest": "Longest streak: {days} days",
+  "@lstatsLongest": {
+    "description": "Longest-streak line.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "lstatsBookSaved": "{read} saved",
+  "@lstatsBookSaved": {
+    "description": "Per-book saved count.",
+    "placeholders": {
+      "read": {
+        "type": "int"
+      }
+    }
+  },
+  "hifzStreakLine": "{emoji} Practice streak",
+  "@hifzStreakLine": {
+    "description": "Streak banner with emoji.",
+    "placeholders": {
+      "emoji": {
+        "type": "String"
+      }
+    }
+  },
+  "hifzDays": "{count} days",
+  "@hifzDays": {
+    "description": "Streak day count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hifzToMemorize": "To memorize",
+  "@hifzToMemorize": {
+    "description": "New-cards chip."
+  },
+  "hifzToReview": "To review",
+  "@hifzToReview": {
+    "description": "Due-cards chip."
+  },
+  "hifzStartReview": "Start review ({count})",
+  "@hifzStartReview": {
+    "description": "Start-review button.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hifzStartNew": "Start memorizing {count} new verses",
+  "@hifzStartNew": {
+    "description": "Start-new button.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hifzEmpty": "Add verses from a surah page to start memorizing",
+  "@hifzEmpty": {
+    "description": "Empty hifz state."
+  },
+  "hifzMyCards": "My cards ({count})",
+  "@hifzMyCards": {
+    "description": "Cards section header.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hifzCardRef": "Surah {surah} : verse {ayah}",
+  "@hifzCardRef": {
+    "description": "Card reference line.",
+    "placeholders": {
+      "surah": {
+        "type": "int"
+      },
+      "ayah": {
+        "type": "int"
+      }
+    }
+  },
+  "hifzNew": "New",
+  "@hifzNew": {
+    "description": "New-card badge."
+  },
+  "hifzDueToday": "Due today",
+  "@hifzDueToday": {
+    "description": "Due-card badge."
+  },
+  "hifzAfterDays": "In {days} days",
+  "@hifzAfterDays": {
+    "description": "Future-review badge.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "hifzRepeat": "Repeats: ",
+  "@hifzRepeat": {
+    "description": "Repeat-count label."
+  },
+  "searchHintUnified": "Search Quran & hadith...",
+  "@searchHintUnified": {
+    "description": "Unified search hint."
+  },
+  "searchPrompt": "Search for a verse or hadith",
+  "@searchPrompt": {
+    "description": "Search idle prompt."
+  },
+  "searchBadgeHadith": "Hadith",
+  "@searchBadgeHadith": {
+    "description": "Hadith result badge."
+  },
+  "searchBadgeAdhkar": "Adhkar",
+  "@searchBadgeAdhkar": {
+    "description": "Adhkar result badge."
+  },
+  "searchQuranRef": "Surah {surah} : verse {verse}",
+  "@searchQuranRef": {
+    "description": "Quran result reference.",
+    "placeholders": {
+      "surah": {
+        "type": "String"
+      },
+      "verse": {
+        "type": "String"
+      }
+    }
+  },
+  "searchCopied": "Text copied",
+  "@searchCopied": {
+    "description": "Copy-result snackbar."
+  },
+  "hsearchTitle": "Advanced search",
+  "@hsearchTitle": {
+    "description": "Hadith search title."
+  },
+  "hsearchAllBooks": "All books",
+  "@hsearchAllBooks": {
+    "description": "All-books dropdown option."
+  },
+  "hsearchButton": "Search",
+  "@hsearchButton": {
+    "description": "Search submit button."
+  },
+  "hsearchEmpty": "Search the nine books",
+  "@hsearchEmpty": {
+    "description": "Idle search state."
+  },
+  "hsearchEmptySub": "Search covers Arabic and English text",
+  "@hsearchEmptySub": {
+    "description": "Idle search subtitle."
+  },
+  "hsearchNoResults": "No results found",
+  "@hsearchNoResults": {
+    "description": "No-results state."
+  },
+  "hsearchCount": "{count} results",
+  "@hsearchCount": {
+    "description": "Result count badge.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hsearchByText": "Text search",
+  "@hsearchByText": {
+    "description": "Text-search mode."
+  },
+  "hsearchByNarrator": "Narrator search",
+  "@hsearchByNarrator": {
+    "description": "Narrator-search mode."
+  },
+  "hsearchTextHint": "Search by word or phrase...",
+  "@hsearchTextHint": {
+    "description": "Text-search hint."
+  },
+  "hsearchNarratorHint": "Narrator name in English...",
+  "@hsearchNarratorHint": {
+    "description": "Narrator-search hint."
+  },
+  "hsearchHadithNumber": "Hadith no. {id}",
+  "@hsearchHadithNumber": {
+    "description": "Result card hadith number.",
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "hsessionDoneTitle": "Masha Allah!",
+  "@hsessionDoneTitle": {
+    "description": "Session-complete dialog title."
+  },
+  "hsessionDoneBody": "Session complete. Keep practicing daily to retain memorization.",
+  "@hsessionDoneBody": {
+    "description": "Session-complete dialog body."
+  },
+  "hsessionFinish": "Finish",
+  "@hsessionFinish": {
+    "description": "Leave-session button."
+  },
+  "hsessionCounter": "Memorization session ({index}/{total})",
+  "@hsessionCounter": {
+    "description": "Session progress counter.",
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "hsessionCardRef": "Surah {surah} — verse {ayah}",
+  "@hsessionCardRef": {
+    "description": "Session card reference.",
+    "placeholders": {
+      "surah": {
+        "type": "int"
+      },
+      "ayah": {
+        "type": "int"
+      }
+    }
+  },
+  "hsessionRepeatCount": "Repeats x{count}",
+  "@hsessionRepeatCount": {
+    "description": "Repeat counter label.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hsessionRatePrompt": "How was your recall?",
+  "@hsessionRatePrompt": {
+    "description": "Self-rating prompt."
+  },
+  "hsessionIntervalDays": "{days} days",
+  "@hsessionIntervalDays": {
+    "description": "Review-interval label.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "hpageTitle": "Jawami al-Kalim",
+  "@hpageTitle": {
+    "description": "Hadith library header title."
+  },
+  "hpageSubtitle": "Library of the noble Prophetic Sunnah",
+  "@hpageSubtitle": {
+    "description": "Hadith library header subtitle."
+  },
+  "hpageBookmarksTooltip": "Bookmarks",
+  "@hpageBookmarksTooltip": {
+    "description": "Bookmarks button tooltip."
+  },
+  "hpageQuizTooltip": "Hadith quiz",
+  "@hpageQuizTooltip": {
+    "description": "Quiz button tooltip."
+  },
+  "hpageBooks": "Books & collections",
+  "@hpageBooks": {
+    "description": "Books section header."
+  },
+  "hpageBooksHint": "Pick a book to browse hadith",
+  "@hpageBooksHint": {
+    "description": "Books section subtitle."
+  },
+  "hpageBookCollection": "Hadith collection",
+  "@hpageBookCollection": {
+    "description": "Book card subtitle."
+  },
+  "hpageError": "Something went wrong: {error}",
+  "@hpageError": {
+    "description": "Books-load error.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "hpageStudyTools": "Study tools",
+  "@hpageStudyTools": {
+    "description": "Study tools header."
+  },
+  "hpageToolMemorize": "Spaced memorization",
+  "@hpageToolMemorize": {
+    "description": "Memorization tool tile."
+  },
+  "hpageToolStats": "Statistics",
+  "@hpageToolStats": {
+    "description": "Statistics tool tile."
+  },
+  "hpageToolTags": "Tags",
+  "@hpageToolTags": {
+    "description": "Tags tool tile."
+  },
+  "hpageToolTopics": "Topic tree",
+  "@hpageToolTopics": {
+    "description": "Topics tool tile."
+  },
+  "hpageToolAdvanced": "Advanced browser",
+  "@hpageToolAdvanced": {
+    "description": "Advanced browser tool tile."
+  },
+  "hpageContinue": "Continue reading",
+  "@hpageContinue": {
+    "description": "Continue-reading card title."
+  },
+  "hpageContinueAt": "{title} - hadith {index} / {total}",
+  "@hpageContinueAt": {
+    "description": "Continue-reading position line.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "hpageToday": "Hadith of the day",
+  "@hpageToday": {
+    "description": "Hadith-of-the-day badge."
+  },
+  "hpageReadMore": "Read more",
+  "@hpageReadMore": {
+    "description": "Read-more link."
+  },
+  "hbmRemoved": "Hadith removed from bookmarks",
+  "@hbmRemoved": {
+    "description": "Unbookmark snackbar."
+  },
+  "hbmEmpty": "No bookmarked hadith",
+  "@hbmEmpty": {
+    "description": "Empty bookmarks state."
+  },
+  "hbmEmptyHint": "Tap the bookmark icon while reading a hadith",
+  "@hbmEmptyHint": {
+    "description": "Empty bookmarks hint."
+  },
+  "tagsNew": "Create new tag",
+  "@tagsNew": {
+    "description": "Create-tag sheet title."
+  },
+  "tagsNameHint": "Tag name (e.g. for review)",
+  "@tagsNameHint": {
+    "description": "Tag name hint."
+  },
+  "tagsIcon": "Icon",
+  "@tagsIcon": {
+    "description": "Icon picker label."
+  },
+  "tagsColor": "Color",
+  "@tagsColor": {
+    "description": "Color picker label."
+  },
+  "tagsCreate": "Create",
+  "@tagsCreate": {
+    "description": "Create-tag button."
+  },
+  "tagsTitle": "My tags",
+  "@tagsTitle": {
+    "description": "Tags page title."
+  },
+  "tagsEmpty": "No tags yet",
+  "@tagsEmpty": {
+    "description": "Empty tags state."
+  },
+  "tagsEmptyHint": "Create tags to organize your favorite hadith",
+  "@tagsEmptyHint": {
+    "description": "Empty tags hint."
+  },
+  "tagsNewFab": "New tag",
+  "@tagsNewFab": {
+    "description": "New-tag FAB."
+  },
+  "tagsRemoved": "Hadith removed from tag",
+  "@tagsRemoved": {
+    "description": "Untag snackbar."
+  },
+  "tagsAdded": "Hadith added to tag",
+  "@tagsAdded": {
+    "description": "Tag snackbar."
+  },
+  "cmpTitle": "Narration comparison",
+  "@cmpTitle": {
+    "description": "Comparison page title."
+  },
+  "cmpDiffTooltip": "Show differences",
+  "@cmpDiffTooltip": {
+    "description": "Diff toggle tooltip."
+  },
+  "cmpSideBySide": "Side-by-side view",
+  "@cmpSideBySide": {
+    "description": "Side-by-side button."
+  },
+  "cmpEmpty": "No matching narrations found",
+  "@cmpEmpty": {
+    "description": "Empty comparison state."
+  },
+  "cmpEmptyHint": "Try a different keyword",
+  "@cmpEmptyHint": {
+    "description": "Empty comparison hint."
+  },
+  "cmpUngraded": "Ungraded",
+  "@cmpUngraded": {
+    "description": "Missing-grade fallback."
+  },
+  "cmpDiffCount": "{count} differences",
+  "@cmpDiffCount": {
+    "description": "Difference count badge.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cmpSideTitle": "Side-by-side comparison",
+  "@cmpSideTitle": {
+    "description": "Side-by-side sheet title."
+  },
+  "quizComplete": "Complete the hadith",
+  "@quizComplete": {
+    "description": "Complete-the-hadith quiz title."
+  },
+  "quizChoose": "Choose correctly",
+  "@quizChoose": {
+    "description": "Choose-correct quiz title."
+  },
+  "quizNarrator": "Identify the narrator",
+  "@quizNarrator": {
+    "description": "Narrator quiz title."
+  },
+  "quizGrade": "Hadith grade",
+  "@quizGrade": {
+    "description": "Grade quiz title."
+  },
+  "quizQuestion": "Question {index} of {total}",
+  "@quizQuestion": {
+    "description": "Quiz progress header.",
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "quizPassed": "Well done!",
+  "@quizPassed": {
+    "description": "Quiz passed title."
+  },
+  "quizFailed": "Try again",
+  "@quizFailed": {
+    "description": "Quiz failed title."
+  },
+  "quizScore": "{score} of {total} correct answers",
+  "@quizScore": {
+    "description": "Quiz score line.",
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "quizRetry": "Retake quiz",
+  "@quizRetry": {
+    "description": "Retake button."
+  },
+  "hchLoading": "Loading chapters...",
+  "@hchLoading": {
+    "description": "Chapters loading state."
+  },
+  "hchError": "Failed to load the book",
+  "@hchError": {
+    "description": "Chapters error state."
+  },
+  "hchChapters": "{count} chapters",
+  "@hchChapters": {
+    "description": "Chapter count chip.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hchAllTitle": "All hadith",
+  "@hchAllTitle": {
+    "description": "All-hadith list title."
+  },
+  "hchViewAll": "View all hadith",
+  "@hchViewAll": {
+    "description": "View-all button."
+  },
+  "hchSection": "Chapters",
+  "@hchSection": {
+    "description": "Chapters section header."
+  },
+  "hchHadithUnit": "hadith",
+  "@hchHadithUnit": {
+    "description": "Per-chapter unit label."
+  },
+  "hchEmpty": "No hadith in this chapter",
+  "@hchEmpty": {
+    "description": "Empty chapter state."
+  },
+  "igTitle": "Isnad graph",
+  "@igTitle": {
+    "description": "Isnad graph title."
+  },
+  "igCount": "{count} narrators",
+  "@igCount": {
+    "description": "Chain size chip.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "igLoading": "Analyzing the isnad...",
+  "@igLoading": {
+    "description": "Graph loading state."
+  },
+  "igEmpty": "No isnad found",
+  "@igEmpty": {
+    "description": "Empty graph state."
+  },
+  "ichainTitle": "Isnad chain",
+  "@ichainTitle": {
+    "description": "Chain page title."
+  },
+  "ichainGraphTooltip": "Graph view",
+  "@ichainGraphTooltip": {
+    "description": "Graph toggle tooltip."
+  },
+  "ichainLoading": "Analyzing the isnad chain...",
+  "@ichainLoading": {
+    "description": "Chain loading state."
+  },
+  "ichainEmptyHint": "This hadith text has no analyzable isnad chain",
+  "@ichainEmptyHint": {
+    "description": "Empty chain hint."
+  },
+  "ichainCount": "{count} narrators in the chain",
+  "@ichainCount": {
+    "description": "Chain size badge.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ichainCardTitle": "Narrator card",
+  "@ichainCardTitle": {
+    "description": "Narrator detail sheet title."
+  },
+  "hreaderBookmarked": "Hadith added to bookmarks",
+  "@hreaderBookmarked": {
+    "description": "Bookmark snackbar."
+  },
+  "hreaderCopied": "Hadith copied",
+  "@hreaderCopied": {
+    "description": "Copy snackbar."
+  },
+  "hreaderCopyTemplate": "{text}\n\n{narrator}\n\n— {title} #{id}",
+  "@hreaderCopyTemplate": {
+    "description": "Hadith copy text.",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      },
+      "id": {
+        "type": "int"
+      },
+      "narrator": {
+        "type": "String"
+      }
+    }
+  },
+  "hreaderTitle": "{title} — #{id}",
+  "@hreaderTitle": {
+    "description": "Reader app-bar title.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "hreaderSharahTooltip": "Commentary",
+  "@hreaderSharahTooltip": {
+    "description": "Sharh button tooltip."
+  },
+  "hreaderNumberBadge": "Hadith #{id}",
+  "@hreaderNumberBadge": {
+    "description": "Hadith number badge.",
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "hreaderPrev": "Previous",
+  "@hreaderPrev": {
+    "description": "Previous button."
+  },
+  "hreaderNext": "Next",
+  "@hreaderNext": {
+    "description": "Next button."
+  },
+  "hshareTitle": "Share as image",
+  "@hshareTitle": {
+    "description": "Share sheet title."
+  },
+  "hshareNow": "Share now",
+  "@hshareNow": {
+    "description": "Share button."
+  },
+  "hshareProcessing": "Preparing...",
+  "@hshareProcessing": {
+    "description": "Share processing label."
+  },
+  "hshareText": "{title} - hadith no. {id}\n\nNoor Islamic app",
+  "@hshareText": {
+    "description": "Shared image caption.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "hshareError": "Failed to save the image: {error}",
+  "@hshareError": {
+    "description": "Share error snackbar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "schTitle": "Student-of-knowledge mode",
+  "@schTitle": {
+    "description": "Scholar mode title."
+  },
+  "schHighlightTooltip": "Highlight key words",
+  "@schHighlightTooltip": {
+    "description": "Highlight toggle tooltip."
+  },
+  "schShareTooltip": "Share with documentation",
+  "@schShareTooltip": {
+    "description": "Takhrij share tooltip."
+  },
+  "schUngraded": "Ungraded",
+  "@schUngraded": {
+    "description": "Missing-grade fallback."
+  },
+  "schHadithNumber": "Hadith no. {number}",
+  "@schHadithNumber": {
+    "description": "Hadith number line.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "schTakhrij": "Documentation",
+  "@schTakhrij": {
+    "description": "Takhrij section title."
+  },
+  "schBook": "Book",
+  "@schBook": {
+    "description": "Takhrij book row."
+  },
+  "schChapter": "Chapter",
+  "@schChapter": {
+    "description": "Takhrij chapter row."
+  },
+  "schChapterValue": "Chapter {chapter}",
+  "@schChapterValue": {
+    "description": "Takhrij chapter value.",
+    "placeholders": {
+      "chapter": {
+        "type": "int"
+      }
+    }
+  },
+  "schNumber": "Hadith number",
+  "@schNumber": {
+    "description": "Takhrij number row."
+  },
+  "schCompanion": "Companion",
+  "@schCompanion": {
+    "description": "Takhrij companion row."
+  },
+  "schTopics": "Topics",
+  "@schTopics": {
+    "description": "Takhrij topics row."
+  },
+  "schNotes": "My notes",
+  "@schNotes": {
+    "description": "Notes section title."
+  },
+  "schNotesHint": "Add your notes on this hadith...",
+  "@schNotesHint": {
+    "description": "Notes hint."
+  },
+  "schNotesSaved": "Notes save automatically",
+  "@schNotesSaved": {
+    "description": "Notes autosave note."
+  },
+  "schSimilar": "Similar hadith",
+  "@schSimilar": {
+    "description": "Similar section title."
+  },
+  "schNoSimilar": "No similar hadith",
+  "@schNoSimilar": {
+    "description": "Empty similar state."
+  },
+  "schNoIsnad": "No isnad found in this hadith",
+  "@schNoIsnad": {
+    "description": "Empty isnad state."
+  },
+  "schIsnadAnalysis": "Isnad analysis",
+  "@schIsnadAnalysis": {
+    "description": "Isnad section title."
+  },
+  "schChainCount": "{count} narrators in the chain",
+  "@schChainCount": {
+    "description": "Chain size subtitle.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "schStatNarrators": "Narrators",
+  "@schStatNarrators": {
+    "description": "Narrator stat."
+  },
+  "schStatCompanions": "Companions",
+  "@schStatCompanions": {
+    "description": "Companion stat."
+  },
+  "schStatProphet": "The Prophet",
+  "@schStatProphet": {
+    "description": "Prophet stat."
+  },
+  "schChainConnected": "Connected chain ({count} links)",
+  "@schChainConnected": {
+    "description": "Connected-chain banner.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "schChainShort": "Short chain ({count} links)",
+  "@schChainShort": {
+    "description": "Short-chain banner.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "schCopyTakhrij": "Copy with documentation",
+  "@schCopyTakhrij": {
+    "description": "Copy-takhrij chip."
+  },
+  "schSaveReview": "Save for review",
+  "@schSaveReview": {
+    "description": "Review chip."
+  },
+  "schCopiedTakhrij": "Copied with documentation",
+  "@schCopiedTakhrij": {
+    "description": "Copied snackbar."
+  },
+  "schAddedReview": "Added to review",
+  "@schAddedReview": {
+    "description": "Saved-for-review snackbar."
+  },
+  "schTakhrijBook": "Book: {book}",
+  "@schTakhrijBook": {
+    "description": "Copied documentation book line.",
+    "placeholders": {
+      "book": {
+        "type": "String"
+      }
+    }
+  },
+  "schTakhrijChapter": "Chapter {chapter} - hadith {number}",
+  "@schTakhrijChapter": {
+    "description": "Copied documentation chapter line.",
+    "placeholders": {
+      "chapter": {
+        "type": "int"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "schTakhrijGrade": "Grade: {grade}",
+  "@schTakhrijGrade": {
+    "description": "Copied documentation grade line.",
+    "placeholders": {
+      "grade": {
+        "type": "String"
+      }
+    }
+  },
+  "schTakhrijCompanion": "Companion: {companion}",
+  "@schTakhrijCompanion": {
+    "description": "Copied documentation companion line.",
+    "placeholders": {
+      "companion": {
+        "type": "String"
+      }
+    }
+  },
+  "schTakhrijApp": "— Noor Islamic app",
+  "@schTakhrijApp": {
+    "description": "Copied documentation footer."
+  },
+  "advTabSearch": "Search",
+  "@advTabSearch": {
+    "description": "Search tab."
+  },
+  "advTabCompanions": "Companions",
+  "@advTabCompanions": {
+    "description": "Companions tab."
+  },
+  "advTabTopics": "Topics",
+  "@advTabTopics": {
+    "description": "Topics tab."
+  },
+  "advTabBooks": "Books",
+  "@advTabBooks": {
+    "description": "Books tab."
+  },
+  "advSearchHint": "Type text to search...",
+  "@advSearchHint": {
+    "description": "Search input hint."
+  },
+  "advScope": "Search scope:",
+  "@advScope": {
+    "description": "Scope label."
+  },
+  "advFilterMatn": "Text",
+  "@advFilterMatn": {
+    "description": "Matn scope chip."
+  },
+  "advFilterSanad": "Chain",
+  "@advFilterSanad": {
+    "description": "Sanad scope chip."
+  },
+  "advFilterBooks": "Filter by books",
+  "@advFilterBooks": {
+    "description": "Book filter chip."
+  },
+  "advMode": "Search mode:",
+  "@advMode": {
+    "description": "Mode label."
+  },
+  "advModeSmart": "Smart",
+  "@advModeSmart": {
+    "description": "Smart mode."
+  },
+  "advModeAny": "Any word",
+  "@advModeAny": {
+    "description": "Any-word mode."
+  },
+  "advModeAll": "All words",
+  "@advModeAll": {
+    "description": "All-words mode."
+  },
+  "advModePhrase": "Phrase",
+  "@advModePhrase": {
+    "description": "Phrase mode."
+  },
+  "advModeRoot": "By root",
+  "@advModeRoot": {
+    "description": "Root mode."
+  },
+  "advNarratorHint": "A narrator in the chain...",
+  "@advNarratorHint": {
+    "description": "Narrator filter hint."
+  },
+  "advFromHint": "From",
+  "@advFromHint": {
+    "description": "Number-from hint."
+  },
+  "advToHint": "To",
+  "@advToHint": {
+    "description": "Number-to hint."
+  },
+  "advGrade": "Grade:",
+  "@advGrade": {
+    "description": "Grade label."
+  },
+  "advEmptyTitle": "Hadith encyclopedia",
+  "@advEmptyTitle": {
+    "description": "Empty search title."
+  },
+  "advEmptyBody": "Search thousands of Prophetic hadith from the nine canonical books",
+  "@advEmptyBody": {
+    "description": "Empty search body."
+  },
+  "advAllBooksOption": "All books",
+  "@advAllBooksOption": {
+    "description": "All-books filter option."
+  },
+  "advRangeBoth": "No. {from} - {to}",
+  "@advRangeBoth": {
+    "description": "Number-range chip.",
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "advRangeFrom": "No. from {from}",
+  "@advRangeFrom": {
+    "description": "Number-from chip.",
+    "placeholders": {
+      "from": {
+        "type": "int"
+      }
+    }
+  },
+  "advRangeTo": "No. to {to}",
+  "@advRangeTo": {
+    "description": "Number-to chip.",
+    "placeholders": {
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "advMatchScore": "{score}% match",
+  "@advMatchScore": {
+    "description": "Result score badge.",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "advBookNumber": "{book} - {number}",
+  "@advBookNumber": {
+    "description": "Result book/number line.",
+    "placeholders": {
+      "book": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "layScholarTooltip": "Scholar mode",
+  "@layScholarTooltip": {
+    "description": "Scholar-mode button tooltip."
+  },
+  "layTabMatn": "Text",
+  "@layTabMatn": {
+    "description": "Matn tab."
+  },
+  "layTabSanad": "Chain",
+  "@layTabSanad": {
+    "description": "Sanad tab."
+  },
+  "layTabHukm": "Ruling",
+  "@layTabHukm": {
+    "description": "Ruling tab."
+  },
+  "layCopyMatn": "Copy text",
+  "@layCopyMatn": {
+    "description": "Copy-matn tooltip."
+  },
+  "layChainTitle": "Narrator chain",
+  "@layChainTitle": {
+    "description": "Chain section title."
+  },
+  "layFullSanad": "Full chain",
+  "@layFullSanad": {
+    "description": "Full-sanad header."
+  },
+  "layCompanionRaa": "A noble Companion",
+  "@layCompanionRaa": {
+    "description": "Companion subtitle."
+  },
+  "layGradeGuide": "Rulings guide",
+  "@layGradeGuide": {
+    "description": "Grade legend header."
+  },
+  "layChapterOf": "Chapter {chapter}",
+  "@layChapterOf": {
+    "description": "Takhrij chapter line.",
+    "placeholders": {
+      "chapter": {
+        "type": "int"
+      }
+    }
+  },
+  "layHadithOf": "Hadith no. {number}",
+  "@layHadithOf": {
+    "description": "Takhrij number line.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "layOtherBooks": "This hadith in other books",
+  "@layOtherBooks": {
+    "description": "Cross-reference header."
+  },
+  "layNotInOthers": "Not found in other books",
+  "@layNotInOthers": {
+    "description": "Empty cross-reference state."
+  },
+  "laySimilarNumber": "Hadith {number}",
+  "@laySimilarNumber": {
+    "description": "Similar-hadith subtitle.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "layCopyTakhrij": "Copy full documentation",
+  "@layCopyTakhrij": {
+    "description": "Copy-takhrij button."
+  },
+  "layCopied": "Copied",
+  "@layCopied": {
+    "description": "Copied snackbar."
+  },
+  "layTakhrijNumber": "Hadith no. {number}",
+  "@layTakhrijNumber": {
+    "description": "Copied documentation number line.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "layTakhrijChapter": "Chapter {chapter}",
+  "@layTakhrijChapter": {
+    "description": "Copied documentation chapter line.",
+    "placeholders": {
+      "chapter": {
+        "type": "int"
+      }
+    }
+  },
+  "layTakhrijGrade": "Grade: {grade}",
+  "@layTakhrijGrade": {
+    "description": "Layered copied grade line.",
+    "placeholders": {
+      "grade": {
+        "type": "String"
+      }
+    }
+  },
+  "layTakhrijCompanion": "Companion: {companion}",
+  "@layTakhrijCompanion": {
+    "description": "Layered copied companion line.",
+    "placeholders": {
+      "companion": {
+        "type": "String"
+      }
+    }
+  },
+  "sharhTitle": "Hadith commentary #{id}",
+  "@sharhTitle": {
+    "description": "Sharh sheet title.",
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "sharhMatn": "Hadith text",
+  "@sharhMatn": {
+    "description": "Matn section title."
+  },
+  "sharhTakhrij": "Documentation & grade",
+  "@sharhTakhrij": {
+    "description": "Takhrij section title."
+  },
+  "sharhBook": "Book",
+  "@sharhBook": {
+    "description": "Book info row."
+  },
+  "sharhNumber": "Hadith number",
+  "@sharhNumber": {
+    "description": "Number info row."
+  },
+  "sharhNarrator": "Narrator",
+  "@sharhNarrator": {
+    "description": "Narrator info row."
+  },
+  "sharhSource": "Source",
+  "@sharhSource": {
+    "description": "Source info row."
+  },
+  "sharhBenefits": "Hadith benefits",
+  "@sharhBenefits": {
+    "description": "Benefits section title."
+  },
+  "sharhNotes": "My notes",
+  "@sharhNotes": {
+    "description": "Notes section title."
+  },
+  "sharhNotesHint": "Write your notes and reflections here...",
+  "@sharhNotesHint": {
+    "description": "Notes hint."
+  },
+  "sharhNoteSaved": "Note saved",
+  "@sharhNoteSaved": {
+    "description": "Note-saved snackbar."
+  },
+  "sharhSimilar": "Similar hadith",
+  "@sharhSimilar": {
+    "description": "Similar section title."
+  },
+  "sharhTools": "Study tools",
+  "@sharhTools": {
+    "description": "Study tools title."
+  },
+  "sharhIsnadMap": "Isnad map",
+  "@sharhIsnadMap": {
+    "description": "Isnad map button."
+  },
+  "sharhIsnadMapSub": "Hadith narrator chain",
+  "@sharhIsnadMapSub": {
+    "description": "Isnad map subtitle."
+  },
+  "sharhIsnadGraphSub": "Interactive narrator-chain view",
+  "@sharhIsnadGraphSub": {
+    "description": "Isnad graph subtitle."
+  },
+  "sharhCompare": "Compare narrations",
+  "@sharhCompare": {
+    "description": "Compare button."
+  },
+  "sharhCompareSub": "Different wordings across books",
+  "@sharhCompareSub": {
+    "description": "Compare subtitle."
+  },
+  "sharhAddTag": "Add to a tag",
+  "@sharhAddTag": {
+    "description": "Tag button."
+  },
+  "sharhAddTagSub": "Organize hadith in your lists",
+  "@sharhAddTagSub": {
+    "description": "Tag subtitle."
+  },
+  "adhkarTitle": "Daily adhkar",
+  "@adhkarTitle": {
+    "description": "Adhkar page title."
+  },
+  "adhkarStreakDays": "{count} days",
+  "@adhkarStreakDays": {
+    "description": "Adhkar streak badge.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adhkarMorning": "Morning adhkar",
+  "@adhkarMorning": {
+    "description": "Morning category title."
+  },
+  "adhkarEvening": "Evening adhkar",
+  "@adhkarEvening": {
+    "description": "Evening category title."
+  },
+  "adhkarAfterPrayer": "After prayer",
+  "@adhkarAfterPrayer": {
+    "description": "After-prayer category title."
+  },
+  "adhkarSleep": "Sleep adhkar",
+  "@adhkarSleep": {
+    "description": "Sleep category title."
+  },
+  "adhkarWakeup": "Waking up",
+  "@adhkarWakeup": {
+    "description": "Wake-up category title."
+  },
+  "adhkarQuranic": "Quranic duas",
+  "@adhkarQuranic": {
+    "description": "Quranic duas category title."
+  },
+  "adhkarLibrary": "Adhkar library",
+  "@adhkarLibrary": {
+    "description": "Library category title."
+  },
+  "adhkarLibrarySub": "100+ sourced adhkar",
+  "@adhkarLibrarySub": {
+    "description": "Library category subtitle."
+  },
+  "adhkarUnitZekr": "adhkar",
+  "@adhkarUnitZekr": {
+    "description": "Count unit for dhikr."
+  },
+  "adhkarUnitDua": "duas",
+  "@adhkarUnitDua": {
+    "description": "Count unit for dua."
+  },
+  "adhkarTodayDone": "Well done! Today's portion complete",
+  "@adhkarTodayDone": {
+    "description": "Completed progress title."
+  },
+  "adhkarToday": "Today's portion",
+  "@adhkarToday": {
+    "description": "Progress title."
+  },
+  "adhkarChipMorning": "Morning",
+  "@adhkarChipMorning": {
+    "description": "Morning status chip."
+  },
+  "adhkarChipEvening": "Evening",
+  "@adhkarChipEvening": {
+    "description": "Evening status chip."
+  },
+  "adhkarBlessed": "May God bless you",
+  "@adhkarBlessed": {
+    "description": "Completed progress subtitle."
+  },
+  "adhkarRemainingJoined": "Remaining: {list}",
+  "@adhkarRemainingJoined": {
+    "description": "Remaining portions line.",
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "adhkarAllDone": "Today's adhkar complete!",
+  "@adhkarAllDone": {
+    "description": "All-done fallback."
+  },
+  "adhkarCongratsBody": "You completed {name}",
+  "@adhkarCongratsBody": {
+    "description": "Completion dialog body with the collection name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "adhkarDone": "Done",
+  "@adhkarDone": {
+    "description": "Completion dialog button."
+  },
+  "adhkarNoAdhkar": "No adhkar",
+  "@adhkarNoAdhkar": {
+    "description": "Empty collection state."
+  },
+  "adhkarBlessAccept": "May God bless and accept from you",
+  "@adhkarBlessAccept": {
+    "description": "Completed-view subtitle."
+  },
+  "adhkarBackToList": "Back to list",
+  "@adhkarBackToList": {
+    "description": "Back-to-list button."
+  },
+  "adhkarOfTotal": "of {total}",
+  "@adhkarOfTotal": {
+    "description": "Counter total line.",
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tafsirPickTooltip": "Pick a tafsir",
+  "@tafsirPickTooltip": {
+    "description": "Source selector tooltip."
+  },
+  "tafsirTabBookmarks": "Bookmarks",
+  "@tafsirTabBookmarks": {
+    "description": "Bookmarks tab."
+  },
+  "tafsirTabHistory": "History",
+  "@tafsirTabHistory": {
+    "description": "History tab."
+  },
+  "tafsirSurahLabel": "Surah",
+  "@tafsirSurahLabel": {
+    "description": "Surah dropdown label."
+  },
+  "tafsirNoTafsir": "No tafsir for this surah",
+  "@tafsirNoTafsir": {
+    "description": "Missing-surah-tafsir state."
+  },
+  "tafsirNoBookmarks": "No saved bookmarks",
+  "@tafsirNoBookmarks": {
+    "description": "Empty bookmarks state."
+  },
+  "tafsirBookmarkRef": "Surah {name} - verse {ayah}",
+  "@tafsirBookmarkRef": {
+    "description": "Bookmark row title.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "ayah": {
+        "type": "int"
+      }
+    }
+  },
+  "tafsirNoHistory": "No reading history",
+  "@tafsirNoHistory": {
+    "description": "Empty history state."
+  },
+  "tafsirAyahBadge": "Verse {ayah}",
+  "@tafsirAyahBadge": {
+    "description": "Verse badge.",
+    "placeholders": {
+      "ayah": {
+        "type": "int"
+      }
+    }
+  },
+  "tafsirSearchHint": "Search tafsir (root, word, or topic)...",
+  "@tafsirSearchHint": {
+    "description": "Tafsir search hint."
+  },
+  "tafsirMinChars": "Enter at least 3 letters for accurate search",
+  "@tafsirMinChars": {
+    "description": "Minimum-length notice."
+  },
+  "tafsirNoSearchResults": "No matching results in this tafsir",
+  "@tafsirNoSearchResults": {
+    "description": "No-results state."
+  },
+  "tafsirTopicsTitle": "Topics (Thematic Index)",
+  "@tafsirTopicsTitle": {
+    "description": "Thematic topics header."
+  },
+  "tafsirTipsTitle": "Search tips:",
+  "@tafsirTipsTitle": {
+    "description": "Tips header."
+  },
+  "tafsirTipRoot": "Search by word root for broader results.",
+  "@tafsirTipRoot": {
+    "description": "Tip 1."
+  },
+  "tafsirTipScope": "Search matches text within the currently selected tafsir only.",
+  "@tafsirTipScope": {
+    "description": "Tip 2."
+  },
+  "tafsirResultRef": "Surah {surah} - verse {ayah}",
+  "@tafsirResultRef": {
+    "description": "Search result reference.",
+    "placeholders": {
+      "surah": {
+        "type": "int"
+      },
+      "ayah": {
+        "type": "int"
+      }
+    }
+  },
+  "tafsirMinutesAgo": "{minutes} minutes ago",
+  "@tafsirMinutesAgo": {
+    "description": "Relative minutes.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "tafsirHoursAgo": "{hours} hours ago",
+  "@tafsirHoursAgo": {
+    "description": "Relative hours.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "tafsirDaysAgo": "{days} days ago",
+  "@tafsirDaysAgo": {
+    "description": "Relative days.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "tfwLoadError": "Failed to load tafsir",
+  "@tfwLoadError": {
+    "description": "Inline tafsir load error."
+  },
+  "tfwNoAyahTafsir": "No tafsir for this verse",
+  "@tfwNoAyahTafsir": {
+    "description": "Missing-verse-tafsir state."
+  },
+  "tfwFullView": "Full view",
+  "@tfwFullView": {
+    "description": "Full-screen button."
+  },
+  "tfwCompare": "Compare",
+  "@tfwCompare": {
+    "description": "Compare button."
+  },
+  "tfwNoTafsir": "No tafsir",
+  "@tfwNoTafsir": {
+    "description": "Empty tafsir placeholder."
+  },
+  "tfwSurahOf": "Surah {surah}",
+  "@tfwSurahOf": {
+    "description": "Fullscreen pager label.",
+    "placeholders": {
+      "surah": {
+        "type": "int"
+      }
+    }
+  },
+  "tfwCompareTitle": "Compare tafsirs",
+  "@tfwCompareTitle": {
+    "description": "Compare sheet title."
+  },
+  "tfwSheetRef": "Surah {surah} - verse {ayah}",
+  "@tfwSheetRef": {
+    "description": "Sheet header reference.",
+    "placeholders": {
+      "surah": {
+        "type": "int"
+      },
+      "ayah": {
+        "type": "int"
+      }
+    }
+  },
+  "proTodayStats": "Today's statistics",
+  "@proTodayStats": {
+    "description": "Today-stats header."
+  },
+  "proVersesRead": "Verses read",
+  "@proVersesRead": {
+    "description": "Verses-read stat."
+  },
+  "proReadingTime": "Reading time",
+  "@proReadingTime": {
+    "description": "Reading-time stat."
+  },
+  "proToday": "Today",
+  "@proToday": {
+    "description": "Today subtitle."
+  },
+  "proListening": "Listening",
+  "@proListening": {
+    "description": "Listening stat."
+  },
+  "proListeningToday": "Today's verses",
+  "@proListeningToday": {
+    "description": "Listening subtitle."
+  },
+  "proAdhkarStreak": "Adhkar streak",
+  "@proAdhkarStreak": {
+    "description": "Streak stat."
+  },
+  "proDayOne": "day",
+  "@proDayOne": {
+    "description": "Singular day unit."
+  },
+  "proDays": "days",
+  "@proDays": {
+    "description": "Plural day unit."
+  },
+  "proAdhkarToday": "Today's adhkar",
+  "@proAdhkarToday": {
+    "description": "Adhkar section header."
+  },
+  "proAfterPrayer": "After prayer",
+  "@proAfterPrayer": {
+    "description": "After-prayer count label."
+  },
+  "proKhatmah": "Khatmah progress",
+  "@proKhatmah": {
+    "description": "Khatmah section header."
+  },
+  "proKhatmahAt": "Surah {surah} — verse {ayah}",
+  "@proKhatmahAt": {
+    "description": "Khatmah position line.",
+    "placeholders": {
+      "surah": {
+        "type": "int"
+      },
+      "ayah": {
+        "type": "int"
+      }
+    }
+  },
+  "proKhatmahDone": "{count} completed khatmahs",
+  "@proKhatmahDone": {
+    "description": "Completed-khatmahs line.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "proWeek": "Week summary",
+  "@proWeek": {
+    "description": "Weekly header."
+  },
+  "proListenTime": "Listening time",
+  "@proListenTime": {
+    "description": "Listening-time row."
+  },
+  "proFullAdhkarDays": "Full adhkar days",
+  "@proFullAdhkarDays": {
+    "description": "Full-days row."
+  },
+  "proTotal": "All-time statistics",
+  "@proTotal": {
+    "description": "Totals header."
+  },
+  "proVerseUnit": "verses",
+  "@proVerseUnit": {
+    "description": "Total verses unit."
+  },
+  "proReadUnit": "reading",
+  "@proReadUnit": {
+    "description": "Total reading unit."
+  },
+  "proKhatmahUnit": "khatmahs",
+  "@proKhatmahUnit": {
+    "description": "Total khatmahs unit."
+  },
+  "proSeconds": "{seconds} seconds",
+  "@proSeconds": {
+    "description": "Duration seconds.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "proMinutes": "{minutes} minutes",
+  "@proMinutes": {
+    "description": "Duration minutes.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "proHoursMinutes": "{hours}h {minutes}m",
+  "@proHoursMinutes": {
+    "description": "Duration hours+minutes.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "qiblaPermWarning": "Please enable location permission from settings",
+  "@qiblaPermWarning": {
+    "description": "Permission-denied fallback warning."
+  },
+  "qiblaFallbackWarning": "Couldn't locate you; showing the direction from Riyadh",
+  "@qiblaFallbackWarning": {
+    "description": "Fallback-location warning."
+  },
+  "qiblaTimeoutTitle": "Save power",
+  "@qiblaTimeoutTitle": {
+    "description": "Auto-timeout dialog title."
+  },
+  "qiblaTimeoutBody": "Keep locating the qibla?",
+  "@qiblaTimeoutBody": {
+    "description": "Auto-timeout dialog body."
+  },
+  "qiblaClose": "Close",
+  "@qiblaClose": {
+    "description": "Close dialog button."
+  },
+  "qiblaContinue": "Continue",
+  "@qiblaContinue": {
+    "description": "Continue button."
+  },
+  "qiblaLockedSnack": "Qibla direction pinned",
+  "@qiblaLockedSnack": {
+    "description": "Direction-locked snackbar."
+  },
+  "qiblaUnlockedSnack": "Pin removed",
+  "@qiblaUnlockedSnack": {
+    "description": "Pin-removed snackbar."
+  },
+  "qiblaCalibTitle": "Calibrate the compass",
+  "@qiblaCalibTitle": {
+    "description": "Calibration dialog title."
+  },
+  "qiblaCalibHint": "To improve compass accuracy:",
+  "@qiblaCalibHint": {
+    "description": "Calibration intro."
+  },
+  "qiblaCalib1": "1. Move the phone away from metal",
+  "@qiblaCalib1": {
+    "description": "Calibration step 1."
+  },
+  "qiblaCalib2": "2. Move the phone in a figure 8",
+  "@qiblaCalib2": {
+    "description": "Calibration step 2."
+  },
+  "qiblaCalib3": "3. Repeat until accuracy improves",
+  "@qiblaCalib3": {
+    "description": "Calibration step 3."
+  },
+  "qiblaTitle": "Qibla direction",
+  "@qiblaTitle": {
+    "description": "Qibla page title."
+  },
+  "qiblaLocating": "Locating you...",
+  "@qiblaLocating": {
+    "description": "Loading state."
+  },
+  "qiblaLockedBadge": "Pinned direction",
+  "@qiblaLockedBadge": {
+    "description": "Pinned status."
+  },
+  "qiblaPinned": "Pinned",
+  "@qiblaPinned": {
+    "description": "Pinned short status."
+  },
+  "qiblaCalibNeeded": "Calibration needed",
+  "@qiblaCalibNeeded": {
+    "description": "Calibration tooltip."
+  },
+  "qiblaKaaba": "Kaaba",
+  "@qiblaKaaba": {
+    "description": "Kaaba badge."
+  },
+  "qiblaDirection": "Qibla direction",
+  "@qiblaDirection": {
+    "description": "Direction info label."
+  },
+  "qiblaDistance": "Distance",
+  "@qiblaDistance": {
+    "description": "Distance info label."
+  },
+  "qiblaBearing": "Bearing",
+  "@qiblaBearing": {
+    "description": "Bearing info label."
+  },
+  "qiblaLock": "Pin",
+  "@qiblaLock": {
+    "description": "Pin button."
+  },
+  "qiblaUnlock": "Unpin",
+  "@qiblaUnlock": {
+    "description": "Unpin button."
+  },
+  "obSkip": "Skip",
+  "@obSkip": {
+    "description": "Skip onboarding button."
+  },
+  "obNext": "Next",
+  "@obNext": {
+    "description": "Next button."
+  },
+  "obStart": "Start now",
+  "@obStart": {
+    "description": "Finish onboarding button."
+  },
+  "ob1Title": "Welcome to Noor",
+  "@ob1Title": {
+    "description": "Step 1 title."
+  },
+  "ob1Subtitle": "A complete digital worship space",
+  "@ob1Subtitle": {
+    "description": "Step 1 subtitle."
+  },
+  "ob1Desc": "Quran recitation, hadith memorization, prayer times, and adhkar in one place",
+  "@ob1Desc": {
+    "description": "Step 1 description."
+  },
+  "ob2Title": "Holy Quran",
+  "@ob2Title": {
+    "description": "Step 2 title."
+  },
+  "ob2Subtitle": "Recite and reflect",
+  "@ob2Subtitle": {
+    "description": "Step 2 subtitle."
+  },
+  "ob2Desc": "Uthmani-script reading, tafsir, and multiple reciters",
+  "@ob2Desc": {
+    "description": "Step 2 description."
+  },
+  "ob3Title": "Prophetic hadith",
+  "@ob3Title": {
+    "description": "Step 3 title."
+  },
+  "ob3Subtitle": "The nine books",
+  "@ob3Subtitle": {
+    "description": "Step 3 subtitle."
+  },
+  "ob3Desc": "Advanced search, topic tree, documentation, and spaced memorization",
+  "@ob3Desc": {
+    "description": "Step 3 description."
+  },
+  "ob4Title": "Prayer times",
+  "@ob4Title": {
+    "description": "Step 4 title."
+  },
+  "ob4Subtitle": "Accurate and smart",
+  "@ob4Subtitle": {
+    "description": "Step 4 subtitle."
+  },
+  "ob4Desc": "Prayer alerts, automatic silent mode, and the qibla",
+  "@ob4Desc": {
+    "description": "Step 4 description."
+  },
+  "ob5Title": "Are you ready?",
+  "@ob5Title": {
+    "description": "Step 5 title."
+  },
+  "ob5Subtitle": "Begin your spiritual journey",
+  "@ob5Subtitle": {
+    "description": "Step 5 subtitle."
+  },
+  "ob5Desc": "We ask God to make this app beneficial for your faith and life",
+  "@ob5Desc": {
+    "description": "Step 5 description."
+  },
+  "npcBadge": "Next prayer",
+  "@npcBadge": {
+    "description": "Next-prayer badge."
+  },
+  "npcLoading": "Loading...",
+  "@npcLoading": {
+    "description": "Loading fallback name."
+  },
+  "npcAfter": "In {remaining}",
+  "@npcAfter": {
+    "description": "Remaining-time line.",
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "npcInshallah": "God willing",
+  "@npcInshallah": {
+    "description": "Caption under remaining time."
+  },
+  "alibTitle": "Adhkar library",
+  "@alibTitle": {
+    "description": "Library title."
+  },
+  "alibReviewBanner": "Library content under scholarly review",
+  "@alibReviewBanner": {
+    "description": "Review banner."
+  },
+  "alibCount": "{count} adhkar",
+  "@alibCount": {
+    "description": "Category count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alibSource": "Source: {ref}",
+  "@alibSource": {
+    "description": "Item source line.",
+    "placeholders": {
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "favAdhkar": "Adhkar",
+  "@favAdhkar": {
+    "description": "Adhkar favorite subtitle."
+  },
+  "continueStart": "Start reading",
+  "@continueStart": {
+    "description": "Empty continue-reading title."
+  },
+  "continueSaved": "Saved",
+  "@continueSaved": {
+    "description": "Saved badge."
+  },
+  "continueAyah": "Verse {ayah}",
+  "@continueAyah": {
+    "description": "Saved verse line.",
+    "placeholders": {
+      "ayah": {
+        "type": "int"
+      }
+    }
+  },
+  "continueGo": "Tap to open the mushaf",
+  "@continueGo": {
+    "description": "Empty continue-reading hint."
+  },
+  "dayTasks": "{done}/5 prayers",
+  "@dayTasks": {
+    "description": "Prayer progress line.",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      }
+    }
+  },
+  "dayStreak": "{streak} day streak",
+  "@dayStreak": {
+    "description": "Streak line.",
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "adhkarCardDone": "Today's portion complete",
+  "@adhkarCardDone": {
+    "description": "Adhkar card done title."
+  },
+  "adhkarCardTodo": "Keep remembering God",
+  "@adhkarCardTodo": {
+    "description": "Adhkar card todo title."
+  },
+  "adhkarCardPct": "{pct}% complete",
+  "@adhkarCardPct": {
+    "description": "Adhkar percent line.",
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "sugTipTitle": "Smart tip now:",
+  "@sugTipTitle": {
+    "description": "Suggestion prefix."
+  },
+  "tfwPreviewText": "Text preview",
+  "@tfwPreviewText": {
+    "description": "Font-size dialog preview label."
+  },
+  "npcTomorrow": "Tomorrow",
+  "@npcTomorrow": {
+    "description": "Next-prayer tomorrow marker."
+  },
+  "a11yPrevious": "Previous",
+  "@a11yPrevious": {
+    "description": "Accessibility label: previous item or page."
+  },
+  "a11yNext": "Next",
+  "@a11yNext": {
+    "description": "Accessibility label: next item or page."
+  },
+  "a11yTasbihCount": "Count: {count}",
+  "@a11yTasbihCount": {
+    "description": "Accessibility label announcing the current tasbih count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
+}

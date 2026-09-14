@@ -100,8 +100,12 @@ class QadaState {
 
 class QadaNotifier extends StateNotifier<QadaState> {
   QadaNotifier() : super(const QadaState()) {
-    _loadFromHive();
+    ready = _loadFromHive();
   }
+
+  /// Completes when the initial Hive load has finished. Callers (and tests)
+  /// can await this instead of racing the unawaited constructor load.
+  late final Future<void> ready;
 
   static const _boxName = 'qada_records';
 
@@ -121,9 +125,15 @@ class QadaNotifier extends StateNotifier<QadaState> {
         prayerRecords: prayerList,
         fastingRecords: fastingList,
       );
-    } on Exception {
-      // Start fresh if Hive fails
-      state = const QadaState();
+    } on Object catch (e) {
+      // Narrow by effect: only Hive lifecycle errors (HiveError, an Error
+      // subclass) and corrupt-data cast errors are absorbed — anything else
+      // rethrows.
+      if (e is HiveError || e is TypeError) {
+        state = const QadaState();
+      } else {
+        rethrow;
+      }
     }
   }
 
@@ -132,7 +142,12 @@ class QadaNotifier extends StateNotifier<QadaState> {
       final box = await Hive.openBox<dynamic>(_boxName);
       await box.put('prayer_records', state.prayerRecords.map(_recordToMap).toList());
       await box.put('fasting_records', state.fastingRecords.map(_recordToMap).toList());
-    } on Exception catch (_) {}
+    } on Object catch (e) {
+      // Persistence failure (closed/unavailable box, HiveError) must never
+      // surface an unhandled async error; in-memory state stays authoritative.
+      // Anything else rethrows.
+      if (e is! HiveError) rethrow;
+    }
   }
 
   void addRecord(QadaType type, String name, int totalCount, String? notes) {

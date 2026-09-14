@@ -2,6 +2,10 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+// `encrypt` backs the device-derived encryption: DefaultPrivacyPolicy builds
+// a 32-byte AES key from the SecureKeyService key (Keychain/Keystore/DPAPI,
+// never hardcoded, never leaves the device) and encrypts personal data
+// (reflections, notes) locally before Hive storage. See SecureKeyService.
 import 'package:encrypt/encrypt.dart';
 
 /// سياسة الخصوصية - Privacy Policy
@@ -15,7 +19,12 @@ abstract class PrivacyPolicy {
   String decryptLocalData(String encryptedText);
 
   /// Whether data can be synced to cloud
-  /// Personal reflections should NEVER sync without explicit consent
+  /// Personal reflections should NEVER sync without explicit consent.
+  /// LOCAL-ONLY BUILD (decided 2026-09-03): there is no backend, no
+  /// accounts, no transport — so every category returns false. The
+  /// per-category reasoning is preserved below for the day sync ships
+  /// (which also requires a new backend, a new consent screen, and a new
+  /// scholarly/privacy review — not just flipping these).
   bool canSyncToCloud(DataCategory category);
 
   /// Whether analytics/tracking is allowed
@@ -51,6 +60,11 @@ class DefaultPrivacyPolicy implements PrivacyPolicy {
       : _encryptionKey = Key.fromUtf8(encryptionKey.padRight(32).substring(0, 32)) {
     _encrypter = Encrypter(AES(_encryptionKey));
   }
+
+  /// Set to true only when a reviewed sync backend + consent screen ship.
+  /// Kept as a named constant (not a comment) so enabling sync is a
+  /// deliberate, greppable, reviewable one-line change.
+  static const bool kCloudSyncAvailable = false;
   final Key _encryptionKey;
   late final Encrypter _encrypter;
 
@@ -80,8 +94,12 @@ class DefaultPrivacyPolicy implements PrivacyPolicy {
     }
   }
 
+  /// Local-only build: no sync transport exists, so nothing may sync.
+  /// The match arms document what each category WOULD allow once a
+  /// reviewed backend exists — the leading `false` enforces today.
   @override
   bool canSyncToCloud(DataCategory category) {
+    if (!kCloudSyncAvailable) return false;
     switch (category) {
       case DataCategory.tadabbur:
         // Personal reflections NEVER sync automatically

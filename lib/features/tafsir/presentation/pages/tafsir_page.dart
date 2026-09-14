@@ -3,8 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/domain/entities/surah_names.dart';
 import '../../../../core/models/tafsir_models.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/tafsir_data_source.dart';
 import '../../../../core/theme/tafsir_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 /// 📖 TafsirPage - صفحة التفسير الرئيسية
 class TafsirPage extends StatefulWidget {
@@ -32,6 +34,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
+    AnalyticsService.record('tafsir_opened');
     _tabController = TabController(length: 3, vsync: this);
     _currentSurah = widget.initialSurah ?? 1;
     _loadTafsir();
@@ -55,16 +58,17 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('التفسير'),
+        title: Text(l10n.quranTafsir),
         actions: [
           // Source selector
           PopupMenuButton<TafsirSourceId>(
             icon: const Icon(Icons.menu_book),
-            tooltip: 'اختر التفسير',
+            tooltip: l10n.tafsirPickTooltip,
             onSelected: (source) {
               setState(() => _currentSource = source);
               _loadTafsir();
@@ -92,10 +96,10 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
         ],
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'التفسير', icon: Icon(Icons.book)),
-            Tab(text: 'العلامات', icon: Icon(Icons.bookmark)),
-            Tab(text: 'السجل', icon: Icon(Icons.history)),
+          tabs: [
+            Tab(text: l10n.quranTafsir, icon: const Icon(Icons.book)),
+            Tab(text: l10n.tafsirTabBookmarks, icon: const Icon(Icons.bookmark)),
+            Tab(text: l10n.tafsirTabHistory, icon: const Icon(Icons.history)),
           ],
         ),
       ),
@@ -116,6 +120,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
   }
 
   Widget _buildTafsirTab(ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     final brightness = theme.brightness;
     return ColoredBox(
       color: TafsirTheme.readingBackground(brightness),
@@ -140,7 +145,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
                   child: DropdownButtonFormField<int>(
                     initialValue: _currentSurah,
                     decoration: InputDecoration(
-                      labelText: 'السورة',
+                      labelText: l10n.tafsirSurahLabel,
                       labelStyle: TafsirTheme.sourceStyle(brightness: brightness),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -183,7 +188,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _surahTafsir == null
-                    ? Center(child: Text('لا يوجد تفسير لهذه السورة',
+                    ? Center(child: Text(l10n.tafsirNoTafsir,
                         style: TafsirTheme.sourceStyle(brightness: brightness),),)
                     : ListView.separated(
                         padding: const EdgeInsets.all(20),
@@ -204,6 +209,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
   }
 
   Widget _buildBookmarksTab(ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     final bookmarks = TafsirDataSource.getAllBookmarks();
     
     if (bookmarks.isEmpty) {
@@ -218,7 +224,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
             ),
             const SizedBox(height: 16),
             Text(
-              'لا توجد علامات محفوظة',
+              l10n.tafsirNoBookmarks,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.outline,
               ),
@@ -238,7 +244,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
             leading: CircleAvatar(
               child: Text('${bookmark.ayah}'),
             ),
-            title: Text('سورة ${kSurahNames[bookmark.surah - 1]} - الآية ${bookmark.ayah}'),
+            title: Text(l10n.tafsirBookmarkRef(kSurahNames[bookmark.surah - 1], bookmark.ayah)),
             subtitle: Text(TafsirSource.get(bookmark.source).arabicName),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline),
@@ -266,6 +272,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
   }
 
   Widget _buildHistoryTab(ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     final history = TafsirDataSource.getRecentHistory();
     
     if (history.isEmpty) {
@@ -280,7 +287,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
             ),
             const SizedBox(height: 16),
             Text(
-              'لا يوجد سجل قراءة',
+              l10n.tafsirNoHistory,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.outline,
               ),
@@ -300,7 +307,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
             leading: CircleAvatar(
               child: Text('${item.ayah}'),
             ),
-            title: Text('سورة ${kSurahNames[item.surah - 1]} - الآية ${item.ayah}'),
+            title: Text(l10n.tafsirBookmarkRef(kSurahNames[item.surah - 1], item.ayah)),
             subtitle: Text(
               '${TafsirSource.get(item.source).arabicName} • ${_formatDate(item.lastRead)}',
             ),
@@ -320,19 +327,23 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
   }
 
   String _formatDate(DateTime date) {
+    final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
     final diff = now.difference(date);
     
-    if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} دقيقة';
-    if (diff.inHours < 24) return 'منذ ${diff.inHours} ساعة';
-    if (diff.inDays < 7) return 'منذ ${diff.inDays} يوم';
+    if (diff.inMinutes < 60) return l10n.tafsirMinutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return l10n.tafsirHoursAgo(diff.inHours);
+    if (diff.inDays < 7) return l10n.tafsirDaysAgo(diff.inDays);
     return '${date.day}/${date.month}/${date.year}';
   }
 
   void _showSearch(BuildContext context) {
     showSearch(
       context: context,
-      delegate: _TafsirSearchDelegate(_currentSource),
+      delegate: _TafsirSearchDelegate(
+        _currentSource,
+        AppLocalizations.of(context).tafsirSearchHint,
+      ),
     );
   }
 
@@ -355,6 +366,7 @@ class _TafsirCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final brightness = theme.brightness;
     final settings = TafsirDataSource.getSettings();
@@ -393,7 +405,7 @@ class _TafsirCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    'الآية ${entry.ayah}',
+                    l10n.tafsirAyahBadge(entry.ayah),
                     style: TafsirTheme.headerStyle(
                       brightness: brightness,
                       fontSize: 13,
@@ -457,8 +469,8 @@ class _TafsirCard extends StatelessWidget {
 
 class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
   
-  _TafsirSearchDelegate(this.source) : super(
-    searchFieldLabel: 'ابحث في التفسير (جذر، كلمة، أو موضوع)...',
+  _TafsirSearchDelegate(this.source, String searchLabel) : super(
+    searchFieldLabel: searchLabel,
     textInputAction: TextInputAction.search,
   );
   final TafsirSourceId source;
@@ -507,7 +519,7 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
   @override
   Widget buildResults(BuildContext context) {
     if (query.trim().length < 3) {
-      return const Center(child: Text('أدخل 3 حروف على الأقل للبحث بدقة'));
+      return Center(child: Text(AppLocalizations.of(context).tafsirMinChars));
     }
 
     return FutureBuilder<List<TafsirEntry>>(
@@ -525,7 +537,7 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
               children: [
                 Icon(Icons.search_off_rounded, size: 64, color: Theme.of(context).colorScheme.outline),
                 const SizedBox(height: 16),
-                const Text('لم نعثر على نتائج مطابقة في هذا التفسير'),
+                Text(AppLocalizations.of(context).tafsirNoSearchResults),
               ],
             ),
           );
@@ -565,7 +577,7 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
               Icon(Icons.category_rounded, size: 20, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 8),
               Text(
-                'الموضوعات والتصنيفات (Thematic Index)',
+                AppLocalizations.of(context).tafsirTopicsTitle,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -594,12 +606,12 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
           ),
           const SizedBox(height: 32),
           Text(
-            'نصائح للبحث:',
+            AppLocalizations.of(context).tafsirTipsTitle,
             style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.outline),
           ),
           const SizedBox(height: 8),
-          _buildTip(context, 'يمكنك البحث عن جذر الكلمة للحصول على نتائج أشمل.'),
-          _buildTip(context, 'البحث يطابق النص ضمن التفسير المختار حالياً فقط.'),
+          _buildTip(context, AppLocalizations.of(context).tafsirTipRoot),
+          _buildTip(context, AppLocalizations.of(context).tafsirTipScope),
         ],
       ),
     );
@@ -672,7 +684,7 @@ class _SearchResultCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'سورة ${entry.surah} • الآية ${entry.ayah}',
+                  AppLocalizations.of(context).tafsirResultRef(entry.surah, entry.ayah),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,

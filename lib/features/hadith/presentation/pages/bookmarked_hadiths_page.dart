@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/services/hadith_user_data_service.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../hadith_book_names.dart';
 import 'hadith_reader_page.dart';
 
@@ -34,12 +35,13 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
 
   Future<void> _removeBookmark(String collectionId, int hadithId) async {
     unawaited(HapticFeedback.lightImpact());
+    final l10n = AppLocalizations.of(context);
     await HadithUserDataService.removeBookmark(collectionId, hadithId);
     _loadBookmarks();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('تمت إزالة الحديث من المحفوظات', style: GoogleFonts.cairo()),
+          content: Text(l10n.hbmRemoved, style: GoogleFonts.cairo()),
           backgroundColor: Colors.grey[700],
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -51,11 +53,12 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: NoorDesignSystem.creamWhite,
       appBar: AppBar(
         title: Text(
-          'المحفوظات',
+          l10n.lstatsBookmarks,
           style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -91,6 +94,7 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
   }
 
   Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -102,7 +106,7 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            'لا توجد أحاديث محفوظة',
+            l10n.hbmEmpty,
             style: GoogleFonts.cairo(
               color: NoorDesignSystem.textSecondary,
               fontSize: 16,
@@ -110,7 +114,7 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'اضغط على أيقونة الحفظ أثناء قراءة الحديث',
+            l10n.hbmEmptyHint,
             style: GoogleFonts.cairo(
               color: NoorDesignSystem.textSecondary.withValues(alpha: 0.6),
               fontSize: 13,
@@ -217,7 +221,7 @@ class _BookmarkedHadithsPageState extends State<BookmarkedHadithsPage> {
                           const Spacer(),
                           // Hadith number
                           Text(
-                            'حديث رقم $idInBook',
+                            AppLocalizations.of(context).hsearchHadithNumber(idInBook),
                             style: GoogleFonts.cairo(
                               fontSize: 12,
                               color: NoorDesignSystem.textSecondary,

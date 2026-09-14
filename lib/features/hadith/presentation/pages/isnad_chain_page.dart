@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/services/isnad_parser_service.dart';
 import '../../../../core/services/narrator_database_service.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../widgets/narrator_profile_body.dart';
 import 'isnad_graph_page.dart';
 
@@ -90,7 +91,7 @@ class _IsnadChainPageState extends State<IsnadChainPage>
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          'سلسلة الإسناد',
+          AppLocalizations.of(context).ichainTitle,
           style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -98,7 +99,7 @@ class _IsnadChainPageState extends State<IsnadChainPage>
           // Graph view toggle
           IconButton(
             icon: const Icon(Icons.account_tree_rounded, size: 22),
-            tooltip: 'عرض الرسم البياني',
+            tooltip: AppLocalizations.of(context).ichainGraphTooltip,
             onPressed: () {
               Navigator.push(
                 context,
@@ -130,7 +131,7 @@ class _IsnadChainPageState extends State<IsnadChainPage>
           ),
           const SizedBox(height: 16),
           Text(
-            'جاري تحليل سلسلة الإسناد...',
+            AppLocalizations.of(context).ichainLoading,
             style: GoogleFonts.cairo(
               color: NoorDesignSystem.textSecondary,
               fontSize: 14,
@@ -155,7 +156,7 @@ class _IsnadChainPageState extends State<IsnadChainPage>
             ),
             const SizedBox(height: 16),
             Text(
-              'لم يتم العثور على إسناد',
+              AppLocalizations.of(context).igEmpty,
               style: GoogleFonts.cairo(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -164,7 +165,7 @@ class _IsnadChainPageState extends State<IsnadChainPage>
             ),
             const SizedBox(height: 8),
             Text(
-              'لا يحتوي نص الحديث على سلسلة إسناد قابلة للتحليل',
+              AppLocalizations.of(context).ichainEmptyHint,
               style: GoogleFonts.cairo(
                 fontSize: 14,
                 color: NoorDesignSystem.textSecondary.withValues(alpha: 0.7),
@@ -296,7 +297,7 @@ class _IsnadChainPageState extends State<IsnadChainPage>
                 const Icon(Icons.link_rounded, size: 14, color: Colors.white),
                 const SizedBox(width: 6),
                 Text(
-                  '${_chain.length} رواة في السلسلة',
+                  AppLocalizations.of(context).ichainCount(_chain.length),
                   style: GoogleFonts.cairo(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -634,7 +635,7 @@ class _NarratorDetailPanel extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-                'بطاقة الراوي',
+                AppLocalizations.of(context).ichainCardTitle,
                 style: GoogleFonts.cairo(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

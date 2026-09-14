@@ -1,13 +1,14 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../domain/entities/hadith.dart';
+import 'hive_box_registry.dart';
 
 /// Service for managing user-specific Hadith data:
 /// - Continue Reading (last read position)
 /// - Bookmarked Hadiths
 class HadithUserDataService {
-  static const String _progressBoxName = 'hadith_progress';
-  static const String _bookmarksBoxName = 'hadith_bookmarks';
+  static const String _progressBoxName = HiveBoxes.hadithProgress;
+  static const String _bookmarksBoxName = HiveBoxes.hadithBookmarks;
 
   static Box<dynamic>? _progressBox;
   static Box<dynamic>? _bookmarksBox;
@@ -132,7 +133,8 @@ class HadithUserDataService {
       }
     }
     // Sort by most recently added
-    bookmarks.sort((a, b) => (b['timestamp'] as int? ?? 0).compareTo(a['timestamp'] as int? ?? 0));
+    bookmarks.sort((a, b) =>
+        (b['timestamp'] as int? ?? 0).compareTo(a['timestamp'] as int? ?? 0),);
     return bookmarks;
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/hadith_search_engine.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../hadith_book_names.dart';
 import 'layered_hadith_page.dart';
 
@@ -103,12 +104,13 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'البحث المتقدم',
+          l10n.hsearchTitle,
           style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -140,11 +142,11 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
               unselectedLabelStyle: GoogleFonts.cairo(fontWeight: FontWeight.w600, fontSize: 13),
               dividerColor: Colors.transparent,
               padding: const EdgeInsets.all(4),
-              tabs: const [
-                Tab(text: 'بحث'),
-                Tab(text: 'الصحابة'),
-                Tab(text: 'المواضيع'),
-                Tab(text: 'الكتب'),
+              tabs: [
+                Tab(text: l10n.advTabSearch),
+                Tab(text: l10n.advTabCompanions),
+                Tab(text: l10n.advTabTopics),
+                Tab(text: l10n.advTabBooks),
               ],
             ),
           ),
@@ -167,6 +169,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
   // ═══════════════════════════════════════════════════════════════════════════
 
   Widget _buildSearchTab(ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         // Search bar + filters: scrollable so small viewports never overflow.
@@ -186,7 +189,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                   controller: _searchController,
                   style: GoogleFonts.amiri(fontSize: 18),
                   decoration: InputDecoration(
-                    hintText: 'اكتب نصاً للبحث...',
+                    hintText: l10n.advSearchHint,
                     hintStyle: TextStyle(
                       color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                       fontSize: 16,
@@ -217,7 +220,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                 child: Row(
                   children: [
                     Text(
-                      'نطاق البحث:',
+                      l10n.advScope,
                       style: GoogleFonts.cairo(
                         fontSize: 14, 
                         fontWeight: FontWeight.bold,
@@ -226,19 +229,19 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                     ),
                     const SizedBox(width: 12),
                     _FilterChip(
-                      label: 'الكل',
+                      label: l10n.quranFilterAll,
                       isSelected: _searchTarget == SearchTarget.all,
                       onSelected: () => setState(() => _searchTarget = SearchTarget.all),
                     ),
                     const SizedBox(width: 8),
                     _FilterChip(
-                      label: 'المتن',
+                      label: l10n.advFilterMatn,
                       isSelected: _searchTarget == SearchTarget.matn,
                       onSelected: () => setState(() => _searchTarget = SearchTarget.matn),
                     ),
                     const SizedBox(width: 8),
                     _FilterChip(
-                      label: 'السند',
+                      label: l10n.advFilterSanad,
                       isSelected: _searchTarget == SearchTarget.sanad,
                       onSelected: () => setState(() => _searchTarget = SearchTarget.sanad),
                     ),
@@ -256,7 +259,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                   ActionChip(
                     avatar: Icon(Icons.filter_list_rounded, size: 16, color: theme.colorScheme.primary),
                     label: Text(
-                      _selectedBook != null ? _getBookName(_selectedBook!) : 'تصفية بالكتب',
+                      _selectedBook != null ? _getBookName(_selectedBook!) : l10n.advFilterBooks,
                       style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                     backgroundColor: _selectedBook != null 
@@ -318,7 +321,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                 child: Row(
                   children: [
                     Text(
-                      'وضع البحث:',
+                      l10n.advMode,
                       style: GoogleFonts.cairo(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -352,7 +355,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                       textDirection: TextDirection.rtl,
                       decoration: InputDecoration(
                         isDense: true,
-                        hintText: 'راوٍ في السند...',
+                        hintText: l10n.advNarratorHint,
                         hintStyle: TextStyle(
                           color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                           fontSize: 13,
@@ -392,7 +395,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                       textAlign: TextAlign.center,
                       decoration: InputDecoration(
                         isDense: true,
-                        hintText: 'من',
+                        hintText: l10n.advFromHint,
                         hintStyle: TextStyle(
                           color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                           fontSize: 13,
@@ -418,7 +421,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                       textAlign: TextAlign.center,
                       decoration: InputDecoration(
                         isDense: true,
-                        hintText: 'إلى',
+                        hintText: l10n.advToHint,
                         hintStyle: TextStyle(
                           color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                           fontSize: 13,
@@ -445,7 +448,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                   child: Row(
                     children: [
                       Text(
-                        'الحكم:',
+                        l10n.advGrade,
                         style: GoogleFonts.cairo(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -505,7 +508,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'الموسوعة الحديثية',
+                            l10n.advEmptyTitle,
                             style: GoogleFonts.amiri(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -514,7 +517,7 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'يمكنك البحث في آلاف الأحاديث النبوية\nمن الكتب التسعة المعتمدة',
+                            l10n.advEmptyBody,
                             style: GoogleFonts.cairo(
                               fontSize: 14,
                               color: theme.colorScheme.onSurfaceVariant,
@@ -735,13 +738,14 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
   // ═══════════════════════════════════════════════════════════════════════════
 
   void _showBookFilter() {
+    final l10n = AppLocalizations.of(context);
     showModalBottomSheet<void>(
       context: context,
       builder: (context) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
-            title: const Text('كل الكتب'),
+            title: Text(l10n.advAllBooksOption),
             onTap: () {
               setState(() => _selectedBook = null);
               Navigator.pop(context);
@@ -774,26 +778,28 @@ class _AdvancedHadithBrowserPageState extends State<AdvancedHadithBrowserPage>
   String _getBookName(String book) => hadithBookName(book);
 
   String _searchModeLabel(SearchMode mode) {
+    final l10n = AppLocalizations.of(context);
     switch (mode) {
       case SearchMode.smart:
-        return 'ذكي';
+        return l10n.advModeSmart;
       case SearchMode.anyWord:
-        return 'أي كلمة';
+        return l10n.advModeAny;
       case SearchMode.allWords:
-        return 'كل الكلمات';
+        return l10n.advModeAll;
       case SearchMode.phrase:
-        return 'عبارة';
+        return l10n.advModePhrase;
       case SearchMode.root:
-        return 'بالجذر';
+        return l10n.advModeRoot;
     }
   }
 
   String _numberRangeLabel() {
+    final l10n = AppLocalizations.of(context);
     if (_numberFrom != null && _numberTo != null) {
-      return 'رقم $_numberFrom - $_numberTo';
+      return l10n.advRangeBoth(_numberFrom!, _numberTo!);
     }
-    if (_numberFrom != null) return 'رقم ≥ $_numberFrom';
-    return 'رقم ≤ $_numberTo';
+    if (_numberFrom != null) return l10n.advRangeFrom(_numberFrom!);
+    return l10n.advRangeTo(_numberTo!);
   }
 }
 
@@ -851,7 +857,7 @@ class _HadithResultCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        'تطابق ${(result.score * 100).toStringAsFixed(0)}%',
+                        AppLocalizations.of(context).advMatchScore((result.score * 100).toStringAsFixed(0)),
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -864,7 +870,7 @@ class _HadithResultCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          '${_getBookName(hadith.book)} - ${hadith.number}',
+                          AppLocalizations.of(context).advBookNumber(_getBookName(hadith.book), hadith.number),
                           style: GoogleFonts.cairo(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,

@@ -28,7 +28,23 @@ jobs:
         run: flutter test --coverage
 
       - name: Verify app-wide coverage floor
-        run: python3 tools/coverage_summary.py 12
+        run: python3 tools/coverage_summary.py 30
+
+      - name: Verify lib/ file-size ceiling
+        run: python3 tools/file_size_check.py
+
+      - name: Verify assets size budget
+        # 230 MB: tight gate that passes today (221.5 MB after the tafsir
+        # SQLite consolidation: 272.2 → 221.5) and fails on any real
+        # regression. Ratchet down further once audio delivery moves
+        # off-device (streaming/offline packs).
+        run: python3 tools/check_assets_size.py 230
+
+      - name: Verify coverage-exclusions budget (10% cap, no silent growth)
+        run: python3 tools/check_exclusions.py
+
+      - name: Verify ARB parity (ar/en key sets identical)
+        run: python3 tools/check_arb_parity.py
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4

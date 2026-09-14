@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,6 +17,9 @@ import 'core/services/narrator_database_service.dart';
 import 'core/services/services.dart';
 import 'core/theme/design_system.dart';
 import 'core/theme/noor_theme.dart';
+import 'core/utils/error_reporting.dart';
+import 'core/widgets/noor_error_widget.dart';
+import 'l10n/generated/app_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +28,18 @@ Future<void> main() async {
   // Fonts are bundled (Cairo/Amiri) — never fetch them at runtime. This keeps
   // the app fully offline and deterministic.
   GoogleFonts.config.allowRuntimeFetching = false;
+
+  const sentryDsn = String.fromEnvironment('SENTRY_DSN');
+
+  // Without a crash reporter, install the console handlers now so even a
+  // failing service init is visible and still gets the branded error screen.
+  // With a DSN this must wait until after SentryFlutter.init — Sentry replaces
+  // FlutterError.onError during init, so a handler installed earlier is
+  // silently dropped (see installGlobalErrorHandlers).
+  if (sentryDsn.isEmpty) {
+    installGlobalErrorHandlers(capture: (error, stackTrace) {});
+    installErrorWidgetBuilder();
+  }
 
   // Set preferred orientations (Mobile only)
   if (!kIsWeb) {
@@ -37,7 +53,6 @@ Future<void> main() async {
   await _initializeServices();
 
   // Initialize Sentry for crash reporting (errors only, no user tracking)
-  const sentryDsn = String.fromEnvironment('SENTRY_DSN');
   if (sentryDsn.isNotEmpty) {
     await SentryFlutter.init(
       (options) {
@@ -47,11 +62,15 @@ Future<void> main() async {
           ..attachScreenshot = false // Privacy: no screenshots
           ..sendDefaultPii = false; // Privacy: no personal data
       },
-      appRunner: () => runApp(
-        const ProviderScope(
-          child: NoorApp(),
-        ),
-      ),
+      appRunner: () {
+        // Sentry owns the error handlers from here on; add only the fallback UI.
+        installErrorWidgetBuilder();
+        runApp(
+          const ProviderScope(
+            child: NoorApp(),
+          ),
+        );
+      },
     );
   } else {
     // No Sentry DSN → run directly (avoids zone mismatch on web)
@@ -63,139 +82,70 @@ Future<void> main() async {
   }
 }
 
-/// Initialize all app services in correct order
+/// Initialize all app services.
+///
+/// Hive storage is initialized first (everything else reads it); the
+/// remaining services are independent of each other, so they are initialized
+/// in parallel — the one-time first-launch import and the other warm-ups no
+/// longer run as 30+ sequential awaits blocking the first frame.
 Future<void> _initializeServices() async {
-  // 1. Local storage first
+  // 1. Local storage first (hard dependency for everything below).
   await Hive.initFlutter();
   await HiveService.initialize();
   await HadithUserDataService.init();
 
-  // 1b. Statistics service (depends on Hive)
-  try {
-    await StatisticsService.init();
-  } on Exception catch (e) {
-    debugPrint('StatisticsService init failed: $e');
-  }
+  // 1b-6. Independent services, parallelized; each failure is logged and
+  // non-fatal so startup always proceeds.
+  await Future.wait([
+    _safeInit('AnalyticsService', AnalyticsService.init),
+    _safeInit('StatisticsService', StatisticsService.init),
+    _safeInit('DayStateMachine', DayStateMachine.init),
+    _safeInit('QuranDataSource', QuranDataSource.init),
+    _safeInit('HadithDataSource', HadithDataSource.init),
+    _safeInit('NarratorDatabaseService', NarratorDatabaseService.init),
+    _safeInit('TafsirDataSource', () async {
+      await TafsirDataSource.init();
+      await TafsirDataSource.initPhase6();
+    }),
+    _safeInit('AdhkarDataSource', AdhkarDataSource.init),
+    _safeInit('LocationTrustEngine', LocationTrustEngine.init),
+    _safeInit('MosqueModeService', MosqueModeService.init),
+    _safeInit('SeasonalOffsetsEngine', SeasonalOffsetsEngine.init),
+    _safeInit('AdhkarTimerService', AdhkarTimerService.init),
+    _safeInit('OfflineDataService', OfflineDataService.init),
+    _safeInit('QuranAudioService', QuranAudioService.init),
+    if (!kIsWeb) ...[
+      _safeInit('AdhanSchedulerService', AdhanSchedulerService.init),
+      _safeInit('PrayerHealthCheck', PrayerHealthCheck.init),
+      _safeInit('QuranAudioEngine', QuranAudioEngine.init),
+      _safeInit('SmartNotificationEngine', SmartNotificationEngine.init),
+      _safeInit('WidgetService', WidgetService.init),
+    ],
+  ]);
 
-  // 1c. Day state machine (depends on Hive)
-  try {
-    await DayStateMachine.init();
-  } on Exception catch (e) {
-    debugPrint('DayStateMachine init failed: $e');
-  }
+  // No-op unless the user opted into anonymous usage statistics.
+  AnalyticsService.record('app_open');
 
-  // 1d. Content data sources (Quran, Hadith, Narrators, Tafsir, Adhkar)
-  try {
-    await QuranDataSource.init();
-  } on Exception catch (e) {
-    debugPrint('QuranDataSource init failed: $e');
-  }
-  try {
-    await HadithDataSource.init();
-  } on Exception catch (e) {
-    debugPrint('HadithDataSource init failed: $e');
-  }
-  // Build the hadith SQLite database in the background so the first frame is
-  // not blocked by the one-time 17-book import (cached on later launches).
+  // Background work: fire-and-forget, errors handled inside.
   unawaited(HadithDatabase.warmUp());
-  // Build the scientific search index in the background too; it is cached in
-  // Hive after the first build.
   unawaited(_initSearchEngine());
-  try {
-    await NarratorDatabaseService.init();
-  } on Exception catch (e) {
-    debugPrint('NarratorDatabaseService init failed: $e');
-  }
-  try {
-    await TafsirDataSource.init();
-    await TafsirDataSource.initPhase6();
-  } on Exception catch (e) {
-    debugPrint('TafsirDataSource init failed: $e');
-  }
-  try {
-    await AdhkarDataSource.init();
-  } on Exception catch (e) {
-    debugPrint('AdhkarDataSource init failed: $e');
-  }
-
-  // 1e. Prayer system (location trust, mosque mode, seasonal offsets,
-  //     adhan scheduler, health checks)
-  try {
-    await LocationTrustEngine.init();
-  } on Exception catch (e) {
-    debugPrint('LocationTrustEngine init failed: $e');
-  }
-  try {
-    await MosqueModeService.init();
-  } on Exception catch (e) {
-    debugPrint('MosqueModeService init failed: $e');
-  }
-  try {
-    await SeasonalOffsetsEngine.init();
-  } on Exception catch (e) {
-    debugPrint('SeasonalOffsetsEngine init failed: $e');
-  }
   if (!kIsWeb) {
     try {
-      await AdhanSchedulerService.init();
-    } on Exception catch (e) {
-      debugPrint('AdhanSchedulerService init failed: $e');
-    }
-    try {
-      await PrayerHealthCheck.init();
-    } on Exception catch (e) {
-      debugPrint('PrayerHealthCheck init failed: $e');
-    }
-  }
-  try {
-    await AdhkarTimerService.init();
-  } on Exception catch (e) {
-    debugPrint('AdhkarTimerService init failed: $e');
-  }
-
-  // 2. Offline data service (loads bundled assets)
-  // On web, we might need to handle assets differently or they might be missing
-  try {
-    await OfflineDataService.init();
-  } on Exception catch (e) {
-    debugPrint('OfflineDataService init failed: $e');
-  }
-
-  // 3. Audio service
-  try {
-    await QuranAudioService.init();
-  } on Exception catch (e) {
-    debugPrint('QuranAudioService init failed: $e');
-  }
-  if (!kIsWeb) {
-    try {
-      await QuranAudioEngine.init();
-    } on Exception catch (e) {
-      debugPrint('QuranAudioEngine init failed: $e');
-    }
-  }
-
-  // 4. Smart notifications (Skip on web if not supported or causing issues)
-  if (!kIsWeb) {
-    try {
-      await SmartNotificationEngine.init();
-    } on Exception catch (e) {
-      debugPrint('SmartNotificationEngine init failed: $e');
-    }
-  }
-
-  // 5. Widget service for home screen (Mobile only)
-  if (!kIsWeb) {
-    try {
-      await WidgetService.init();
       await WidgetService.updateAllWidgets();
     } on Exception catch (e) {
-      debugPrint('WidgetService init failed: $e');
+      debugPrint('WidgetService updateAllWidgets failed: $e');
     }
   }
-
-  // 6. Sync data if connected (background)
   unawaited(OfflineDataService.syncIfNeeded());
+}
+
+/// Runs a service initializer, logging failures without crashing startup.
+Future<void> _safeInit(String name, Future<void> Function() init) async {
+  try {
+    await init();
+  } on Exception catch (e) {
+    debugPrint('$name init failed: $e');
+  }
 }
 
 /// Build the hadith search index in the background (errors are non-fatal).
@@ -209,6 +159,21 @@ Future<void> _initSearchEngine() async {
 
 /// نور - التطبيق الإسلامي الشامل
 /// A comprehensive Islamic app serving as a digital worship environment
+///
+/// UI language follows the device: Arabic (RTL) for Arabic/RTL locales,
+/// English (LTR) otherwise. The en/ar string pairs live in lib/l10n
+/// (supportedLocales is generated from the ARB files; parity is CI-gated).
+///
+/// Arabic devices get Arabic (RTL); every other device falls back to
+/// English (LTR) rather than forcing Arabic UI on non-Arabic users.
+Locale _resolveAppLocale(Locale? deviceLocale) {
+  final language = deviceLocale?.languageCode.toLowerCase();
+  if (language == 'ar' || language == 'fa' || language == 'ur') {
+    return const Locale('ar');
+  }
+  return const Locale('en');
+}
+
 class NoorApp extends ConsumerStatefulWidget {
   const NoorApp({super.key});
 
@@ -270,56 +235,67 @@ class _NoorAppState extends ConsumerState<NoorApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    // Resolve UI language from the device; Arabic-first for Arabic/RTL
+    // locales, English otherwise. MaterialApp applies the matching text
+    // direction automatically (RTL for ar, LTR for en).
+    final deviceLocale = View.of(context).platformDispatcher.locale;
+    final appLocale = _resolveAppLocale(deviceLocale);
+
     // On later launches the database opens in milliseconds; go straight to
     // the app. Only the one-time first-launch import shows the progress UI.
     if (HadithDatabase.isDbCached) {
-      return _buildApp(context);
+      return _buildApp(context, appLocale);
     }
 
     final dbReady = ref.watch(hadithDbReadyProvider);
     return dbReady.when(
-      data: (_) => _buildApp(context),
-      loading: () => const _DatabaseImportScreen(),
+      data: (_) => _buildApp(context, appLocale),
+      loading: () {
+        // The import screen is a standalone full-screen UI rendered BEFORE
+        // the router app exists — it needs its own MaterialApp (Directionality
+        // + theme), otherwise a fresh-install launch crashes with "No
+        // Directionality widget found".
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: NoorTheme.light,
+          darkTheme: NoorTheme.dark,
+          // The import screen predates the router app, so it carries its own
+          // localization delegates.
+          locale: appLocale,
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          home: const _DatabaseImportScreen(),
+        );
+      },
       error: (e, _) {
         debugPrint('Hadith database gate failed: $e');
-        return _buildApp(context);
+        return _buildApp(context, appLocale);
       },
     );
   }
 
-  Widget _buildApp(BuildContext context) {
+  Widget _buildApp(BuildContext context, Locale appLocale) {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
       title: 'نور',
       debugShowCheckedModeBanner: false,
-      
+
       // Khushu Theme - Calm, spiritual design
       theme: NoorTheme.light,
       darkTheme: NoorTheme.dark,
-      
-      // Localization — the UI is Arabic-first; English is scaffolded for the
-      // framework (system dialogs, pickers) and English Quran translations
-      // are offered inside the reader.
-      locale: const Locale('ar'),
-      supportedLocales: const [
-        Locale('ar'),
-        Locale('en'),
-      ],
+
+      // Localization — device-driven: Arabic (RTL) for Arabic/RTL locales,
+      // English (LTR) for everything else. String pairs live in lib/l10n.
+      locale: appLocale,
+      supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      
-      // Builder for RTL and text direction
-      builder: (context, child) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: child ?? const SizedBox.shrink(),
-        );
-      },
-      
+
       // Navigation
       routerConfig: router,
     );
@@ -347,7 +323,7 @@ class _DatabaseImportScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               Text(
-                'تحضير مكتبة الحديث الشريف...',
+                AppLocalizations.of(context).dbImportTitle,
                 style: GoogleFonts.cairo(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -356,7 +332,7 @@ class _DatabaseImportScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'يتم تجهيز الكتب التسعة والأربعين نووية لأول مرة',
+                AppLocalizations.of(context).dbImportSubtitle,
                 style: GoogleFonts.cairo(
                   fontSize: 13,
                   color: NoorDesignSystem.textSecondary,

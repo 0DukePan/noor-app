@@ -1,862 +1,240 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white" alt="Flutter" />
-  <img src="https://img.shields.io/badge/Dart-%3E%3D3.0-0175C2?logo=dart&logoColor=white" alt="Dart" />
-  <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-blue" alt="Platforms" />
-  <img src="https://img.shields.io/badge/Architecture-Clean%20Architecture-blueviolet" alt="Architecture" />
-  <img src="https://img.shields.io/badge/State-Riverpod-FF6F00" alt="Riverpod" />
-  <img src="https://img.shields.io/badge/License-Proprietary-red" alt="License" />
+  <img src="assets/icon/app_icon.png" width="120" alt="Noor app icon">
 </p>
 
-<h1 align="center">🌙 نور — Noor</h1>
-<h3 align="center">A Comprehensive Islamic Companion App</h3>
+<h1 align="center">نور · Noor</h1>
 
 <p align="center">
-  <em>Digital worship environment for Quran, Hadith, Prayer Times, Adhkar, Tafsir & more.</em><br/>
-  <em>Offline-first • Privacy-respecting • Scholarly-grade data • Multi-platform</em>
+  <em>A digital worship environment: Quran, hadith, prayer times, adhkar, tafsir.</em><br>
+  <sub>Offline-first &middot; no account &middot; no ads &middot; no tracking &middot; Arabic and English</sub>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white&style=flat-square" alt="Flutter">
+  <img src="https://img.shields.io/badge/platform-Android%20%7C%20iOS-3DDC84?style=flat-square" alt="Android and iOS">
+  <img src="https://img.shields.io/badge/content-bundled%20offline-1F6E5A?style=flat-square" alt="Bundled offline content">
+  <img src="https://img.shields.io/badge/l10n-Arabic%20%7C%20English-8A5A00?style=flat-square" alt="Arabic and English">
+  <img src="https://img.shields.io/badge/license-proprietary-B3261E?style=flat-square" alt="Proprietary license">
+</p>
+
+<p align="center">
+  <img src="docs/media/demo.gif" width="380" alt="Noor on Android: home dashboard, mushaf page, hadith reader, prayer times, adhkar library and tools">
+</p>
+
+<p align="center">
+  <sub><a href="README.ar.md">العربية</a></sub>
 </p>
 
 ---
 
-## Overview
-
-**Noor** (نور — "Light") is a feature-rich, production-grade Islamic companion app built with Flutter. It provides a unified, spiritually intuitive experience across Quran reading & recitation, Hadith study with Isnad analysis, GPS-based prayer times with Adhan scheduling, Qibla direction, Adhkar routines, Tafsir from classic scholars, spaced-repetition memorization, and detailed user analytics — all powered by an **offline-first architecture** with 25,000+ bundled assets requiring zero internet connectivity for core features.
-
----
-
-## Table of Contents
-
-- [Features](#features)
-- [Architecture](#architecture)
-- [Modélisation](#modélisation)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Configuration](#configuration)
-- [Core Services](#core-services)
-- [Data Pipeline](#data-pipeline)
-- [Testing](#testing)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-
----
-
-## Features
-
-### 📖 Quran Module
-- **Full Mushaf** — Complete 604-page Quran with page-accurate rendering
-- **Surah Reader** — Verse-by-verse reading with tajweed color-coding
-- **Audio Recitation** — Background audio with `just_audio` + `audio_service` integration, supporting multiple reciters
-- **Khatmah Planner** — Algorithmic Quran completion scheduler with daily goal clamping and progress tracking
-- **Bookmarks & Notes** — Persistent verse-level annotations via Hive
-- **Share as Image** — Export beautifully styled ayah cards for social sharing
-
-### 📚 Hadith Module
-- **9 Major Collections** — Bukhari, Muslim, Abu Dawud, Tirmidhi, Nasa'i, Ibn Majah, Muwatta, Musnad Ahmad, Darimi
-- **Nawawi's 40 & Beyond** — Curated collections with scholarly explanations
-- **Advanced Browser** — Paginated, chapter-based navigation with SQLite-backed instant queries
-- **Scholar Mode** — Deep analysis view with Isnad chain statistics, narrator biographies, and connectivity indicators
-- **Isnad Chain Visualizer** — Interactive timeline showing narrator-by-narrator chain of transmission
-- **Isnad DAG Graph** — Custom-painted directed acyclic graph with zoom/pan, color-coded narrator types, and arrowhead edges
-- **Narrator Database** — Normalized database of ~63 well-known narrators with biographical metadata (death year, teachers, students, reliability rank). The schema includes *Ilm al-Rijal* fields (Tadlis, Ikhtilat, verdict source) so it can grow into them, but they are currently unpopulated rather than fabricated. Full scholarly expansion is a content roadmap item.
-- **Narration Comparison** — Side-by-side comparison of parallel narrations across collections
-- **Topic Tree** — Dynamically generated thematic categorization of hadiths
-- **Spaced Repetition** — FSRS-based memorization system with customizable intervals
-- **Quizzes** — Auto-generated hadith quizzes with real distractor options
-- **Learning Statistics** — Comprehensive analytics dashboard with streak tracking
-
-### 🕌 Prayer Module
-- **GPS Prayer Times** — Accurate calculation via the `adhan` library with seasonal offset corrections
-- **Adhan Scheduler** — Platform-native notification scheduling for all five prayers + Tahajjud
-- **Prayer Tracker** — Qada tracking and daily prayer completion logging
-- **Mosque Mode** — Congregation-aware mode with silent UI transitions
-- **Location Trust Engine** — Multi-source location validation with confidence scoring
-
-### 🧭 Qibla Direction
-- **Compass Integration** — Real-time magnetometer-based Qibla direction using `flutter_compass`
-- **AR Qibla** — Camera-overlay augmented reality mode via `camera` package
-- **Spherical Geodesy** — Precise great-circle bearing calculations
-
-### 📿 Adhkar & Tools
-- **Morning & Evening Adhkar** — Complete collections with repetition counters
-- **Post-Prayer Adhkar** — Context-aware suggestions based on prayer time
-- **Digital Tasbih** — Tap counter with haptic feedback and session history
-- **Smart Suggestions** — Time-of-day aware Dhikr recommendations
-
-### 📖 Tafsir
-- **4 Classical Tafsir Sources** — Muyassar, Ibn Kathir, Sa'di, Tabari
-- **25,000+ Verse Explanations** — Bundled locally for instant offline access
-- **Verse-Linked** — Direct navigation from Quran reader to tafsir
-
-### 🔍 Search
-- **Full-Text Search** — Across Quran, Hadith, and Adhkar with normalized Arabic text matching
-- **Fuzzy Matching** — Handles diacritics, Hamza variations, and partial matches
-- **Multi-Target** — Search by text, narrator, companion, topic, or grade
-
-### 📊 Analytics & Profile
-- **Reading Streaks** — Daily engagement tracking with streak maintenance
-- **Learning Statistics** — Memorization progress, reading habits, and quiz history with streak tracking
-- **Day State Machine** — Sophisticated FSM tracking daily worship state transitions
-- **Home Screen Widgets** — Native Android/iOS widgets for prayer times and daily verse (`home_widget`)
-
----
-
-## Architecture
-
-Noor follows **Clean Architecture** with clear separation into three layers, enforced by directory structure:
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Presentation Layer                     │
-│   Pages • Widgets • Providers (Riverpod StateNotifiers)  │
-├─────────────────────────────────────────────────────────┤
-│                      Domain Layer                        │
-│          Entities • Repositories (Abstract)              │
-├─────────────────────────────────────────────────────────┤
-│                       Data Layer                         │
-│   DataSources (SQLite/Hive/JSON) • Repository Impls      │
-├─────────────────────────────────────────────────────────┤
-│                     Core Services                        │
-│  Engines • Algorithms • Theme • Router • Shared Utils    │
-└─────────────────────────────────────────────────────────┘
-```
-
-### Key Architectural Decisions
-
-| Decision | Rationale |
-|---|---|
-| **Offline-First** | All Quran, Hadith, Tafsir, and Adhkar data is bundled as assets. Zero network dependency for core features. |
-| **SQLite + Hive Hybrid** | SQLite (`sqflite`) for structured relational data (hadiths, chapters). Hive for fast key-value user data (bookmarks, settings, streaks). |
-| **Riverpod** | Compile-safe dependency injection with `StateNotifier` for complex state, `FutureProvider.family` for parameterized async data. |
-| **GoRouter** | Declarative, deep-link-ready routing with `ShellRoute` for persistent bottom navigation. |
-| **Feature-First Modules** | Each feature (Quran, Hadith, Prayer, etc.) is self-contained with its own domain/data/presentation layers. |
-| **No User Tracking** | Sentry crash reporting with `sendDefaultPii: false`, `attachScreenshot: false`. No analytics SDKs. |
-
----
-
-## Modélisation
-
-### 1. Component Diagram — System Overview
-
-```mermaid
-graph TB
-    subgraph Presentation["🖥️ Presentation Layer"]
-        HP["HomePage"]
-        QP["QuranPage"]
-        HDP["HadithPage"]
-        PP["PrayerPage"]
-        AP["AdhkarPage"]
-        QBP["QiblaPage"]
-        SP["SearchPage"]
-        PFP["ProfilePage"]
-    end
-
-    subgraph StateManagement["⚙️ State Management - Riverpod"]
-        RP_Q["QuranProviders"]
-        RP_H["HadithProviders"]
-        RP_P["PrayerProviders"]
-        RP_S["SearchProviders"]
-    end
-
-    subgraph Domain["📐 Domain Layer"]
-        E_H["Hadith Entity"]
-        E_Q["Quran Entity"]
-        E_P["Prayer Entity"]
-        R_H["HadithRepository"]
-        R_Q["QuranRepository"]
-    end
-
-    subgraph Data["💾 Data Layer"]
-        SQLite["SQLite DB\n(sqflite)"]
-        Hive["Hive Boxes\n(10 stores)"]
-        JSON["Bundled JSON\n(25K+ assets)"]
-    end
-
-    subgraph Services["🔧 Core Services"]
-        PTE["PrayerTimeEngine"]
-        QE["QiblaEngine"]
-        ISP["IsnadParserService"]
-        NDS["NarratorDBService"]
-        HSE["HadithSearchEngine"]
-        SNE["SmartNotificationEngine"]
-        DSM["DayStateMachine"]
-        QAE["QuranAudioEngine"]
-        STS["StatisticsService"]
-    end
-
-    HP --> RP_Q & RP_H & RP_P
-    QP --> RP_Q
-    HDP --> RP_H
-    PP --> RP_P
-    SP --> RP_S
-
-    RP_Q --> R_Q
-    RP_H --> R_H
-    RP_S --> HSE
-
-    R_H --> SQLite & Hive
-    R_Q --> JSON & Hive
-
-    PTE --> Hive
-    DSM --> Hive
-    STS --> Hive
-    ISP --> NDS
-    NDS --> JSON
-
-    SNE --> PTE
-    QAE --> JSON
-
-    style Presentation fill:#1a5e3a,stroke:#0d3320,color:#fff
-    style StateManagement fill:#b8860b,stroke:#8b6508,color:#fff
-    style Domain fill:#4a148c,stroke:#311b92,color:#fff
-    style Data fill:#0d47a1,stroke:#0a3470,color:#fff
-    style Services fill:#bf360c,stroke:#8c2809,color:#fff
-```
-
-### 2. Class Diagram — Hadith Domain Model
-
-```mermaid
-classDiagram
-    class Hadith {
-        +int id
-        +int idInBook
-        +String arabic
-        +String englishText
-        +String narratorEnglish
-        +int chapterId
-        +int? bookId
-        +String? collectionId
-        +props() List~Object?~
-    }
-
-    class HadithCollection {
-        +String id
-        +String titleArabic
-        +String titleEnglish
-        +int hadithsCount
-        +String author
-    }
-
-    class HadithBook {
-        +String id
-        +BookMetadata metadata
-        +List~HadithChapter~ chapters
-        +List~Hadith~ hadiths
-    }
-
-    class HadithChapter {
-        +int id
-        +String bookId
-        +String topicArabic
-        +String topicEnglish
-    }
-
-    class BookMetadata {
-        +String title
-        +String author
-        +String introduction
-    }
-
-    class NarratorProfile {
-        +String id
-        +String nameArabic
-        +String nameEnglish
-        +String kunyah
-        +String nisbah
-        +String role
-        +String generation
-        +String reliabilityGrade
-        +List~String~ travelRoutes
-    }
-
-    class IsnadChainLink {
-        +String narratorName
-        +String role
-        +String? linkWord
-        +NarratorProfile? profile
-    }
-
-    class PaginatedHadithsState {
-        +List~Hadith~ hadiths
-        +bool isLoading
-        +String? error
-        +int currentPage
-        +bool hasMore
-        +copyWith() PaginatedHadithsState
-    }
-
-    class HadithRepository {
-        <<interface>>
-        +getCollections() Future~List~HadithCollection~~
-        +getBook(String id) Future~HadithBook~
-        +getHadiths(String bookId, int page, int limit) Future~List~Hadith~~
-    }
-
-    class LocalHadithDataSource {
-        +init() Future~void~
-        +getCollections() Future~List~HadithCollection~~
-        +loadBook(String bookId) Future~HadithBook~
-        +getHadithsPage(String bookId, int page, int limit) Future~List~Hadith~~
-        +searchHadiths(String query) Future~List~Hadith~~
-        +searchByNarrator(String narrator) Future~List~Hadith~~
-        +getRandomHadith() Future~Hadith?~
-    }
-
-    HadithBook *-- BookMetadata
-    HadithBook *-- "many" HadithChapter
-    HadithBook *-- "many" Hadith
-    HadithCollection "1" --> "1" HadithBook : loads
-    IsnadChainLink --> NarratorProfile : references
-    HadithRepository <|.. LocalHadithDataSource : implements
-    PaginatedHadithsState o-- "many" Hadith
-```
-
-### 3. Entity-Relationship Diagram — Data Layer
-
-```mermaid
-erDiagram
-    COLLECTIONS {
-        string id PK
-        string title_arabic
-        string title_english
-        string author_arabic
-        int hadith_count
-        string introduction
-    }
-
-    CHAPTERS {
-        int id PK
-        string collection_id FK
-        string title_arabic
-        string title_english
-        int sort_order
-    }
-
-    HADITHS {
-        int id PK
-        int id_in_book
-        string collection_id FK
-        int chapter_id FK
-        text arabic
-        text english_text
-        string english_narrator
-    }
-
-    NARRATORS {
-        string id PK
-        string name_arabic
-        string name_english
-        string kunyah
-        string nisbah
-        string role
-        int generation_level
-        string reliability_grade
-        string verdict_source
-    }
-
-    NARRATOR_RELATIONSHIPS {
-        string id PK
-        string from_narrator_id FK
-        string to_narrator_id FK
-        string relationship_type
-        string link_word
-    }
-
-    HIVE_BOOKMARKS {
-        string key PK
-        int hadith_id
-        string collection_id
-        text arabic
-        int timestamp
-    }
-
-    HIVE_PROGRESS {
-        string key PK
-        string book_id
-        int hadith_index
-        int total_hadiths
-        int timestamp
-    }
-
-    HIVE_STATISTICS {
-        string key PK
-        int streak_count
-        int total_read
-        int quiz_score
-        string last_active
-    }
-
-    COLLECTIONS ||--o{ CHAPTERS : contains
-    CHAPTERS ||--o{ HADITHS : contains
-    COLLECTIONS ||--o{ HADITHS : belongs_to
-    NARRATORS ||--o{ NARRATOR_RELATIONSHIPS : from
-    NARRATORS ||--o{ NARRATOR_RELATIONSHIPS : to
-    HADITHS ||--o{ HIVE_BOOKMARKS : bookmarked_as
-```
-
-### 4. Sequence Diagram — Hadith Reader Flow
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant UI as HadithPage
-    participant Provider as Riverpod Provider
-    participant Repo as HadithRepository
-    participant DS as LocalHadithDataSource
-    participant DB as SQLite Database
-    participant Hive as Hive Storage
-
-    User->>UI: Opens Hadith Module
-    UI->>Provider: watch(hadithCollectionsProvider)
-    Provider->>Repo: getCollections()
-    Repo->>DS: getCollections()
-    DS->>DB: SELECT * FROM collections
-    DB-->>DS: Collection rows
-    DS-->>Repo: List of HadithCollection
-    Repo-->>Provider: Collections
-    Provider-->>UI: Render collection grid
-
-    User->>UI: Selects "Sahih al-Bukhari"
-    UI->>Provider: watch(paginatedHadithsProvider("bukhari"))
-    Provider->>Repo: getHadiths("bukhari", page=1, limit=50)
-    Repo->>DS: getHadithsPage(bookId, page, limit)
-    DS->>DB: SELECT * FROM hadiths WHERE collection_id='bukhari' LIMIT 50
-    DB-->>DS: Hadith rows
-    DS-->>Provider: List of Hadith entities
-    Provider-->>UI: Render paginated list
-
-    User->>UI: Taps on Hadith #42
-    UI->>UI: Opens HadithReaderPage (PageView)
-    UI->>Provider: watch(hadithBookProvider("bukhari"))
-    Provider-->>UI: Full book with all hadiths
-
-    User->>UI: Opens Sharh Sheet
-    UI->>UI: Show study tools (Scholar, Isnad, Compare)
-
-    User->>UI: Taps "Isnad Analysis"
-    UI->>Provider: Creates IsnadParserService
-    Provider->>Provider: parseChain(hadith.arabic)
-    Provider->>Provider: NarratorDBService.lookup(names)
-    Provider-->>UI: Render Isnad Chain Timeline
-
-    User->>UI: Taps Bookmark ❤️
-    UI->>Hive: HadithUserDataService.toggleBookmark(hadith)
-    Hive-->>UI: isBookmarked = true
-    UI->>UI: Animate heart icon
-```
-
-### 5. State Diagram — Day State Machine
-
-```mermaid
-stateDiagram-v2
-    [*] --> Idle : App Launch
-
-    Idle --> FajrPending : Day begins
-
-    FajrPending --> FajrCompleted : User prays Fajr
-    FajrPending --> DhuhrPending : Dhuhr time arrives
-
-    FajrCompleted --> MorningAdhkar : Triggers suggestion
-    MorningAdhkar --> DhuhrPending : Dhuhr time arrives
-
-    DhuhrPending --> DhuhrCompleted : User prays Dhuhr
-    DhuhrPending --> AsrPending : Asr time arrives
-
-    DhuhrCompleted --> QuranReading : Suggests reading
-    QuranReading --> AsrPending : Asr time arrives
-
-    AsrPending --> AsrCompleted : User prays Asr
-    AsrPending --> MaghribPending : Maghrib time arrives
-
-    AsrCompleted --> EveningAdhkar : Triggers suggestion
-    EveningAdhkar --> MaghribPending : Maghrib time arrives
-
-    MaghribPending --> MaghribCompleted : User prays Maghrib
-    MaghribPending --> IshaPending : Isha time arrives
-
-    MaghribCompleted --> IshaPending : Isha time arrives
-
-    IshaPending --> IshaCompleted : User prays Isha
-
-    IshaCompleted --> DayComplete : All prayers logged
-    DayComplete --> StreakUpdated : Streak +1
-    StreakUpdated --> [*] : Day ends
-
-    note right of Idle
-        State persisted to Hive
-        Restored on app relaunch
-    end note
-
-    note right of DayComplete
-        StatisticsService updates
-        engagement metrics
-    end note
-```
-
-### 6. Deployment Diagram — Multi-Platform Architecture
-
-```mermaid
-graph LR
-    subgraph ClientDevices["📱 Client Devices"]
-        Android["Android\n(API 21+)"]
-        iOS["iOS\n(14+)"]
-    end
-
-    subgraph FlutterApp["🦋 Flutter App Bundle"]
-        Engine["Flutter Engine"]
-        DartVM["Dart VM"]
-        Assets["Bundled Assets\n(25K+ files)"]
-        SQLiteDB["SQLite DB\n(sqflite)"]
-        HiveDB["Hive Storage\n(10 boxes)"]
-    end
-
-    subgraph Observability["🔍 Observability"]
-        Sentry["Sentry\n(Crash Reports, no PII)"]
-    end
-
-    subgraph DeviceSensors["📡 Device Sensors"]
-        GPS["GPS\n(Prayer Times)"]
-        Compass["Magnetometer\n(Qibla)"]
-        Camera["Camera\n(AR Qibla)"]
-    end
-
-    Android & iOS --> FlutterApp
-    FlutterApp --> Observability
-    FlutterApp --> DeviceSensors
-
-    style ClientDevices fill:#1b5e20,stroke:#0d3310,color:#fff
-    style FlutterApp fill:#1565c0,stroke:#0d3d78,color:#fff
-    style Observability fill:#e65100,stroke:#a63a00,color:#fff
-    style DeviceSensors fill:#6a1b9a,stroke:#4a1270,color:#fff
-```
-
----
-
-## Tech Stack
-
-### Core Framework
-| Technology | Purpose |
-|---|---|
-| Flutter 3.x | Cross-platform UI framework |
-| Dart ≥3.0 | Language with null safety |
-
-### State & Navigation
-| Package | Purpose |
-|---|---|
-| `flutter_riverpod` | Reactive state management |
-| `go_router` | Declarative routing with deep links |
-| `equatable` | Value equality for entities and states |
-
-### Storage
-| Package | Purpose |
-|---|---|
-| `sqflite` | SQLite database for hadith collections |
-| `hive_flutter` | NoSQL key-value store for user data |
-| `flutter_secure_storage` | Encrypted storage for sensitive data |
-
-### Network (fallback only)
-| Package | Purpose |
-|---|---|
-| `http` | Optional REST fallbacks for missing tafsir/recitation/prayer data; core features are fully offline |
-
-### Islamic Libraries
-| Package | Purpose |
-|---|---|
-| `adhan` | Prayer time calculation engine |
-| `hijri` | Hijri calendar conversion |
-
-### Media & UI
-| Package | Purpose |
-|---|---|
-| `just_audio` + `audio_service` | Quran recitation with background playback |
-| `google_fonts` | Cairo & Amiri typography |
-| `flutter_svg` | Vector icon rendering |
-| `flutter_animate` | Micro-animations |
-| `pdf` + `printing` | PDF export |
-| `share_plus` | Social sharing |
-
-### Sensors & Location
-| Package | Purpose |
-|---|---|
-| `geolocator` | GPS location for prayer times |
-| `flutter_compass` | Magnetometer for Qibla |
-| `sensors_plus` | Device sensor access |
-| `camera` | AR Qibla mode |
-| `geocoding` | Reverse geocoding for city names |
-
-### Observability
-| Package | Purpose |
-|---|---|
-| `sentry_flutter` | Crash reporting (privacy-first, no PII) |
-
----
-
-## Project Structure
-
-```
-lib/
-├── main.dart                          # App entry point, service initialization
-├── core/
-│   ├── algorithms/
-│   │   └── fsrs_algorithm.dart        # Free Spaced Repetition Scheduler
-│   ├── data/
-│   │   ├── data_sources/
-│   │   │   ├── hadith_database.dart   # SQLite schema & queries
-│   │   │   └── local_hadith_data_source.dart
-│   │   └── repositories/             # Repository implementations
-│   ├── domain/
-│   │   ├── entities/                  # Core business entities
-│   │   └── repositories/             # Abstract repository contracts
-│   ├── router/
-│   │   └── app_router.dart           # GoRouter configuration (30+ routes)
-│   ├── services/                     # 33 core services
-│   │   ├── prayer_time_engine.dart   # GPS-based prayer calculation
-│   │   ├── qibla_engine.dart         # Spherical geodesy for Qibla
-│   │   ├── isnad_parser_service.dart  # Arabic Isnad chain extraction
-│   │   ├── narrator_database_service.dart  # Ilm al-Rijal lookups
-│   │   ├── hadith_search_engine.dart  # Full-text search with normalization
-│   │   ├── smart_notification_engine.dart  # AI-driven notification scheduling
-│   │   ├── day_state_machine.dart     # Daily worship state FSM
-│   │   ├── quran_audio_engine.dart    # Background audio playback
-│   │   ├── statistics_service.dart    # Engagement analytics
-│   │   └── ...
-│   ├── theme/
-│   │   ├── design_system.dart        # NoorDesignSystem tokens
-│   │   └── noor_theme.dart           # Material ThemeData (light/dark)
-│   └── widgets/
-│       └── main_shell.dart           # Bottom navigation shell
-├── features/
-│   ├── quran/                        # 16 files
-│   │   └── presentation/pages/
-│   │       ├── quran_page.dart       # Surah index
-│   │       ├── quran_surah_page.dart # Verse reader
-│   │       ├── quran_mushaf_page.dart # Full Mushaf view
-│   │       └── khatmah_page.dart     # Completion planner
-│   ├── hadith/                       # 25 files
-│   │   ├── data/datasources/         # Data models & sources
-│   │   ├── domain/entities/          # Hadith, HadithGrade, etc.
-│   │   └── presentation/
-│   │       ├── pages/                # 18 pages
-│   │       │   ├── hadith_page.dart
-│   │       │   ├── hadith_reader_page.dart
-│   │       │   ├── scholar_mode_page.dart
-│   │       │   ├── isnad_chain_page.dart
-│   │       │   ├── isnad_graph_page.dart
-│   │       │   ├── memorization_page.dart
-│   │       │   ├── quiz_page.dart
-│   │       │   └── ...
-│   │       ├── providers/            # Riverpod providers
-│   │       └── widgets/              # Reusable hadith widgets
-│   ├── prayer/                       # Prayer times & tracking
-│   ├── adhkar/                       # Adhkar collections
-│   ├── qibla/                        # Qibla compass & AR
-│   ├── tafsir/                       # 4-source tafsir browser
-│   ├── audio/                        # Audio playback controls
-│   ├── search/                       # Cross-module search
-│   ├── home/                         # Dashboard with smart cards
-│   ├── profile/                      # User profile & stats
-│   ├── settings/                     # App configuration
-│   ├── onboarding/                   # First-run experience
-│   └── tools/                        # Tasbih, misc utilities
-└── shared/                           # Cross-feature shared code
-
-assets/                               # 25,000+ bundled files
-├── quran/                            # Quran text (JSON)
-├── hadith/                           # 627 files
-│   ├── narrators.json                # Normalized narrator database
-│   └── by_book/                      # 9 major collections + forties
-├── tafsir/                           # 25,401 files
-│   ├── muyassar/                     # Tafsir al-Muyassar
-│   ├── ibn_kathir/                   # Tafsir Ibn Kathir
-│   ├── saadi/                        # Tafsir al-Sa'di
-│   └── tabari/                       # Tafsir al-Tabari
-├── adhkar/                           # Morning/Evening/Post-prayer
-└── fonts/                            # Custom Arabic typography
-```
-
----
-
-## Getting Started
-
-### Prerequisites
-
-| Requirement | Version |
-|---|---|
-| Flutter SDK | ≥ 3.0.0 |
-| Dart SDK | ≥ 3.0.0 |
-| Android SDK | API 21+ (Lollipop) |
-| Xcode | 14+ (for iOS) |
-
-### Installation
+Noor (نور — "light") is an Islamic companion app for reading, listening, and
+keeping a daily routine: the full Quran with tafsir, the nine hadith
+collections with Isnad study tools, prayer times with adhan scheduling, qibla,
+and adhkar with sources.
+
+Everything a Muslim needs daily works with **no network at all** — the Quran,
+hadith, tafsir, and adhkar are bundled with the app. There is no account to
+create, nothing is advertised to you, and no personal data leaves the device
+unless you explicitly turn on the (aggregate-only) usage counters.
+
+## Numbers
+
+Each figure below is verifiable in this repository, and most are enforced by CI
+so they cannot quietly drift.
+
+| | Value | Enforced by |
+|---|---|---|
+| Tests | 651, all green | `flutter test` |
+| Line coverage | 30.70% (floor 30, raised as pages land) | `tools/coverage_summary.py` |
+| Hadith collections | 9 major collections + Nawawi's 40 | `assets/db/hadith.db` (checksummed) |
+| Tafsir sources | 4 — Muyassar, Ibn Kathir, Sa'di, Tabari | `assets/db/` (checksummed) |
+| Mushaf | 604 pages, Uthmani text | checksum sidecar + integrity test |
+| Prayer calculation methods | 19, plus per-region presets | `prayer_time_models.dart` |
+| Bundle size | 221.8 MB (budget 230 MB) | `tools/check_assets_size.py` |
+| Arabic/English string parity | 662 keys each | `tools/check_arb_parity.py` |
+| Static analysis | 0 issues | `flutter analyze` |
+| File-size ceiling | enforced, with 13 grandfathered files tracked and capped in the check's baseline | `tools/file_size_check.py` |
+
+## What it does
+
+**Quran** — the 604-page mushaf with Uthmani script, a khatmah planner that
+turns "read the whole Quran" into a daily quota with progress tracking,
+recitation with background playback, four classical tafsir sources linked to
+the verse you are reading, per-verse notes and bookmarks, and ayah cards you can
+export as images.
+
+**Hadith** — the nine collections and the forty of Imam al-Nawawi, with
+full-text search that normalises Arabic (diacritics, hamza forms, ta marbuta),
+so «الرحمن» finds «ٱلرحمن». Scholar mode adds an Isnad chain view, narrator
+lookup, narration comparison across collections, a topic tree, and a
+spaced-repetition (FSRS) memorisation system with quizzes and statistics.
+
+**Prayer & qibla** — 19 calculation methods with per-country presets, seasonal
+offsets, adhan scheduling, qada tracking, a congregation-aware "mosque mode"
+that quiets the UI, and a magnetometer qibla compass with great-circle bearing.
+
+**Adhkar & tools** — morning, evening, post-prayer, sleep and waking adhkar
+with repetition counters and source references, a digital tasbih, and
+time-of-day aware suggestions.
+
+**Getting there** — a day-state machine tracks where you are in the day's worship
+(Fajr → adhkar → Dhuhr → …), surfaces the next thing at the right time, keeps
+streaks and statistics, and shows prayer times on a home-screen widget.
+
+**Languages & accessibility** — Arabic and English with CI-gated key parity and
+correct RTL/LTR behaviour; the primary flows carry screen-reader labels and
+tap-target sizes verified by Flutter's accessibility guidelines
+(`docs/accessibility.md`).
+
+## Privacy by construction
+
+- **No account, no ads, no third-party analytics SDK.** The app ships its own
+  opt-in counters, off by default: an allowlist of feature events
+  (`app_open`, `surah_opened`, …), aggregate counts only — no identity, no
+  timestamps, no content — and nothing leaves the device unless you configure an
+  endpoint.
+- **Crash reports are opt-in and PII-free**, only when a DSN is supplied at
+  build time, with `sendDefaultPii: false`, `attachScreenshot: false` and
+  tracing disabled.
+- **Location stays on the device** — used to compute prayer times and the qibla,
+  never sent anywhere.
+- **Your notes are encrypted** on-device, and bookmarks, progress, and
+  statistics live in local storage only.
+
+## Content integrity
+
+Religious content deserves the same rigour as the code:
+
+- **Checksums for every content set** (Quran, hadith, adhkar, narrators) with
+  sidecar `.sha256` files so any silent change is caught.
+- **A scholarly review tracker** (`docs/scholarly-review.md`) mapping each
+  content set to its freeze hash and review status. Review is release-blocking.
+- **The narrator database does not fabricate.** Fields for *Ilm al-Rijal*
+  verdicts exist in the schema but are populated only where a citation exists —
+  an empty field is honest, an invented grade is not.
+- **Guards against documentation drift**: a claim-guard test fails the build if
+  a user-facing doc advertises a capability that is not in the code, and a
+  mojibake guard fails on any corrupted Arabic text.
+
+## Install
 
 ```bash
-# Clone the repository
-git clone https://github.com/DukePan/noor-app.git
+git clone https://github.com/0DukePan/noor-app.git
 cd noor-app
-
-# Install dependencies
 flutter pub get
-
-# Run on your preferred platform
-flutter run                    # Default connected device
-flutter run -d macos           # macOS desktop (debug only)
-flutter run -d windows         # Windows desktop (debug only)
+flutter run                 # connected Android/iOS device or emulator
 ```
 
-> **Note:** Web is not supported — the app depends on native plugins
-> (SQLite, adhan, audio, compass, camera) that have no web implementation.
+Requires the Flutter stable channel (Dart ≥ 3.0). Core features need no
+network; a first launch imports the bundled hadith database once.
 
-### First Run
+> **Web is not supported.** The app depends on native plugins (SQLite, adhan
+> scheduling, background audio, compass, geolocation) that have no web
+> implementation.
 
-On first launch, the app initializes the following services in order:
+Optional crash reporting, at build time only:
 
-1. **Hive** — Opens 10 local storage boxes (bookmarks, progress, statistics, settings, etc.)
-2. **SQLite** — Creates or migrates the hadith database from bundled assets
-3. **Statistics Service** — Initializes engagement tracking
-4. **Day State Machine** — Sets up the daily worship FSM
-5. **Offline Data Service** — Indexes bundled Quran, Hadith, and Tafsir assets
-6. **Audio Service** — Configures background audio session
-7. **Notifications** — Schedules prayer time Adhan notifications (mobile only)
-8. **Home Widgets** — Updates native home screen widgets (mobile only)
-
----
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Required | Description |
-|---|---|---|
-| `SENTRY_DSN` | No | Sentry crash reporting DSN. If empty, Sentry is skipped entirely. |
-
-Pass at build time:
 ```bash
 flutter run --dart-define=SENTRY_DSN=https://your-dsn@sentry.io/project
 ```
 
----
-
-## Core Services
-
-### Prayer Time Engine (`prayer_time_engine.dart` — 42KB)
-The largest service in the app. Implements multi-method prayer time calculation with:
-- Seasonal offset corrections via `seasonal_offsets_engine.dart`
-- Location trust scoring via `location_trust_engine.dart`
-- Weekly schedule generation via `prayer_time_engine.calculateWeek`
-- Health checks and self-diagnostics via `prayer_health_check.dart`
-
-### Isnad Parser Service (`isnad_parser_service.dart`)
-Regex-based Arabic NLP pipeline that extracts narrator chains from raw hadith text. Identifies narrators using transmission keywords (`حدثنا`, `أخبرنا`, `عن`, etc.) and classifies them as Prophet, Companion, Tabi'i, or later narrators.
-
-### Narrator Database Service (`narrator_database_service.dart`)
-Loads and indexes the normalized `narrators.json` database (currently ~63 well-known narrators). Provides fuzzy lookup for narrator biographies and reliability ranks. The schema carries Tadlis/Ikhtilat/verdict-source fields, but they are intentionally unpopulated until scholarly data is curated — the app does not fabricate *Ilm al-Rijal* verdicts.
-
-### Hadith Search Engine (`hadith_search_engine.dart`)
-Full-text search with Arabic text normalization (diacritic removal, Hamza normalization, Ta Marbuta handling). Supports multi-target search (text, narrator, companion, topic, grade) with relevance scoring.
-
-### Smart Notification Engine (`smart_notification_engine.dart`)
-Context-aware notification system that adapts to user behavior patterns, prayer times, and time-of-day. Avoids notification fatigue through intelligent scheduling and deduplication.
-
-### Day State Machine (`day_state_machine.dart`)
-Finite state machine that tracks daily worship progress across multiple dimensions (prayers completed, Quran read, Adhkar recited). Persisted to Hive and restored across sessions.
-
----
-
-## Data Pipeline
-
-### Hadith Data Flow
-
-```
-┌──────────────────┐     ┌──────────────┐     ┌─────────────────┐
-│ assets/hadith/   │────▶│ SQLite DB    │────▶│ LocalHadithDS   │
-│ by_book/*.json   │     │ (sqflite)    │     │ (Data Source)    │
-└──────────────────┘     └──────────────┘     └────────┬────────┘
-                                                       │
-                                                       ▼
-┌──────────────────┐     ┌──────────────┐     ┌─────────────────┐
-│ narrators.json   │────▶│ In-Memory    │────▶│ NarratorDB Svc  │
-│ (Ilm al-Rijal)   │     │ Index        │     │ (Fuzzy Lookup)   │
-└──────────────────┘     └──────────────┘     └─────────────────┘
-                                                       │
-                              ┌─────────────────────────┤
-                              ▼                         ▼
-                    ┌─────────────────┐     ┌─────────────────┐
-                    │ IsnadParser     │     │ SearchEngine     │
-                    │ (Chain Extract) │     │ (Full-Text)      │
-                    └────────┬────────┘     └─────────────────┘
-                             │
-                    ┌────────┴────────┐
-                    ▼                 ▼
-          ┌─────────────┐   ┌─────────────────┐
-          │ Chain Page   │   │ DAG Graph Page   │
-          │ (Timeline)   │   │ (CustomPainter)  │
-          └─────────────┘   └─────────────────┘
-```
-
-### Storage Strategy
-
-| Data Type | Store | Rationale |
-|---|---|---|
-| Hadith collections | SQLite | Relational queries, pagination, FTS |
-| User bookmarks | Hive (`hadith_bookmarks`) | Fast K/V access, small dataset |
-| Reading progress | Hive (`hadith_progress`) | Single-key read/write |
-| Settings | Hive (`settings`) | Simple preferences |
-| Statistics | Hive (`app_statistics`) | Counters and aggregates |
-| Quran text | Bundled JSON | Read-only reference data |
-| Tafsir | Bundled JSON (25K files) | Read-only, per-verse files |
-| Narrators | Bundled JSON → In-Memory | Fuzzy search requires full index |
-
----
-
-## Testing
+Or build release artifacts:
 
 ```bash
-# Run unit & widget tests
-flutter test
-
-# Static analysis (should be 0 errors)
-flutter analyze
-
-# Build for production (Android)
-flutter build apk --release
-
-# Build for production (iOS)
-flutter build ios --release
+flutter build appbundle --release   # Google Play
+flutter build ipa --release         # App Store
 ```
 
----
+## Architecture
 
-## Deployment
+Clean Architecture in three layers, feature-first modules, Riverpod for state,
+GoRouter for navigation, SQLite for relational content and Hive for user data:
 
-### Android
-```bash
-flutter build appbundle --release
-# Upload to Google Play Console
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Presentation Layer                    │
+│   Pages • Widgets • Providers (Riverpod)                 │
+├─────────────────────────────────────────────────────────┤
+│                      Domain Layer                        │
+│          Entities • Repositories (abstract)              │
+├─────────────────────────────────────────────────────────┤
+│                       Data Layer                         │
+│   DataSources (SQLite/Hive/bundled JSON) • Repo impls     │
+├─────────────────────────────────────────────────────────┤
+│                     Core Services                        │
+│  Engines • Algorithms • Theme • Router • Shared utils     │
+└─────────────────────────────────────────────────────────┘
 ```
 
-### iOS
-```bash
-flutter build ipa --release
-# Upload via Xcode or Transporter
-```
+The component, class, ER, sequence, state-machine and deployment diagrams live
+in **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
----
+## Quality gates
 
-## Contributing
+Every push runs the same gates locally and in CI (`.github/workflows/ci.yml`):
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Follow the existing architecture patterns (Clean Architecture + Feature-First)
-4. Ensure `flutter analyze` returns **0 errors**
-5. Add tests for new services and business logic
-6. Commit with conventional commits (`feat:`, `fix:`, `refactor:`)
-7. Open a Pull Request
+| Gate | What it protects |
+|---|---|
+| `flutter analyze` | 0 issues |
+| `flutter test` | the whole suite green |
+| `tools/coverage_summary.py` | app-wide coverage floor |
+| `tools/file_size_check.py` | one file cannot quietly become a god-file |
+| `tools/check_assets_size.py` | bundle stays inside the 230 MB budget |
+| `tools/check_exclusions.py` | coverage exclusions stay small and justified |
+| `tools/check_arb_parity.py` | Arabic and English never diverge |
+| `flutter test integration_test` (emulator) | the real app boots: DB import, onboarding, all five tabs |
 
-### Code Style
-- Follow `flutter_lints` rules
-- Use `GoogleFonts.cairo()` for UI text, `GoogleFonts.amiri()` for Quranic/Hadith text
-- All user-facing strings should be in Arabic by default
-- New services should be registered in `lib/core/services/services.dart`
+## Documentation
 
+| Document | Contents |
+|---|---|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Layers, component/class/ER/sequence/state/deployment diagrams |
+| [docs/accessibility.md](docs/accessibility.md) | What is labelled and verified, what is still manual |
+| [docs/API_SOURCES.md](docs/API_SOURCES.md) | Where the content comes from, endpoint by endpoint |
+| [docs/testing-guidelines.md](docs/testing-guidelines.md) | Hard-won notes on testing this codebase |
+| [docs/performance.md](docs/performance.md) | Startup, size and jank measurements |
+| [docs/coverage-inventory.md](docs/coverage-inventory.md) | Per-file coverage and risk inventory |
+| [docs/coverage-exclusions.md](docs/coverage-exclusions.md) | Every line deliberately not covered, and why |
+| [docs/scholarly-review.md](docs/scholarly-review.md) | Content review status and freeze hashes |
+| [docs/qa-checklist.md](docs/qa-checklist.md) | The on-device pass before a release |
+| [docs/store-checklist.md](docs/store-checklist.md) | Store submission requirements |
+| [docs/media/README.md](docs/media/README.md) | How the demo GIF is generated or replaced |
 
+## FAQ
 
+**Why is the download 221 MB?**
+The Quran, four tafsir sources, and the nine hadith collections ship inside the
+app so that nothing needs a connection — including in airplane mode, on a
+plane, or in a mosque basement. The size is CI-budgeted at 230 MB, and moving
+the reference databases to on-demand packs is a deliberate post-1.0 decision
+recorded in `docs/store-checklist.md`.
 
+**Does it really work offline?**
+Yes for all core content. The network is only ever used for optional fetches
+(the bundled tafsir covers the 4 sources; recitation streams if you choose a
+remote reciter).
+
+**What do you collect about me?**
+Nothing by default. Crash reporting and usage counters are both opt-in; the
+counters are aggregate-only with no identity, timestamps or content, and are
+never shared with a third party.
+
+**Why are some narrator reliability fields empty?**
+Because filling them requires a citation. The app would rather show a blank
+field than an invented *Ilm al-Rijal* verdict — see
+`docs/scholarly-review.md`.
+
+**Is the source open?**
+No. The repository is proprietary (see [LICENSE](LICENSE)); the published app is
+free to use.
+
+**How do I regenerate the demo GIF or get screenshots?**
+`docs/media/README.md` has both the regeneration commands and the spec for
+dropping in a real device recording.
+
+## License
+
+[Proprietary — all rights reserved.](LICENSE) The published application is free
+to download and use.
+
+<sub>العربية: [README.ar.md](README.ar.md)</sub>

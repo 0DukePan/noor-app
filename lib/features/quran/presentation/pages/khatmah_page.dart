@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/noor_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/khatmah_providers.dart';
 
 /// صفحة خطة الختمة - Khatmah Planner Page
@@ -17,11 +18,12 @@ class KhatmahPlannerPage extends ConsumerStatefulWidget {
 class _KhatmahPlannerPageState extends ConsumerState<KhatmahPlannerPage> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final khatmah = ref.watch(khatmahProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('خطة الختمة'),
+        title: Text(l10n.khatmahTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.add_rounded),
@@ -36,12 +38,12 @@ class _KhatmahPlannerPageState extends ConsumerState<KhatmahPlannerPage> {
                 children: [
                   Icon(Icons.auto_stories_rounded, size: 64, color: NoorTheme.primary.withValues(alpha: 0.3)),
                   const SizedBox(height: 16),
-                  Text('لا توجد ختمة نشطة', style: Theme.of(context).textTheme.titleMedium),
+                  Text(l10n.khatmahEmpty, style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
                   ElevatedButton.icon(
                     onPressed: _showCreateKhatmahDialog,
                     icon: const Icon(Icons.add_rounded),
-                    label: const Text('بدء ختمة جديدة'),
+                    label: Text(l10n.khatmahStart),
                   ),
                 ],
               ),
@@ -86,7 +88,7 @@ class _KhatmahPlannerPageState extends ConsumerState<KhatmahPlannerPage> {
 
                 // Reading Schedule — algorithmically generated
                 Text(
-                  'جدول القراءة',
+                  l10n.khatmahSchedule,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: NoorTheme.spacingMd),
@@ -104,7 +106,7 @@ class _KhatmahPlannerPageState extends ConsumerState<KhatmahPlannerPage> {
 
                 // Past Khatmahs — from Hive history
                 Text(
-                  'ختماتك السابقة',
+                  l10n.khatmahHistory,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: NoorTheme.spacingMd),
@@ -115,10 +117,10 @@ class _KhatmahPlannerPageState extends ConsumerState<KhatmahPlannerPage> {
                       return Center(
                         child: Padding(
                           padding: const EdgeInsets.all(NoorTheme.spacingLg),
-                          child: Text(
-                            'لم تُتمم أي ختمة بعد',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
+                        child: Text(
+                          l10n.khatmahNoneDone,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                         ),
                       );
                     }
@@ -169,6 +171,7 @@ class _ActiveKhatmahCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(NoorTheme.spacingLg),
       decoration: BoxDecoration(
@@ -201,7 +204,7 @@ class _ActiveKhatmahCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(NoorTheme.radiusSm),
                 ),
                 child: Text(
-                  'نشطة',
+                  l10n.khatmahActive,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: NoorTheme.textPrimary,
                         fontWeight: FontWeight.bold,
@@ -254,7 +257,7 @@ class _ActiveKhatmahCard extends StatelessWidget {
                 ),
               ),
               Text(
-                'صفحة $currentPage من $kQuranTotalPages',
+                l10n.khatmahPageOfTotal(currentPage, kQuranTotalPages),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.white.withValues(alpha: 0.8),
                     ),
@@ -283,13 +286,13 @@ class _ActiveKhatmahCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'آخر موضع',
+                        l10n.khatmahLastPosition,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Colors.white.withValues(alpha: 0.7),
                             ),
                       ),
                       Text(
-                        'سورة ${surahName(currentSurah)} - آية $currentVerse',
+                        l10n.khatmahPositionAt(surahName(currentSurah), currentVerse),
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               color: Colors.white,
                             ),
@@ -303,7 +306,7 @@ class _ActiveKhatmahCard extends StatelessWidget {
                     backgroundColor: NoorTheme.accentGold,
                     foregroundColor: NoorTheme.textPrimary,
                   ),
-                  child: const Text('متابعة'),
+                  child: Text(l10n.khatmahResume),
                 ),
               ],
             ),
@@ -312,7 +315,7 @@ class _ActiveKhatmahCard extends StatelessWidget {
           if (targetEndDate != null) ...[
             const SizedBox(height: NoorTheme.spacingMd),
             Text(
-              'الهدف: ${_formatDate(targetEndDate!)}',
+              l10n.khatmahGoal('${targetEndDate!.day}/${targetEndDate!.month}/${targetEndDate!.year}'),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Colors.white.withValues(alpha: 0.7),
                   ),
@@ -321,10 +324,6 @@ class _ActiveKhatmahCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
   }
 }
 
@@ -339,6 +338,7 @@ class _DailyGoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     // ✅ Guard against division by zero (happens when khatmah is complete)
     final safePagesPerDay = pagesPerDay == 0 ? 1 : pagesPerDay;
     final progress = pagesReadToday / safePagesPerDay;
@@ -360,7 +360,7 @@ class _DailyGoalCard extends StatelessWidget {
               ),
               const SizedBox(width: NoorTheme.spacingSm),
               Text(
-                'هدف اليوم',
+                l10n.khatmahDailyGoal,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ],
@@ -382,7 +382,7 @@ class _DailyGoalCard extends StatelessWidget {
               ),
               const SizedBox(width: NoorTheme.spacingMd),
               Text(
-                '$pagesReadToday / $pagesPerDay صفحة',
+                l10n.khatmahPagesToday(pagesReadToday, pagesPerDay),
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: progress >= 1.0 ? NoorTheme.hadithSahih : null,
                     ),
@@ -391,11 +391,11 @@ class _DailyGoalCard extends StatelessWidget {
           ),
 
           if (progress >= 1.0)
-            const Padding(
-              padding: EdgeInsets.only(top: NoorTheme.spacingSm),
+            Padding(
+              padding: const EdgeInsets.only(top: NoorTheme.spacingSm),
               child: Text(
-                '🎉 أحسنت! أتممت هدف اليوم',
-                style: TextStyle(
+                l10n.khatmahGoalDone,
+                style: const TextStyle(
                   color: NoorTheme.hadithSahih,
                   fontWeight: FontWeight.w500,
                 ),
@@ -422,6 +422,7 @@ class _ScheduleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: NoorTheme.spacingSm),
       padding: const EdgeInsets.all(NoorTheme.spacingMd),
@@ -455,7 +456,7 @@ class _ScheduleCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 Text(
-                  'صفحات $pages',
+                  l10n.khatmahSchedulePages(pages),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -480,6 +481,7 @@ class _PastKhatmahCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: NoorTheme.spacingSm),
       padding: const EdgeInsets.all(NoorTheme.spacingMd),
@@ -510,7 +512,7 @@ class _PastKhatmahCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 Text(
-                  'أتممتها في $durationDays يوم',
+                  l10n.khatmahDoneIn(durationDays),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -544,30 +546,31 @@ class _CreateKhatmahDialogState extends ConsumerState<_CreateKhatmahDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      title: const Text('ختمة جديدة'),
+      title: Text(l10n.khatmahNew),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
             controller: _nameController,
             textDirection: TextDirection.rtl,
-            decoration: const InputDecoration(
-              hintText: 'اسم الختمة (اختياري)',
+            decoration: InputDecoration(
+              hintText: l10n.khatmahNameHint,
               hintTextDirection: TextDirection.rtl,
             ),
           ),
           const SizedBox(height: NoorTheme.spacingMd),
           Row(
             children: [
-              const Text('المدة:'),
+              Text(l10n.khatmahDuration),
               const Spacer(),
               DropdownButton<int>(
                 value: _durationDays,
                 items: [7, 14, 21, 30, 60, 90]
                     .map((d) => DropdownMenuItem(
                           value: d,
-                          child: Text('$d يوم'),
+                          child: Text(l10n.khatmahDaysOption(d)),
                         ),)
                     .toList(),
                 onChanged: (value) {
@@ -578,7 +581,7 @@ class _CreateKhatmahDialogState extends ConsumerState<_CreateKhatmahDialog> {
           ),
           const SizedBox(height: NoorTheme.spacingSm),
           Text(
-            '≈ ${(kQuranTotalPages / _durationDays).ceil()} صفحة يومياً',
+            l10n.khatmahPerDay((kQuranTotalPages / _durationDays).ceil()),
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
@@ -586,7 +589,7 @@ class _CreateKhatmahDialogState extends ConsumerState<_CreateKhatmahDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.pop(context),
-          child: const Text('إلغاء'),
+          child: Text(l10n.settingsCancel),
         ),
         ElevatedButton(
           onPressed: _isLoading
@@ -605,7 +608,7 @@ class _CreateKhatmahDialogState extends ConsumerState<_CreateKhatmahDialog> {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('ابدأ الختمة'),
+              : Text(l10n.khatmahStartButton),
         ),
       ],
     );

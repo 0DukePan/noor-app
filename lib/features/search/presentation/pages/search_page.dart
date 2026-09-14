@@ -8,7 +8,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/data/data_sources/hadith_database.dart';
 import '../../../../core/domain/entities/hadith.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../../hadith/presentation/hadith_book_names.dart';
 import '../../../hadith/presentation/pages/hadith_reader_page.dart';
 import '../../domain/entities/search_result.dart';
@@ -37,12 +39,14 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     // Debounce so the (Quran+hadith+adhkar) FTS query only runs after the
     // user pauses typing.
     _debounce = Timer(const Duration(milliseconds: 300), () {
+      AnalyticsService.record('search_used');
       ref.read(searchResultsProvider.notifier).search(value);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final searchState = ref.watch(searchResultsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -54,7 +58,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           autofocus: true,
           textDirection: TextDirection.rtl,
           decoration: InputDecoration(
-            hintText: 'ابحث في القرآن والحديث...',
+            hintText: l10n.searchHintUnified,
             hintStyle: TextStyle(color: NoorDesignSystem.textSecondary.withValues(alpha: 0.5)),
             border: InputBorder.none,
           ),
@@ -71,16 +75,16 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       body: searchState.when(
         data: (results) {
           if (results.isEmpty && _controller.text.isNotEmpty) {
-             return const Center(child: Text('لا توجد نتائج'));
+             return Center(child: Text(l10n.quranNoResults));
           }
           if (results.isEmpty) {
-             return const Center(
+             return Center(
                child: Column(
                  mainAxisAlignment: MainAxisAlignment.center,
                  children: [
-                   Icon(Icons.search, size: 64, color: Colors.black12),
-                   SizedBox(height: 16),
-                   Text('ابحث عن آية أو حديث'),
+                   const Icon(Icons.search, size: 64, color: Colors.black12),
+                   const SizedBox(height: 16),
+                   Text(l10n.searchPrompt),
                  ],
                ),
              );
@@ -97,7 +101,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(child: Text('خطأ: $e')),
+        error: (e, s) => Center(child: Text(AppLocalizations.of(context).mushafError(e.toString()))),
       ),
     );
   }
@@ -110,6 +114,7 @@ class _SearchResultCard extends StatelessWidget { // SearchResult
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isQuran = result.source == 'quran';
     final isHadith = result.source == 'hadith';
@@ -121,14 +126,14 @@ class _SearchResultCard extends StatelessWidget { // SearchResult
             ? NoorDesignSystem.goldAccent
             : NoorDesignSystem.deepTeal;
     final badgeLabel = isQuran
-        ? 'القرآن الكريم'
+        ? l10n.quranTitle
         : isHadith
-            ? 'الحديث الشريف'
-            : 'الأذكار';
+            ? l10n.searchBadgeHadith
+            : l10n.searchBadgeAdhkar;
 
     String? reference;
     if (isQuran) {
-      reference = 'سورة ${metadata['surah']} : آية ${metadata['verse']}';
+      reference = l10n.searchQuranRef('${metadata['surah']}', '${metadata['verse']}');
     } else if (isHadith) {
       reference = hadithBookName(metadata['book']?.toString() ?? '');
     }
@@ -239,7 +244,7 @@ class _SearchResultCard extends StatelessWidget { // SearchResult
     await Clipboard.setData(ClipboardData(text: result.text));
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم نسخ النص')),
+        SnackBar(content: Text(AppLocalizations.of(context).searchCopied)),
       );
     }
   }

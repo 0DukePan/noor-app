@@ -5,12 +5,13 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'api_fetcher_service.dart';
+import 'hive_box_registry.dart';
 
 /// خدمة البيانات غير المتصلة - Offline Data Service
 /// Manages bundled assets and cached API data for offline-first experience
 class OfflineDataService {
-  static const _quranBoxName = 'quran_offline';
-  static const _hadithBoxName = 'hadith_offline';
+  static const _quranBoxName = HiveBoxes.offlineQuran;
+  static const _hadithBoxName = HiveBoxes.offlineHadith;
   static const _lastSyncKey = 'last_sync';
 
   static Box<dynamic>? _quranBox;
@@ -42,42 +43,48 @@ class OfflineDataService {
   static Future<void> _loadBundledQuran() async {
     try {
       // Load surahs metadata
-      final surahsJson = await rootBundle.loadString('assets/quran/surahs.json');
-      final surahs = List<Map<String, dynamic>>.from(jsonDecode(surahsJson) as List);
+      final surahsJson =
+          await rootBundle.loadString('assets/quran/surahs.json');
+      final surahs =
+          List<Map<String, dynamic>>.from(jsonDecode(surahsJson) as List);
       await _quranBox!.put('surahs', surahs);
 
       // Load full Quran text (Uthmani)
       try {
-        final quranTextJson = await rootBundle.loadString('assets/quran/quran_uthmani.json');
+        final quranTextJson =
+            await rootBundle.loadString('assets/quran/quran_uthmani.json');
         final quranText = jsonDecode(quranTextJson) as Map<String, dynamic>;
-        
 
         // Process and store each surah
         for (var i = 1; i <= 114; i++) {
           final surahNum = i.toString();
           if (quranText.containsKey(surahNum)) {
             final verses = quranText[surahNum] as List;
-            
+
             // Find metadata
             final metadata = surahs.firstWhere(
-              (s) => s['number'] == i, 
+              (s) => s['number'] == i,
               orElse: () => {'number': i, 'name': 'Surah $i'},
             );
 
             // Construct full surah object
             final surahData = {
               ...metadata,
-              'verses': verses.map((v) => {
-                'number': (v as Map)['verse'],
-                'text': v['text'],
-                'numberInSurah': v['verse'],
-                'juz': 0, // Placeholder
-                'manzil': 0, // Placeholder
-                'page': 0, // Placeholder
-                'ruku': 0, // Placeholder
-                'hizbQuarter': 0, // Placeholder
-                'sajda': false, // Placeholder
-              },).toList(),
+              'verses': verses
+                  .map(
+                    (v) => {
+                      'number': (v as Map)['verse'],
+                      'text': v['text'],
+                      'numberInSurah': v['verse'],
+                      'juz': 0, // Placeholder
+                      'manzil': 0, // Placeholder
+                      'page': 0, // Placeholder
+                      'ruku': 0, // Placeholder
+                      'hizbQuarter': 0, // Placeholder
+                      'sajda': false, // Placeholder
+                    },
+                  )
+                  .toList(),
             };
 
             await _quranBox!.put('surah_$i', surahData);
@@ -210,11 +217,41 @@ class OfflineDataService {
 
   static List<Map<String, dynamic>> _getDefaultSurahs() {
     return [
-      {'number': 1, 'name': 'سُورَةُ ٱلْفَاتِحَةِ', 'englishName': 'Al-Fatiha', 'numberOfAyahs': 7, 'revelationType': 'Meccan'},
-      {'number': 2, 'name': 'سُورَةُ البَقَرَةِ', 'englishName': 'Al-Baqara', 'numberOfAyahs': 286, 'revelationType': 'Medinan'},
-      {'number': 3, 'name': 'سُورَةُ آلِ عِمۡرَانَ', 'englishName': 'Aal-Imran', 'numberOfAyahs': 200, 'revelationType': 'Medinan'},
-      {'number': 4, 'name': 'سُورَةُ النِّسَاءِ', 'englishName': 'An-Nisa', 'numberOfAyahs': 176, 'revelationType': 'Medinan'},
-      {'number': 5, 'name': 'سُورَةُ المَائـِدَةِ', 'englishName': 'Al-Maida', 'numberOfAyahs': 120, 'revelationType': 'Medinan'},
+      {
+        'number': 1,
+        'name': 'سُورَةُ ٱلْفَاتِحَةِ',
+        'englishName': 'Al-Fatiha',
+        'numberOfAyahs': 7,
+        'revelationType': 'Meccan',
+      },
+      {
+        'number': 2,
+        'name': 'سُورَةُ البَقَرَةِ',
+        'englishName': 'Al-Baqara',
+        'numberOfAyahs': 286,
+        'revelationType': 'Medinan',
+      },
+      {
+        'number': 3,
+        'name': 'سُورَةُ آلِ عِمۡرَانَ',
+        'englishName': 'Aal-Imran',
+        'numberOfAyahs': 200,
+        'revelationType': 'Medinan',
+      },
+      {
+        'number': 4,
+        'name': 'سُورَةُ النِّسَاءِ',
+        'englishName': 'An-Nisa',
+        'numberOfAyahs': 176,
+        'revelationType': 'Medinan',
+      },
+      {
+        'number': 5,
+        'name': 'سُورَةُ المَائـِدَةِ',
+        'englishName': 'Al-Maida',
+        'numberOfAyahs': 120,
+        'revelationType': 'Medinan',
+      },
       // ... more surahs would be here
     ];
   }

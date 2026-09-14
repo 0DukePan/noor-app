@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 /// ⚙️ صفحة الأدوات — Tools Hub
 /// Central hub for Prayer Times, Qibla, Tasbih, and Settings
@@ -12,6 +13,7 @@ class ToolsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -25,7 +27,7 @@ class ToolsPage extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
                 child: Text(
-                  'الأدوات',
+                  l10n.toolsTitle,
                   style: GoogleFonts.cairo(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -42,8 +44,8 @@ class ToolsPage extends StatelessWidget {
                 delegate: SliverChildListDelegate([
                   _ToolCard(
                     icon: Icons.access_time_rounded,
-                    title: 'مواقيت الصلاة',
-                    subtitle: 'الأوقات والتنبيهات',
+                    title: l10n.toolsPrayer,
+                    subtitle: l10n.toolsPrayerSub,
                     gradient: const [
                       NoorDesignSystem.primaryGreen,
                       NoorDesignSystem.primaryLight,
@@ -55,8 +57,8 @@ class ToolsPage extends StatelessWidget {
                   ),
                   _ToolCard(
                     icon: Icons.explore_rounded,
-                    title: 'القبلة',
-                    subtitle: 'اتجاه القبلة',
+                    title: l10n.toolsQibla,
+                    subtitle: l10n.toolsQiblaSub,
                     gradient: const [
                       Color(0xFF1565C0),
                       Color(0xFF42A5F5),
@@ -68,8 +70,8 @@ class ToolsPage extends StatelessWidget {
                   ),
                   _ToolCard(
                     icon: Icons.radio_button_checked_rounded,
-                    title: 'المسبحة',
-                    subtitle: 'عداد التسبيح',
+                    title: l10n.toolsTasbih,
+                    subtitle: l10n.toolsTasbihSub,
                     gradient: const [
                       NoorDesignSystem.goldMuted,
                       NoorDesignSystem.goldAccent,
@@ -81,8 +83,8 @@ class ToolsPage extends StatelessWidget {
                   ),
                   _ToolCard(
                     icon: Icons.search_rounded,
-                    title: 'البحث',
-                    subtitle: 'البحث في القرآن والحديث',
+                    title: l10n.toolsSearch,
+                    subtitle: l10n.toolsSearchSub,
                     gradient: const [
                       Color(0xFF6A1B9A),
                       Color(0xFF9C27B0),
@@ -94,8 +96,8 @@ class ToolsPage extends StatelessWidget {
                   ),
                   _ToolCard(
                     icon: Icons.auto_stories_rounded,
-                    title: 'الحفظ والمراجعة',
-                    subtitle: 'حفظ الآيات ومراجعتها',
+                    title: l10n.toolsHifz,
+                    subtitle: l10n.toolsHifzSub,
                     gradient: const [
                       Color(0xFF00695C),
                       Color(0xFF26A69A),
@@ -107,8 +109,8 @@ class ToolsPage extends StatelessWidget {
                   ),
                   _ToolCard(
                     icon: Icons.person_rounded,
-                    title: 'ملفي الشخصي',
-                    subtitle: 'الإحصائيات والتقدم',
+                    title: l10n.toolsProfile,
+                    subtitle: l10n.toolsProfileSub,
                     gradient: const [
                       Color(0xFFBF360C),
                       Color(0xFFFF7043),
@@ -120,8 +122,8 @@ class ToolsPage extends StatelessWidget {
                   ),
                   _ToolCard(
                     icon: Icons.settings_rounded,
-                    title: 'الإعدادات',
-                    subtitle: 'الإعدادات العامة والمظهر',
+                    title: l10n.settingsTitle,
+                    subtitle: l10n.toolsSettingsSub,
                     gradient: [
                       if (isDark) const Color(0xFF37474F) else const Color(0xFF546E7A),
                       if (isDark) const Color(0xFF455A64) else const Color(0xFF78909C),

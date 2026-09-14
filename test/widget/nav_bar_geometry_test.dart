@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:noor_app/core/widgets/main_shell.dart';
+import 'package:noor_app/l10n/generated/app_localizations.dart';
 
 /// Validates the EXACT navigation approach used by
 /// integration_test/app_test.dart: tabs are tapped by their nav ICON, scoped
@@ -72,7 +73,14 @@ void main() {
       ],
     );
 
-    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpWidget(
+      MaterialApp.router(
+        locale: const Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: router,
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('الرئيسية'), findsOneWidget);

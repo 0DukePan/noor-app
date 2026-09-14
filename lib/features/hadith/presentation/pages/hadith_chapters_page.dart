@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/domain/entities/hadith.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/hadith_providers.dart';
 import 'hadith_chapter_hadiths_page.dart';
 
@@ -28,27 +29,27 @@ class HadithChaptersPage extends ConsumerWidget {
       body: bookAsync.when(
         data: (book) => countsAsync.when(
           data: (counts) => _buildContent(context, book, counts),
-          loading: _buildLoading,
-          error: (e, s) => _buildError(e),
+          loading: () => _buildLoading(context),
+          error: (e, s) => _buildError(context, e),
         ),
-        loading: _buildLoading,
-        error: (e, s) => _buildError(e),
+        loading: () => _buildLoading(context),
+        error: (e, s) => _buildError(context, e),
       ),
     );
   }
 
-  Widget _buildLoading() {
+  Widget _buildLoading(BuildContext context) {
     return CustomScrollView(
       slivers: [
         _buildAppBar(null),
-        const SliverFillRemaining(
+        SliverFillRemaining(
           child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('جارٍ تحميل الأبواب...'),
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(AppLocalizations.of(context).hchLoading),
               ],
             ),
           ),
@@ -57,7 +58,7 @@ class HadithChaptersPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildError(Object error) {
+  Widget _buildError(BuildContext context, Object error) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -66,7 +67,7 @@ class HadithChaptersPage extends ConsumerWidget {
           children: [
             Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
             const SizedBox(height: 16),
-            Text('حدث خطأ أثناء تحميل الكتاب',
+            Text(AppLocalizations.of(context).hchError,
                 style: GoogleFonts.cairo(fontSize: 16),),
             const SizedBox(height: 8),
             Text(error.toString(),
@@ -78,6 +79,7 @@ class HadithChaptersPage extends ConsumerWidget {
   }
 
   Widget _buildContent(BuildContext context, HadithBook book, Map<int, int> chapterCounts) {
+    final l10n = AppLocalizations.of(context);
     final chapters = book.chapters;
     final totalHadiths = chapterCounts.values.fold<int>(0, (sum, v) => sum + v);
 
@@ -94,13 +96,13 @@ class HadithChaptersPage extends ConsumerWidget {
               children: [
                 _StatChip(
                   icon: Icons.menu_book_rounded,
-                  label: '${chapters.length} باب',
+                  label: l10n.hchChapters(chapters.length),
                   color: bookColor,
                 ),
                 const SizedBox(width: 12),
                 _StatChip(
                   icon: Icons.format_quote_rounded,
-                  label: '$totalHadiths حديث',
+                  label: l10n.topicHadithCount(totalHadiths),
                   color: NoorDesignSystem.goldAccent,
                 ),
               ],
@@ -125,7 +127,7 @@ class HadithChaptersPage extends ConsumerWidget {
                         bookId: bookId,
                         bookTitle: bookTitle,
                         chapterId: null, // null = all hadiths
-                        chapterTitle: 'جميع الأحاديث',
+                        chapterTitle: l10n.hchAllTitle,
                         bookColor: bookColor,
                       ),
                     ),
@@ -139,7 +141,7 @@ class HadithChaptersPage extends ConsumerWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'عرض جميع الأحاديث',
+                          l10n.hchViewAll,
                           style: GoogleFonts.cairo(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
@@ -162,7 +164,7 @@ class HadithChaptersPage extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
             child: Text(
-              'الأبواب',
+              l10n.hchSection,
               style: NoorDesignSystem.textTheme.titleLarge,
             ),
           ),
@@ -391,7 +393,7 @@ class _ChapterTile extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'حديث',
+                      AppLocalizations.of(context).hchHadithUnit,
                       style: GoogleFonts.cairo(
                         fontSize: 11,
                         color: NoorDesignSystem.textSecondary,

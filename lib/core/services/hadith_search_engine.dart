@@ -6,10 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sqflite/sqflite.dart';
 import '../data/data_sources/hadith_database.dart';
+import 'hive_box_registry.dart';
 import 'isnad_parser_service.dart';
 
 /// 🔍 محرك البحث العلمي للأحاديث - Scientific Hadith Search Engine
-/// 
+///
 /// Features:
 /// - Diacritics-insensitive search (تجاهل التشكيل)
 /// - Fuzzy search (التقريبي)
@@ -48,8 +49,8 @@ class HadithSearchEngine {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static Future<void> init({Database? forTesting}) async {
-    _indexBox = await Hive.openBox<dynamic>('hadith_search_index');
-    _cacheBox = await Hive.openBox<dynamic>('hadith_search_cache');
+    _indexBox = await Hive.openBox<dynamic>(HiveBoxes.hadithSearchIndex);
+    _cacheBox = await Hive.openBox<dynamic>(HiveBoxes.hadithSearchCache);
     await _loadGradeDataset();
 
     // Build search index if not cached (or always when a test DB is passed).
@@ -112,14 +113,17 @@ class HadithSearchEngine {
     // Build the index from the SQLite corpus (the same data the reader uses),
     // rather than re-parsing the per-chapter JSON assets.
     final db = overrideDb ?? await HadithDatabase.database;
-    final rows = await db.query('hadiths', columns: [
-      'rowid',
-      'collection_id',
-      'id_in_book',
-      'chapter_id',
-      'arabic',
-      'english_narrator',
-    ],);
+    final rows = await db.query(
+      'hadiths',
+      columns: [
+        'rowid',
+        'collection_id',
+        'id_in_book',
+        'chapter_id',
+        'arabic',
+        'english_narrator',
+      ],
+    );
 
     for (final row in rows) {
       final entry = _createIndexEntry(row);
@@ -194,14 +198,53 @@ class HadithSearchEngine {
   /// الجذر نفسه — حتى لو لم يكن الاشتقاق لغوياً مثالياً.
   static String _approximateRoot(String word) {
     var stem = word;
-    const prefixes = ['وال', 'فال', 'بال', 'كال', 'لل', 'ال', 'وا', 'و', 'ف', 'ب', 'ل', 'ك', 'س', 'م', 'ت', 'ن', 'ي', 'ا'];
+    const prefixes = [
+      'وال',
+      'فال',
+      'بال',
+      'كال',
+      'لل',
+      'ال',
+      'وا',
+      'و',
+      'ف',
+      'ب',
+      'ل',
+      'ك',
+      'س',
+      'م',
+      'ت',
+      'ن',
+      'ي',
+      'ا',
+    ];
     for (final prefix in prefixes) {
       if (stem.length > prefix.length + 2 && stem.startsWith(prefix)) {
         stem = stem.substring(prefix.length);
         break;
       }
     }
-    const suffixes = ['كما', 'هما', 'تهم', 'كن', 'نا', 'كم', 'ها', 'هم', 'هن', 'ات', 'ون', 'ين', 'ية', 'ه', 'ا', 'ة', 'ي', 'ت', 'ك'];
+    const suffixes = [
+      'كما',
+      'هما',
+      'تهم',
+      'كن',
+      'نا',
+      'كم',
+      'ها',
+      'هم',
+      'هن',
+      'ات',
+      'ون',
+      'ين',
+      'ية',
+      'ه',
+      'ا',
+      'ة',
+      'ي',
+      'ت',
+      'ك',
+    ];
     for (final suffix in suffixes) {
       if (stem.length > suffix.length + 2 && stem.endsWith(suffix)) {
         stem = stem.substring(0, stem.length - suffix.length);
@@ -284,38 +327,47 @@ class HadithSearchEngine {
       RegExp(r'عن\s+أبي\s+(\w+)'),
       RegExp(r'عن\s+(\w+)\s+بن\s+\w+'),
     ];
-    
+
     for (final pattern in patterns) {
       final match = pattern.firstMatch(narrator);
       if (match != null) {
         return match.group(1)?.trim() ?? '';
       }
     }
-    
+
     return '';
   }
 
   /// استخراج المواضيع من النص
+  /// Topic keywords in RAW form (readable, matches the source dialect).
+  static const Map<String, List<String>> _topicPatterns = {
+    'الصلاة': ['صلاة', 'يصلي', 'صلوا', 'المصلي', 'ركعة'],
+    'الصيام': ['صيام', 'صوم', 'يصوم', 'رمضان', 'إفطار'],
+    'الزكاة': ['زكاة', 'صدقة', 'زكوا', 'ينفق'],
+    'الحج': ['حج', 'عمرة', 'طواف', 'الكعبة', 'منى'],
+    'الأخلاق': ['أخلاق', 'صدق', 'أمانة', 'كذب', 'خلق'],
+    'الإيمان': ['إيمان', 'يؤمن', 'مؤمن', 'كفر', 'توحيد'],
+    'العلم': ['علم', 'تعلم', 'فقه', 'حديث', 'قرآن'],
+    'الجهاد': ['جهاد', 'غزوة', 'شهيد', 'قتال'],
+    'النكاح': ['نكاح', 'زواج', 'طلاق', 'عقد'],
+    'البيوع': ['بيع', 'شراء', 'تجارة', 'ربا'],
+    'الدعاء': ['دعاء', 'يدعو', 'استغفار', 'ذكر'],
+    'الآداب': ['أدب', 'سلام', 'استئذان', 'طعام'],
+  };
+
+  /// The input text arrives NORMALIZED (ta-marbuta already folded to ha),
+  /// so raw keywords containing ة ('صلاة', 'زكاة'…) could never match and
+  /// whole topics went undetected. Compare normalized-to-normalized; the
+  /// normalized table is built once.
+  static final Map<String, List<String>> _normalizedTopicPatterns = {
+    for (final entry in _topicPatterns.entries)
+      entry.key: [for (final keyword in entry.value) _normalize(keyword)],
+  };
+
   static List<String> _extractTopics(String text) {
     final topics = <String>[];
-    
-    // Topic keywords
-    final topicPatterns = {
-      'الصلاة': ['صلاة', 'يصلي', 'صلوا', 'المصلي', 'ركعة'],
-      'الصيام': ['صيام', 'صوم', 'يصوم', 'رمضان', 'إفطار'],
-      'الزكاة': ['زكاة', 'صدقة', 'زكوا', 'ينفق'],
-      'الحج': ['حج', 'عمرة', 'طواف', 'الكعبة', 'منى'],
-      'الأخلاق': ['أخلاق', 'صدق', 'أمانة', 'كذب', 'خلق'],
-      'الإيمان': ['إيمان', 'يؤمن', 'مؤمن', 'كفر', 'توحيد'],
-      'العلم': ['علم', 'تعلم', 'فقه', 'حديث', 'قرآن'],
-      'الجهاد': ['جهاد', 'غزوة', 'شهيد', 'قتال'],
-      'النكاح': ['نكاح', 'زواج', 'طلاق', 'عقد'],
-      'البيوع': ['بيع', 'شراء', 'تجارة', 'ربا'],
-      'الدعاء': ['دعاء', 'يدعو', 'استغفار', 'ذكر'],
-      'الآداب': ['أدب', 'سلام', 'استئذان', 'طعام'],
-    };
-    
-    for (final entry in topicPatterns.entries) {
+
+    for (final entry in _normalizedTopicPatterns.entries) {
       for (final keyword in entry.value) {
         if (text.contains(keyword)) {
           topics.add(entry.key);
@@ -323,7 +375,7 @@ class HadithSearchEngine {
         }
       }
     }
-    
+
     return topics;
   }
 
@@ -343,16 +395,19 @@ class HadithSearchEngine {
     final indexData = _indexBox?.get('search_index') as List?;
     if (indexData != null) {
       _searchIndex = indexData
-          .map((e) => HadithIndexEntry.fromMap(Map<String, dynamic>.from(e as Map)))
+          .map((e) =>
+              HadithIndexEntry.fromMap(Map<String, dynamic>.from(e as Map)),)
           .toList();
     }
-    
+
     _companionIndex = Map<String, List<String>>.from(
-      Map<String, dynamic>.from((_indexBox?.get('companion_index') ?? <dynamic, dynamic>{}) as Map),
+      Map<String, dynamic>.from(
+          (_indexBox?.get('companion_index') ?? <dynamic, dynamic>{}) as Map,),
     );
-    
+
     _topicIndex = Map<String, List<String>>.from(
-      Map<String, dynamic>.from((_indexBox?.get('topic_index') ?? <dynamic, dynamic>{}) as Map),
+      Map<String, dynamic>.from(
+          (_indexBox?.get('topic_index') ?? <dynamic, dynamic>{}) as Map,),
     );
 
     _buildIndexes();
@@ -369,20 +424,20 @@ class HadithSearchEngine {
     // Remove Arabic diacritics
     final normalized = text
         .replaceAll(RegExp(r'[\u064B-\u0652]'), '') // Tashkeel
-        .replaceAll(RegExp(r'[\u0670]'), '')        // Alef superscript
+        .replaceAll(RegExp(r'[\u0670]'), '') // Alef superscript
         .replaceAll(RegExp(r'[\u06D6-\u06ED]'), '') // Extended diacritics
-        .replaceAll('ـ', '')                         // Tatweel
-        .replaceAll('آ', 'ا')                        // Alef with madda
-        .replaceAll('أ', 'ا')                        // Alef with hamza above
-        .replaceAll('إ', 'ا')                        // Alef with hamza below
-        .replaceAll('ٱ', 'ا')                        // Alef-wasla
-        .replaceAll('ؤ', 'و')                        // Waw with hamza
-        .replaceAll('ئ', 'ي')                        // Ya with hamza
-        .replaceAll('ة', 'ه')                        // Ta marbuta
-        .replaceAll('ى', 'ي')                        // Alef maksura
+        .replaceAll('ـ', '') // Tatweel
+        .replaceAll('آ', 'ا') // Alef with madda
+        .replaceAll('أ', 'ا') // Alef with hamza above
+        .replaceAll('إ', 'ا') // Alef with hamza below
+        .replaceAll('ٱ', 'ا') // Alef-wasla
+        .replaceAll('ؤ', 'و') // Waw with hamza
+        .replaceAll('ئ', 'ي') // Ya with hamza
+        .replaceAll('ة', 'ه') // Ta marbuta
+        .replaceAll('ى', 'ي') // Alef maksura
         .toLowerCase()
         .trim();
-    
+
     // Remove extra spaces
     return normalized.replaceAll(RegExp(r'\s+'), ' ');
   }
@@ -436,16 +491,16 @@ class HadithSearchEngine {
     final cached = _cacheBox?.get(cacheKey);
     if (cached != null) {
       return (cached as List)
-          .map((e) => HadithSearchResult.fromMap(Map<String, dynamic>.from(e as Map)))
+          .map((e) =>
+              HadithSearchResult.fromMap(Map<String, dynamic>.from(e as Map)),)
           .toList();
     }
 
     if (_searchIndex == null) return [];
 
     final normalizedQuery = _normalize(query);
-    final queryWords = normalizedQuery.split(' ')
-        .where((w) => w.isNotEmpty)
-        .toList();
+    final queryWords =
+        normalizedQuery.split(' ').where((w) => w.isNotEmpty).toList();
 
     // Candidate selection: inverted-index based, no full scan unless the
     // query is empty (filter-only searches scan but never score).
@@ -522,13 +577,15 @@ class HadithSearchEngine {
         score = 1; // Filter-only search
       }
 
-      results.add(HadithSearchResult(
-        entry: entry,
-        score: score,
-        matchType: target,
-        matchWordPositions: matchPositions,
-        bookCounts: bookCounts,
-      ),);
+      results.add(
+        HadithSearchResult(
+          entry: entry,
+          score: score,
+          matchType: target,
+          matchWordPositions: matchPositions,
+          bookCounts: bookCounts,
+        ),
+      );
       bookCounts[entry.book] = (bookCounts[entry.book] ?? 0) + 1;
     }
 
@@ -614,7 +671,8 @@ class HadithSearchEngine {
     final positions = <int>[];
     final words = text.split(' ');
     for (var i = 0; i < words.length; i++) {
-      if (queryWords.contains(words[i]) || _fuzzyMatch(words[i], queryWords.join(' '))) {
+      if (queryWords.contains(words[i]) ||
+          _fuzzyMatch(words[i], queryWords.join(' '))) {
         positions.add(i);
       }
     }
@@ -670,26 +728,26 @@ class HadithSearchEngine {
   /// حساب درجة التطابق
   static double _calculateScore(String query, String text) {
     if (text.isEmpty) return 0;
-    
+
     // Exact match
     if (text.contains(query)) {
       return 1;
     }
-    
+
     // Word-by-word match
     final queryWords = query.split(' ');
     var matchedWords = 0;
-    
+
     for (final word in queryWords) {
       if (word.length > 2 && text.contains(word)) {
         matchedWords++;
       }
     }
-    
+
     if (matchedWords > 0) {
       return matchedWords / queryWords.length * 0.8;
     }
-    
+
     // Fuzzy match (Levenshtein-like)
     for (final word in queryWords) {
       if (word.length > 3) {
@@ -699,7 +757,7 @@ class HadithSearchEngine {
         }
       }
     }
-    
+
     return 0;
   }
 
@@ -707,17 +765,17 @@ class HadithSearchEngine {
   static bool _fuzzyMatch(String word, String text) {
     // Allow 1-2 character difference
     final words = text.split(' ');
-    
+
     for (final textWord in words) {
       if (textWord.length < 3) continue;
-      
+
       // Check if similar
       final distance = _levenshteinDistance(word, textWord);
       if (distance <= (word.length > 5 ? 2 : 1)) {
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -725,13 +783,13 @@ class HadithSearchEngine {
   static int _levenshteinDistance(String s1, String s2) {
     if (s1.isEmpty) return s2.length;
     if (s2.isEmpty) return s1.length;
-    
+
     var prev = List<int>.generate(s2.length + 1, (i) => i);
     var curr = List<int>.filled(s2.length + 1, 0);
-    
+
     for (var i = 0; i < s1.length; i++) {
       curr[0] = i + 1;
-      
+
       for (var j = 0; j < s2.length; j++) {
         final cost = s1[i] == s2[j] ? 0 : 1;
         curr[j + 1] = [
@@ -740,12 +798,12 @@ class HadithSearchEngine {
           prev[j] + cost,
         ].reduce((a, b) => a < b ? a : b);
       }
-      
+
       final temp = prev;
       prev = curr;
       curr = temp;
     }
-    
+
     return prev[s2.length];
   }
 
@@ -759,7 +817,8 @@ class HadithSearchEngine {
   }
 
   /// الأحاديث حسب الصحابي
-  static Future<List<HadithSearchResult>> getByCompanion(String companion) async {
+  static Future<List<HadithSearchResult>> getByCompanion(
+      String companion,) async {
     return search('', companion: companion);
   }
 
@@ -806,48 +865,48 @@ class HadithSearchEngine {
     int limit = 10,
   }) async {
     final results = <HadithSearchResult>[];
-    
+
     if (_searchIndex == null) return [];
-    
+
     for (final entry in _searchIndex!) {
       if (entry.id == hadith.id) continue;
-      
+
       double score = 0;
-      
+
       // Same companion
       if (entry.companion == hadith.companion && hadith.companion.isNotEmpty) {
         score += 0.3;
       }
-      
+
       // Same topic
-      final commonTopics = hadith.topics
-          .where(entry.topics.contains)
-          .length;
+      final commonTopics = hadith.topics.where(entry.topics.contains).length;
       score += commonTopics * 0.2;
-      
+
       // Shared sanad narrators (0.4)
       final sharedNarrators =
           _countSharedNarrators(hadith.sanadNarrators, entry.sanadNarrators);
       if (sharedNarrators > 0) {
         score += (sharedNarrators * 0.4).clamp(0.0, 0.4);
       }
-      
+
       // Text similarity (0.6 max)
       final probe = hadith.normalizedText.length <= 50
           ? hadith.normalizedText
           : hadith.normalizedText.substring(0, 50);
       final textScore = _calculateScore(probe, entry.normalizedText);
       score += textScore * 0.6;
-      
+
       if (score > 0.3) {
-        results.add(HadithSearchResult(
-          entry: entry,
-          score: score,
-          matchType: SearchTarget.all,
-        ),);
+        results.add(
+          HadithSearchResult(
+            entry: entry,
+            score: score,
+            matchType: SearchTarget.all,
+          ),
+        );
       }
     }
-    
+
     results.sort((a, b) => b.score.compareTo(a.score));
     return results.take(limit).toList();
   }
@@ -877,14 +936,13 @@ enum SearchMode {
 
 /// هدف البحث
 enum SearchTarget {
-  all,    // الكل
-  matn,   // المتن فقط
-  sanad,  // السند فقط
+  all, // الكل
+  matn, // المتن فقط
+  sanad, // السند فقط
 }
 
 /// مدخل فهرس الحديث
 class HadithIndexEntry {
-
   const HadithIndexEntry({
     required this.id,
     required this.book,
@@ -914,7 +972,8 @@ class HadithIndexEntry {
       companion: (map['companion'] ?? '') as String,
       grade: (map['grade'] ?? '') as String,
       gradeScholar: map['gradeScholar'] as String?,
-      sanadNarrators: List<String>.from(map['sanadNarrators'] as List? ?? const []),
+      sanadNarrators:
+          List<String>.from(map['sanadNarrators'] as List? ?? const []),
       topics: List<String>.from(map['topics'] as List? ?? []),
     );
   }
@@ -937,25 +996,24 @@ class HadithIndexEntry {
   final List<String> topics;
 
   Map<String, dynamic> toMap() => {
-    'id': id,
-    'book': book,
-    'chapter': chapter,
-    'number': number,
-    'text': text,
-    'normalizedText': normalizedText,
-    'narrator': narrator,
-    'normalizedNarrator': normalizedNarrator,
-    'companion': companion,
-    'grade': grade,
-    'gradeScholar': gradeScholar,
-    'sanadNarrators': sanadNarrators,
-    'topics': topics,
-  };
+        'id': id,
+        'book': book,
+        'chapter': chapter,
+        'number': number,
+        'text': text,
+        'normalizedText': normalizedText,
+        'narrator': narrator,
+        'normalizedNarrator': normalizedNarrator,
+        'companion': companion,
+        'grade': grade,
+        'gradeScholar': gradeScholar,
+        'sanadNarrators': sanadNarrators,
+        'topics': topics,
+      };
 }
 
 /// حكم منقّح من عالم معيّن
 class HadithGrade {
-
   const HadithGrade({required this.grade, required this.scholar});
   final String grade;
   final String scholar;
@@ -963,7 +1021,6 @@ class HadithGrade {
 
 /// نتيجة البحث
 class HadithSearchResult {
-
   const HadithSearchResult({
     required this.entry,
     required this.score,
@@ -974,14 +1031,16 @@ class HadithSearchResult {
 
   factory HadithSearchResult.fromMap(Map<String, dynamic> map) {
     return HadithSearchResult(
-      entry: HadithIndexEntry.fromMap(Map<String, dynamic>.from(map['entry'] as Map)),
+      entry: HadithIndexEntry.fromMap(
+          Map<String, dynamic>.from(map['entry'] as Map),),
       score: (map['score'] ?? 0) as double,
       matchType: SearchTarget.values[(map['matchType'] ?? 0) as int],
       matchWordPositions:
           List<int>.from(map['matchWordPositions'] as List? ?? const []),
       bookCounts: map['bookCounts'] != null
           ? Map<String, int>.from(
-              (map['bookCounts'] as Map).map((k, v) => MapEntry(k.toString(), v as int)),
+              (map['bookCounts'] as Map)
+                  .map((k, v) => MapEntry(k.toString(), v as int)),
             )
           : null,
     );
@@ -997,10 +1056,10 @@ class HadithSearchResult {
   final Map<String, int>? bookCounts;
 
   Map<String, dynamic> toMap() => {
-    'entry': entry.toMap(),
-    'score': score,
-    'matchType': matchType.index,
-    'matchWordPositions': matchWordPositions,
-    'bookCounts': bookCounts,
-  };
+        'entry': entry.toMap(),
+        'score': score,
+        'matchType': matchType.index,
+        'matchWordPositions': matchWordPositions,
+        'bookCounts': bookCounts,
+      };
 }

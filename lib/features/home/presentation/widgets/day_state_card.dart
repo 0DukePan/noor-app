@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/day_state_machine.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 /// 🕐 Day State Card — shows current Islamic day period from DayStateMachine
 class DayStateCard extends StatelessWidget {
@@ -10,13 +11,14 @@ class DayStateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ValueListenableBuilder<int>(
       valueListenable: DayStateMachine.completionVersion,
-      builder: (context, _, __) => _buildCard(context),
+      builder: (context, _, __) => _buildCard(context, l10n),
     );
   }
 
-  Widget _buildCard(BuildContext context) {
+  Widget _buildCard(BuildContext context, AppLocalizations l10n) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final stateInfo = DayStateMachine.getCurrentStateInfo();
     final state = stateInfo.state;
@@ -76,7 +78,7 @@ class DayStateCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      '$done/5 صلوات',
+                      l10n.dayTasks(done),
                       style: GoogleFonts.cairo(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -86,7 +88,7 @@ class DayStateCard extends StatelessWidget {
                     if (streak > 0) ...[
                       const SizedBox(width: 8),
                       Text(
-                        '🔥 $streak يوم متتالي',
+                        l10n.dayStreak(streak),
                         style: GoogleFonts.cairo(
                           fontSize: 11,
                           color: isDark

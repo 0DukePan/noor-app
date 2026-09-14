@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'api_fetcher_service.dart';
+import 'hive_box_registry.dart';
 
 /// 🕌 مصدر بيانات القرآن - Quran Data Source
 /// Hybrid Offline-First Architecture:
@@ -10,7 +11,7 @@ import 'api_fetcher_service.dart';
 /// 2️⃣ Hive Cache ← تحسين الأداء + التحديثات
 /// 3️⃣ API ← تفسير / روايات / تحديث
 class QuranDataSource {
-  static const _cacheBoxName = 'quran_cache';
+  static const _cacheBoxName = HiveBoxes.quranCache;
   static Box<dynamic>? _cacheBox;
   static final ApiFetcherService _api = ApiFetcherService();
 
@@ -21,7 +22,7 @@ class QuranDataSource {
   /// Initialize data source - loads complete Quran into memory
   static Future<void> init() async {
     _cacheBox = await Hive.openBox<dynamic>(_cacheBoxName);
-    
+
     // Load complete Quran on app start (always available)
     await _loadCompleteQuran();
   }
@@ -29,18 +30,19 @@ class QuranDataSource {
   /// Load complete Quran from bundled assets into memory
   static Future<void> _loadCompleteQuran() async {
     if (_quranData != null) return;
-    
+
     try {
       // Load complete Quran (all 114 surahs in one file)
-      final jsonString = await rootBundle.loadString('assets/quran/quran_uthmani.json');
+      final jsonString =
+          await rootBundle.loadString('assets/quran/quran_uthmani.json');
       final data = jsonDecode(jsonString) as Map<String, dynamic>;
-      
+
       // Convert to proper format
       _quranData = {};
       data.forEach((key, value) {
         _quranData![key] = List<dynamic>.from(value as List);
       });
-      
+
       // Load surahs metadata
       _surahsMetadata = await getSurahsList();
     } on Exception catch (e) {
@@ -59,8 +61,10 @@ class QuranDataSource {
     }
 
     try {
-      final jsonString = await rootBundle.loadString('assets/quran/surahs.json');
-      final surahs = List<Map<String, dynamic>>.from(jsonDecode(jsonString) as List);
+      final jsonString =
+          await rootBundle.loadString('assets/quran/surahs.json');
+      final surahs =
+          List<Map<String, dynamic>>.from(jsonDecode(jsonString) as List);
       _surahsMetadata = surahs;
       return surahs;
     } on Exception catch (e) {
@@ -77,7 +81,7 @@ class QuranDataSource {
 
     final surahKey = surahNumber.toString();
     final verses = _quranData?[surahKey];
-    
+
     if (verses == null || verses.isEmpty) {
       throw QuranDataException('السورة غير موجودة: $surahNumber');
     }
@@ -89,15 +93,17 @@ class QuranDataSource {
     );
 
     // Convert verses to expected format
-    final ayahs = verses.map((v) {
-      final map = v as Map;
-      return {
-        'numberInSurah': map['verse'],
-        'text': map['text'],
-        'page': 1, // Can be enhanced with page data
-        'juz': 1,  // Can be enhanced with juz data
-      };
-    },).toList();
+    final ayahs = verses.map(
+      (v) {
+        final map = v as Map;
+        return {
+          'numberInSurah': map['verse'],
+          'text': map['text'],
+          'page': 1, // Can be enhanced with page data
+          'juz': 1, // Can be enhanced with juz data
+        };
+      },
+    ).toList();
 
     return {
       'number': surahNumber,
@@ -111,7 +117,8 @@ class QuranDataSource {
   }
 
   /// Get single verse - INSTANT from memory
-  static Future<Map<String, dynamic>?> getVerse(int surahNumber, int verseNumber) async {
+  static Future<Map<String, dynamic>?> getVerse(
+      int surahNumber, int verseNumber,) async {
     if (_quranData == null) {
       await _loadCompleteQuran();
     }

@@ -122,7 +122,9 @@ class WidgetService {
 
       final surah = await OfflineDataService.getSurah(surahNumber);
       if (surah != null) {
-        final verses = surah['ayahs'] as List?;
+        // Bundled cache stores verses under 'verses'; the network API
+        // shape uses 'ayahs'. Accept both so the widget updates offline.
+        final verses = (surah['ayahs'] ?? surah['verses']) as List?;
         if (verses != null && verses.length >= verseNumber) {
           final verse = verses[verseNumber - 1] as Map;
           final verseText = verse['text'] as String? ?? '';

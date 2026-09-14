@@ -32,10 +32,13 @@ class SeasonalOffsetsEngine {
   // SEASONAL DETECTION
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// تحديد الفصل الحالي
-  static Season getCurrentSeason({double? latitude}) {
-    final now = DateTime.now();
-    final month = now.month;
+  /// تحديد الفصل لتاريخ معين (الافتراضي: الآن).
+  ///
+  /// تاريخ الصلاة هو المرجع الصحيح — لا تاريخ اليوم — لأن الإزاحات تُطبَّق
+  /// أيضاً على مواقيت أيام أخرى (جداول شهرية، قضاء)، وكان استخدام "الآن"
+  /// دائماً يختار الموسم الخطأ قرب الحدود الفصلية.
+  static Season getCurrentSeason({double? latitude, DateTime? date}) {
+    final month = (date ?? DateTime.now()).month;
     
     // Northern hemisphere
     if (latitude == null || latitude >= 0) {
@@ -52,9 +55,9 @@ class SeasonalOffsetsEngine {
     return Season.spring;
   }
 
-  /// هل نحن في فصل الشتاء؟
-  static bool isWinterSeason({double? latitude}) {
-    final season = getCurrentSeason(latitude: latitude);
+  /// هل التاريخ المعني في فصل الشتاء؟ (الافتراضي: الآن)
+  static bool isWinterSeason({double? latitude, DateTime? date}) {
+    final season = getCurrentSeason(latitude: latitude, date: date);
     return season == Season.winter || season == Season.autumn;
   }
 
@@ -62,8 +65,8 @@ class SeasonalOffsetsEngine {
   // OFFSET MANAGEMENT
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// الحصول على إزاحة صلاة معينة
-  static Duration getOffset(String prayer, {double? latitude}) {
+  /// الحصول على إزاحة صلاة معينة لتاريخ معين (الافتراضي: الآن)
+  static Duration getOffset(String prayer, {double? latitude, DateTime? date}) {
     // Check custom offsets first
     final customKey = 'custom_$prayer';
     final customData = _offsetsBox?.get(customKey);
@@ -75,9 +78,9 @@ class SeasonalOffsetsEngine {
       offsets = _defaultOffsets[prayer.toLowerCase()] ?? const PrayerOffsets();
     }
     
-    // Apply seasonal offset
-    final minutes = isWinterSeason(latitude: latitude) 
-        ? offsets.winter 
+    // Apply seasonal offset for the relevant date (not unconditionally now).
+    final minutes = isWinterSeason(latitude: latitude, date: date)
+        ? offsets.winter
         : offsets.summer;
     
     return Duration(minutes: minutes);
@@ -108,12 +111,15 @@ class SeasonalOffsetsEngine {
     }
   }
 
-  /// جميع الإزاحات الحالية
-  static Map<String, Duration> getAllCurrentOffsets({double? latitude}) {
+  /// جميع الإزاحات الحالية (لتاريخ معين؛ الافتراضي: الآن)
+  static Map<String, Duration> getAllCurrentOffsets({
+    double? latitude,
+    DateTime? date,
+  }) {
     final prayers = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
     return {
-      for (final prayer in prayers) 
-        prayer: getOffset(prayer, latitude: latitude),
+      for (final prayer in prayers)
+        prayer: getOffset(prayer, latitude: latitude, date: date),
     };
   }
 
@@ -169,9 +175,13 @@ class SeasonalOffsetsEngine {
   // TIME ADJUSTMENT
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// تطبيق الإزاحة على وقت الصلاة
-  static DateTime applyOffset(DateTime prayerTime, String prayer, {double? latitude}) {
-    final offset = getOffset(prayer, latitude: latitude);
+  /// تطبيق الإزاحة على وقت الصلاة — الموسم يُحسب من تاريخ وقت الصلاة نفسه
+  static DateTime applyOffset(
+    DateTime prayerTime,
+    String prayer, {
+    double? latitude,
+  }) {
+    final offset = getOffset(prayer, latitude: latitude, date: prayerTime);
     return prayerTime.add(offset);
   }
 

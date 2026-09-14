@@ -3,12 +3,14 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class FavoritesSection extends StatelessWidget {
   const FavoritesSection({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ListView(
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
@@ -16,21 +18,21 @@ class FavoritesSection extends StatelessWidget {
       children: [
         _FavoriteItemCard(
           title: 'سورة الملك',
-          subtitle: 'القرآن الكريم',
+          subtitle: l10n.quranTitle,
           icon: Icons.auto_stories_rounded,
           color: NoorDesignSystem.primaryGreen,
           onTap: () => context.go('/quran/surah/67'),
         ),
         _FavoriteItemCard(
-          title: 'أذكار الصباح',
-          subtitle: 'الأذكار',
+          title: l10n.adhkarMorning,
+          subtitle: l10n.favAdhkar,
           icon: Icons.wb_sunny_rounded,
           color: NoorDesignSystem.morningColor,
           onTap: () => context.go('/adhkar'),
         ),
         _FavoriteItemCard(
           title: 'سورة يس',
-          subtitle: 'القرآن الكريم',
+          subtitle: l10n.quranTitle,
           icon: Icons.auto_stories_rounded,
           color: NoorDesignSystem.primaryGreen,
           onTap: () => context.go('/quran/surah/36'),

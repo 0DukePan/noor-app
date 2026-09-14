@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'hive_box_registry.dart';
+
 /// 🌍 محرك ثقة الموقع - Location Trust Engine
 /// 
 /// Features:
@@ -28,7 +30,7 @@ class LocationTrustEngine {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static Future<void> init() async {
-    _locationBox = await Hive.openBox<dynamic>('location_trust');
+    _locationBox = await Hive.openBox<dynamic>(HiveBoxes.locationTrust);
     _loadCachedLocation();
   }
 

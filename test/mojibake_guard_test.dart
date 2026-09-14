@@ -46,14 +46,40 @@ void main() {
   });
 
   test('README does not claim features that do not exist', () async {
-    final readme = await File('README.md').readAsString();
-    // Dead/removed capabilities must not be advertised.
-    expect(readme.contains('supabase'), isFalse,
-        reason: 'README must not advertise Supabase cloud sync',);
-    expect(readme.contains('firebase_messaging'), isFalse,
-        reason: 'README must not advertise Firebase push',);
-    expect(readme.contains('fl_chart'), isFalse,
-        reason: 'README must not advertise fl_chart charts',);
+    // The claim guard covers every user-facing doc (README, store listing,
+    // API_SOURCES), so stripped claims cannot silently reappear anywhere.
+    final docs = <String>[
+      'README.md',
+      'docs/API_SOURCES.md',
+      'docs/store/listing.md',
+      'docs/qa-checklist.md',
+      'docs/store-checklist.md',
+    ];
+    for (final path in docs) {
+      final file = File(path);
+      if (!file.existsSync()) continue;
+      final content = await file.readAsString();
+      // Dead/removed capabilities must not be advertised.
+      expect(content.contains('supabase'), isFalse,
+          reason: '$path must not advertise Supabase cloud sync',);
+      expect(content.contains('firebase_messaging'), isFalse,
+          reason: '$path must not advertise Firebase push',);
+      expect(content.contains('fl_chart'), isFalse,
+          reason: '$path must not advertise fl_chart charts',);
+      // Stripped claims and removed dependencies must not reappear.
+      final strippedClaims = <String, String>{
+        'ar qibla': '$path must not advertise the removed AR Qibla claim',
+        'ai-driven': '$path must not describe notifications as AI-driven',
+        'audio_service': '$path must not reference the removed audio_service package',
+        'sensors_plus': '$path must not reference the removed sensors_plus package',
+        'flutter_svg': '$path must not reference the removed flutter_svg package',
+        'camera': '$path must not reference the removed camera package',
+        'url_launcher': '$path must not reference the removed url_launcher package',
+      };
+      for (final entry in strippedClaims.entries) {
+        expect(content.contains(entry.key), isFalse, reason: entry.value,);
+      }
+    }
   });
 }
 

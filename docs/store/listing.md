@@ -1,5 +1,12 @@
 # Store listing drafts — Noor (نور)
 
+Status (2026-09-05): **content final, owner-side assets pending**.
+Engineering-side facts locked below: bundle strategy (keep 221.5 MB
+bundled; see WP3), download size ≈ 221 MB, opt-in statistics wording.
+Remaining owner tasks: donation provider + URL (D3), 1024×500 feature
+graphic, real-device screenshots (§Screenshots), and scholarly sign-off
+(`docs/scholarly-review.md`, 13/13 pending — release-blocking).
+
 Draft texts for Google Play / App Store submission. Replace the placeholders
 (screenshot references) before publishing. Screenshots must be taken from a
 real device (see `docs/qa-checklist.md`).
@@ -35,7 +42,7 @@ real device (see `docs/qa-checklist.md`).
 **مواقيت الصلاة والقبلة**
 - حساب المواقيت بـ 19 طريقة حسابية معتمدة مع التصحيح الجغرافي
 - الأذان مع التنبيهات، وضع المسجد، وتصحيح المواقيت الفصلي
-- البوصلة ووضع الواقع المعزز لاتجاه القبلة
+- البوصلة الدقيقة لاتجاه القبلة مع معايرة الحساس
 
 **الأذكار**
 - أذكار الصباح والمساء وبعد الصلاة والنوم والاستيقاظ مع المصادر
@@ -44,14 +51,23 @@ real device (see `docs/qa-checklist.md`).
 **الخصوصية أولاً**
 - لا حسابات، لا تتبع، لا إعلانات، لا جمع لأي بيانات
 - كل بياناتك (المحفوظات، الإحصائيات، الملاحظات) محفوظة على جهازك فقط
+- إحصاءات استخدام مجهولة اختيارية (مغلقة افتراضياً) — عدّادات فقط بلا هويات
+
+**الدعم**
+- التطبيق مجاني بالكامل؛ دعم التطوير اختياري عبر التبرع (الرابط يضاف قبل النشر — D3 pending: provider + URL owner decision)
+- حجم التحميل ≈ 221 MB (القرآن والتفسير والأحاديث محمّلة مسبقاً للعمل دون إنترنت)
 
 ## Full description (English — short version)
 
 Noor is a comprehensive offline-first Islamic app: the full Quran with
 recitation and four tafsir sources, the nine hadith collections with
-scientific search, prayer times with 19 calculation methods, qibla compass
-and AR, and adhkar with sources. No account, no tracking, no ads — your
-data stays on your device.
+scientific search, prayer times with 19 calculation methods, qibla compass,
+and adhkar with sources. No account, no tracking, no ads — your
+data stays on your device. Optional anonymous usage counts exist but are
+off by default (aggregate counters only, no identities).
+
+Free forever; voluntary donations support development (link added before
+launch).
 
 ## Release notes (first release)
 

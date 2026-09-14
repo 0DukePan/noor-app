@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../../../../core/services/isnad_parser_service.dart';
 import '../../../../core/services/narrator_database_service.dart';
 import '../../../../core/theme/noor_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../widgets/narrator_profile_body.dart';
 
 /// 🔗 رسم بياني تفاعلي للإسناد - Interactive Isnad DAG Graph
@@ -97,7 +98,7 @@ class _IsnadGraphPageState extends State<IsnadGraphPage>
     return Scaffold(
       backgroundColor: NoorTheme.bgMushaf,
       appBar: AppBar(
-        title: const Text('الرسم البياني للإسناد'),
+        title: Text(AppLocalizations.of(context).igTitle),
         backgroundColor: NoorTheme.bgMushaf,
         elevation: 0,
         actions: [
@@ -105,7 +106,7 @@ class _IsnadGraphPageState extends State<IsnadGraphPage>
             Padding(
               padding: const EdgeInsetsDirectional.only(start: 12),
               child: Chip(
-                label: Text('${_chain.length} راوٍ'),
+                label: Text(AppLocalizations.of(context).igCount(_chain.length)),
                 backgroundColor: NoorTheme.primary.withValues(alpha: 0.1),
                 labelStyle: const TextStyle(
                   color: NoorTheme.primary,
@@ -125,13 +126,13 @@ class _IsnadGraphPageState extends State<IsnadGraphPage>
   }
 
   Widget _buildLoading() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('جارٍ تحليل الإسناد...'),
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(AppLocalizations.of(context).igLoading),
         ],
       ),
     );
@@ -144,9 +145,9 @@ class _IsnadGraphPageState extends State<IsnadGraphPage>
         children: [
           Icon(Icons.hub_rounded, size: 64, color: NoorTheme.textSecondary.withValues(alpha: 0.3)),
           const SizedBox(height: 16),
-          const Text(
-            'لم يتم العثور على إسناد',
-            style: TextStyle(color: NoorTheme.textSecondary, fontSize: 16),
+          Text(
+            AppLocalizations.of(context).igEmpty,
+            style: const TextStyle(color: NoorTheme.textSecondary, fontSize: 16),
           ),
         ],
       ),

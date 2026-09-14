@@ -6,13 +6,12 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/domain/entities/surah.dart';
 import '../../../../core/models/tafsir_models.dart';
-import '../../../../core/services/quran_data_source.dart';
 import '../../../../core/services/statistics_service.dart';
 import '../../../../core/services/tafsir_data_source.dart';
 import '../../../../core/theme/tafsir_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/quran_providers.dart';
-
-part 'full_tafsir_reader.dart';
+import 'tafsir_reader_page.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // MUSHAF THEMES
@@ -252,7 +251,7 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
             ),
             const SizedBox(height: 20),
             Text(
-              'مظهر القراءة',
+              AppLocalizations.of(context).surahAppearance,
               style: GoogleFonts.cairo(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -336,7 +335,10 @@ class _MushafPageWidget extends ConsumerWidget {
       data: (verses) {
         if (verses.isEmpty) {
           return Center(
-            child: Text('صفحة فارغة', style: TextStyle(color: themeData.textColor)),
+            child: Text(
+              AppLocalizations.of(context).mushafEmpty,
+              style: TextStyle(color: themeData.textColor),
+            ),
           );
         }
 
@@ -392,7 +394,10 @@ class _MushafPageWidget extends ConsumerWidget {
         ),
       ),
       error: (e, _) => Center(
-        child: Text('خطأ: $e', style: TextStyle(color: themeData.textColor)),
+        child: Text(
+          AppLocalizations.of(context).mushafError(e.toString()),
+          style: TextStyle(color: themeData.textColor),
+        ),
       ),
     );
   }
@@ -423,7 +428,8 @@ class _MushafPageWidget extends ConsumerWidget {
         final verse = verses[i];
         // Add Surah header (Bismillah card)
         children.add(_SurahStartBanner(
-          surahName: verse.surahName ?? 'سورة ${verse.surahNumber}',
+          surahName: verse.surahName ??
+              AppLocalizations.of(context).surahFallback(verse.surahNumber),
           surahNumber: verse.surahNumber,
           themeData: themeData,
         ),);
@@ -494,7 +500,7 @@ class _PageHeader extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'الجزء $juz',
+            AppLocalizations.of(context).mushafJuz(juz),
             style: GoogleFonts.cairo(
               fontSize: 12,
               color: themeData.headerTextColor,
@@ -705,7 +711,7 @@ class _MushafTopBar extends StatelessWidget {
           const Spacer(),
           IconButton(
             icon: Icon(Icons.palette_rounded, color: themeData.textColor),
-            tooltip: 'المظهر',
+            tooltip: AppLocalizations.of(context).mushafAppearanceTooltip,
             onPressed: onTheme,
           ),
         ],
@@ -767,7 +773,7 @@ class _MushafBottomBar extends StatelessWidget {
             ),
           ),
           Text(
-            'صفحة $currentPage / 604',
+            AppLocalizations.of(context).mushafPageIndicator(currentPage),
             style: GoogleFonts.cairo(
               fontSize: 12,
               color: themeData.textColor.withValues(alpha: 0.6),
@@ -822,6 +828,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final td = widget.themeData;
     final verse = widget.verse;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
@@ -869,7 +876,11 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  '${verse.surahName ?? 'سورة ${verse.surahNumber}'} ﴿${verse.numberInSurah}﴾',
+                  l10n.mushafAyahLabel(
+                    verse.surahName ??
+                        l10n.surahFallback(verse.surahNumber),
+                    verse.numberInSurah,
+                  ),
                   style: GoogleFonts.cairo(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -908,7 +919,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
               children: [
                 _ActionButton(
                   icon: Icons.copy_rounded,
-                  label: 'نسخ',
+                  label: l10n.mushafCopy,
                   color: td.headerColor,
                   bgColor: td.headerColor.withValues(alpha: 0.1),
                   onTap: () {
@@ -916,7 +927,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text('تم نسخ الآية'),
+                        content: Text(l10n.verseCopied),
                         backgroundColor: td.headerColor,
                         behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(
@@ -928,7 +939,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                 ),
                 _ActionButton(
                   icon: Icons.bookmark_add_rounded,
-                  label: 'حفظ',
+                  label: l10n.mushafSave,
                   color: const Color(0xFFE8A838),
                   bgColor: const Color(0xFFE8A838).withValues(alpha: 0.1),
                   onTap: () async {
@@ -940,7 +951,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: const Text('تم حفظ العلامة 🔖'),
+                          content: Text(l10n.mushafSaved),
                           backgroundColor: const Color(0xFFE8A838),
                           behavior: SnackBarBehavior.floating,
                           shape: RoundedRectangleBorder(
@@ -953,17 +964,21 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                 ),
                 _ActionButton(
                   icon: Icons.share_rounded,
-                  label: 'مشاركة',
+                  label: l10n.verseShare,
                   color: const Color(0xFF5C6BC0),
                   bgColor: const Color(0xFF5C6BC0).withValues(alpha: 0.1),
                   onTap: () {
-                    final shareText = '${verse.textUthmani}\n\n'
-                        '— ${verse.surahName ?? 'سورة ${verse.surahNumber}'} ﴿${verse.numberInSurah}﴾';
+                    final shareText = l10n.mushafShareTemplate(
+                      verse.textUthmani,
+                      verse.surahName ??
+                          l10n.surahFallback(verse.surahNumber),
+                      verse.numberInSurah,
+                    );
                     Clipboard.setData(ClipboardData(text: shareText));
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text('تم النسخ للمشاركة'),
+                        content: Text(l10n.mushafShareCopied),
                         backgroundColor: const Color(0xFF5C6BC0),
                         behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(
@@ -1000,7 +1015,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                         Icon(Icons.menu_book_rounded, size: 18, color: td.headerColor),
                         const SizedBox(width: 8),
                         Text(
-                          'التفسير الميسر',
+                          l10n.mushafTafsirTitle,
                           style: GoogleFonts.cairo(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -1041,7 +1056,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                           )
                         : _tafsirEntry == null
                             ? Text(
-                                'التفسير غير متوفر حالياً',
+                                l10n.mushafTafsirMissing,
                                 style: GoogleFonts.cairo(
                                   fontSize: 14,
                                   color: td.textColor.withValues(alpha: 0.5),
@@ -1067,7 +1082,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                                     GestureDetector(
                                       onTap: () => setState(() => _tafsirExpanded = true),
                                       child: Text(
-                                        'اقرأ المزيد ←',
+                                        l10n.mushafReadMore,
                                         style: GoogleFonts.cairo(
                                           fontSize: 13,
                                           color: td.headerColor,
@@ -1098,7 +1113,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                   // Navigate to the dedicated TafsirPage for this surah+ayah
                   Navigator.of(context).push(
                     FadeThroughPageRoute<void>(
-                      page: _FullTafsirReaderPage(
+                      page: TafsirReaderPage(
                         surahNumber: verse.surahNumber,
                         ayahNumber: verse.numberInSurah,
                         surahName: verse.surahName ?? '',
@@ -1114,7 +1129,7 @@ class _AyahActionSheetState extends State<_AyahActionSheet> {
                       const Icon(Icons.auto_stories_rounded, color: Colors.white, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        'فتح التفسير الكامل',
+                        l10n.mushafOpenFull,
                         style: GoogleFonts.cairo(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,

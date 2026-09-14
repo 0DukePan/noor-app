@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../core/services/hive_service.dart';
 import '../../../../core/theme/noor_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 /// صفحة الترحيب والتهيئة - Onboarding Page
 class OnboardingPage extends StatefulWidget {
@@ -20,40 +21,40 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<OnboardingStep> _steps = [
+  List<OnboardingStep> _steps(AppLocalizations l10n) => [
     OnboardingStep(
       icon: '🌙',
-      title: 'أهلاً بك في نور',
-      subtitle: 'بيئة عبادة رقمية شاملة',
-      description: 'تلاوة القرآن، حفظ الأحاديث، مواقيت الصلاة، والأذكار في مكان واحد',
+      title: l10n.ob1Title,
+      subtitle: l10n.ob1Subtitle,
+      description: l10n.ob1Desc,
       color: NoorTheme.primary,
     ),
     OnboardingStep(
       icon: '📖',
-      title: 'القرآن الكريم',
-      subtitle: 'تلاوة وتدبر',
-      description: 'قراءة بالخط العثماني، تفسير، وأصوات لعدة قراء',
+      title: l10n.ob2Title,
+      subtitle: l10n.ob2Subtitle,
+      description: l10n.ob2Desc,
       color: const Color(0xFF2E7D32),
     ),
     OnboardingStep(
       icon: '📚',
-      title: 'الأحاديث النبوية',
-      subtitle: 'الكتب التسعة',
-      description: 'بحث متقدم، شجرة موضوعية، تخريج، وحفظ بالتكرار المتباعد',
+      title: l10n.ob3Title,
+      subtitle: l10n.ob3Subtitle,
+      description: l10n.ob3Desc,
       color: const Color(0xFF5D4037),
     ),
     OnboardingStep(
       icon: '🕌',
-      title: 'مواقيت الصلاة',
-      subtitle: 'دقيقة وذكية',
-      description: 'تنبيهات الصلاة، وضع صامت تلقائي، واتجاه القبلة',
+      title: l10n.ob4Title,
+      subtitle: l10n.ob4Subtitle,
+      description: l10n.ob4Desc,
       color: const Color(0xFF1565C0),
     ),
     OnboardingStep(
       icon: '🤲',
-      title: 'هل أنت مستعد؟',
-      subtitle: 'ابدأ رحلتك الروحية',
-      description: 'نسأل الله أن يجعل هذا التطبيق نافعاً لك في دينك ودنياك',
+      title: l10n.ob5Title,
+      subtitle: l10n.ob5Subtitle,
+      description: l10n.ob5Desc,
       color: NoorTheme.accentGold,
       isLast: true,
     ),
@@ -66,7 +67,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   void _nextPage() {
-    if (_currentPage < _steps.length - 1) {
+    final steps = _steps(AppLocalizations.of(context));
+    if (_currentPage < steps.length - 1) {
       HapticFeedback.lightImpact();
       _pageController.nextPage(
         duration: const Duration(milliseconds: 400),
@@ -89,6 +91,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final steps = _steps(l10n);
     return Scaffold(
       backgroundColor: NoorTheme.bgMushaf,
       body: SafeArea(
@@ -100,12 +104,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  if (_currentPage < _steps.length - 1)
+                  if (_currentPage < steps.length - 1)
                     TextButton(
                       onPressed: _completeOnboarding,
-                      child: const Text(
-                        'تخطي',
-                        style: TextStyle(color: NoorTheme.textSecondary),
+                      child: Text(
+                        l10n.obSkip,
+                        style: const TextStyle(color: NoorTheme.textSecondary),
                       ),
                     ),
                 ],
@@ -117,9 +121,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
               child: PageView.builder(
                 controller: _pageController,
                 onPageChanged: (index) => setState(() => _currentPage = index),
-                itemCount: _steps.length,
+                itemCount: steps.length,
                 itemBuilder: (context, index) {
-                  return _buildStep(_steps[index]);
+                  return _buildStep(steps[index]);
                 },
               ),
             ),
@@ -129,7 +133,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
               padding: const EdgeInsets.symmetric(vertical: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(_steps.length, (index) {
+                children: List.generate(steps.length, (index) {
                   final isActive = index == _currentPage;
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
@@ -138,7 +142,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     height: 8,
                     decoration: BoxDecoration(
                       color: isActive
-                          ? _steps[_currentPage].color
+                          ? steps[_currentPage].color
                           : NoorTheme.textSecondary.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(4),
                     ),
@@ -156,13 +160,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 child: ElevatedButton(
                   onPressed: _nextPage,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _steps[_currentPage].color,
+                    backgroundColor: steps[_currentPage].color,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
                   child: Text(
-                    _steps[_currentPage].isLast ? 'ابدأ الآن' : 'التالي',
+                    steps[_currentPage].isLast ? l10n.obStart : l10n.obNext,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

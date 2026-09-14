@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/adhkar_models.dart';
+import 'hive_box_registry.dart';
 
 /// 📿 AdhkarDataSource - مصدر بيانات الأذكار
 class AdhkarDataSource {
-  static const String _progressBoxName = 'adhkar_progress';
-  static const String _statsBoxName = 'adhkar_stats';
-  static const String _settingsBoxName = 'adhkar_settings';
+  static const String _progressBoxName = HiveBoxes.adhkarProgress;
+  static const String _statsBoxName = HiveBoxes.adhkarStats;
+  static const String _settingsBoxName = HiveBoxes.adhkarSettings;
 
   static Box<dynamic>? _progressBox;
   static Box<dynamic>? _statsBox;
@@ -26,7 +27,8 @@ class AdhkarDataSource {
   static Future<AdhkarLibrary?> getLibrary() async {
     if (_libraryCache != null) return _libraryCache;
     try {
-      final jsonString = await rootBundle.loadString('assets/adhkar/library.json');
+      final jsonString =
+          await rootBundle.loadString('assets/adhkar/library.json');
       final json = jsonDecode(jsonString) as Map<String, dynamic>;
       return _libraryCache = AdhkarLibrary.fromJson(json);
     } on Exception {
@@ -82,11 +84,11 @@ class AdhkarDataSource {
     final today = _todayKey();
     final key = '${type.name}:$today';
     final json = _progressBox?.get(key);
-    
+
     if (json != null) {
       return AdhkarProgress.fromJson(Map<String, dynamic>.from(json as Map));
     }
-    
+
     return AdhkarProgress(type: type);
   }
 
@@ -132,19 +134,20 @@ class AdhkarDataSource {
   static DailyAdhkarStats getTodayStats() {
     final today = _todayKey();
     final json = _statsBox?.get(today);
-    
+
     if (json != null) {
       return DailyAdhkarStats.fromJson(Map<String, dynamic>.from(json as Map));
     }
-    
+
     return DailyAdhkarStats(date: DateTime.now());
   }
 
   /// تحديث الإحصائيات
-  static Future<void> _updateDailyStats(AdhkarType type, {bool completed = false}) async {
+  static Future<void> _updateDailyStats(AdhkarType type,
+      {bool completed = false,}) async {
     final today = _todayKey();
     var stats = getTodayStats();
-    
+
     if (type == AdhkarType.morning && completed) {
       stats = DailyAdhkarStats(
         date: stats.date,
@@ -170,7 +173,7 @@ class AdhkarDataSource {
         totalAdhkarCount: stats.totalAdhkarCount + 1,
       );
     }
-    
+
     await _statsBox?.put(today, stats.toJson());
   }
 
@@ -178,20 +181,21 @@ class AdhkarDataSource {
   static int getStreak() {
     var streak = 0;
     var date = DateTime.now();
-    
+
     while (true) {
       final key = _dateKey(date);
       final json = _statsBox?.get(key);
-      
+
       if (json == null) break;
-      
-      final stats = DailyAdhkarStats.fromJson(Map<String, dynamic>.from(json as Map));
+
+      final stats =
+          DailyAdhkarStats.fromJson(Map<String, dynamic>.from(json as Map));
       if (!stats.isComplete) break;
-      
+
       streak++;
       date = date.subtract(const Duration(days: 1));
     }
-    
+
     return streak;
   }
 
@@ -202,7 +206,8 @@ class AdhkarDataSource {
   static AdhkarDisplaySettings getSettings() {
     final json = _settingsBox?.get('display');
     if (json != null) {
-      return AdhkarDisplaySettings.fromJson(Map<String, dynamic>.from(json as Map));
+      return AdhkarDisplaySettings.fromJson(
+          Map<String, dynamic>.from(json as Map),);
     }
     return const AdhkarDisplaySettings();
   }
@@ -216,14 +221,14 @@ class AdhkarDataSource {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static String _todayKey() => _dateKey(DateTime.now());
-  
+
   static String _dateKey(DateTime date) =>
       '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
   /// الأنواع المتاحة
   static List<AdhkarType> get availableTypes => [
-    AdhkarType.morning,
-    AdhkarType.evening,
-    AdhkarType.afterPrayer,
-  ];
+        AdhkarType.morning,
+        AdhkarType.evening,
+        AdhkarType.afterPrayer,
+      ];
 }

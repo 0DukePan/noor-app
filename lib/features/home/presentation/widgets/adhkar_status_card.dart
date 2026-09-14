@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/models/adhkar_models.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class AdhkarStatusCard extends StatelessWidget {
 
@@ -12,6 +13,7 @@ class AdhkarStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Material(
@@ -63,7 +65,7 @@ class AdhkarStatusCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      stats.isComplete ? 'أتممت الورد اليومي' : 'واصل ذكر الله',
+                      stats.isComplete ? l10n.adhkarCardDone : l10n.adhkarCardTodo,
                       style: GoogleFonts.cairo(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -83,7 +85,7 @@ class AdhkarStatusCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${(stats.progress * 100).toInt()}% مكتمل',
+                      l10n.adhkarCardPct((stats.progress * 100).toInt()),
                       style: GoogleFonts.cairo(
                         fontSize: 12,
                         color: isDark ? Colors.white54 : NoorDesignSystem.textSecondary,

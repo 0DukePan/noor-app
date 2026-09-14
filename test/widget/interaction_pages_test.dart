@@ -8,14 +8,17 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:noor_app/core/data/data_sources/local_hadith_data_source.dart';
 import 'package:noor_app/core/domain/entities/hadith.dart';
 import 'package:noor_app/core/services/adhkar_data_source.dart';
+import 'package:noor_app/core/services/hadith_user_data_service.dart';
 import 'package:noor_app/core/services/mosque_mode_service.dart';
 import 'package:noor_app/features/adhkar/presentation/pages/adhkar_page.dart';
+import 'package:noor_app/features/hadith/presentation/pages/bookmarked_hadiths_page.dart';
 import 'package:noor_app/features/hadith/presentation/pages/hadith_chapter_hadiths_page.dart';
 import 'package:noor_app/features/hadith/presentation/pages/hadith_chapters_page.dart';
 import 'package:noor_app/features/hadith/presentation/pages/hadith_page.dart';
 import 'package:noor_app/features/hadith/presentation/pages/hadith_search_page.dart';
 import 'package:noor_app/features/hadith/presentation/providers/hadith_providers.dart';
 import 'package:noor_app/features/quran/presentation/pages/khatmah_page.dart';
+import 'package:noor_app/l10n/generated/app_localizations.dart';
 
 /// Fake hadith source: canned collections + search results, no SQLite.
 class _FakeHadithSource implements LocalHadithDataSource {
@@ -148,7 +151,12 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [localHadithDataSourceProvider.overrideWithValue(fake)],
-        child: const MaterialApp(home: HadithSearchPage()),
+        child: const MaterialApp(
+          locale: Locale('ar'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: HadithSearchPage(),
+        ),
       ),
     );
     await tester.pump(const Duration(milliseconds: 300));
@@ -169,7 +177,12 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [localHadithDataSourceProvider.overrideWithValue(fake)],
-        child: const MaterialApp(home: HadithSearchPage()),
+        child: const MaterialApp(
+          locale: Locale('ar'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: HadithSearchPage(),
+        ),
       ),
     );
     await tester.pump(const Duration(milliseconds: 300));
@@ -191,7 +204,14 @@ void main() {
   testWidgets('khatmah page: create a khatmah and render the plan',
       (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: KhatmahPlannerPage())),
+      const ProviderScope(
+        child: MaterialApp(
+          locale: Locale('ar'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: KhatmahPlannerPage(),
+        ),
+      ),
     );
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 300)),
@@ -216,20 +236,24 @@ void main() {
   testWidgets('adhkar page: category selection and counter work',
       (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: AdhkarPage())),
+      const ProviderScope(
+        child: MaterialApp(
+          locale: Locale('ar'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: AdhkarPage(),
+        ),
+      ),
     );
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(seconds: 1)),
     );
     await tester.pump(const Duration(milliseconds: 400));
 
-    // The morning dhikr category is the default view; tap its first card.
-    final cards = find.byType(Card);
-    if (cards.evaluate().isNotEmpty) {
-      await tester.tap(cards.first);
-      await tester.pump(const Duration(milliseconds: 300));
-      expect(tester.takeException(), isNull);
-    }
+    // Open the morning dhikr category (default) and render its list.
+    await tester.tap(find.text('أذكار الصباح'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(tester.takeException(), isNull);
   }, timeout: const Timeout(Duration(seconds: 30)),);
 
   testWidgets('hadith chapters page renders chapter tiles with counts',
@@ -239,6 +263,8 @@ void main() {
       ProviderScope(
         overrides: [localHadithDataSourceProvider.overrideWithValue(fake)],
         child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: HadithChaptersPage(
             bookId: 'bukhari',
             bookTitle: 'صحيح البخاري',
@@ -263,6 +289,8 @@ void main() {
       ProviderScope(
         overrides: [localHadithDataSourceProvider.overrideWithValue(fake)],
         child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: HadithChapterHadithsPage(
             bookId: 'bukhari',
             bookTitle: 'صحيح البخاري',
@@ -287,7 +315,11 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [localHadithDataSourceProvider.overrideWithValue(fake)],
-        child: const MaterialApp(home: HadithPage()),
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: HadithPage(),
+        ),
       ),
     );
     await tester.runAsync(
@@ -296,5 +328,33 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('صحيح البخاري'), findsWidgets);
+  }, timeout: const Timeout(Duration(seconds: 30)),);
+
+  // Last: its runAsync seeding leaves HadithUserDataService statics pointing
+  // at a dead Hive home, which would pollute subsequent tests.
+  testWidgets('bookmarked hadiths page lists a seeded bookmark',
+      (tester) async {
+    await tester.runAsync(() async {
+      await HadithUserDataService.init();
+      await HadithUserDataService.bookmarkHadith(
+        hadithId: 7,
+        collectionId: 'bukhari',
+        arabic: 'حديث محفوظ للتجربة',
+        englishText: 'A bookmarked hadith',
+        narrator: 'Abu Hurairah',
+        idInBook: 7,
+      );
+    });
+    await tester.pumpWidget(
+      const MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: BookmarkedHadithsPage(),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('حديث محفوظ للتجربة'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   }, timeout: const Timeout(Duration(seconds: 30)),);
 }

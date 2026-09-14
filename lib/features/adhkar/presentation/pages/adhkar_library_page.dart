@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/models/adhkar_models.dart';
 import '../../../../core/services/adhkar_data_source.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 /// مكتبة الأذكار الموسعة — تصفح أكثر من ١٠٠ ذكر بمصادرها حسب الفئة.
 ///
@@ -33,6 +34,7 @@ class _AdhkarLibraryPageState extends State<AdhkarLibraryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surface = isDark ? NoorDesignSystem.surfaceDark : Colors.white;
 
@@ -40,7 +42,7 @@ class _AdhkarLibraryPageState extends State<AdhkarLibraryPage> {
       backgroundColor: isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.creamWhite,
       appBar: AppBar(
         title: Text(
-          'مكتبة الأذكار',
+          l10n.alibTitle,
           style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -65,7 +67,7 @@ class _AdhkarLibraryPageState extends State<AdhkarLibraryPage> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'محتوى المكتبة قيد المراجعة العلمية',
+                          l10n.alibReviewBanner,
                           style: GoogleFonts.cairo(
                             fontSize: 13,
                             color: NoorDesignSystem.goldAccent,
@@ -123,7 +125,7 @@ class _AdhkarLibraryPageState extends State<AdhkarLibraryPage> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     Text(
-                                      '$count ذكر',
+                                      AppLocalizations.of(context).alibCount(count),
                                       style: GoogleFonts.cairo(
                                         fontSize: 11,
                                         color: NoorDesignSystem.textSecondary,
@@ -246,7 +248,8 @@ class _CategoryItemsPageState extends State<_CategoryItemsPage> {
                       Text(
                         [
                           if (zekr.bless != null) zekr.bless!,
-                          if (zekr.reference != null) 'المصدر: ${zekr.reference}',
+                          if (zekr.reference != null)
+                            AppLocalizations.of(context).alibSource(zekr.reference!),
                         ].join(' — '),
                         style: GoogleFonts.cairo(
                           fontSize: 12,

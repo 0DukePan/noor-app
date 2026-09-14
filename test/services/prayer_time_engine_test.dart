@@ -81,7 +81,48 @@ void main() {
         );
 
         final diffMinutes = hanafi.asr.difference(shafi.asr).inMinutes;
-        expect(diffMinutes, greaterThanOrEqualTo(0));
+        // The old assertion was `greaterThanOrEqualTo(0)`, which also passes
+        // when Asr is identical — or computed from a below-horizon angle.
+        // In Istanbul in June the two shadow factors (1 vs 2) are hours apart,
+        // so require a real gap and keep Asr inside its own window.
+        expect(diffMinutes, greaterThanOrEqualTo(30));
+        expect(shafi.asr.isAfter(shafi.dhuhr), isTrue);
+        expect(shafi.asr.isBefore(shafi.maghrib), isTrue);
+        expect(hanafi.asr.isBefore(hanafi.maghrib), isTrue);
+      });
+
+      test('solar noon matches documented reference values', () {
+        // Reference values from the file header (NOAA/standard solar
+        // equations). Regression for the equationOfTime unit bug (missing
+        // 180/π factor) that shifted all times by up to ~16 minutes.
+        final mecca = PrayerTimeEngine.calculate(
+          latitude: 21.4225,
+          longitude: 39.8262,
+          date: DateTime(2026, 3, 15),
+          method: CalculationMethod.ummAlQura,
+          utcOffset: 3,
+        );
+        final london = PrayerTimeEngine.calculate(
+          latitude: 51.51,
+          longitude: -0.13,
+          date: DateTime(2026, 3, 15),
+          method: CalculationMethod.muslimWorldLeague,
+        );
+        final newYork = PrayerTimeEngine.calculate(
+          latitude: 40.71,
+          longitude: -74.01,
+          date: DateTime(2026, 6, 15),
+          method: CalculationMethod.northAmerica,
+          utcOffset: -4,
+        );
+
+        // ±2 minutes guards against rounding and any future drift.
+        expect(mecca.dhuhr.hour, 12);
+        expect(mecca.dhuhr.minute, closeTo(29, 2));
+        expect(london.dhuhr.hour, 12);
+        expect(london.dhuhr.minute, closeTo(9, 2));
+        expect(newYork.dhuhr.hour, 12);
+        expect(newYork.dhuhr.minute, closeTo(55, 2));
       });
 
       test('different calculation methods produce different Fajr times', () {
@@ -269,6 +310,90 @@ void main() {
         // Solar noon UTC ≈ 11:56 → local ≈ 12:56
         expect(times.dhuhr.hour, 12);
         expect(times.dhuhr.minute, inInclusiveRange(45, 65));
+      });
+    });
+
+    group('Asr domain and high latitudes', () {
+      // Asr is an ABOVE-horizon event. The historical bug computed it from a
+      // below-horizon angle, which pushed Asr towards/after sunset and
+      // produced out-of-domain hour angles at high latitudes. Polar cases are
+      // the guard: that is where the bug actually bit.
+      //
+      // Known limitation, pinned below rather than hidden: in true polar night
+      // the sun never rises, so there is no sunset event at all. The engine
+      // (like the underlying solar equations) collapses sunrise/dhuhr/maghrib
+      // onto the clamped noon. Everything stays finite and inside the day, but
+      // strict Fajr < Sunrise < Dhuhr < Asr < Maghrib ordering is impossible
+      // there by nature. Choosing a nearest-latitude or Makkah-following
+      // convention for those latitudes is a doctrinal decision, not a bug fix,
+      // and is deliberately left to a future change.
+
+      test('Tromsø in polar night stays finite and near its own day', () {
+        final times = PrayerTimeEngine.calculate(
+          latitude: 69.6492,
+          longitude: 18.9553,
+          date: DateTime(2026, 12, 21),
+          method: CalculationMethod.muslimWorldLeague,
+          utcOffset: 1,
+        );
+
+        // Dhuhr and Asr are always real events, even when the sun never rises.
+        expect(times.dhuhr.isBefore(times.asr), isTrue);
+        expect(times.fajr.isBefore(times.sunrise), isTrue);
+
+        // High-latitude rules may shift a time by minutes across midnight,
+        // but never by days.
+        for (final prayer in PrayerType.values) {
+          expect(
+            times.getTime(prayer).difference(DateTime(2026, 12, 21)).inHours.abs(),
+            lessThanOrEqualTo(24),
+          );
+        }
+      });
+
+      test('Tromsø under the midnight sun keeps Asr before Maghrib', () {
+        final times = PrayerTimeEngine.calculate(
+          latitude: 69.6492,
+          longitude: 18.9553,
+          date: DateTime(2026, 6, 21),
+          method: CalculationMethod.muslimWorldLeague,
+          utcOffset: 2,
+        );
+
+        expect(times.dhuhr.isBefore(times.asr), isTrue);
+        expect(times.asr.isBefore(times.maghrib), isTrue);
+      });
+
+      test('a short sub-arctic winter day keeps the full ordering', () {
+        // Stockholm in December has a real but short day (~6h), so every
+        // event exists and the ordering must hold end to end.
+        final times = PrayerTimeEngine.calculate(
+          latitude: 59.3293,
+          longitude: 18.0686,
+          date: DateTime(2026, 12, 21),
+          method: CalculationMethod.muslimWorldLeague,
+          utcOffset: 1,
+        );
+
+        expect(times.fajr.isBefore(times.sunrise), isTrue);
+        expect(times.sunrise.isBefore(times.dhuhr), isTrue);
+        expect(times.dhuhr.isBefore(times.asr), isTrue);
+        expect(times.asr.isBefore(times.maghrib), isTrue);
+        expect(times.maghrib.isBefore(times.isha), isTrue);
+      });
+
+      test('Asr stays well inside the day at 69°N', () {
+        final times = PrayerTimeEngine.calculate(
+          latitude: 69.6492,
+          longitude: 18.9553,
+          date: DateTime(2026, 3, 21),
+          method: CalculationMethod.muslimWorldLeague,
+          utcOffset: 1,
+        );
+
+        final dhuhrToAsr = times.asr.difference(times.dhuhr).inMinutes;
+        expect(dhuhrToAsr, greaterThan(0));
+        expect(dhuhrToAsr, lessThan(6 * 60));
       });
     });
 

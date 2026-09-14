@@ -24,8 +24,6 @@
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
-		<key>NSCameraUsageDescription</key>
-		<string>يُستخدم الكاميرا لوضع القبلة بتقنية الواقع المعزز.</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>يُستخدم موقعك لحساب مواقيت الصلاة واتجاه القبلة بدقة.</string>
 		<key>UIBackgroundModes</key>
