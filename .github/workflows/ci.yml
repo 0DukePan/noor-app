@@ -125,12 +125,25 @@ jobs:
           emulator-options: -no-window -no-audio -no-boot-anim
           script: flutter test integration_test
 
+  # Signing is optional. `secrets` may NOT be referenced in a job-level `if:`:
+  # GitHub then rejects the whole workflow file ("Unrecognized named-value:
+  # 'secrets'"), which silently disabled every job in this workflow until
+  # 2026-09-13. A tiny gate job exposes a boolean output instead.
+  signing-secrets:
+    name: Check signing secrets
+    runs-on: ubuntu-latest
+    outputs:
+      configured: ${{ steps.check.outputs.configured }}
+    steps:
+      - id: check
+        run: echo "configured=${{ secrets.KEYSTORE_BASE64 != '' }}" >> "$GITHUB_OUTPUT"
+
   # Runs only when the signing secrets are configured (Settings > Secrets).
   build-appbundle:
     name: Build signed release AAB
     runs-on: ubuntu-latest
-    needs: analyze-test
-    if: secrets.KEYSTORE_BASE64 != ''
+    needs: [analyze-test, signing-secrets]
+    if: needs.signing-secrets.outputs.configured == 'true'
     steps:
       - uses: actions/checkout@v4
 
