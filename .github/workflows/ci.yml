@@ -15,7 +15,11 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          # Pinned to the version this project is developed and verified against
+          # (see CHANGELOG). An unpinned `stable` quietly changes text metrics,
+          # golden rendering and analyzer rules underneath the suite, which is
+          # how a green local run turns into a red CI run.
+          flutter-version: 3.44.9
           cache: true
 
       - name: Install dependencies
@@ -25,7 +29,23 @@ jobs:
         run: flutter analyze
 
       - name: Test (with coverage)
-        run: flutter test --coverage
+        run: |
+          set -o pipefail
+          flutter test --coverage --reporter compact 2>&1 | tee test_output.log
+
+      # A red job whose logs sit behind a login is untriageable, and this repo
+      # has no other way to see which test failed. Emit each failing test as an
+      # annotation: annotations are readable publicly on the run page and
+      # through the API without downloading anything.
+      - name: Annotate failing tests
+        if: failure()
+        run: |
+          if [ ! -f test_output.log ]; then
+            echo "::error::The test step failed before producing output; see the step log."
+            exit 0
+          fi
+          awk '/^Failing tests:/{f=1;next} f && NF {sub(/^[[:space:]]+/,""); print "::error::" $0}' test_output.log | head -40
+          exit 0
 
       - name: Verify app-wide coverage floor
         run: python3 tools/coverage_summary.py 30
@@ -61,7 +81,11 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          # Pinned to the version this project is developed and verified against
+          # (see CHANGELOG). An unpinned `stable` quietly changes text metrics,
+          # golden rendering and analyzer rules underneath the suite, which is
+          # how a green local run turns into a red CI run.
+          flutter-version: 3.44.9
           cache: true
 
       - name: Install dependencies
@@ -109,7 +133,11 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          # Pinned to the version this project is developed and verified against
+          # (see CHANGELOG). An unpinned `stable` quietly changes text metrics,
+          # golden rendering and analyzer rules underneath the suite, which is
+          # how a green local run turns into a red CI run.
+          flutter-version: 3.44.9
           cache: true
 
       - name: Install dependencies
@@ -149,7 +177,11 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          # Pinned to the version this project is developed and verified against
+          # (see CHANGELOG). An unpinned `stable` quietly changes text metrics,
+          # golden rendering and analyzer rules underneath the suite, which is
+          # how a green local run turns into a red CI run.
+          flutter-version: 3.44.9
           cache: true
 
       - name: Install dependencies
