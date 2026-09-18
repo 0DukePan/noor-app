@@ -4,6 +4,49 @@ All notable changes to Noor (نور) are documented in this file.
 
 ## [Unreleased]
 
+### Fixed — 2026-09-18 (launch-blocker pass: startup, signing, data integrity, a11y)
+
+- **Startup can no longer be killed by one failing service.** `main()` runs 19
+  service inits inside a `Future.wait`, but each was guarded with `on Exception`
+  only — a `TypeError`/`StateError` is an `Error`, so it escaped the wait and
+  killed the process before `runApp` drew anything (too early for the branded
+  error widget, and before Sentry installs, so the crash was invisible). The
+  guard is now the shared `runGuarded()` in `error_reporting.dart`, which
+  catches `Object`; a regression test proves an `Error`-throwing initializer no
+  longer aborts startup.
+- **A release build can no longer be silently debug-signed.** `build.gradle`
+  fell back to the debug keystore whenever `android/key.properties` was
+  missing — the AAB built fine and Play rejected it at upload. The fallback is
+  now opt-in (`--android-project-arg allowDebugSigning=true`, used only by the
+  CI verification APK); `assembleRelease`/`bundleRelease` fail with the reason
+  otherwise.
+- **New `tool/release_preflight.dart`** — checks the two bundled databases, the
+  keystore, the version/CHANGELOG pairing and the pending scholarly rows in one
+  run, and is wired into the signed-AAB job. `assets/db/hadith.db` is
+  gitignored, so a clean checkout has no corpus: the emulator integration test
+  now generates it first (it had been exercising unbundled JSON fallback paths
+  — a false green).
+- **Fabricated verse metadata removed.** The offline import wrote
+  `juz/manzil/page/ruku/hizbQuarter` as `0` and `sajda` as `false` for every
+  verse (`quran_data_source.dart` hardcoded `page/juz = 1` the same way).
+  Nothing consumes those fields, so they are deleted rather than guessed, and
+  the no-cache/no-network surah fallback now reads the bundled 114-surah index
+  instead of a hand-kept five-surah excerpt.
+- **Contrast + tap target:** the light snackbar's gold action text measured
+  4.4:1 on deepTeal (below AA) and the theme ternary choosing it had identical
+  branches — new `goldOnDark` (6.2:1) covers gold text on dark surfaces,
+  mirroring the existing `goldInk` rule for light. The tafsir compare stepper's
+  `VisualDensity.compact` laid its IconButtons out at 40dp; the a11y test now
+  asserts rendered size, not just the label.
+- **Play data-safety correction** — `docs/store/data-safety.md` claimed App
+  diagnostics were not collected while the store checklist declared Sentry
+  crash reports. The form answers now match what the app actually sends.
+- **CI:** the failing-test annotation step never matched the compact reporter's
+  output, so a red run published no failing-test names; it now parses the JSON
+  reporter with python3. Flutter is pinned to 3.44.9 in every job so a drift in
+  `stable` cannot silently change text metrics or analyzer rules under the
+  suite.
+
 ### Added — 2026-09-13 (a11y foundation, error-boundary hardening, LTR fix, README + demo GIF)
 - **Accessibility foundation (Phase 9 seed)** — the app previously had *zero*
   `Semantics` widgets, so every icon-only control was announced as an unlabelled
