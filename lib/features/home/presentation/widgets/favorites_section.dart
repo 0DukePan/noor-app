@@ -67,7 +67,7 @@ class _FavoriteItemCard extends StatelessWidget {
       child: Container(
         width: 140,
         margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
@@ -79,16 +79,20 @@ class _FavoriteItemCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
+          // No Spacer here: the card sits in a fixed-height slot, so a filling
+          // column overflows the moment font metrics shift by a pixel. Sized to
+          // content and centred, it has headroom instead.
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 20),
             ),
-            const Spacer(),
+            const SizedBox(height: NoorDesignSystem.spacingS),
             Text(
               title,
               maxLines: 1,
@@ -96,6 +100,7 @@ class _FavoriteItemCard extends StatelessWidget {
               style: GoogleFonts.cairo(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
+                height: 1.25,
                 color: theme.colorScheme.onSurface,
               ),
             ),
@@ -105,7 +110,10 @@ class _FavoriteItemCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.cairo(
                 fontSize: 12,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                height: 1.25,
+                // The muted token, not 60% of onSurface: the alpha version
+                // measured under 4.5:1 on the card.
+                color: theme.textTheme.bodySmall?.color,
               ),
             ),
           ],

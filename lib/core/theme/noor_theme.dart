@@ -69,7 +69,7 @@ class NoorTheme {
   // LIGHT THEME — Day mode, warm paper feel
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static ThemeData get light => ThemeData(
+  static ThemeData get light => _withComponents(ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
     scaffoldBackgroundColor: NoorDesignSystem.bgLight,
@@ -134,13 +134,14 @@ class NoorTheme {
       color: Colors.black.withValues(alpha: 0.05),
       thickness: 1,
     ),
+  ),
   );
 
   // ═══════════════════════════════════════════════════════════════════════════
   // DARK THEME — Night mode for late-night Quran reading
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static ThemeData get dark => ThemeData(
+  static ThemeData get dark => _withComponents(ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
     scaffoldBackgroundColor: NoorDesignSystem.bgDark,
@@ -210,13 +211,14 @@ class NoorTheme {
       color: NoorDesignSystem.separatorDark,
       thickness: 1,
     ),
+  ),
   );
 
   // ═══════════════════════════════════════════════════════════════════════════
   // SEPIA THEME — Long reading sessions
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static ThemeData get sepia => ThemeData(
+  static ThemeData get sepia => _withComponents(ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
     scaffoldBackgroundColor: NoorDesignSystem.bgSepia,
@@ -251,78 +253,126 @@ class NoorTheme {
       color: Colors.brown.withValues(alpha: 0.1),
       thickness: 1,
     ),
+  ),
   );
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // TYPOGRAPHY — Arabic-first with Latin fallback
+  // TYPOGRAPHY — one type system, shared with the design system
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static TextTheme _buildTextTheme(Brightness brightness, {Color? baseColor}) {
-    final color = baseColor ??
-        (brightness == Brightness.light
-            ? NoorDesignSystem.textPrimary
-            : NoorDesignSystem.textPrimaryDark);
+  static TextTheme _buildTextTheme(Brightness brightness, {Color? baseColor}) =>
+      NoorDesignSystem.buildTextTheme(brightness, baseColor: baseColor);
 
-    return TextTheme(
-      // Display — Quran verses (Amiri)
-      displayLarge: GoogleFonts.amiri(
-        fontSize: 32, fontWeight: FontWeight.normal,
-        color: color, height: 2.2,
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COMPONENT THEMES — the surfaces Material would otherwise default
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Without these, chips, sheets, snackbars, list tiles, dialogs and tab bars
+  /// fall back to stock Material defaults, which is what made a fully themed
+  /// app still read as a Material demo. Applied to light, dark and sepia alike
+  /// so the three stay one system.
+  static ThemeData _withComponents(ThemeData base) {
+    final isLight = base.brightness == Brightness.light;
+    final scheme = base.colorScheme;
+    final text = base.textTheme;
+    final pageSurface = isLight
+        ? NoorDesignSystem.surfaceLight
+        : NoorDesignSystem.surfaceDark;
+    final hairline = (isLight ? Colors.black : Colors.white)
+        .withValues(alpha: isLight ? 0.06 : 0.08);
+    final onSurface = isLight ? text.bodyLarge?.color : NoorDesignSystem.textPrimaryDark;
+
+    return base.copyWith(
+      chipTheme: ChipThemeData(
+        backgroundColor: isLight
+            ? NoorDesignSystem.primaryContainer.withValues(alpha: 0.5)
+            : NoorDesignSystem.surfaceElevatedDark,
+        side: BorderSide(color: hairline),
+        shape: const StadiumBorder(),
+        labelStyle: text.labelLarge,
+        secondaryLabelStyle: text.labelMedium,
+        padding: const EdgeInsets.symmetric(
+          horizontal: NoorDesignSystem.spacingSM,
+          vertical: NoorDesignSystem.spacingXS,
+        ),
+        showCheckmark: false,
       ),
-      displayMedium: GoogleFonts.amiri(
-        fontSize: 28, fontWeight: FontWeight.normal,
-        color: color, height: 2.1,
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: isLight
+            ? NoorDesignSystem.deepTeal
+            : NoorDesignSystem.surfaceElevatedDark,
+        contentTextStyle: text.bodyMedium?.copyWith(
+          color: isLight ? Colors.white : NoorDesignSystem.textPrimaryDark,
+        ),
+        actionTextColor: isLight
+            ? NoorDesignSystem.goldAccent
+            : NoorDesignSystem.goldAccent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
+        ),
       ),
-      displaySmall: GoogleFonts.amiri(
-        fontSize: 24, fontWeight: FontWeight.normal,
-        color: color, height: 2,
+      dialogTheme: DialogThemeData(
+        backgroundColor: pageSurface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(NoorDesignSystem.radiusLarge),
+        ),
+        titleTextStyle: text.titleLarge,
+        contentTextStyle: text.bodyMedium,
       ),
-      // Headlines — Section titles (Cairo)
-      headlineLarge: GoogleFonts.cairo(
-        fontSize: 26, fontWeight: FontWeight.bold,
-        color: color, height: 1.3,
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: pageSurface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        showDragHandle: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(NoorDesignSystem.radiusLarge),
+          ),
+        ),
       ),
-      headlineMedium: GoogleFonts.cairo(
-        fontSize: 22, fontWeight: FontWeight.w700,
-        color: color, height: 1.3,
+      listTileTheme: ListTileThemeData(
+        iconColor: scheme.primary,
+        titleTextStyle: text.titleSmall,
+        subtitleTextStyle: text.bodySmall,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: NoorDesignSystem.spacingM,
+          vertical: NoorDesignSystem.spacingXXS,
+        ),
       ),
-      headlineSmall: GoogleFonts.cairo(
-        fontSize: 20, fontWeight: FontWeight.w600,
-        color: color, height: 1.3,
+      tabBarTheme: TabBarThemeData(
+        labelColor: scheme.primary,
+        unselectedLabelColor: onSurface?.withValues(alpha: 0.6),
+        indicatorColor: scheme.primary,
+        dividerColor: Colors.transparent,
+        labelStyle: text.labelLarge,
+        unselectedLabelStyle: text.labelLarge,
       ),
-      // Titles (Cairo)
-      titleLarge: GoogleFonts.cairo(
-        fontSize: 18, fontWeight: FontWeight.w700, color: color,
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: scheme.primary,
+          textStyle: text.labelLarge,
+        ),
       ),
-      titleMedium: GoogleFonts.cairo(
-        fontSize: 16, fontWeight: FontWeight.w600, color: color,
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: scheme.primary,
+          side: BorderSide(color: scheme.primary.withValues(alpha: 0.4)),
+          padding: const EdgeInsets.symmetric(
+            horizontal: NoorDesignSystem.spacingL,
+            vertical: NoorDesignSystem.spacingSM,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
+          ),
+        ),
       ),
-      titleSmall: GoogleFonts.cairo(
-        fontSize: 14, fontWeight: FontWeight.w600, color: color,
-      ),
-      // Body (Cairo)
-      bodyLarge: GoogleFonts.cairo(
-        fontSize: 16, fontWeight: FontWeight.normal,
-        color: color, height: 1.6,
-      ),
-      bodyMedium: GoogleFonts.cairo(
-        fontSize: 14, fontWeight: FontWeight.normal,
-        color: color, height: 1.6,
-      ),
-      bodySmall: GoogleFonts.cairo(
-        fontSize: 12, fontWeight: FontWeight.normal,
-        color: color.withValues(alpha: 0.7), height: 1.5,
-      ),
-      // Labels (Cairo)
-      labelLarge: GoogleFonts.cairo(
-        fontSize: 14, fontWeight: FontWeight.w600, color: color,
-      ),
-      labelMedium: GoogleFonts.cairo(
-        fontSize: 12, fontWeight: FontWeight.w500, color: color,
-      ),
-      labelSmall: GoogleFonts.cairo(
-        fontSize: 10, fontWeight: FontWeight.w500,
-        color: color.withValues(alpha: 0.7),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: scheme.primary,
+        linearTrackColor: hairline,
       ),
     );
   }
