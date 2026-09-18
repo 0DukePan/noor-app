@@ -41,7 +41,32 @@ jobs:
             echo "::error::The test step produced no output; see the step log."
             exit 0
           fi
-          jq -r 'select(.type=="error") | .error | split("\n")[0] | "::error::\(.)"' test_output.json | head -40
+          # python3, not jq: python3 is already a hard dependency of the gates
+          # below, so this step cannot fail on a missing JSON tool. If the file
+          # holds no error events (the runner crashed before reporting one),
+          # fall back to the raw non-JSON output lines.
+          python3 - <<'PY' || true
+          import json
+
+          errors = []
+          raw = []
+          with open('test_output.json', encoding='utf-8', errors='replace') as out:
+              for line in out:
+                  line = line.strip()
+                  if not line:
+                      continue
+                  try:
+                      event = json.loads(line)
+                  except json.JSONDecodeError:
+                      raw.append(line)
+                      continue
+                  if event.get('type') == 'error':
+                      first = (event.get('error') or '').splitlines()
+                      if first:
+                          errors.append(first[0])
+          for message in (errors or raw)[:40]:
+              print(f"::error::{message}")
+          PY
           exit 0
 
       - name: Verify app-wide coverage floor

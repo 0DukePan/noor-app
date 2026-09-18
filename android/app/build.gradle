@@ -31,6 +31,14 @@ if (keystorePropertiesFile.exists()) {
     }
 }
 
+// A release build must never silently ship debug-signed: Play rejects a
+// debug-signed AAB, and nothing about the build output says so. Falling back
+// to the debug keys is therefore opt-in only
+// (`flutter build apk --release --android-project-arg allowDebugSigning=true`),
+// which is what CI uses for its throwaway verification APK.
+def allowDebugSigning = project.hasProperty('allowDebugSigning') &&
+    project.property('allowDebugSigning').toString().toBoolean()
+
 android {
     namespace = "com.noor.app"
     compileSdk = flutter.compileSdkVersion
@@ -63,9 +71,8 @@ android {
 
     buildTypes {
         release {
-            // Sign with the release keystore from android/key.properties when
-            // present; otherwise fall back to debug keys so local debug
-            // builds keep working.
+            // Debug keys are only reachable with the explicit opt-in; the
+            // release tasks below fail the build otherwise.
             if (keystorePropertiesFile.exists()) {
                 signingConfig signingConfigs.release
             } else {
@@ -74,6 +81,25 @@ android {
         }
     }
 }
+
+// Fail the release build (not the configuration, so debug builds and
+// `flutter run` keep working without a keystore) when it would ship
+// debug-signed without the explicit opt-in.
+tasks.matching { it.name == 'assembleRelease' || it.name == 'bundleRelease' }
+    .configureEach {
+        doFirst {
+            if (!keystorePropertiesFile.exists() && !allowDebugSigning) {
+                throw new GradleException(
+                    "android/key.properties is missing, so this release build " +
+                    "would be signed with the debug key — Google Play rejects " +
+                    "that. Create the release keystore first (see " +
+                    "docs/store-checklist.md §4), or pass " +
+                    "--android-project-arg allowDebugSigning=true for a " +
+                    "throwaway debug-signed artifact."
+                )
+            }
+        }
+    }
 
 flutter {
     source = "../.."

@@ -72,9 +72,15 @@ Declared permissions and their justifications (required by Play review):
 3. Build locally or via CI:
    ```bash
    dart run tool/build_hadith_db.dart        # generates assets/db/hadith.db
+   dart run tool/release_preflight.dart      # must pass before you upload
    flutter build appbundle --release         # Play
-   flutter build apk --release               # sideload/CI artifact
+   flutter build apk --release               # sideload artifact
    ```
+   The preflight is the guard against the silent failures: a missing
+   `hadith.db`, a missing keystore (a release build refuses to fall back to the
+   debug keys unless you pass `--android-project-arg allowDebugSigning=true`,
+   which CI does only for its throwaway APK), a stale version/CHANGELOG, and
+   the pending scholarly rows.
    The prebuilt database ships in the APK so the first launch copies it
    (instant start) instead of importing 17 books from JSON. CI runs the
    generation step automatically before every Android build; the hadith
@@ -141,3 +147,5 @@ actual AAB/APK; keep the 230 MB CI gate as the regression guard until then.
 - Run the full manual checklist in **`docs/qa-checklist.md`** on a real phone
   (automated checks — analyze, tests, goldens, emulator integration test —
   run on every push via CI).
+- Before uploading, run `dart run tool/release_preflight.dart` **without**
+  flags: it must pass, including the `docs/scholarly-review.md` rows.
