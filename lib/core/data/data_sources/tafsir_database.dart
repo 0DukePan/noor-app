@@ -68,7 +68,11 @@ class TafsirDatabase {
       if (File(dbPath).existsSync()) {
         try {
           File(dbPath).deleteSync();
-        } on Object catch (_) {}
+        } on Object catch (e) {
+          // The re-open below fails if the corrupt file could not be removed;
+          // log why so that failure is diagnosable.
+          debugPrint('Tafsir DB: could not delete corrupt file: $e');
+        }
       }
       return _open(dbPath);
     }

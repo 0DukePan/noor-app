@@ -35,7 +35,9 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
     try {
       final notesBox = await Hive.openBox<dynamic>('hadith_notes');
       totalNotes = notesBox.length;
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      debugPrint('Learning statistics: hadith_notes unavailable: $e');
+    }
 
     // --- Quiz history ---
     var quizzesTaken = 0;
@@ -51,7 +53,9 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
           quizTotalQuestions += (entry['total'] as int?) ?? 0;
         }
       }
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      debugPrint('Learning statistics: quiz_history unavailable: $e');
+    }
     final quizAverage = quizTotalQuestions > 0
         ? ((quizTotalScore / quizTotalQuestions) * 100).round()
         : 0;
@@ -65,7 +69,9 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
           totalMemorized++;
         }
       }
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      debugPrint('Learning statistics: memorization_cards unavailable: $e');
+    }
 
     // --- Reading streak (from the day-state machine) ---
     var currentStreak = 0;
@@ -74,7 +80,9 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
       final streakBox = await Hive.openBox<dynamic>('day_state');
       currentStreak = streakBox.get('streak', defaultValue: 0) as int;
       longestStreak = currentStreak;
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      debugPrint('Learning statistics: day_state unavailable: $e');
+    }
 
     // --- Weekly activity (verses read per day, from app statistics) ---
     final weeklyActivity = List<int>.filled(7, 0);
@@ -86,7 +94,9 @@ class _LearningStatisticsPageState extends State<LearningStatisticsPage> {
         final key = 'verses_${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
         weeklyActivity[i] = activityBox.get(key, defaultValue: 0) as int;
       }
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      debugPrint('Learning statistics: app_statistics unavailable: $e');
+    }
 
     // --- Books progress (bookmarks per book) ---
     final booksProgress = <String, _BookProg>{};

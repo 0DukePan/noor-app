@@ -69,14 +69,18 @@ class _HadithSharhSheetState extends State<HadithSharhSheet> {
       setState(() {
         _noteController.text = note;
       });
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      debugPrint('Sharh notes: load failed for $_noteKey: $e');
+    }
   }
 
   Future<void> _saveNote(String note) async {
     try {
       final box = await Hive.openBox<dynamic>('hadith_notes');
       await box.put(_noteKey, note);
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      debugPrint('Sharh notes: save failed for $_noteKey: $e');
+    }
   }
 
   /// Canonical note key shared with Scholar Mode — book + in-book number.

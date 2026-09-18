@@ -532,7 +532,9 @@ class TafsirDataSource {
       try {
         all.add(
             TafsirAnnotation.fromJson(Map<String, dynamic>.from(json as Map)),);
-      } on Exception catch (_) {}
+      } on Exception catch (e) {
+        debugPrint('Tafsir annotations: skipping an unreadable entry: $e');
+      }
     });
     all.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     return all.take(limit).toList();

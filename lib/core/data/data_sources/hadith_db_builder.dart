@@ -162,10 +162,10 @@ class HadithDbImporter {
       offset += rows.length;
     }
 
-    // Recreate the FTS table over arabic_norm and rebuild it.
-    try {
-      await db.execute('DROP TABLE hadiths_fts');
-    } on Exception catch (_) {}
+    // Recreate the FTS table over arabic_norm and rebuild it. IF EXISTS keeps
+    // the drop safe on a database that never had the table, so no catch is
+    // needed (and no failure is swallowed).
+    await db.execute('DROP TABLE IF EXISTS hadiths_fts');
     await HadithDbSchema.create(db);
     await rebuildFts(db);
   }

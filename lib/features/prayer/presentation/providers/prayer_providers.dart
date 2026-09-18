@@ -1,5 +1,6 @@
 ﻿import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -57,7 +58,11 @@ final prayerDataProvider = FutureProvider<PrayerPageData>((ref) async {
       city = mark.locality ?? mark.subAdministrativeArea ?? city;
       country = mark.country ?? '';
     }
-  } on Exception catch (_) {}
+  } on Exception catch (e) {
+    // Offline is expected — the label falls back to "your current location" —
+    // but a silent failure here also hides a broken geocoding plugin.
+    debugPrint('Prayer page: reverse geocoding failed: $e');
+  }
 
   final prayerTimes = PrayerTimeEngine.calculate(
     latitude: lat,
