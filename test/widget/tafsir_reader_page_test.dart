@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:noor_app/features/quran/presentation/pages/tafsir_reader_page.dart';
+import 'package:noor_app/l10n/generated/app_localizations.dart';
 
 import '../test_utils/tafsir_test_db.dart';
 
@@ -41,6 +42,9 @@ void main() {
   Future<void> pumpReader(WidgetTester tester, int surah, int ayah) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: TafsirReaderPage(
           surahNumber: surah,
           ayahNumber: ayah,
@@ -92,6 +96,34 @@ void main() {
     expect(find.text('التفسير غير متوفر'), findsNothing);
     // The tafsir list renders (Al-Baqara's full tafsir from the bundle).
     expect(find.byType(ListView), findsWidgets);
+    await tester.pumpWidget(const SizedBox());
+  },
+  timeout: const Timeout(Duration(seconds: 60)),
+);
+
+  testWidgets('compare stepper keeps its 48dp tap targets and labels',
+      (tester) async {
+    await pumpReader(tester, 2, 1);
+    await waitForLoad(tester);
+
+    // Open comparative mode from the compare icon on an entry header.
+    await tester.tap(find.byIcon(Icons.compare_rounded).first);
+    await tester.pump(const Duration(milliseconds: 200));
+
+    for (final label in ['السابق', 'التالي']) {
+      final button = find.ancestor(
+        of: find.byTooltip(label),
+        matching: find.byType(IconButton),
+      );
+      expect(button, findsOneWidget, reason: label);
+      // The stepper used to set VisualDensity.compact, which lays the buttons
+      // out at 40dp — below the 48dp Android minimum. The label-only
+      // assertion this replaces stayed green through that.
+      final size = tester.getSize(button);
+      expect(size.width, greaterThanOrEqualTo(48), reason: label);
+      expect(size.height, greaterThanOrEqualTo(48), reason: label);
+    }
+
     await tester.pumpWidget(const SizedBox());
   },
   timeout: const Timeout(Duration(seconds: 60)),

@@ -306,7 +306,7 @@ class NoorTheme {
           color: isLight ? Colors.white : NoorDesignSystem.textPrimaryDark,
         ),
         actionTextColor: isLight
-            ? NoorDesignSystem.goldAccent
+            ? NoorDesignSystem.goldOnDark
             : NoorDesignSystem.goldAccent,
         elevation: 0,
         shape: RoundedRectangleBorder(

@@ -75,6 +75,10 @@ class NoorDesignSystem {
   /// Gold for TEXT and small marks on light surfaces — 4.7:1 on [bgLight].
   /// [goldAccent] (2.05:1) is a fill/border colour only; gold text needs this.
   static const goldInk = Color(0xFF8A6A1F);
+  /// Gold for TEXT on dark surfaces (snackbar actions, dark cards) — HSL(42,
+  /// 70%, 72%), 6.2:1 on [deepTeal] and 8.3:1 on [surfaceElevatedDark].
+  /// [goldAccent] measures 4.4:1 on [deepTeal] — just under AA for normal text.
+  static const goldOnDark = Color(0xFFEACC86);
   /// Gold for verse numbers and other small marks. Currently unreferenced in
   /// `lib/` — the value is [goldInk] so that whoever wires it up gets a
   /// legible colour rather than the 2.05:1 [goldAccent].

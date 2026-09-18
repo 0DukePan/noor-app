@@ -297,7 +297,6 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
                         _loadCompareData();
                       }
                     : null,
-                visualDensity: VisualDensity.compact,
               ),
               Container(
                 padding:
@@ -327,7 +326,6 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
                   setState(() => _compareAyah++);
                   _loadCompareData();
                 },
-                visualDensity: VisualDensity.compact,
               ),
             ],
           ),
