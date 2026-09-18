@@ -92,15 +92,15 @@ class QuranDataSource {
       orElse: () => {'number': surahNumber, 'name': 'سورة $surahNumber'},
     );
 
-    // Convert verses to expected format
+    // Convert verses to expected format. Only fields the bundled data
+    // actually carries: page/juz used to be hardcoded to 1 here, which read
+    // as real metadata to any consumer.
     final ayahs = verses.map(
       (v) {
         final map = v as Map;
         return {
           'numberInSurah': map['verse'],
           'text': map['text'],
-          'page': 1, // Can be enhanced with page data
-          'juz': 1, // Can be enhanced with juz data
         };
       },
     ).toList();

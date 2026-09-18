@@ -13,6 +13,7 @@ class OfflineDataService {
   static const _quranBoxName = HiveBoxes.offlineQuran;
   static const _hadithBoxName = HiveBoxes.offlineHadith;
   static const _lastSyncKey = 'last_sync';
+  static const _surahsAsset = 'assets/quran/surahs.json';
 
   static Box<dynamic>? _quranBox;
   static Box<dynamic>? _hadithBox;
@@ -43,8 +44,7 @@ class OfflineDataService {
   static Future<void> _loadBundledQuran() async {
     try {
       // Load surahs metadata
-      final surahsJson =
-          await rootBundle.loadString('assets/quran/surahs.json');
+      final surahsJson = await rootBundle.loadString(_surahsAsset);
       final surahs =
           List<Map<String, dynamic>>.from(jsonDecode(surahsJson) as List);
       await _quranBox!.put('surahs', surahs);
@@ -76,12 +76,6 @@ class OfflineDataService {
                       'number': (v as Map)['verse'],
                       'text': v['text'],
                       'numberInSurah': v['verse'],
-                      'juz': 0, // Placeholder
-                      'manzil': 0, // Placeholder
-                      'page': 0, // Placeholder
-                      'ruku': 0, // Placeholder
-                      'hizbQuarter': 0, // Placeholder
-                      'sajda': false, // Placeholder
                     },
                   )
                   .toList(),
@@ -122,7 +116,7 @@ class OfflineDataService {
       await _quranBox?.put('surahs', surahs);
       return surahs;
     } on Exception {
-      return _getDefaultSurahs();
+      return _readBundledSurahIndex();
     }
   }
 
@@ -215,44 +209,20 @@ class OfflineDataService {
   // DEFAULT DATA (Fallback when offline and no cache)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static List<Map<String, dynamic>> _getDefaultSurahs() {
-    return [
-      {
-        'number': 1,
-        'name': 'سُورَةُ ٱلْفَاتِحَةِ',
-        'englishName': 'Al-Fatiha',
-        'numberOfAyahs': 7,
-        'revelationType': 'Meccan',
-      },
-      {
-        'number': 2,
-        'name': 'سُورَةُ البَقَرَةِ',
-        'englishName': 'Al-Baqara',
-        'numberOfAyahs': 286,
-        'revelationType': 'Medinan',
-      },
-      {
-        'number': 3,
-        'name': 'سُورَةُ آلِ عِمۡرَانَ',
-        'englishName': 'Aal-Imran',
-        'numberOfAyahs': 200,
-        'revelationType': 'Medinan',
-      },
-      {
-        'number': 4,
-        'name': 'سُورَةُ النِّسَاءِ',
-        'englishName': 'An-Nisa',
-        'numberOfAyahs': 176,
-        'revelationType': 'Medinan',
-      },
-      {
-        'number': 5,
-        'name': 'سُورَةُ المَائـِدَةِ',
-        'englishName': 'Al-Maida',
-        'numberOfAyahs': 120,
-        'revelationType': 'Medinan',
-      },
-      // ... more surahs would be here
-    ];
+  /// Reads the bundled surah index — the same asset that seeds the cache.
+  ///
+  /// This used to be a hand-kept five-surah excerpt ending in a
+  /// "... more surahs would be here" comment, so a failed cache and a failed
+  /// fetch showed five surahs. The asset is already on the device; reading it
+  /// costs nothing and yields all 114. Returns an empty list if the asset is
+  /// unreadable.
+  static Future<List<Map<String, dynamic>>> _readBundledSurahIndex() async {
+    try {
+      final json = await rootBundle.loadString(_surahsAsset);
+      return List<Map<String, dynamic>>.from(jsonDecode(json) as List);
+    } on Exception catch (e) {
+      debugPrint('Failed to read $_surahsAsset: $e');
+      return const [];
+    }
   }
 }

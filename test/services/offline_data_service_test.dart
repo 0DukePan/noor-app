@@ -45,6 +45,34 @@ void main() {
     expect(verses.length, 7);
   });
 
+  test('cached verses carry no fabricated metadata', () async {
+    await OfflineDataService.init();
+
+    final surah = await OfflineDataService.getSurah(2);
+    final verse = (surah!['verses'] as List).first as Map;
+
+    expect(verse['numberInSurah'], 1);
+    expect(verse['text'], isNotEmpty);
+    // These used to be written as 0/`false` placeholders, which any consumer
+    // would read as real juz/page/sajda data.
+    expect(verse.containsKey('juz'), isFalse);
+    expect(verse.containsKey('page'), isFalse);
+    expect(verse.containsKey('sajda'), isFalse);
+  });
+
+  test('offline fallback returns all 114 surahs, not an excerpt', () async {
+    await OfflineDataService.init();
+    // Force the cache miss: the test HTTP client cannot reach the API, so this
+    // exercises the fallback that used to return a hand-kept five-surah list.
+    await OfflineDataService.clearCache();
+
+    final surahs = await OfflineDataService.getSurahs();
+
+    expect(surahs, hasLength(114));
+    expect(surahs.first['number'], 1);
+    expect(surahs.last['number'], 114);
+  });
+
   test('a second init reuses the existing cache', () async {
     await OfflineDataService.init();
     final before = OfflineDataService.getCacheStats();
