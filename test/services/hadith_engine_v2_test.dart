@@ -298,8 +298,8 @@ String _loose(String name) {
 /// P2.1 latency gates against the full prebuilt corpus (50,884 hadiths).
 /// Skipped when the prebuilt DB is absent (CI generates it before tests).
 void fullCorpusBenchmark() {
-  final dbPath = File('assets/db/hadith.db');
-  if (!dbPath.existsSync()) return;
+  final dbFile = File('assets/db/hadith.db');
+  if (!dbFile.existsSync()) return;
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -307,7 +307,11 @@ void fullCorpusBenchmark() {
     databaseFactory = databaseFactoryFfi;
     final temp = await Directory.systemTemp.createTemp('noor_bench_test');
     Hive.init(temp.path);
-    final db = await databaseFactory.openDatabase(dbPath.path);
+    // Absolute path on purpose: sqflite resolves a relative one against its
+    // own databases directory, where it silently creates an EMPTY database —
+    // the benchmark then fails with "no such table: hadiths" (and used to pass
+    // only while a stale copy of the real file happened to exist there).
+    final db = await databaseFactory.openDatabase(dbFile.absolute.path);
     await HadithSearchEngine.init(forTesting: db);
     // Warm up the cache box and index.
     await HadithSearchEngine.search('الصلاة', limit: 5);
