@@ -29,22 +29,19 @@ jobs:
         run: flutter analyze
 
       - name: Test (with coverage)
-        run: |
-          set -o pipefail
-          flutter test --coverage --reporter compact 2>&1 | tee test_output.log
+        # The JSON reporter is what makes a red run triageable: the annotation
+        # step below turns every error event into a run annotation, readable on
+        # the run page and through the API without downloading logs.
+        run: flutter test --coverage --reporter json > test_output.json
 
-      # A red job whose logs sit behind a login is untriageable, and this repo
-      # has no other way to see which test failed. Emit each failing test as an
-      # annotation: annotations are readable publicly on the run page and
-      # through the API without downloading anything.
       - name: Annotate failing tests
         if: failure()
         run: |
-          if [ ! -f test_output.log ]; then
-            echo "::error::The test step failed before producing output; see the step log."
+          if [ ! -s test_output.json ]; then
+            echo "::error::The test step produced no output; see the step log."
             exit 0
           fi
-          awk '/^Failing tests:/{f=1;next} f && NF {sub(/^[[:space:]]+/,""); print "::error::" $0}' test_output.log | head -40
+          jq -r 'select(.type=="error") | .error | split("\n")[0] | "::error::\(.)"' test_output.json | head -40
           exit 0
 
       - name: Verify app-wide coverage floor
@@ -94,13 +91,18 @@ jobs:
       - name: Generate prebuilt hadith database
         run: dart run tool/build_hadith_db.dart
 
-      - name: Build release APK (debug-signed fallback)
+      - name: Build release APK (debug-signed, verification artifact)
         run: |
           FLAGS=""
           if [ -n "$SENTRY_DSN" ]; then
             FLAGS="--dart-define=SENTRY_DSN=$SENTRY_DSN"
           fi
-          flutter build apk --release $FLAGS
+          # This artifact exists to prove the release build compiles and to be
+          # sideloaded for smoke tests. A Play upload uses the signed AAB from
+          # the build-appbundle job; the explicit opt-in is what allows a
+          # debug-signed release build to pass at all.
+          flutter build apk --release $FLAGS \
+            --android-project-arg allowDebugSigning=true
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
 
@@ -142,6 +144,12 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      # assets/db/hadith.db is gitignored, so a fresh checkout has no corpus:
+      # without this step the emulator exercises the JSON-import fallback with
+      # paths that are not bundled, not the configuration that ships.
+      - name: Generate prebuilt hadith database
+        run: dart run tool/build_hadith_db.dart
 
       - name: Run integration tests on emulator
         uses: reactivecircus/android-emulator-runner@v2
@@ -206,7 +214,14 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
 
       - name: Build signed release AAB
-        run: flutter build appbundle --release
+        run: |
+          # Signing is configured above, so the only remaining preflight checks
+          # are the bundled DBs, version/changelog, and the scholarly sign-off.
+          # The flag keeps this job usable for signing/upload dry-runs while the
+          # review rows are still pending; the pre-submission gate in
+          # docs/store-checklist.md §9 runs it WITHOUT the flag.
+          dart run tool/release_preflight.dart --allow-pending-scholar-review
+          flutter build appbundle --release
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
