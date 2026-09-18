@@ -47,3 +47,19 @@ void _guard(void Function() action) {
     debugPrint('Error reporting failed: $reportingError');
   }
 }
+
+/// Runs [action], logging any failure without rethrowing it.
+///
+/// Startup work uses this so one broken service degrades the app instead of
+/// preventing the first frame. It catches [Object], not [Exception], on
+/// purpose: an [Error] (TypeError, StateError, RangeError) is exactly what a
+/// buggy initializer throws, and catching only [Exception] would let it escape
+/// the startup `Future.wait` and kill `main()` before `runApp` has drawn
+/// anything — too early for the branded error widget to help.
+Future<void> runGuarded(String label, Future<void> Function() action) async {
+  try {
+    await action();
+  } on Object catch (e, stackTrace) {
+    debugPrint('$label failed: $e\n$stackTrace');
+  }
+}

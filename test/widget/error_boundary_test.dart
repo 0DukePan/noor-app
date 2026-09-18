@@ -80,6 +80,36 @@ void main() {
     });
   });
 
+  group('runGuarded (startup)', () {
+    test('an Error from an initializer is contained, not rethrown', () async {
+      var reachedNextStep = false;
+
+      await runGuarded('BrokenService init', () async {
+        // StateError is an Error, not an Exception — the exact shape that
+        // used to escape the startup Future.wait and kill main() before
+        // runApp had drawn anything.
+        throw StateError('init exploded');
+      });
+      reachedNextStep = true;
+
+      expect(
+        reachedNextStep,
+        isTrue,
+        reason: 'one broken service must not abort the whole startup',
+      );
+    });
+
+    test('a successful initializer is awaited to completion', () async {
+      var ran = false;
+
+      await runGuarded('FineService init', () async {
+        ran = true;
+      });
+
+      expect(ran, isTrue);
+    });
+  });
+
   group('release error fallback', () {
     testWidgets('names the failure in both languages', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: NoorErrorWidget()));

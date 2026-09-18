@@ -130,32 +130,24 @@ Future<void> _initializeServices() async {
   unawaited(HadithDatabase.warmUp());
   unawaited(_initSearchEngine());
   if (!kIsWeb) {
-    try {
-      await WidgetService.updateAllWidgets();
-    } on Exception catch (e) {
-      debugPrint('WidgetService updateAllWidgets failed: $e');
-    }
+    await runGuarded(
+      'WidgetService updateAllWidgets',
+      WidgetService.updateAllWidgets,
+    );
   }
   unawaited(OfflineDataService.syncIfNeeded());
 }
 
 /// Runs a service initializer, logging failures without crashing startup.
-Future<void> _safeInit(String name, Future<void> Function() init) async {
-  try {
-    await init();
-  } on Exception catch (e) {
-    debugPrint('$name init failed: $e');
-  }
-}
+///
+/// Delegates to [runGuarded], which catches [Object] rather than [Exception]
+/// for the reason documented there.
+Future<void> _safeInit(String name, Future<void> Function() init) =>
+    runGuarded('$name init', init);
 
 /// Build the hadith search index in the background (errors are non-fatal).
-Future<void> _initSearchEngine() async {
-  try {
-    await HadithSearchEngine.init();
-  } on Exception catch (e) {
-    debugPrint('HadithSearchEngine init failed: $e');
-  }
-}
+Future<void> _initSearchEngine() =>
+    runGuarded('HadithSearchEngine init', HadithSearchEngine.init);
 
 /// نور - التطبيق الإسلامي الشامل
 /// A comprehensive Islamic app serving as a digital worship environment
@@ -228,8 +220,8 @@ class _NoorAppState extends ConsumerState<NoorApp> with WidgetsBindingObserver {
         utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
       );
       DayStateMachine.updateTodayTimes(times);
-    } on Exception catch (e) {
-      debugPrint('DayState refresh failed: $e');
+    } on Object catch (e, stackTrace) {
+      debugPrint('DayState refresh failed: $e\n$stackTrace');
     }
   }
 
