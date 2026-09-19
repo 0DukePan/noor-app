@@ -97,6 +97,25 @@ void main() {
     // Hive is never initialised in tests: the bookmark box is null, the icon
     // shows the unbookmarked state, and tapping must not crash.
     expect(find.byIcon(Icons.bookmark_border), findsOneWidget);
+
+    // Tap targets on this header are asserted by rendered size rather than by
+    // the page-level guideline: the body is a SelectableText, whose
+    // long-press/focus actions make the guideline treat the whole text block
+    // as a "tap target" (inherently under 48 dp tall). These three controls
+    // did measure 40 dp with compact density (docs/accessibility.md).
+    for (final target in [
+      find.ancestor(
+        of: find.byIcon(Icons.bookmark_border),
+        matching: find.byType(IconButton),
+      ),
+      find.widgetWithText(TextButton, 'عرض كامل'),
+      find.widgetWithText(TextButton, 'مقارنة'),
+    ]) {
+      final size = tester.getSize(target);
+      expect(size.width, greaterThanOrEqualTo(48));
+      expect(size.height, greaterThanOrEqualTo(48));
+    }
+
     await tester.tap(find.byIcon(Icons.bookmark_border));
     await tester.pump();
     expect(find.byIcon(Icons.bookmark_border), findsOneWidget);

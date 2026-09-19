@@ -67,12 +67,15 @@ class NextPrayerCard extends ConsumerWidget {
                   children: [
                     const Icon(Icons.schedule_rounded, color: Colors.white, size: 14),
                     const SizedBox(width: 6),
-                    Text(
-                      l10n.npcBadge,
-                      style: GoogleFonts.cairo(
-                        fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.95),
-                        fontWeight: FontWeight.w600,
+                    // Wraps inside the chip at large text scales.
+                    Flexible(
+                      child: Text(
+                        l10n.npcBadge,
+                        style: GoogleFonts.cairo(
+                          fontSize: 12,
+                          color: Colors.white.withValues(alpha: 0.95),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -90,8 +93,12 @@ class NextPrayerCard extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              // Time + remaining
-              Row(
+              // Wrap, not Row: at large text scales the remaining-time column
+              // stacks below the time chip instead of overflowing.
+              Wrap(
+                spacing: 14,
+                runSpacing: 10,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
@@ -115,29 +122,26 @@ class NextPrayerCard extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.npcAfter('${nextInfo?['remaining'] ?? '...'}'),
-                          style: GoogleFonts.cairo(
-                            fontSize: 15,
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontWeight: FontWeight.w500,
-                          ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.npcAfter('${nextInfo?['remaining'] ?? '...'}'),
+                        style: GoogleFonts.cairo(
+                          fontSize: 15,
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontWeight: FontWeight.w500,
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          l10n.npcInshallah,
-                          style: GoogleFonts.cairo(
-                            fontSize: 11,
-                            color: Colors.white.withValues(alpha: 0.5),
-                          ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.npcInshallah,
+                        style: GoogleFonts.cairo(
+                          fontSize: 11,
+                          color: Colors.white.withValues(alpha: 0.5),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -75,7 +75,13 @@ class DayStateCard extends StatelessWidget {
                   ),
                 const SizedBox(height: 4),
                 // Prayer completion progress
-                Row(
+                // Wrap, not Row: identical layout when the labels fit, and the
+                // streak drops to its own line instead of overflowing at
+                // larger text scales (dynamic-type test).
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
                       l10n.dayTasks(done),
@@ -85,8 +91,7 @@ class DayStateCard extends StatelessWidget {
                         color: NoorDesignSystem.goldAccent,
                       ),
                     ),
-                    if (streak > 0) ...[
-                      const SizedBox(width: 8),
+                    if (streak > 0)
                       Text(
                         l10n.dayStreak(streak),
                         style: GoogleFonts.cairo(
@@ -96,7 +101,6 @@ class DayStateCard extends StatelessWidget {
                               : NoorDesignSystem.textSecondary,
                         ),
                       ),
-                    ],
                   ],
                 ),
               ],

@@ -190,11 +190,15 @@ class _HomePageState extends ConsumerState<HomePage> {
                       ),
                     ).animate().fadeIn(duration: 500.ms).slideX(begin: 0.1),
                     const SizedBox(height: 4),
-                    Row(
+                    // Wrap, not Row: one line when the city and date fit,
+                    // stacking instead of overflowing at large text scales.
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Icon(Icons.location_on_rounded, size: 14, 
                           color: NoorDesignSystem.emeraldGreen.withValues(alpha: 0.7),),
-                        const SizedBox(width: 4),
                         Text(
                           data.cityName,
                           style: GoogleFonts.cairo(
@@ -203,9 +207,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(width: 12),
                         Container(width: 4, height: 4, decoration: BoxDecoration(color: isDark ? Colors.white24 : Colors.black12, shape: BoxShape.circle)),
-                        const SizedBox(width: 12),
                         Text(
                           _getHijriDate(),
                           style: GoogleFonts.cairo(

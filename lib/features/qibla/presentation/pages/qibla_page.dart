@@ -426,7 +426,16 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
         
         // Compass
         Expanded(
-          child: _buildCompass(deviation, alignment),
+          // The compass is purely visual; announce the two angles it shows so
+          // a screen reader gets the same information (docs/accessibility.md).
+          child: Semantics(
+            label: AppLocalizations.of(context).a11yQiblaCompass(
+              (_qiblaResult?.magneticQiblaDirection ?? 0).toStringAsFixed(0),
+              (_isLocked ? _lockedDirection : _currentHeading)
+                  .toStringAsFixed(0),
+            ),
+            child: _buildCompass(deviation, alignment),
+          ),
         ),
         
         // Info & Controls
@@ -510,7 +519,8 @@ class _QiblaPageState extends State<QiblaPage> with SingleTickerProviderStateMix
               onPressed: _showCalibrationHelp,
               tooltip: AppLocalizations.of(context).qiblaCalibNeeded,
               padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
+              // Keeps the small glyph but a >=48 dp tap target (a11y guideline).
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             ),
         ],
       ),

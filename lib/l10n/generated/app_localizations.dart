@@ -63,7 +63,7 @@ import 'app_localizations_en.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -86,16 +86,16 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ar'),
-    Locale('en')
+    Locale('en'),
   ];
 
   /// The app name shown in the title bar and launcher context.
@@ -2545,7 +2545,11 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{text}\n\n{narrator}\n\n— {title} #{id}'**
   String hreaderCopyTemplate(
-      String text, String title, int id, String narrator);
+    String text,
+    String title,
+    int id,
+    String narrator,
+  );
 
   /// Reader app-bar title.
   ///
@@ -4065,6 +4069,12 @@ abstract class AppLocalizations {
   /// **'Next'**
   String get a11yNext;
 
+  /// Accessibility label for the visual-only qibla compass: the bearing to the Kaaba and the current device heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Qibla direction {qibla} degrees, device heading {heading} degrees'**
+  String a11yQiblaCompass(String qibla, String heading);
+
   /// Accessibility label announcing the current tasbih count.
   ///
   /// In en, this message translates to:
@@ -4099,8 +4109,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }

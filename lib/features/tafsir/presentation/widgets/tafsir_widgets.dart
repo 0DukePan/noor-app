@@ -201,9 +201,14 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
                         }
                         setState(() {});
                       },
-                      visualDensity: VisualDensity.compact,
                       padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
+                      // No compact density: it subtracts 8 dp from the minimum
+                      // and puts the rendered target back below 48 dp
+                      // (docs/accessibility.md).
+                      constraints: const BoxConstraints(
+                        minWidth: 48,
+                        minHeight: 48,
+                      ),
                     ),
                     const SizedBox(width: 8),
                     // Expand icon
@@ -288,7 +293,8 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
                 icon: const Icon(Icons.fullscreen, size: 18),
                 label: Text(AppLocalizations.of(context).tfwFullView),
                 style: TextButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
+                  // Compact density renders 40 dp; keep the tap target at 48.
+                  minimumSize: const Size(0, 48),
                 ),
               ),
               
@@ -298,7 +304,8 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
                 icon: const Icon(Icons.compare_arrows, size: 18),
                 label: Text(AppLocalizations.of(context).tfwCompare),
                 style: TextButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
+                  // Compact density renders 40 dp; keep the tap target at 48.
+                  minimumSize: const Size(0, 48),
                 ),
               ),
             ],

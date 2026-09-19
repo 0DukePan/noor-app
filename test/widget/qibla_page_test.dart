@@ -129,6 +129,19 @@ void main() {
       expect(find.text('🕋 الكعبة'), findsOneWidget);
       // Riyadh → Kaaba bearing ≈ 244° (southwest) → 'جنوب غرب'.
       expect(find.text('جنوب غرب'), findsWidgets);
+
+      // The compass is visual-only: its spoken label carries both angles, and
+      // every tappable node on the page is at least 48 dp.
+      final handle = tester.ensureSemantics();
+      expect(
+        find.bySemanticsLabel(
+          RegExp(r'اتجاه القبلة \d+ درجة، واتجاه الجهاز \d+ درجة'),
+        ),
+        findsOneWidget,
+      );
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      handle.dispose();
+
       await unmount(tester);
     });
 

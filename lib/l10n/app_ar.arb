@@ -661,5 +661,6 @@
   "npcTomorrow": "غداً",
   "a11yPrevious": "السابق",
   "a11yNext": "التالي",
-  "a11yTasbihCount": "العدد: {count}"
+  "a11yTasbihCount": "العدد: {count}",
+  "a11yQiblaCompass": "اتجاه القبلة {qibla} درجة، واتجاه الجهاز {heading} درجة"
 }

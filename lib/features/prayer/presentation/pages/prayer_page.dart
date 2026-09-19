@@ -543,7 +543,11 @@ class _TimelinePrayerRow extends StatelessWidget {
                         ),
                         onPressed: onBellPressed,
                         padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
+                        // Small glyph, >=48 dp tap target (a11y guideline).
+                        constraints: const BoxConstraints(
+                          minWidth: 48,
+                          minHeight: 48,
+                        ),
                       ),
                   ],
                 ),

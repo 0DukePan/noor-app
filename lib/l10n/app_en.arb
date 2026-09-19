@@ -3293,6 +3293,18 @@
   "@a11yNext": {
     "description": "Accessibility label: next item or page."
   },
+  "a11yQiblaCompass": "Qibla direction {qibla} degrees, device heading {heading} degrees",
+  "@a11yQiblaCompass": {
+    "description": "Accessibility label for the visual-only qibla compass: the bearing to the Kaaba and the current device heading.",
+    "placeholders": {
+      "qibla": {
+        "type": "String"
+      },
+      "heading": {
+        "type": "String"
+      }
+    }
+  },
   "a11yTasbihCount": "Count: {count}",
   "@a11yTasbihCount": {
     "description": "Accessibility label announcing the current tasbih count.",

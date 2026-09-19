@@ -1368,7 +1368,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String hreaderCopyTemplate(
-      String text, String title, int id, String narrator) {
+    String text,
+    String title,
+    int id,
+    String narrator,
+  ) {
     return '$text\n\n$narrator\n\n— $title #$id';
   }
 
@@ -2237,6 +2241,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get a11yNext => 'Next';
+
+  @override
+  String a11yQiblaCompass(String qibla, String heading) {
+    return 'Qibla direction $qibla degrees, device heading $heading degrees';
+  }
 
   @override
   String a11yTasbihCount(int count) {
