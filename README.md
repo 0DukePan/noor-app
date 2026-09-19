@@ -44,14 +44,14 @@ so they cannot quietly drift.
 
 | | Value | Enforced by |
 |---|---|---|
-| Tests | 651, all green | `flutter test` |
-| Line coverage | 30.70% (floor 30, raised as pages land) | `tools/coverage_summary.py` |
+| Tests | 682, all green | `flutter test` |
+| Line coverage | 30.95% (floor 30.5, raised as pages land) | `tools/coverage_summary.py` |
 | Hadith collections | 9 major collections + Nawawi's 40 | `assets/db/hadith.db` (checksummed) |
 | Tafsir sources | 4 — Muyassar, Ibn Kathir, Sa'di, Tabari | `assets/db/` (checksummed) |
 | Mushaf | 604 pages, Uthmani text | checksum sidecar + integrity test |
 | Prayer calculation methods | 19, plus per-region presets | `prayer_time_models.dart` |
 | Bundle size | 221.8 MB (budget 230 MB) | `tools/check_assets_size.py` |
-| Arabic/English string parity | 662 keys each | `tools/check_arb_parity.py` |
+| Arabic/English string parity | 663 keys each | `tools/check_arb_parity.py` |
 | Static analysis | 0 issues | `flutter analyze` |
 | File-size ceiling | enforced, with 13 grandfathered files tracked and capped in the check's baseline | `tools/file_size_check.py` |
 
@@ -83,7 +83,8 @@ streaks and statistics, and shows prayer times on a home-screen widget.
 
 **Languages & accessibility** — Arabic and English with CI-gated key parity and
 correct RTL/LTR behaviour; the primary flows carry screen-reader labels and
-tap-target sizes verified by Flutter's accessibility guidelines
+tap-target sizes verified by Flutter's accessibility guidelines, and the home
+dashboard is gated against large-text overflow at 1.3× and 2.0× text scale
 (`docs/accessibility.md`).
 
 ## Privacy by construction
@@ -106,9 +107,13 @@ tap-target sizes verified by Flutter's accessibility guidelines
 Religious content deserves the same rigour as the code:
 
 - **Checksums for every content set** (Quran, hadith, adhkar, narrators) with
-  sidecar `.sha256` files so any silent change is caught.
+  sidecar `.sha256` files, plus a machine-readable manifest
+  (`docs/content-manifest.json`) that freezes every bundled file's hash and
+  provenance. `tool/verify_content_checksums.dart` re-checks it on every push
+  and again before a release build.
 - **A scholarly review tracker** (`docs/scholarly-review.md`) mapping each
   content set to its freeze hash and review status. Review is release-blocking.
+  The full procedure is written down in `docs/content-pipeline.md`.
 - **The narrator database does not fabricate.** Fields for *Ilm al-Rijal*
   verdicts exist in the schema but are populated only where a citation exists —
   an empty field is honest, an invented grade is not.
@@ -125,8 +130,10 @@ flutter pub get
 flutter run                 # connected Android/iOS device or emulator
 ```
 
-Requires the Flutter stable channel (Dart ≥ 3.0). Core features need no
-network; a first launch imports the bundled hadith database once.
+Requires the Flutter stable channel — Dart ≥ 3.11 / Flutter ≥ 3.41, the first
+SDKs with the fix for CVE-2026-27704 (path traversal in `pub` package
+extraction); older SDKs are refused at resolve time. Core features need no
+network; a first launch copies the bundled hadith database once.
 
 > **Web is not supported.** The app depends on native plugins (SQLite, adhan
 > scheduling, background audio, compass, geolocation) that have no web
@@ -177,12 +184,15 @@ Every push runs the same gates locally and in CI (`.github/workflows/ci.yml`):
 |---|---|
 | `flutter analyze` | 0 issues |
 | `flutter test` | the whole suite green |
-| `tools/coverage_summary.py` | app-wide coverage floor |
+| `tools/coverage_summary.py` | app-wide coverage floor (a ratchet, see `docs/coverage-inventory.md`) |
 | `tools/file_size_check.py` | one file cannot quietly become a god-file |
 | `tools/check_assets_size.py` | bundle stays inside the 230 MB budget |
 | `tools/check_exclusions.py` | coverage exclusions stay small and justified |
-| `tools/check_arb_parity.py` | Arabic and English never diverge |
-| `flutter test integration_test` (emulator) | the real app boots: DB import, onboarding, all five tabs |
+| `tools/check_arb_parity.py` | locale parity: key sets, empty strings, ICU placeholders |
+| `dart run tool/verify_content_checksums.dart` | shipped content matches the frozen manifest |
+| OSV-Scanner over `pubspec.lock` | dependencies have no known vulnerabilities |
+| `tools/generate_sbom.py` | a CycloneDX SBOM for every run (uploaded artifact) |
+| `flutter test integration_test` (emulator) | the real app boots with wifi/data disabled: DB import, onboarding, all five tabs |
 
 ## Documentation
 
@@ -196,8 +206,15 @@ Every push runs the same gates locally and in CI (`.github/workflows/ci.yml`):
 | [docs/coverage-inventory.md](docs/coverage-inventory.md) | Per-file coverage and risk inventory |
 | [docs/coverage-exclusions.md](docs/coverage-exclusions.md) | Every line deliberately not covered, and why |
 | [docs/scholarly-review.md](docs/scholarly-review.md) | Content review status and freeze hashes |
+| [docs/content-pipeline.md](docs/content-pipeline.md) | How content is built, frozen, reviewed and verified |
+| [docs/privacy.md](docs/privacy.md) | Where every piece of data lives, and what can leave the device |
+| [docs/offline-first.md](docs/offline-first.md) | What works offline, and how each failure behaves |
+| [docs/data-model.md](docs/data-model.md) | SQLite schemas, Hive boxes, bundled JSON |
+| [docs/adr/](docs/adr/README.md) | Architecture decision records (why Flutter, SQLite, Hive, Riverpod, …) |
 | [docs/qa-checklist.md](docs/qa-checklist.md) | The on-device pass before a release |
 | [docs/store-checklist.md](docs/store-checklist.md) | Store submission requirements |
+| [SECURITY.md](SECURITY.md) | Threat model, permissions, dependency scanning, reporting |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Dev setup, the gate list, conventions, content rules |
 | [docs/media/README.md](docs/media/README.md) | How the demo GIF is generated or replaced |
 
 ## FAQ
@@ -225,8 +242,12 @@ field than an invented *Ilm al-Rijal* verdict — see
 `docs/scholarly-review.md`.
 
 **Is the source open?**
-No. The repository is proprietary (see [LICENSE](LICENSE)); the published app is
-free to use.
+It is **source-available, not open-source**: this is the full source, published
+so every claim in it — checksums, quality gates, the privacy design — can be
+verified directly, while the code stays proprietary (see [LICENSE](LICENSE)).
+The published app is free to use. Bug reports and reproducibility findings are
+welcome as issues; code contributions are not accepted without prior
+discussion, precisely because of that license.
 
 **How do I regenerate the demo GIF or get screenshots?**
 `docs/media/README.md` has both the regeneration commands and the spec for
@@ -234,7 +255,10 @@ dropping in a real device recording.
 
 ## License
 
-[Proprietary — all rights reserved.](LICENSE) The published application is free
-to download and use.
+[Proprietary — all rights reserved.](LICENSE) The source is published as
+**source-available** (not open-source) so the content-integrity and privacy
+claims above can be verified directly; the published application is free to
+download and use. See [SECURITY.md](SECURITY.md) for the threat model and the
+vulnerability-reporting process.
 
 <sub>العربية: [README.ar.md](README.ar.md)</sub>

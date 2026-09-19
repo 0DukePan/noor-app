@@ -89,3 +89,24 @@ that cost real debugging time — read this before writing a widget test.
 - The claim guard (`test/mojibake_guard_test.dart`) scans every user-facing
   doc — if a stripped term reappears in README/store/API_SOURCES, that's an
   intentional honesty regression, not a test annoyance.
+
+## Property tests and dynamic-type tests
+
+- `test/test_utils/property.dart` is a hand-rolled, seeded property runner
+  (`forAll`): no dependency, a fixed default seed, and the smallest
+  counter-example in the failure message. Use it for invariants over an input
+  space (prayer-time ordering, Arabic normalisation equivalence, FSRS state
+  domains) — `test/property/` is the reference set.
+- Keep generators in the test file, give each `forAll` a `describe` callback
+  (the failure message is the only evidence a future reader gets), and add a
+  `shrink` only when a real failure needed one.
+- `test/widget/text_scale_test.dart` pumps a page inside a `MediaQuery` with
+  `TextScaler.linear(scale)` — wrapped through `MaterialApp.builder`, because
+  the app installs its own MediaQuery otherwise — and asserts
+  `tester.takeException()` is null; RenderFlex overflows surface as exceptions.
+  Prefer `Wrap` over `Row` for label rows so large text stacks instead of
+  overflowing.
+- Golden note: goldens render with the Ahem placeholder font, which is wider
+  than Cairo. A layout change can therefore require
+  `flutter test --update-goldens` even when the change is invisible with the
+  real font — that is expected, the golden pins layout, not typography.

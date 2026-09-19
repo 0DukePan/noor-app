@@ -4,6 +4,61 @@ All notable changes to Noor (نور) are documented in this file.
 
 ## [Unreleased]
 
+### Added — 2026-09-18 (security, provenance and accessibility hardening)
+
+- **`SECURITY.md`** — the threat model the privacy claims implied but never
+  wrote down: what is on-device vs. what can leave it, a per-permission
+  justification, the notes-encryption design (per-write IV, key in platform
+  secure storage, fail-closed after a backup restore), the supply-chain gates,
+  and a private disclosure process.
+- **Dependency scanning and an SBOM in CI** — OSV-Scanner checks `pubspec.lock`
+  on every push and pull request (pinned reusable workflow), and
+  `tools/generate_sbom.py` writes a CycloneDX SBOM uploaded as an artifact.
+- **SDK floor raised to Dart 3.11 / Flutter 3.41** — the first releases with
+  the fix for CVE-2026-27704 (path traversal in `pub` package extraction);
+  older SDKs are refused at resolve time.
+- **Machine-readable content provenance** — `docs/content-manifest.json`
+  freezes every bundled content file's SHA-256 plus `source`, `license`,
+  `retrieved_at` and `review_status`; `tool/verify_content_checksums.dart`
+  checks files, sidecars and coverage on every push and again before a release
+  build. Unrecorded provenance fields are reported as warnings and must be
+  closed before a store release (`docs/content-pipeline.md`).
+- **Property-based tests, hand-rolled** (`test/property/`) covering prayer-time
+  ordering/determinism/offset invariants, Arabic normalisation equivalences and
+  the FSRS state domain; seeded and shrinking, with the smallest counter-example
+  in the failure message. No new dependency. It found one real edge: with a
+  raised horizon (elevation) at ~65°N in June the solar events vanish and the
+  clamped times coincide — the documented high-latitude limitation, now pinned
+  as a non-strict invariant.
+- **Dynamic-type gate and layout fixes** — `test/widget/text_scale_test.dart`
+  pumps the home dashboard (Arabic/RTL) at 1.3× and 2.0× and fails on overflow.
+  Closing it converted four overflowing rows into wrapping layouts and
+  regenerated the day-state golden (goldens pin layout under the Ahem font,
+  which is wider than Cairo).
+- **Qibla compass speaks** — the visual-only compass now carries a Semantics
+  label with the Kaaba bearing and the device heading (`a11yQiblaCompass`,
+  ar/en), the qibla page is covered by the tap-target guideline, and the
+  compact controls that `visualDensity.compact` had rendered at 40 dp (tafsir
+  bookmark, full view and compare, qibla calibration, prayer bell) now render
+  at >= 48 dp — asserted by measured size, not just labels.
+- **Docs and workflow** — `docs/privacy.md`, `docs/offline-first.md`,
+  `docs/data-model.md`, ADRs 001–009, `CONTRIBUTING.md`, issue/PR templates,
+  CODEOWNERS and Dependabot. The ARB parity gate now also checks empty values
+  and ICU placeholder parity for any number of locales.
+- **Removed the vestigial `supabase/schema.sql`** — no code referenced it, the
+  docs are guard-tested not to mention it, and it contradicted the documented
+  no-backend posture.
+
+### Changed — 2026-09-18
+
+- **Licensing, stated plainly:** the README FAQ and License section now say
+  source-available instead of refusing the question, and the install floor,
+  gate table and docs index were updated to match CI.
+- **CI integration job** disables the emulator's wifi and mobile data
+  (best-effort) before booting, and publishes the startup benchmark numbers
+  with the emulator environment into the job summary
+  (`tools/perf_summary.py`).
+
 ### Fixed — 2026-09-18 (launch-blocker pass: startup, signing, data integrity, a11y)
 
 - **Startup can no longer be killed by one failing service.** `main()` runs 19

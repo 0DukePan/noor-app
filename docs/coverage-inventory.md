@@ -223,3 +223,19 @@ it predates the R2/R3 batches and misreports post-split files (e.g. it still
 lists `full_tafsir_reader.dart`, and shows `qibla_page.dart`/`surah_page.dart`
 as 0%). Trust `coverage-exclusions.md` (live dispositions, "Last updated"
 line) plus a fresh lcov run for current numbers.
+
+## Ratchet plan (2026-09-18)
+
+The CI floor is a ratchet, not a suggestion: it moves up in stages
+(30 → 40 → 50 → 60), and each stage is only set once the measured value sits
+comfortably above it. The floor was raised **30 → 30.5** with this pass
+(measured 30.95% at 682 tests, up from 30.70%); the next stop is 31, then the
+staged targets. The per-file table above is the place to look when choosing
+what to cover next — start with the `safety-critical` and `data-integrity`
+rows.
+
+`test/property/` now pins the invariants of three of those files (prayer
+engine, Arabic normalisation, FSRS) and `test/widget/text_scale_test.dart`
+gates dynamic-type layout on the home dashboard. The seeded-bug review remains
+the check that coverage on a safety-critical file is *trustworthy* rather than
+merely exercised.

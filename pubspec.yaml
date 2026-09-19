@@ -4,7 +4,10 @@ publish_to: 'none'
 version: 1.0.0+2
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  # SDK floor: the first releases containing the fix for CVE-2026-27704
+  # (path traversal during pub package extraction). Documented in SECURITY.md.
+  sdk: '>=3.11.0 <4.0.0'
+  flutter: '>=3.41.0'
 
 dependencies:
   # Prayer Times

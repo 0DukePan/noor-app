@@ -81,3 +81,14 @@ only be checked on real hardware.
 - [ ] Rapid tab switching (10+ switches in 5 s) — no jank/crash.
 - [ ] No red error screens at any point; check logcat for
       `FATAL EXCEPTION` / `Unhandled Exception`.
+
+## 8. Accessibility (device pass)
+
+- [ ] System font scale at 2.0×: walk the five tabs — nothing clipped or
+      overflowing. (The home dashboard is CI-gated at 1.3×/2.0×;
+      `docs/accessibility.md` lists what is still manual.)
+- [ ] Screen reader (TalkBack / VoiceOver): home, Quran index, hadith reader,
+      prayer times, adhkar, qibla. Every control says what it does; the qibla
+      compass announces its heading and bearing.
+- [ ] Device language set to English: RTL/LTR layouts behave, no Arabic
+      hardcoded chrome leaks into the English UI.
