@@ -1,0 +1,77 @@
+name: Bug report
+description: Something is broken, or a claim in the docs does not match the app
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please do not paste personal data (notes,
+        location, queries) into an issue. Security problems go through
+        SECURITY.md's private reporting instead.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: From the store listing or `pubspec.yaml`
+      placeholder: "1.0.0+2"
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      placeholder: "Android 14 / iOS 17 / Windows"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Quran (reading, mushaf, translations)
+        - Hadith (reading, search, Isnad)
+        - Prayer times / Qibla
+        - Adhkar / Tasbih
+        - Search
+        - Audio / recitation
+        - Accessibility
+        - Documentation or CI
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The smaller the reproduction, the faster the fix
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Screenshots, log excerpts (with personal data removed), or a commit hash
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I removed personal data from anything pasted here
+          required: true
+        - label: I searched existing issues before opening this
+          required: true

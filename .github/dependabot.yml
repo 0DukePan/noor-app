@@ -1,0 +1,26 @@
+version: 2
+updates:
+  # Keep the locked Dart/Flutter dependency set current. Minor and patch
+  # updates are grouped into one PR to keep the queue reviewable; majors stay
+  # separate because they need a human decision.
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      pub-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  # CI actions (checkout, flutter-action, upload-artifact, emulator-runner, the
+  # pinned OSV-Scanner reusable workflow).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      actions-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]

@@ -1,0 +1,3 @@
+# Single-maintainer project: every path resolves to the owner.
+# The file exists so review routing is explicit if collaborators are ever added.
+*       @0DukePan

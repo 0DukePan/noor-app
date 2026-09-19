@@ -124,6 +124,16 @@ headroom remains. Revisit if the budget ratchets below ~205 MB.
 The Play listing's download-size line is filled at submission time from the
 actual AAB/APK; keep the 230 MB CI gate as the regression guard until then.
 
+**Platform asymmetry (recorded 2026-09-18).** The on-demand mechanism above is
+Android-only in practice: Flutter's deferred components (Play Feature Delivery
+under the hood) run in release/profile mode on Android only, and Apple's
+On-Demand Resources has no Flutter engine support. **Decision: iOS ships the
+full bundle indefinitely.** If Android later moves optional tafsir or narrator
+content on-demand, the platforms will have different content-delivery stories
+by design; the iOS size budget is then judged on its own rather than against a
+reduced Android download. Revisit only once the Android split has shipped and
+proven itself worth the extra build configuration.
+
 ## 7. Store assets
 
 - **Icon**: already generated (`assets/icon/app_icon.png` applied to

@@ -1,0 +1,51 @@
+name: Feature request
+description: Suggest a capability for Noor
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Noor's guiding principle is "make it harder to break, not bigger".
+        Requests are welcome and get recorded — but new features are gated
+        behind reliability, privacy and accessibility work, so a request may
+        sit for a while by design.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that the app makes hard today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: dropdown
+    id: offline
+    attributes:
+      label: Does it work offline?
+      description: Core features must not require a connection
+      options:
+        - Yes, fully offline
+        - Needs a network for an optional part
+        - Not sure
+    validations:
+      required: true
+  - type: checkboxes
+    id: principles
+    attributes:
+      label: Project principles
+      options:
+        - label: It does not require an account, ads, or third-party tracking
+          required: true
+        - label: I understand religious content must come from a citable source
+          required: true
