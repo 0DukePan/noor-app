@@ -49,6 +49,17 @@ Rows 2 (surah names/metadata), 11 (prayer presets), 12-13 (ARB UI copy) live
 in code and are covered by the test suite + `check_arb_parity.py`; they are
 frozen by review, not by a separate hash.
 
+## Machine-readable manifest
+
+`docs/content-manifest.json` is the complete freeze surface: one entry per
+bundled set with its provenance fields, review reference, and the SHA-256 of
+every file. It is verified against the files and the sidecars above by
+`dart run tool/verify_content_checksums.dart` on every push and again in the
+release job, and it also fails when a content file under a covered root is not
+listed by any set. Update it in the same commit as any content change — a hash
+change invalidates the affected sign-off here by design. See
+`docs/content-pipeline.md` for the full procedure.
+
 ## Out of scope for reviewers
 
 - Code correctness, test coverage, performance (engineering's job, CI-gated).

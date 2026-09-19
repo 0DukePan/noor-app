@@ -1,0 +1,142 @@
+{
+  "schema": 1,
+  "updated_at": "2026-09-18",
+  "description": "Machine-readable provenance and freeze hashes for every bundled content set. The scholarly tracker (docs/scholarly-review.md) records who approved what; this manifest records which bytes that approval covers. Verified by tool/verify_content_checksums.dart on every push and again before a release build; see docs/content-pipeline.md. 'unrecorded' provenance values are honest gaps to close before a store release, not placeholders to guess at.",
+  "covered_roots": [
+    "assets/adhkar",
+    "assets/db",
+    "assets/hadith",
+    "assets/quran"
+  ],
+  "sets": [
+    {
+      "id": "quran-text",
+      "title": "Quran uthmani text, page map, surah metadata and bundled translations",
+      "directory": "assets/quran",
+      "include": "**/*.json",
+      "sha256": {
+        "assets/quran/quran_uthmani.json": "c5cb480e619e097fed6c597160d4dd94e342487d3aaeb14b292c6c58aa232745",
+        "assets/quran/quran_pages.json": "96763b70eb527e883d9bda2f86ec0294027e19a25c86c09b8186bc3a7a988c0d",
+        "assets/quran/surahs.json": "46498fdce0ff278709c239568628cf925923070de41a248ae6a67d2e77a1c7f3",
+        "assets/quran/translations/en_sahih.json": "496ff9f8f5cafa6619c6605e0f3d7a30138cabad9a71976c3f8308c082a96454",
+        "assets/quran/translations/ar_muyassar.json": "e409898887a10a92de554b364c12c56a59b9030f2b07df94578040af234b7153"
+      },
+      "checksum_files": [
+        {
+          "path": "assets/quran/quran_uthmani.sha256",
+          "covers": ["assets/quran/quran_uthmani.json"]
+        }
+      ],
+      "source": "unrecorded in-repo; the scholarly tracker reviews the text against trusted print editions (docs/scholarly-review.md row 1)",
+      "license": "unrecorded",
+      "retrieved_at": "unrecorded",
+      "review_status": "pending",
+      "review_ref": "docs/scholarly-review.md rows 1 and 13"
+    },
+    {
+      "id": "tafsir-db",
+      "title": "Four classical tafsir sources (Muyassar, As-Saadi, At-Tabari, Ibn Kathir)",
+      "sha256": {
+        "assets/db/tafsir.db": "b7cb14ecf002ecf5128f098c828f9ccdc65787d06af50f50811c02edd4576eb9"
+      },
+      "checksum_files": [
+        {
+          "path": "assets/db/tafsir.db.sha256",
+          "covers": ["assets/db/tafsir.db"]
+        }
+      ],
+      "source": "build-time corpus in tool/data/tafsir/, consolidated by tool/build_tafsir_db.dart",
+      "license": "unrecorded",
+      "retrieved_at": "unrecorded",
+      "review_status": "pending",
+      "review_ref": "docs/scholarly-review.md rows 3-6"
+    },
+    {
+      "id": "hadith-db",
+      "title": "Nine hadith collections plus the forty of Imam al-Nawawi and other collections",
+      "sha256": {
+        "assets/db/hadith.db": "3ed05abea09943771e59cb57e239cbf85f07790f5b92e7bff1a78b9640d98da9"
+      },
+      "checksum_files": [
+        {
+          "path": "assets/db/hadith.db.sha256",
+          "covers": ["assets/db/hadith.db"]
+        }
+      ],
+      "source": "build-time corpus in tool/data/hadith/, built by tool/build_hadith_db.dart (the file itself is gitignored and regenerated in CI)",
+      "license": "unrecorded",
+      "retrieved_at": "unrecorded",
+      "review_status": "pending",
+      "review_ref": "docs/scholarly-review.md rows 7-8"
+    },
+    {
+      "id": "narrators",
+      "title": "Narrator biographies with per-entry citation",
+      "sha256": {
+        "assets/hadith/narrators.json": "ab83c386add8ef2ebd0d91a07a071f803d7b9af9778f08bdf94e1a4ce5d71a97"
+      },
+      "checksum_files": [
+        {
+          "path": "assets/hadith/narrators.sha256",
+          "covers": ["assets/hadith/narrators.json"]
+        },
+        {
+          "path": "assets/hadith/narrators.json.sha256",
+          "covers": ["assets/hadith/narrators.json"]
+        }
+      ],
+      "source": "authored in-repo; reliability verdicts carry per-entry citations (rankSource), empty where no citation exists",
+      "license": "in-repo content, no third-party text",
+      "retrieved_at": "2026-09-05",
+      "review_status": "pending",
+      "review_ref": "docs/scholarly-review.md row 9"
+    },
+    {
+      "id": "hadith-grades",
+      "title": "Selected hadith gradings (al-Albani), marked under review in-file",
+      "sha256": {
+        "assets/hadith/grades.json": "9be7957005e4832aac66c1ae2f28c893768b0f633dce0d85775f7b005927d250"
+      },
+      "checksum_files": [],
+      "source": "selected from al-Albani's rulings; _meta records that every number must be verified before release",
+      "license": "unrecorded",
+      "retrieved_at": "unrecorded",
+      "review_status": "pending",
+      "review_ref": "docs/scholarly-review.md rows 7-8"
+    },
+    {
+      "id": "adhkar",
+      "title": "Adhkar corpus (morning, evening, after prayer, sleep, wake, general, library)",
+      "directory": "assets/adhkar",
+      "include": "*.json",
+      "sha256": {
+        "assets/adhkar/after_prayer.json": "11e228f7df7b7187ee68787f15586f377409b77c46ff196db8094026a67fe4dd",
+        "assets/adhkar/evening.json": "93f959804f65fc01bb356a241a9036c70362a51aae6381f9a78f2c35cbdebf62",
+        "assets/adhkar/general.json": "3a3cf43bdeb418c494ce615b70d13df5e10fe8783020da4160cb386525eb2447",
+        "assets/adhkar/library.json": "7fe97f6c62374642a3c01e10514d7d6e07c78baa6bb61793aead29f7ea2272cd",
+        "assets/adhkar/morning.json": "d44c0f76ada78ad865c5dc3d8c7a0f7b246cc17ff548927c55dd40a5fd31efa2",
+        "assets/adhkar/sleep.json": "c3620e3a46c9e91eed0c71ad1046d342610a2cd0fb12c2db848750e42e442cdb",
+        "assets/adhkar/wakeup.json": "608f78063fc4e598829de8842a26675629dcf1e6672119f821a5b3928e4a27f2"
+      },
+      "checksum_files": [
+        {
+          "path": "assets/adhkar/adhkar.sha256",
+          "covers": [
+            "assets/adhkar/after_prayer.json",
+            "assets/adhkar/evening.json",
+            "assets/adhkar/general.json",
+            "assets/adhkar/library.json",
+            "assets/adhkar/morning.json",
+            "assets/adhkar/sleep.json",
+            "assets/adhkar/wakeup.json"
+          ]
+        }
+      ],
+      "source": "public adhkar corpora consolidated in-repo; see docs/API_SOURCES.md for the upstream collections",
+      "license": "unrecorded",
+      "retrieved_at": "unrecorded",
+      "review_status": "pending",
+      "review_ref": "docs/scholarly-review.md row 10"
+    }
+  ]
+}

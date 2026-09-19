@@ -31,6 +31,9 @@ jobs:
       - name: Generate prebuilt hadith database
         run: dart run tool/build_hadith_db.dart
 
+      - name: Verify content checksums (shipped content vs frozen manifest)
+        run: dart run tool/verify_content_checksums.dart
+
       - name: Analyze
         run: flutter analyze
 
@@ -76,7 +79,10 @@ jobs:
           exit 0
 
       - name: Verify app-wide coverage floor
-        run: python3 tools/coverage_summary.py 30
+        # Ratchet, not a suggestion: 30 -> 30.5 (measured 30.95% at 682 tests,
+        # 2026-09-18). Staged target 40 -> 50 -> 60 as pages land; see the
+        # ratchet plan in docs/coverage-inventory.md.
+        run: python3 tools/coverage_summary.py 30.5
 
       - name: Verify lib/ file-size ceiling
         run: python3 tools/file_size_check.py
@@ -99,6 +105,33 @@ jobs:
         with:
           name: coverage-lcov
           path: coverage/lcov.info
+
+      - name: Generate SBOM (CycloneDX)
+        # No first-party Dart/Flutter SBOM tool exists; tools/generate_sbom.py
+        # walks the locked dependency set into CycloneDX JSON.
+        run: python3 tools/generate_sbom.py --output build/sbom.cdx.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: build/sbom.cdx.json
+
+  # Supply-chain gate: pubspec.lock scanned against OSV.dev on every push and
+  # pull request. Pinned to a release tag; the job fails on any known
+  # vulnerability. SARIF upload stays off so the gate does not depend on
+  # GitHub code-scanning being enabled for the repository.
+  dependency-scan:
+    name: Dependency vulnerability scan (OSV)
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.6.0"
+    with:
+      scan-args: |-
+        --lockfile=pubspec.lock
+      upload-sarif: false
 
   build-android:
     name: Build Android APK
@@ -190,7 +223,30 @@ jobs:
           profile: pixel_5
           disable-animations: true
           emulator-options: -no-window -no-audio -no-boot-anim
-          script: flutter test integration_test
+          script: |
+            # Best-effort offline exercise: the app must boot with no
+            # connectivity (the DB copies from bundled assets). A refused
+            # toggle must not fail the job — the app itself never requires
+            # the network; see docs/offline-first.md.
+            adb shell svc wifi disable || true
+            adb shell svc data disable || true
+            # tee with exit-code preservation, so the benchmark step below can
+            # publish the numbers this run actually measured.
+            flutter test integration_test > integration_output.log 2>&1
+            status=$?
+            cat integration_output.log
+            exit $status
+
+      - name: Publish startup benchmark numbers
+        if: always()
+        run: |
+          {
+            echo "## Startup benchmark (Android emulator)"
+            echo ""
+            echo "Environment: API 34 / pixel_5 / x86_64, Flutter 3.44.9"
+            echo ""
+            python3 tools/perf_summary.py integration_output.log || true
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # Signing is optional. `secrets` may NOT be referenced in a job-level `if:`:
   # GitHub then rejects the whole workflow file ("Unrecognized named-value:
@@ -228,6 +284,9 @@ jobs:
 
       - name: Generate prebuilt hadith database
         run: dart run tool/build_hadith_db.dart
+
+      - name: Verify content checksums before release
+        run: dart run tool/verify_content_checksums.dart
 
       - name: Configure signing key
         run: |
