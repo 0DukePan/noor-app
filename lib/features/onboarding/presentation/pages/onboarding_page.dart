@@ -21,37 +21,40 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
+  // Material icons, not emoji: emoji come from a system font, so the golden
+  // test rendered differently on Windows and on the Linux CI image (0.22% of
+  // pixels, one glyph). Icon glyphs ship with the framework.
   List<OnboardingStep> _steps(AppLocalizations l10n) => [
     OnboardingStep(
-      icon: '🌙',
+      icon: Icons.nightlight_round,
       title: l10n.ob1Title,
       subtitle: l10n.ob1Subtitle,
       description: l10n.ob1Desc,
       color: NoorTheme.primary,
     ),
     OnboardingStep(
-      icon: '📖',
+      icon: Icons.menu_book,
       title: l10n.ob2Title,
       subtitle: l10n.ob2Subtitle,
       description: l10n.ob2Desc,
       color: const Color(0xFF2E7D32),
     ),
     OnboardingStep(
-      icon: '📚',
+      icon: Icons.auto_stories,
       title: l10n.ob3Title,
       subtitle: l10n.ob3Subtitle,
       description: l10n.ob3Desc,
       color: const Color(0xFF5D4037),
     ),
     OnboardingStep(
-      icon: '🕌',
+      icon: Icons.mosque,
       title: l10n.ob4Title,
       subtitle: l10n.ob4Subtitle,
       description: l10n.ob4Desc,
       color: const Color(0xFF1565C0),
     ),
     OnboardingStep(
-      icon: '🤲',
+      icon: Icons.volunteer_activism,
       title: l10n.ob5Title,
       subtitle: l10n.ob5Subtitle,
       description: l10n.ob5Desc,
@@ -195,10 +198,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
             builder: (context, value, child) {
               return Transform.scale(
                 scale: value,
-                child: Text(
-                  step.icon,
-                  style: const TextStyle(fontSize: 80),
-                ),
+                child: Icon(step.icon, size: 80, color: step.color),
               );
             },
           ),
@@ -250,7 +250,7 @@ class OnboardingStep {
     required this.color,
     this.isLast = false,
   });
-  final String icon;
+  final IconData icon;
   final String title;
   final String subtitle;
   final String description;

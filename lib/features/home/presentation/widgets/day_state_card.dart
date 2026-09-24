@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/day_state_machine.dart';
 import '../../../../core/theme/design_system.dart';
@@ -46,7 +45,11 @@ class DayStateCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
             ),
             child: Center(
-              child: Text(state.icon, style: const TextStyle(fontSize: 24)),
+              child: Icon(
+                _iconFor(state),
+                size: 24,
+                color: NoorDesignSystem.primaryGreen,
+              ),
             ),
           ),
           const SizedBox(width: 14),
@@ -58,7 +61,8 @@ class DayStateCard extends StatelessWidget {
               children: [
                 Text(
                   state.arabicName,
-                  style: GoogleFonts.cairo(
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: isDark ? Colors.white : NoorDesignSystem.textPrimary,
@@ -67,7 +71,8 @@ class DayStateCard extends StatelessWidget {
                 if (stateInfo.suggestedAction.isNotEmpty)
                   Text(
                     stateInfo.suggestedAction,
-                    style: GoogleFonts.cairo(
+                    style: const TextStyle(
+                      fontFamily: 'Cairo',
                       fontSize: 12,
                       color: NoorDesignSystem.primaryGreen,
                       fontWeight: FontWeight.w600,
@@ -85,7 +90,8 @@ class DayStateCard extends StatelessWidget {
                   children: [
                     Text(
                       l10n.dayTasks(done),
-                      style: GoogleFonts.cairo(
+                      style: const TextStyle(
+                        fontFamily: 'Cairo',
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: NoorDesignSystem.goldAccent,
@@ -94,7 +100,8 @@ class DayStateCard extends StatelessWidget {
                     if (streak > 0)
                       Text(
                         l10n.dayStreak(streak),
-                        style: GoogleFonts.cairo(
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
                           fontSize: 11,
                           color: isDark
                               ? Colors.white54
@@ -120,7 +127,8 @@ class DayStateCard extends StatelessWidget {
                   ),
                   child: Text(
                     stateInfo.suggestedAdhkar,
-                    style: GoogleFonts.cairo(
+                    style: const TextStyle(
+                      fontFamily: 'Cairo',
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                       color: NoorDesignSystem.goldAccent,
@@ -130,7 +138,8 @@ class DayStateCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 stateInfo.formattedTimeToNext,
-                style: GoogleFonts.cairo(
+                style: TextStyle(
+                  fontFamily: 'Cairo',
                   fontSize: 11,
                   color: isDark ? Colors.white54 : NoorDesignSystem.textSecondary,
                 ),
@@ -140,5 +149,37 @@ class DayStateCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// Material icons, not emoji: an emoji glyph comes from a system font, so the
+/// golden test rendered it differently on Windows and on the Linux CI runner.
+/// Icons ship with the framework. `Cairo` above is the font bundled in
+/// `assets/fonts/` via pubspec, not Google's CDN - google_fonts cannot resolve
+/// it offline and throws under test.
+IconData _iconFor(DayState state) {
+  switch (state) {
+    case DayState.unknown:
+      return Icons.help_outline;
+    case DayState.lateNight:
+      return Icons.nights_stay;
+    case DayState.lastThird:
+      return Icons.dark_mode;
+    case DayState.fajr:
+      return Icons.wb_twilight;
+    case DayState.sunrise:
+      return Icons.wb_sunny;
+    case DayState.duha:
+      return Icons.wb_sunny_outlined;
+    case DayState.dhuhr:
+      return Icons.light_mode;
+    case DayState.asr:
+      return Icons.wb_cloudy;
+    case DayState.maghrib:
+      return Icons.wb_twilight;
+    case DayState.isha:
+      return Icons.nightlight_round;
+    case DayState.sleep:
+      return Icons.bedtime;
   }
 }

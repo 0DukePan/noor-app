@@ -344,33 +344,6 @@ extension DayStateInfo on DayState {
     }
   }
 
-  String get icon {
-    switch (this) {
-      case DayState.unknown:
-        return '❓';
-      case DayState.lateNight:
-        return '🌃';
-      case DayState.lastThird:
-        return '🌙';
-      case DayState.fajr:
-        return '🌅';
-      case DayState.sunrise:
-        return '☀️';
-      case DayState.duha:
-        return '🌤️';
-      case DayState.dhuhr:
-        return '☀️';
-      case DayState.asr:
-        return '🌇';
-      case DayState.maghrib:
-        return '🌆';
-      case DayState.isha:
-        return '🌙';
-      case DayState.sleep:
-        return '😴';
-    }
-  }
-
   String get suggestedAdhkar {
     switch (this) {
       case DayState.lastThird:

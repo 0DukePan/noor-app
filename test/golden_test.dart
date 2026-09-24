@@ -15,7 +15,12 @@ import 'package:noor_app/l10n/generated/app_localizations.dart';
 ///
 /// NOTE: widget tests render all text with the Ahem placeholder font unless
 /// real fonts are loaded, so these goldens are deterministic across platforms
-/// and CI — they pin LAYOUT, not typography. Regenerate with:
+/// and CI — they pin LAYOUT, not typography. That only holds while the widgets
+/// under test draw with bundled glyphs: emoji resolve to a *system* font and
+/// made this file pass on Windows while failing on the Linux runner (0.22% of
+/// pixels, one glyph). Day-state and onboarding icons are therefore Material
+/// icons, and widgets used by goldens must not ask google_fonts for a family
+/// they do not ship. Regenerate with:
 ///   flutter test --update-goldens test/golden_test.dart
 void main() {
   setUp(() {
