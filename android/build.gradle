@@ -16,3 +16,17 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
+// sentry_flutter 8.x pins kotlinOptions.languageVersion = "1.6" in its own
+// build.gradle, and Kotlin 2.2 refuses to compile anything below 1.8
+// ("Language version 1.6 is no longer supported"). Raise the floor for that
+// module from here, after its script has run, so the stale pin cannot win.
+// Delete this block once the pinned sentry_flutter declares 1.8 or newer.
+subprojects { subproject ->
+    if (subproject.name == 'sentry_flutter') {
+        subproject.afterEvaluate {
+            subproject.android.kotlinOptions.languageVersion = '1.8'
+            subproject.android.kotlinOptions.apiVersion = '1.8'
+        }
+    }
+}

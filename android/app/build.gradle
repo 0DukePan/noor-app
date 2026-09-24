@@ -42,7 +42,10 @@ def allowDebugSigning = project.hasProperty('allowDebugSigning') &&
 android {
     namespace = "com.noor.app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "25.1.8937393"
+    // The floor is what the toolchain declares: Flutter 3.44's integration_test
+    // requires 28.2.13676358 and Sentry's native SDK 27.0.12077973. AGP fails
+    // the build when this pin is below a dependency's requirement.
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

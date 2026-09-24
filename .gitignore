@@ -41,6 +41,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# AGP 8.x writes root-project artifacts here even though Flutter points the
+# root buildDir at ../build
+/android/build/
 
 # Release signing (never commit the real key!)
 android/key.properties
