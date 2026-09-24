@@ -5,6 +5,11 @@ import 'dart:ui' as ui;
 
 import 'package:flutter_test/flutter_test.dart';
 
+/// Where `matchesGoldenFile('goldens/x.png')` paths are resolved from.
+final Uri _testDirectory = Directory(
+  '${Directory.current.path}${Platform.pathSeparator}test',
+).uri;
+
 /// Goldens in this repo pin LAYOUT, not typography, and the two platforms do
 /// not rasterise text identically: the same TTF goes through DirectWrite on
 /// Windows and FreeType on the Ubuntu runner, and the two disagree by 0.07-0.82%
@@ -14,18 +19,12 @@ import 'package:flutter_test/flutter_test.dart';
 /// (a moved element, a changed colour or a missing widget moves far more than
 /// 1.5% of the image).
 ///
-/// Decoding uses dart:ui, so this costs no dependency. It runs for every test
-/// file via `test/flutter_test_config.dart`.
+/// Decoding uses dart:ui, so this costs no dependency. It is installed for every
+/// test file by `test/flutter_test_config.dart`.
 class TolerantGoldenFileComparator extends LocalFileComparator {
-  // ignore: use_super_parameters
-  // The same Uri is kept in a field to resolve golden paths against (the
-  // super parameter would not expose it, and this Flutter has no public
-  // getGoldenFile).
-  TolerantGoldenFileComparator(Uri testFile, {this.maxDiff = 0.015})
-      : _testFile = testFile,
-        super(testFile);
+  TolerantGoldenFileComparator(super.testFile, {this.maxDiff = 0.015});
 
-  final Uri _testFile;
+  /// Largest fraction of differing pixels still treated as a match.
   final double maxDiff;
 
   /// Per-channel difference below which a pixel counts as unchanged: loose
@@ -36,7 +35,7 @@ class TolerantGoldenFileComparator extends LocalFileComparator {
   @override
   Future<bool> compare(Uint8List imageBytes, Uri golden) async {
     final goldenFile = File.fromUri(
-      golden.isAbsolute ? golden : _testFile.resolveUri(golden),
+      golden.isAbsolute ? golden : _testDirectory.resolveUri(golden),
     );
     if (!goldenFile.existsSync()) {
       return super.compare(imageBytes, golden);
