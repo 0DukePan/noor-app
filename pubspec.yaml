@@ -48,7 +48,7 @@ dependencies:
   pdf: ^3.10.0
   permission_handler: ^11.0.0
   printing: ^5.11.0
-  sentry_flutter: ^7.14.0
+  sentry_flutter: ^8.14.2
   share_plus: ^7.2.0
   sqflite: ^2.3.0
   sqflite_common: ^2.5.0
