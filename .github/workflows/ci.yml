@@ -54,10 +54,20 @@ jobs:
           # below, so this step cannot fail on a missing JSON tool. If the file
           # holds no error events (the runner crashed before reporting one),
           # fall back to the raw non-JSON output lines.
+          #
+          # The error event itself carries only "Test failed. See exception logs
+          # above."; the name lives in the matching testStart event and the
+          # exception is a separate print event. Naming the test is the
+          # difference between "CI is red" and "this test is red" - and on this
+          # repo the annotation is the only failure detail readable without
+          # admin rights, so losing the name makes a red run untriageable.
           python3 - <<'PY' || true
           import json
+          from collections import defaultdict
 
-          errors = []
+          names = {}
+          printed = defaultdict(list)
+          failures = []
           raw = []
           with open('test_output.json', encoding='utf-8', errors='replace') as out:
               for line in out:
@@ -69,14 +79,34 @@ jobs:
                   except json.JSONDecodeError:
                       raw.append(line)
                       continue
-                  if event.get('type') == 'error':
-                      first = (event.get('error') or '').splitlines()
-                      if first:
-                          errors.append(first[0])
-          for message in (errors or raw)[:40]:
-              print(f"::error::{message}")
+                  kind = event.get('type')
+                  if kind == 'testStart':
+                      names[event['test']['id']] = event['test']['name']
+                  elif kind == 'print':
+                      printed[event.get('testID')].append(event.get('message', ''))
+                  elif kind == 'error':
+                      test_id = event.get('testID')
+                      name = names.get(test_id, '<unknown test>')
+                      lines = [m.strip() for m in printed.get(test_id, []) if m.strip()]
+                      detail = ' | '.join(lines[:3]) or (event.get('error') or '')
+                      failures.append((name, detail))
+
+          reported = failures[:40] or [('', line) for line in raw[:40]]
+          for name, detail in reported:
+              text = ' '.join(detail.split()).replace('%', '%25')[:400]
+              print(f"::error::{name + ': ' if name else ''}{text}")
           PY
           exit 0
+
+      - name: Upload test report (red runs only)
+        # The annotation above is truncated by design; the raw JSON is the full
+        # picture, and an artifact is downloadable without repository admin.
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output-json
+          path: test_output.json
+          if-no-files-found: ignore
 
       - name: Verify app-wide coverage floor
         # Ratchet, not a suggestion: 30 -> 30.5 (measured 30.95% at 682 tests,
