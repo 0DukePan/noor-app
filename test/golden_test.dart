@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -13,16 +14,28 @@ import 'package:noor_app/l10n/generated/app_localizations.dart';
 
 /// Golden (visual regression) tests.
 ///
-/// NOTE: widget tests render all text with the Ahem placeholder font unless
-/// real fonts are loaded, so these goldens are deterministic across platforms
-/// and CI — they pin LAYOUT, not typography. That only holds while the widgets
-/// under test draw with bundled glyphs: emoji resolve to a *system* font and
-/// made this file pass on Windows while failing on the Linux runner (0.22% of
-/// pixels, one glyph). Day-state and onboarding icons are therefore Material
-/// icons, and widgets used by goldens must not ask google_fonts for a family
-/// they do not ship. Regenerate with:
+/// These pin LAYOUT, not typography. Making that promise hold on both Windows
+/// and the Linux CI image takes three things, and all three have bitten this
+/// file already:
+///   * the app's own fonts must be loaded here, or the text falls back to
+///     whatever system font the machine happens to have;
+///   * nothing inside a golden may draw emoji (system font again - the
+///     onboarding icons failed on the runner at 0.22% while passing locally);
+///   * nothing inside a golden may ask google_fonts for a family the app
+///     already ships in assets/fonts/.
+///
+/// Regenerate with:
 ///   flutter test --update-goldens test/golden_test.dart
 void main() {
+  setUpAll(() async {
+    await (FontLoader('Cairo')
+          ..addFont(rootBundle.load('assets/fonts/Cairo-Variable.ttf')))
+        .load();
+    await (FontLoader('Amiri')
+          ..addFont(rootBundle.load('assets/fonts/Amiri-Regular.ttf')))
+        .load();
+  });
+
   setUp(() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
@@ -37,12 +50,13 @@ void main() {
     });
 
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         debugShowCheckedModeBanner: false,
-        locale: Locale('ar'),
+        locale: const Locale('ar'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
+        theme: ThemeData(fontFamily: 'Cairo'),
+        home: const Scaffold(
           backgroundColor: Color(0xFFF5F2EA),
           body: Center(
             child: Padding(
@@ -70,12 +84,13 @@ void main() {
     });
 
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         debugShowCheckedModeBanner: false,
-        locale: Locale('ar'),
+        locale: const Locale('ar'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: OnboardingPage(onComplete: _noop),
+        theme: ThemeData(fontFamily: 'Cairo'),
+        home: const OnboardingPage(onComplete: _noop),
       ),
     );
     await tester.pump(const Duration(milliseconds: 350));
