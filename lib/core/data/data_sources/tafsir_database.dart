@@ -18,6 +18,19 @@ import 'tafsir_db_builder.dart';
 class TafsirDatabase {
   static const String _dbName = 'tafsir_v1.db';
 
+  /// Typed init failure (TAF-01): preserved instead of collapsing every
+  /// damaged/missing-asset case into a generic "unavailable" message.
+  /// [none] means the prebuilt corpus opened normally.
+  static TafsirDbInitFailure lastInitFailure = TafsirDbInitFailure.none;
+
+  /// True when the open connection serves an empty schema because the
+  /// expected bundled corpus could not be installed. Readers must render a
+  /// recoverable storage state — never "no tafsir for this ayah".
+  static bool get isServingEmptyFallback =>
+      lastInitFailure == TafsirDbInitFailure.assetMissing ||
+      lastInitFailure == TafsirDbInitFailure.copyFailed ||
+      lastInitFailure == TafsirDbInitFailure.corruptUnrecoverable;
+
   /// Returns the singleton database instance, copying the prebuilt asset
   /// into place on first call.
   ///
@@ -57,11 +70,31 @@ class TafsirDatabase {
     final dbPath = p.join(dir, _dbName);
 
     if (!File(dbPath).existsSync()) {
-      await _tryCopyPrebuilt(dbPath);
+      final copied = await _tryCopyPrebuilt(dbPath);
+      if (!copied) {
+        // Asset absent: record the reason; the empty-schema open below is a
+        // recoverable state, not proof of missing content.
+        lastInitFailure = TafsirDbInitFailure.assetMissing;
+      }
     }
 
     try {
-      return await _open(dbPath);
+      final db = await _open(dbPath);
+      if (lastInitFailure == TafsirDbInitFailure.none) {
+        // Verify the bundled corpus is really there before offering the
+        // reader: an unexpected empty tafsir table means the install failed.
+        final tables = await db.rawQuery(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='tafsir'",
+        );
+        if (tables.isEmpty) {
+          lastInitFailure = TafsirDbInitFailure.schemaUnexpected;
+        } else {
+          final count = await db.rawQuery('SELECT COUNT(*) AS c FROM tafsir');
+          final n = (count.first['c'] as int?) ?? 0;
+          if (n == 0) lastInitFailure = TafsirDbInitFailure.emptyCorpus;
+        }
+      }
+      return db;
     } on Object {
       // Corrupt or stale file: delete and re-open (falls back to an empty
       // schema; readers treat missing rows as "no tafsir", never a crash).
@@ -72,9 +105,18 @@ class TafsirDatabase {
           // The re-open below fails if the corrupt file could not be removed;
           // log why so that failure is diagnosable.
           debugPrint('Tafsir DB: could not delete corrupt file: $e');
+          lastInitFailure = TafsirDbInitFailure.corruptUnrecoverable;
+          rethrow;
         }
       }
-      return _open(dbPath);
+      try {
+        final db = await _open(dbPath);
+        lastInitFailure = TafsirDbInitFailure.corruptRecovered;
+        return db;
+      } on Object {
+        lastInitFailure = TafsirDbInitFailure.corruptUnrecoverable;
+        rethrow;
+      }
     }
   }
 
@@ -98,9 +140,18 @@ class TafsirDatabase {
 
   /// Copies the bundled prebuilt database asset into [dbPath]. Returns true
   /// on success, false when the asset is absent (dev builds without it).
+  /// Records the typed reason so a failed install never looks like a quiet
+  /// content gap (TAF-01).
   static Future<bool> _tryCopyPrebuilt(String dbPath) async {
     try {
-      final data = await rootBundle.load(kTafsirDbAssetPath);
+      final ByteData data;
+      try {
+        data = await rootBundle.load(kTafsirDbAssetPath);
+      } on Object catch (e) {
+        debugPrint('Prebuilt tafsir db asset missing ($e).');
+        lastInitFailure = TafsirDbInitFailure.assetMissing;
+        return false;
+      }
       final file = File(dbPath);
       await file.parent.create(recursive: true);
       await file.writeAsBytes(
@@ -112,15 +163,18 @@ class TafsirDatabase {
       );
       return true;
     } on Object catch (e) {
-      debugPrint('Prebuilt tafsir db not available ($e) — using empty schema.');
+      debugPrint('Prebuilt tafsir db copy failed ($e).');
+      lastInitFailure = TafsirDbInitFailure.copyFailed;
       return false;
     }
   }
 
-  /// All entries for one (source, surah) pair in corpus order.
+  /// All entries for one (source, surah) pair in ayah order.
   ///
   /// Each row is `{ayah: int, text: String}`. Returns an empty list when the
   /// surah has no bundled tafsir (callers render their empty states).
+  /// Ordered by `ayah` (TAF-01): correctness must never depend on bulk
+  /// insert order.
   static Future<List<Map<String, Object?>>> querySurahEntries({
     required String source,
     required int surah,
@@ -131,7 +185,7 @@ class TafsirDatabase {
       columns: const ['ayah', 'text'],
       where: 'source = ? AND surah = ?',
       whereArgs: [source, surah],
-      orderBy: 'rowid',
+      orderBy: 'ayah ASC',
     );
   }
 
@@ -144,4 +198,37 @@ class TafsirDatabase {
       await (await future).close();
     }
   }
+
+  /// Test hook: reset the recorded init failure between cases.
+  @visibleForTesting
+  static void debugResetFailure() {
+    lastInitFailure = TafsirDbInitFailure.none;
+  }
+}
+
+/// Why the Tafsir database is not serving the bundled corpus (TAF-01).
+///
+/// A copy/open failure is not "no Tafsir for this ayah": each reason maps
+/// to a distinct localized UI state with safe retry/recovery.
+enum TafsirDbInitFailure {
+  /// Prebuilt corpus opened normally.
+  none,
+
+  /// Bundled asset absent (dev build without the prebuilt DB).
+  assetMissing,
+
+  /// Asset present but the writable copy failed (storage/permissions).
+  copyFailed,
+
+  /// Opened, but the expected `tafsir` table is absent.
+  schemaUnexpected,
+
+  /// Opened, but the corpus table holds zero rows.
+  emptyCorpus,
+
+  /// Corrupt file was removed and an empty schema was opened instead.
+  corruptRecovered,
+
+  /// Corrupt file could not be removed or re-open failed.
+  corruptUnrecoverable,
 }

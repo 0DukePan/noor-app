@@ -11,8 +11,8 @@ import '../test_utils/tafsir_test_db.dart';
 /// highlights, annotations, reading history, and settings persistence.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  late Directory tempDir;
-  late Directory dbDir;
+  Directory? tempDir;
+  Directory? dbDir;
 
   setUpAll(() async {
     dbDir = await setUpTafsirTestDb();
@@ -25,15 +25,19 @@ void main() {
   setUp(() async {
     // Fresh DB connection per test (see tafsir_test_db.dart zone note).
     await resetTafsirTestDb();
-    tempDir = await Directory.systemTemp.createTemp('noor_tafsir_test');
-    Hive.init(tempDir.path);
+    final dir = await createTafsirTestTempDir('noor_tafsir_test');
+    tempDir = dir;
+    Hive.init(dir.path);
     await TafsirDataSource.init();
     await TafsirDataSource.initPhase6();
   });
 
   tearDown(() async {
     await Hive.deleteFromDisk();
-    await tempDir.delete(recursive: true);
+    final dir = tempDir;
+    if (dir != null && dir.existsSync()) {
+      await dir.delete(recursive: true);
+    }
   });
 
   test('Muyassar tafsir for Al-Fatihah loads from the database', () async {

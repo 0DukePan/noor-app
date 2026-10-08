@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/data/data_sources/tafsir_database.dart';
 import '../../../../core/models/tafsir_models.dart';
 import '../../../../core/services/quran_data_source.dart';
 import '../../../../core/services/tafsir_data_source.dart';
 import '../../../../core/theme/tafsir_theme.dart';
+import '../../../../core/utils/verse_counts.dart' as vc;
+import '../../../../core/widgets/tafsir_state_view.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 
 /// Tafsir reader page - tafsir_reader_page.dart
@@ -30,6 +33,10 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
   // ── State ──
   SurahTafsir? _surahTafsir;
   bool _isLoading = true;
+
+  /// True when the surah load itself threw (TAF-04): renders the failure
+  /// state instead of spinning forever.
+  bool _loadError = false;
   TafsirSourceId _currentSource = TafsirSourceId.muyassar;
   final ScrollController _scrollController = ScrollController();
   final Map<int, GlobalKey> _ayahKeys = {};
@@ -44,6 +51,13 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
   Map<TafsirSourceId, TafsirEntry>? _compareData;
   int _compareAyah = 1;
 
+  /// Distinct compare-loading flag (TAF-04): an empty result must render an
+  /// informative empty/partial state — never spin forever.
+  bool _compareLoading = false;
+
+  /// True when the compare fetch itself threw: failure state, not a spinner.
+  bool _compareError = false;
+
   @override
   void initState() {
     super.initState();
@@ -52,16 +66,29 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
   }
 
   Future<void> _loadTafsir() async {
-    setState(() => _isLoading = true);
-    final tafsir = await TafsirDataSource.getSurahTafsir(
-      surah: widget.surahNumber,
-      source: _currentSource,
-    );
-    if (!mounted) return;
-    setState(() {
-      _surahTafsir = tafsir;
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _loadError = false;
+      });
+    }
+    try {
+      final tafsir = await TafsirDataSource.getSurahTafsir(
+        surah: widget.surahNumber,
+        source: _currentSource,
+      );
+      if (!mounted) return;
+      setState(() {
+        _surahTafsir = tafsir;
+        _isLoading = false;
+      });
+    } on Object {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _loadError = true;
+      });
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToAyah(widget.ayahNumber);
@@ -69,13 +96,30 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
   }
 
   Future<void> _loadCompareData() async {
-    final data = await TafsirDataSource.getCompareTafsir(
-      surah: widget.surahNumber,
-      ayah: _compareAyah,
-      sources: _compareSources.toList(),
-    );
-    if (!mounted) return;
-    setState(() => _compareData = data);
+    if (mounted) {
+      setState(() {
+        _compareLoading = true;
+        _compareError = false;
+      });
+    }
+    try {
+      final data = await TafsirDataSource.getCompareTafsir(
+        surah: widget.surahNumber,
+        ayah: _compareAyah,
+        sources: _compareSources.toList(),
+      );
+      if (!mounted) return;
+      setState(() {
+        _compareData = data;
+        _compareLoading = false;
+      });
+    } on Object {
+      if (!mounted) return;
+      setState(() {
+        _compareLoading = false;
+        _compareError = true;
+      });
+    }
   }
 
   void _scrollToAyah(int ayahNumber) {
@@ -147,8 +191,11 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
                       child: Row(
                         children: [
                           if (s.id == _currentSource)
-                            Icon(Icons.check,
-                                size: 18, color: theme.colorScheme.primary,),
+                            Icon(
+                              Icons.check,
+                              size: 18,
+                              color: theme.colorScheme.primary,
+                            ),
                           if (s.id != _currentSource) const SizedBox(width: 18),
                           const SizedBox(width: 8),
                           Expanded(child: Text(s.arabicName)),
@@ -189,11 +236,13 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
         height: 52,
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color:
-              theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          color: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.5,
+          ),
           border: Border(
-            bottom:
-                BorderSide(color: theme.dividerColor.withValues(alpha: 0.2)),
+            bottom: BorderSide(
+              color: theme.dividerColor.withValues(alpha: 0.2),
+            ),
           ),
         ),
         child: ListView(
@@ -216,8 +265,9 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
                   setState(() => _currentSource = source.id);
                   _loadTafsir();
                 },
-                selectedColor:
-                    theme.colorScheme.primary.withValues(alpha: 0.15),
+                selectedColor: theme.colorScheme.primary.withValues(
+                  alpha: 0.15,
+                ),
                 labelStyle: TextStyle(
                   color: isSelected
                       ? theme.colorScheme.primary
@@ -270,8 +320,9 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
                   });
                   _loadCompareData();
                 },
-                selectedColor:
-                    theme.colorScheme.primary.withValues(alpha: 0.15),
+                selectedColor: theme.colorScheme.primary.withValues(
+                  alpha: 0.15,
+                ),
                 checkmarkColor: theme.colorScheme.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
@@ -299,8 +350,10 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
                     : null,
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -314,17 +367,30 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
                   ),
                 ),
               ),
-              IconButton(
-                icon: Icon(
-                  isRtl
-                      ? Icons.chevron_left_rounded
-                      : Icons.chevron_right_rounded,
-                  size: 20,
-                ),
-                tooltip: AppLocalizations.of(context).a11yNext,
-                onPressed: () {
-                  setState(() => _compareAyah++);
-                  _loadCompareData();
+              // TAF-04: bounded by the canonical verse-count map. At the
+              // final ayah the action is disabled with an end-label instead
+              // of stepping into an invalid identity.
+              Builder(
+                builder: (context) {
+                  final maxAyah = vc.verseCountForSurah(widget.surahNumber);
+                  final atEnd = maxAyah > 0 && _compareAyah >= maxAyah;
+                  return IconButton(
+                    icon: Icon(
+                      isRtl
+                          ? Icons.chevron_left_rounded
+                          : Icons.chevron_right_rounded,
+                      size: 20,
+                    ),
+                    tooltip: atEnd
+                        ? AppLocalizations.of(context).audioEndOfSurah
+                        : AppLocalizations.of(context).a11yNext,
+                    onPressed: atEnd
+                        ? null
+                        : () {
+                            setState(() => _compareAyah++);
+                            _loadCompareData();
+                          },
+                  );
                 },
               ),
             ],
@@ -338,33 +404,48 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
   // SINGLE VIEW (with Phase 4 word analysis buttons)
   // ─────────────────────────────────────────────────────────────────────────
 
-  Widget _buildSingleView(ThemeData theme) {
-    if (_isLoading) return const Center(child: CircularProgressIndicator());
-    if (_surahTafsir == null || _surahTafsir!.entries.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.menu_book_rounded,
-                size: 64, color: theme.colorScheme.outline,),
-            const SizedBox(height: 16),
-            Text(
-              'التفسير غير متوفر',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(color: theme.colorScheme.outline),
-            ),
-          ],
-        ),
-      );
+  /// Shared view contract (TAF-02): loading, content, truthful empty, and
+  /// failure-with-retry render identically on every Tafsir surface. The
+  /// surah list below is this variant's `content`.
+  TafsirViewState _singleViewState() {
+    if (_isLoading) return const TafsirViewLoading();
+    if (_loadError || TafsirDatabase.isServingEmptyFallback) {
+      return const TafsirViewFailure(TafsirAvailability.storageFailure);
     }
+    final tafsir = _surahTafsir;
+    if (tafsir == null || tafsir.entries.isEmpty) {
+      return const TafsirViewEmpty(TafsirAvailability.rowMissing);
+    }
+    return TafsirViewContent(tafsir.entries.first);
+  }
 
+  Widget _buildSingleView(ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
+    return TafsirStateView(
+      state: _singleViewState(),
+      contentBuilder: (_) => _singleList(theme),
+      onRetry: _loadTafsir,
+      emptyText: l10n.tafsirStateUnavailable,
+      failureText: l10n.tafsirStateStorageFailure,
+      retryText: l10n.tafsirRetry,
+      accentColor: theme.colorScheme.primary,
+    );
+  }
+
+  Widget _singleList(ThemeData theme) {
+    // Rendered only for TafsirViewContent, but guarded so loading/empty
+    // states can never hit a null check.
+    final tafsir = _surahTafsir;
+    if (tafsir == null || tafsir.entries.isEmpty) {
+      return const SizedBox.shrink();
+    }
     return ListView.separated(
       controller: _scrollController,
       padding: const EdgeInsets.all(16),
-      itemCount: _surahTafsir!.entries.length,
+      itemCount: tafsir.entries.length,
       separatorBuilder: (_, __) => const ArabesqueDividerCompact(),
       itemBuilder: (context, index) {
-        final entry = _surahTafsir!.entries[index];
+        final entry = tafsir.entries[index];
         final isTarget = entry.ayah == widget.ayahNumber;
 
         return KeyedSubtree(
@@ -379,7 +460,8 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
               border: isTarget
                   ? Border.all(color: theme.colorScheme.primary, width: 2)
                   : Border.all(
-                      color: theme.colorScheme.outline.withValues(alpha: 0.1),),
+                      color: theme.colorScheme.outline.withValues(alpha: 0.1),
+                    ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -391,10 +473,13 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4,),
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color:
-                              theme.colorScheme.primary.withValues(alpha: 0.1),
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.1,
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -409,17 +494,24 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
                       const Spacer(),
                       // Phase 4: Word analysis
                       WordAnalysisButton(
-                          surah: entry.surah, ayah: entry.ayah, theme: theme,),
+                        surah: entry.surah,
+                        ayah: entry.ayah,
+                        theme: theme,
+                      ),
                       const SizedBox(width: 4),
                       // Phase 6: Tadabbur note
                       GestureDetector(
                         onTap: () => _showTadabburSheet(
-                            context, entry.surah, entry.ayah,),
+                          context,
+                          entry.surah,
+                          entry.ayah,
+                        ),
                         child: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.tertiary
-                                .withValues(alpha: 0.08),
+                            color: theme.colorScheme.tertiary.withValues(
+                              alpha: 0.08,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
@@ -442,8 +534,9 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
                         child: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.secondary
-                                .withValues(alpha: 0.08),
+                            color: theme.colorScheme.secondary.withValues(
+                              alpha: 0.08,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
@@ -464,8 +557,9 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
                     style: GoogleFonts.cairo(
                       fontSize: _fontSize,
                       height: 1.9,
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.85),
+                      color: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.85,
+                      ),
                     ),
                     textDirection: TextDirection.rtl,
                   ),
@@ -491,12 +585,45 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
   // COMPARATIVE VIEW (Phase 3)
   // ─────────────────────────────────────────────────────────────────────────
 
-  Widget _buildComparativeView(ThemeData theme) {
-    if (_compareData == null || _compareData!.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+  /// Shared view contract (TAF-02) for comparison: loading, content (with
+  /// partial-availability rows), truthful empty, and failure-with-retry.
+  TafsirViewState _compareViewState() {
+    if (_compareLoading && _compareData == null) {
+      return const TafsirViewLoading();
     }
+    if (_compareError ||
+        _compareData == null ||
+        TafsirDatabase.isServingEmptyFallback) {
+      return const TafsirViewFailure(TafsirAvailability.storageFailure);
+    }
+    if (_compareData!.isEmpty) {
+      return const TafsirViewEmpty(TafsirAvailability.rowMissing);
+    }
+    return TafsirViewContent(_compareData!.values.first);
+  }
 
-    final sources = _compareData!.entries.toList();
+  Widget _buildComparativeView(ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
+    return TafsirStateView(
+      state: _compareViewState(),
+      contentBuilder: (_) => _compareList(theme),
+      onRetry: _loadCompareData,
+      emptyText: l10n.tafsirStateUnavailable,
+      failureText: l10n.tafsirStateStorageFailure,
+      retryText: l10n.tafsirRetry,
+      accentColor: theme.colorScheme.primary,
+    );
+  }
+
+  Widget _compareList(ThemeData theme) {
+    final data = _compareData;
+    if (data == null) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context);
+    final sources = data.entries.toList();
+    // Requested-but-unavailable sources get an informative partial row —
+    // never silence, never a spinner.
+    final missing = _compareSources.where((s) => !data.containsKey(s)).toList();
+    if (sources.isEmpty) return const SizedBox.shrink();
     const sourceColors = <TafsirSourceId, Color>{
       TafsirSourceId.muyassar: Color(0xFF2E7D32),
       TafsirSourceId.ibnKathir: Color(0xFF1565C0),
@@ -506,8 +633,43 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: sources.length,
+      itemCount: sources.length + missing.length,
       itemBuilder: (context, index) {
+        // Partial-availability rows for requested-but-unavailable sources.
+        if (index >= sources.length) {
+          final missingSource = missing[index - sources.length];
+          final info = TafsirSource.get(missingSource);
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: 0.2),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  size: 20,
+                  color: theme.colorScheme.outline,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    '${info.arabicName}: ${l10n.tafsirStateUnavailable}',
+                    style: GoogleFonts.cairo(
+                      fontSize: 13,
+                      color: theme.colorScheme.outline,
+                    ),
+                    textDirection: TextDirection.rtl,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
         final entry = sources[index];
         final sourceInfo = TafsirSource.get(entry.key);
         final accentColor =
@@ -532,12 +694,15 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
             children: [
               // Source header
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: accentColor.withValues(alpha: 0.06),
-                  borderRadius:
-                      const BorderRadius.only(topLeft: Radius.circular(16)),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -545,7 +710,9 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
                       width: 8,
                       height: 8,
                       decoration: BoxDecoration(
-                          color: accentColor, shape: BoxShape.circle,),
+                        color: accentColor,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -560,7 +727,9 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
                     Text(
                       sourceInfo.author,
                       style: GoogleFonts.cairo(
-                          fontSize: 11, color: theme.colorScheme.outline,),
+                        fontSize: 11,
+                        color: theme.colorScheme.outline,
+                      ),
                     ),
                   ],
                 ),
@@ -596,7 +765,9 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
               Text(
                 'حجم الخط',
                 style: GoogleFonts.cairo(
-                    fontSize: 16, fontWeight: FontWeight.bold,),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 16),
               Slider(
@@ -629,11 +800,8 @@ class TafsirReaderPageState extends State<TafsirReaderPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => TadabburNoteSheet(
-        surah: surah,
-        ayah: ayah,
-        source: _currentSource,
-      ),
+      builder: (_) =>
+          TadabburNoteSheet(surah: surah, ayah: ayah, source: _currentSource),
     ).then((_) => setState(() {})); // Refresh inline annotations
   }
 }
@@ -716,11 +884,14 @@ class WordAnalysisSheetState extends State<WordAnalysisSheet> {
       final verse = await QuranDataSource.getVerse(widget.surah, widget.ayah);
       if (!mounted) return;
       final text = verse?['text'] as String? ?? '';
-      final words =
-          text.split(RegExp(r'\s+')).where((w) => w.trim().isNotEmpty).toList();
+      final words = text
+          .split(RegExp(r'\s+'))
+          .where((w) => w.trim().isNotEmpty)
+          .toList();
       setState(() {
-        _words =
-            words.map((w) => WordData(w.trim(), '', '', '', '', '')).toList();
+        _words = words
+            .map((w) => WordData(w.trim(), '', '', '', '', ''))
+            .toList();
       });
     } on Exception catch (e) {
       debugPrint('Failed to load verse words: $e');
@@ -734,82 +905,256 @@ class WordAnalysisSheetState extends State<WordAnalysisSheet> {
     if (surah == 1) {
       if (ayah == 1) {
         return const [
-          WordData('بِسْمِ', 'اسم', 'In the name of', 'جار ومجرور', 'bismi',
-              'Noun - genitive',),
-          WordData('ٱللَّهِ', 'أله', 'Allah', 'لفظ الجلالة مجرور', 'allāh',
-              'Proper noun',),
-          WordData('ٱلرَّحْمَٰنِ', 'رحم', 'The Most Gracious', 'صفة مجرورة',
-              'ar-raḥmān', 'Adjective',),
-          WordData('ٱلرَّحِيمِ', 'رحم', 'The Most Merciful', 'صفة مجرورة',
-              'ar-raḥīm', 'Adjective',),
+          WordData(
+            'بِسْمِ',
+            'اسم',
+            'In the name of',
+            'جار ومجرور',
+            'bismi',
+            'Noun - genitive',
+          ),
+          WordData(
+            'ٱللَّهِ',
+            'أله',
+            'Allah',
+            'لفظ الجلالة مجرور',
+            'allāh',
+            'Proper noun',
+          ),
+          WordData(
+            'ٱلرَّحْمَٰنِ',
+            'رحم',
+            'The Most Gracious',
+            'صفة مجرورة',
+            'ar-raḥmān',
+            'Adjective',
+          ),
+          WordData(
+            'ٱلرَّحِيمِ',
+            'رحم',
+            'The Most Merciful',
+            'صفة مجرورة',
+            'ar-raḥīm',
+            'Adjective',
+          ),
         ];
       } else if (ayah == 2) {
         return const [
-          WordData('ٱلْحَمْدُ', 'حمد', 'All praise', 'مبتدأ مرفوع', 'al-ḥamdu',
-              'Noun - nominative',),
-          WordData('لِلَّهِ', 'أله', 'is for Allah', 'جار ومجرور - خبر',
-              'lillāhi', 'Preposition + noun',),
-          WordData('رَبِّ', 'ربب', 'Lord', 'مضاف إليه مجرور', 'rabbi',
-              'Noun - genitive',),
-          WordData('ٱلْعَٰلَمِينَ', 'علم', 'of the worlds', 'مضاف إليه مجرور',
-              'al-ʿālamīn', 'Noun - genitive plural',),
+          WordData(
+            'ٱلْحَمْدُ',
+            'حمد',
+            'All praise',
+            'مبتدأ مرفوع',
+            'al-ḥamdu',
+            'Noun - nominative',
+          ),
+          WordData(
+            'لِلَّهِ',
+            'أله',
+            'is for Allah',
+            'جار ومجرور - خبر',
+            'lillāhi',
+            'Preposition + noun',
+          ),
+          WordData(
+            'رَبِّ',
+            'ربب',
+            'Lord',
+            'مضاف إليه مجرور',
+            'rabbi',
+            'Noun - genitive',
+          ),
+          WordData(
+            'ٱلْعَٰلَمِينَ',
+            'علم',
+            'of the worlds',
+            'مضاف إليه مجرور',
+            'al-ʿālamīn',
+            'Noun - genitive plural',
+          ),
         ];
       } else if (ayah == 3) {
         return const [
-          WordData('ٱلرَّحْمَٰنِ', 'رحم', 'The Most Gracious', 'بدل مجرور',
-              'ar-raḥmān', 'Adjective',),
-          WordData('ٱلرَّحِيمِ', 'رحم', 'The Most Merciful', 'صفة مجرورة',
-              'ar-raḥīm', 'Adjective',),
+          WordData(
+            'ٱلرَّحْمَٰنِ',
+            'رحم',
+            'The Most Gracious',
+            'بدل مجرور',
+            'ar-raḥmān',
+            'Adjective',
+          ),
+          WordData(
+            'ٱلرَّحِيمِ',
+            'رحم',
+            'The Most Merciful',
+            'صفة مجرورة',
+            'ar-raḥīm',
+            'Adjective',
+          ),
         ];
       } else if (ayah == 4) {
         return const [
-          WordData('مَٰلِكِ', 'ملك', 'Master / Owner', 'بدل مجرور', 'māliki',
-              'Active participle',),
-          WordData('يَوْمِ', 'يوم', 'of the Day', 'مضاف إليه مجرور', 'yawmi',
-              'Noun - genitive',),
-          WordData('ٱلدِّينِ', 'دين', 'of Judgment', 'مضاف إليه مجرور',
-              'ad-dīni', 'Noun - genitive',),
+          WordData(
+            'مَٰلِكِ',
+            'ملك',
+            'Master / Owner',
+            'بدل مجرور',
+            'māliki',
+            'Active participle',
+          ),
+          WordData(
+            'يَوْمِ',
+            'يوم',
+            'of the Day',
+            'مضاف إليه مجرور',
+            'yawmi',
+            'Noun - genitive',
+          ),
+          WordData(
+            'ٱلدِّينِ',
+            'دين',
+            'of Judgment',
+            'مضاف إليه مجرور',
+            'ad-dīni',
+            'Noun - genitive',
+          ),
         ];
       } else if (ayah == 5) {
         return const [
-          WordData('إِيَّاكَ', 'إيا', 'You alone', 'مفعول به مقدم', 'iyyāka',
-              'Pronoun - accusative',),
-          WordData('نَعْبُدُ', 'عبد', 'we worship', 'فعل مضارع مرفوع',
-              'naʿbudu', 'Verb - 1st person plural',),
-          WordData('وَإِيَّاكَ', 'إيا', 'and You alone', 'مفعول به مقدم',
-              'wa-iyyāka', 'Conjunction + pronoun',),
-          WordData('نَسْتَعِينُ', 'عون', 'we ask for help', 'فعل مضارع مرفوع',
-              'nastaʿīnu', 'Verb - 1st person plural',),
+          WordData(
+            'إِيَّاكَ',
+            'إيا',
+            'You alone',
+            'مفعول به مقدم',
+            'iyyāka',
+            'Pronoun - accusative',
+          ),
+          WordData(
+            'نَعْبُدُ',
+            'عبد',
+            'we worship',
+            'فعل مضارع مرفوع',
+            'naʿbudu',
+            'Verb - 1st person plural',
+          ),
+          WordData(
+            'وَإِيَّاكَ',
+            'إيا',
+            'and You alone',
+            'مفعول به مقدم',
+            'wa-iyyāka',
+            'Conjunction + pronoun',
+          ),
+          WordData(
+            'نَسْتَعِينُ',
+            'عون',
+            'we ask for help',
+            'فعل مضارع مرفوع',
+            'nastaʿīnu',
+            'Verb - 1st person plural',
+          ),
         ];
       } else if (ayah == 6) {
         return const [
-          WordData('ٱهْدِنَا', 'هدي', 'Guide us', 'فعل أمر + ضمير', 'ihdinā',
-              'Verb - imperative',),
-          WordData('ٱلصِّرَٰطَ', 'صرط', 'the path', 'مفعول به منصوب',
-              'aṣ-ṣirāṭa', 'Noun - accusative',),
-          WordData('ٱلْمُسْتَقِيمَ', 'قوم', 'the straight', 'صفة منصوبة',
-              'al-mustaqīma', 'Adjective',),
+          WordData(
+            'ٱهْدِنَا',
+            'هدي',
+            'Guide us',
+            'فعل أمر + ضمير',
+            'ihdinā',
+            'Verb - imperative',
+          ),
+          WordData(
+            'ٱلصِّرَٰطَ',
+            'صرط',
+            'the path',
+            'مفعول به منصوب',
+            'aṣ-ṣirāṭa',
+            'Noun - accusative',
+          ),
+          WordData(
+            'ٱلْمُسْتَقِيمَ',
+            'قوم',
+            'the straight',
+            'صفة منصوبة',
+            'al-mustaqīma',
+            'Adjective',
+          ),
         ];
       } else if (ayah == 7) {
         return const [
-          WordData('صِرَٰطَ', 'صرط', 'The path', 'بدل منصوب', 'ṣirāṭa',
-              'Noun - accusative',),
-          WordData('ٱلَّذِينَ', 'لذ', 'of those', 'اسم موصول', 'alladhīna',
-              'Relative pronoun',),
-          WordData('أَنْعَمْتَ', 'نعم', 'You have blessed', 'فعل ماض',
-              'anʿamta', 'Verb - 2nd person',),
-          WordData('عَلَيْهِمْ', 'على', 'upon them', 'جار ومجرور', 'ʿalayhim',
-              'Preposition + pronoun',),
-          WordData('غَيْرِ', 'غير', 'not (of)', 'بدل مجرور', 'ghayri',
-              'Noun - genitive',),
-          WordData('ٱلْمَغْضُوبِ', 'غضب', 'those who earned anger', 'مضاف إليه',
-              'al-maghḍūbi', 'Passive participle',),
-          WordData('عَلَيْهِمْ', 'على', 'upon them', 'جار ومجرور', 'ʿalayhim',
-              'Preposition + pronoun',),
-          WordData('وَلَا', 'لا', 'and not', 'حرف عطف + نفي', 'wa-lā',
-              'Conjunction + negation',),
-          WordData('ٱلضَّآلِّينَ', 'ضلل', 'those who are astray', 'معطوف مجرور',
-              'aḍ-ḍāllīn', 'Active participle',),
+          WordData(
+            'صِرَٰطَ',
+            'صرط',
+            'The path',
+            'بدل منصوب',
+            'ṣirāṭa',
+            'Noun - accusative',
+          ),
+          WordData(
+            'ٱلَّذِينَ',
+            'لذ',
+            'of those',
+            'اسم موصول',
+            'alladhīna',
+            'Relative pronoun',
+          ),
+          WordData(
+            'أَنْعَمْتَ',
+            'نعم',
+            'You have blessed',
+            'فعل ماض',
+            'anʿamta',
+            'Verb - 2nd person',
+          ),
+          WordData(
+            'عَلَيْهِمْ',
+            'على',
+            'upon them',
+            'جار ومجرور',
+            'ʿalayhim',
+            'Preposition + pronoun',
+          ),
+          WordData(
+            'غَيْرِ',
+            'غير',
+            'not (of)',
+            'بدل مجرور',
+            'ghayri',
+            'Noun - genitive',
+          ),
+          WordData(
+            'ٱلْمَغْضُوبِ',
+            'غضب',
+            'those who earned anger',
+            'مضاف إليه',
+            'al-maghḍūbi',
+            'Passive participle',
+          ),
+          WordData(
+            'عَلَيْهِمْ',
+            'على',
+            'upon them',
+            'جار ومجرور',
+            'ʿalayhim',
+            'Preposition + pronoun',
+          ),
+          WordData(
+            'وَلَا',
+            'لا',
+            'and not',
+            'حرف عطف + نفي',
+            'wa-lā',
+            'Conjunction + negation',
+          ),
+          WordData(
+            'ٱلضَّآلِّينَ',
+            'ضلل',
+            'those who are astray',
+            'معطوف مجرور',
+            'aḍ-ḍāllīn',
+            'Active participle',
+          ),
         ];
       }
     }
@@ -859,8 +1204,11 @@ class WordAnalysisSheetState extends State<WordAnalysisSheet> {
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
               child: Row(
                 children: [
-                  Icon(Icons.translate_rounded,
-                      size: 20, color: theme.colorScheme.tertiary,),
+                  Icon(
+                    Icons.translate_rounded,
+                    size: 20,
+                    color: theme.colorScheme.tertiary,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'تحليل الكلمات — سورة ${widget.surah}:${widget.ayah}',
@@ -887,11 +1235,14 @@ class WordAnalysisSheetState extends State<WordAnalysisSheet> {
                   final isSelected = _selectedWordIndex == i;
                   return GestureDetector(
                     onTap: () => setState(
-                        () => _selectedWordIndex = isSelected ? -1 : i,),
+                      () => _selectedWordIndex = isSelected ? -1 : i,
+                    ),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 8,),
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? theme.colorScheme.primary
@@ -900,8 +1251,9 @@ class WordAnalysisSheetState extends State<WordAnalysisSheet> {
                         border: Border.all(
                           color: isSelected
                               ? theme.colorScheme.primary
-                              : theme.colorScheme.outline
-                                  .withValues(alpha: 0.2),
+                              : theme.colorScheme.outline.withValues(
+                                  alpha: 0.2,
+                                ),
                         ),
                       ),
                       child: Text(
@@ -911,8 +1263,9 @@ class WordAnalysisSheetState extends State<WordAnalysisSheet> {
                           color: isSelected
                               ? theme.colorScheme.onPrimary
                               : theme.colorScheme.onSurface,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.w500,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
                         ),
                       ),
                     ),
@@ -943,7 +1296,8 @@ class WordAnalysisSheetState extends State<WordAnalysisSheet> {
           color: theme.colorScheme.primaryContainer.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-              color: theme.colorScheme.primary.withValues(alpha: 0.2),),
+            color: theme.colorScheme.primary.withValues(alpha: 0.2),
+          ),
         ),
         child: Column(
           children: [
@@ -958,30 +1312,35 @@ class WordAnalysisSheetState extends State<WordAnalysisSheet> {
             ),
             const SizedBox(height: 12),
             DetailRow(
-                icon: Icons.account_tree_rounded,
-                label: 'الجذر',
-                value: word.root,
-                theme: theme,),
+              icon: Icons.account_tree_rounded,
+              label: 'الجذر',
+              value: word.root,
+              theme: theme,
+            ),
             DetailRow(
-                icon: Icons.translate_rounded,
-                label: 'المعنى',
-                value: word.meaning,
-                theme: theme,),
+              icon: Icons.translate_rounded,
+              label: 'المعنى',
+              value: word.meaning,
+              theme: theme,
+            ),
             DetailRow(
-                icon: Icons.school_rounded,
-                label: 'الإعراب',
-                value: word.irab,
-                theme: theme,),
+              icon: Icons.school_rounded,
+              label: 'الإعراب',
+              value: word.irab,
+              theme: theme,
+            ),
             DetailRow(
-                icon: Icons.abc_rounded,
-                label: 'النطق',
-                value: word.transliteration,
-                theme: theme,),
+              icon: Icons.abc_rounded,
+              label: 'النطق',
+              value: word.transliteration,
+              theme: theme,
+            ),
             DetailRow(
-                icon: Icons.category_rounded,
-                label: 'الصيغة',
-                value: word.morphology,
-                theme: theme,),
+              icon: Icons.category_rounded,
+              label: 'الصيغة',
+              value: word.morphology,
+              theme: theme,
+            ),
           ],
         ),
       ),
@@ -991,8 +1350,14 @@ class WordAnalysisSheetState extends State<WordAnalysisSheet> {
 
 // ── Data class for word analysis ──
 class WordData {
-  const WordData(this.arabic, this.root, this.meaning, this.irab,
-      this.transliteration, this.morphology,);
+  const WordData(
+    this.arabic,
+    this.root,
+    this.meaning,
+    this.irab,
+    this.transliteration,
+    this.morphology,
+  );
   final String arabic;
   final String root;
   final String meaning;
@@ -1022,9 +1387,11 @@ class DetailRow extends StatelessWidget {
       child: Row(
         textDirection: TextDirection.rtl,
         children: [
-          Icon(icon,
-              size: 16,
-              color: theme.colorScheme.primary.withValues(alpha: 0.7),),
+          Icon(
+            icon,
+            size: 16,
+            color: theme.colorScheme.primary.withValues(alpha: 0.7),
+          ),
           const SizedBox(width: 8),
           SizedBox(
             width: 56,
@@ -1101,8 +1468,11 @@ class InlineAnnotationsPanel extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.edit_note_rounded,
-                  size: 16, color: theme.colorScheme.tertiary,),
+              Icon(
+                Icons.edit_note_rounded,
+                size: 16,
+                color: theme.colorScheme.tertiary,
+              ),
               const SizedBox(width: 6),
               Text(
                 'ملاحظات تدبر',
@@ -1143,8 +1513,9 @@ class InlineAnnotationsPanel extends StatelessWidget {
                       style: GoogleFonts.cairo(
                         fontSize: 13,
                         height: 1.6,
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.75),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.75,
+                        ),
                       ),
                       textDirection: TextDirection.rtl,
                     ),
@@ -1275,8 +1646,11 @@ class TadabburNoteSheetState extends State<TadabburNoteSheet> {
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
             child: Row(
               children: [
-                Icon(Icons.edit_note_rounded,
-                    size: 22, color: theme.colorScheme.tertiary,),
+                Icon(
+                  Icons.edit_note_rounded,
+                  size: 22,
+                  color: theme.colorScheme.tertiary,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'ملاحظات تدبر — سورة ${widget.surah}:${widget.ayah}',
@@ -1304,8 +1678,9 @@ class TadabburNoteSheetState extends State<TadabburNoteSheet> {
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.tertiaryContainer
-                          .withValues(alpha: 0.12),
+                      color: theme.colorScheme.tertiaryContainer.withValues(
+                        alpha: 0.12,
+                      ),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -1329,8 +1704,9 @@ class TadabburNoteSheetState extends State<TadabburNoteSheet> {
                           child: Icon(
                             Icons.delete_outline,
                             size: 18,
-                            color:
-                                theme.colorScheme.error.withValues(alpha: 0.6),
+                            color: theme.colorScheme.error.withValues(
+                              alpha: 0.6,
+                            ),
                           ),
                         ),
                       ],

@@ -1,104 +1,43 @@
-﻿import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/domain/entities/surah.dart';
-import '../../../../core/models/tafsir_models.dart';
 import '../../../../core/services/statistics_service.dart';
-import '../../../../core/services/tafsir_data_source.dart';
-import '../../../../core/theme/tafsir_theme.dart';
+import '../../../../core/utils/verse_counts.dart' as vc;
 import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/quran_providers.dart';
-import 'tafsir_reader_page.dart';
+import '../widgets/mushaf/ayah_actions_sheet.dart';
+import '../widgets/mushaf/mushaf_canvas.dart';
+import '../widgets/mushaf/mushaf_controls.dart';
+import '../widgets/mushaf/mushaf_theme.dart';
+
+export '../widgets/mushaf/mushaf_canvas.dart';
+export '../widgets/mushaf/mushaf_controls.dart';
+export '../widgets/mushaf/mushaf_theme.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// MUSHAF THEMES
-// ═══════════════════════════════════════════════════════════════════════════
-
-enum MushafTheme {
-  madaniCream,   // Classic printed Quran look
-  snowWhite,     // Clean modern look
-  midnightBlack, // True OLED dark mode
-  deepSepia,     // Warm night reading
-}
-
-class MushafThemeData {
-
-  const MushafThemeData({
-    required this.backgroundColor,
-    required this.textColor,
-    required this.verseMarkerColor,
-    required this.headerColor,
-    required this.headerTextColor,
-    required this.borderColor,
-    required this.label,
-  });
-  final Color backgroundColor;
-  final Color textColor;
-  final Color verseMarkerColor;
-  final Color headerColor;
-  final Color headerTextColor;
-  final Color borderColor;
-  final String label;
-
-  static const Map<MushafTheme, MushafThemeData> themes = {
-    MushafTheme.madaniCream: MushafThemeData(
-      backgroundColor: Color(0xFFFDF6E3),
-      textColor: Color(0xFF1A1A1A),
-      verseMarkerColor: Color(0xFF8B7355),
-      headerColor: Color(0xFF2E7D32),
-      headerTextColor: Colors.white,
-      borderColor: Color(0xFFD4B896),
-      label: 'كلاسيكي',
-    ),
-    MushafTheme.snowWhite: MushafThemeData(
-      backgroundColor: Color(0xFFFFFFFE),
-      textColor: Color(0xFF212121),
-      verseMarkerColor: Color(0xFF1B5E20),
-      headerColor: Color(0xFF1B5E20),
-      headerTextColor: Colors.white,
-      borderColor: Color(0xFFE0E0E0),
-      label: 'أبيض',
-    ),
-    MushafTheme.midnightBlack: MushafThemeData(
-      backgroundColor: Color(0xFF0D0D0D),
-      textColor: Color(0xFFE8E0D0),
-      verseMarkerColor: Color(0xFFF3C623),
-      headerColor: Color(0xFF1A1A1A),
-      headerTextColor: Color(0xFFE8E0D0),
-      borderColor: Color(0xFF2A2A2A),
-      label: 'داكن',
-    ),
-    MushafTheme.deepSepia: MushafThemeData(
-      backgroundColor: Color(0xFF2C2416),
-      textColor: Color(0xFFD4C5A9),
-      verseMarkerColor: Color(0xFFC9A96E),
-      headerColor: Color(0xFF3D3222),
-      headerTextColor: Color(0xFFD4C5A9),
-      borderColor: Color(0xFF4A3D2A),
-      label: 'ليلي',
-    ),
-  };
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// THEME PROVIDER
-// ═══════════════════════════════════════════════════════════════════════════
-
-final mushafThemeProvider = StateProvider<MushafTheme>((ref) => MushafTheme.madaniCream);
-
-/// Whether top/bottom controls overlay is visible
-final mushafShowControlsProvider = StateProvider<bool>((ref) => true);
-
-// ═══════════════════════════════════════════════════════════════════════════
-// MUSHAF PAGE VIEWER
+// MUSHAF READER — fixed continuous page canvas (QUR-03)
+//
+// Role tree (Phase 2.3):
+//
+//   QuranMushafPage (route entry; this file — reader state + orchestration)
+//     MushafPageView (one horizontal PageView only)
+//     MushafPageCanvas (widgets/mushaf/mushaf_canvas.dart — complete page)
+//       MushafPageHeader
+//       MushafTextRegion (SurahStartBanner + ContinuousVerseBlock)
+//       MushafPageFooter
+//     MushafControlsOverlay (widgets/mushaf/mushaf_controls.dart)
+//     AyahActionsSheet (widgets/mushaf/ayah_actions_sheet.dart)
+//
+// Theme, zoom, and preference state live in
+// widgets/mushaf/mushaf_theme.dart and are re-exported here so existing
+// importers keep resolving.
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// صفحة المصحف - Traditional Mushaf Page Viewer
 class QuranMushafPage extends ConsumerStatefulWidget {
-
   const QuranMushafPage({super.key, this.initialPage = 1});
   final int initialPage;
 
@@ -107,13 +46,55 @@ class QuranMushafPage extends ConsumerStatefulWidget {
 }
 
 class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
-  late PageController _pageController;
+  late final PageController _pageController;
+  late final int _normalizedInitial;
+
+  /// Settle-generation: an older async save must never overwrite a later page.
+  int _saveGeneration = 0;
+
+  /// Suppresses the blank-tap control toggle immediately after an ayah
+  /// action so opening the sheet never also hides the controls (QUR-06).
+  DateTime? _lastAyahActionAt;
+
+  /// Slider drag preview (updated live); persistence happens on settle only.
+  double? _sliderPreview;
 
   @override
   void initState() {
     super.initState();
-    // Pages are 1-indexed but PageView is 0-indexed
-    _pageController = PageController(initialPage: widget.initialPage - 1);
+    // QUR-04: validate/clamp route input 1..604 BEFORE PageController sees it,
+    // and initialize one source of truth before first paint.
+    _normalizedInitial = vc.clampPage(widget.initialPage);
+    _pageController = PageController(initialPage: _normalizedInitial - 1);
+    // Sync the route-scoped state source before first frame.
+    Future.microtask(() {
+      if (!mounted) return;
+      ref.read(mushafCurrentPageProvider.notifier).state = _normalizedInitial;
+      _restorePreferences();
+    });
+  }
+
+  /// Only restore persisted prefs when the user has saved ones (QUR-07):
+  /// a missing record keeps constructor/test defaults instead of clobbering
+  /// provider overrides.
+  Future<void> _restorePreferences() async {
+    final stored = await MushafPreferenceStore.readStored();
+    if (stored == null || !mounted) return;
+    final prefs = MushafPreferences.fromStored(stored);
+    ref.read(mushafThemeProvider.notifier).state = prefs.theme;
+    ref.read(mushafZoomProvider.notifier).state = prefs.zoom;
+    ref.read(mushafShowControlsProvider.notifier).state = prefs.showControls;
+  }
+
+  Future<void> _persistPreferences({int? lastPage}) async {
+    await MushafPreferenceStore.writeStored(
+      MushafPreferences(
+        theme: ref.read(mushafThemeProvider),
+        zoom: ref.read(mushafZoomProvider),
+        showControls: ref.read(mushafShowControlsProvider),
+        lastPage: lastPage ?? ref.read(mushafCurrentPageProvider),
+      ),
+    );
   }
 
   @override
@@ -123,6 +104,12 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
   }
 
   void _toggleControls() {
+    // An ayah tap that just opened the sheet must not toggle controls.
+    final lastAyah = _lastAyahActionAt;
+    if (lastAyah != null &&
+        DateTime.now().difference(lastAyah).inMilliseconds < 350) {
+      return;
+    }
     final current = ref.read(mushafShowControlsProvider);
     ref.read(mushafShowControlsProvider.notifier).state = !current;
     if (!current) {
@@ -130,8 +117,22 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
     } else {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     }
+    _persistPreferences();
   }
 
+  void _markAyahAction() {
+    _lastAyahActionAt = DateTime.now();
+  }
+
+  void _showAyahActions(Verse verse, MushafThemeData themeData) {
+    HapticFeedback.mediumImpact();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => AyahActionsSheet(verse: verse, themeData: themeData),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -144,58 +145,40 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
       backgroundColor: themeData.backgroundColor,
       body: GestureDetector(
         onTap: _toggleControls,
+        behavior: HitTestBehavior.opaque,
         child: Stack(
           children: [
-            // Main PageView (RTL - swipe right for next page like Arabic books)
-            Directionality(
-              textDirection: TextDirection.rtl,
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: 604,
-                onPageChanged: (index) {
-                  final pageNum = index + 1;
-                  ref.read(mushafCurrentPageProvider.notifier).state = pageNum;
-                  // Save reading position
-                  _saveReadingProgress(pageNum);
-                },
-                itemBuilder: (context, index) {
-                  final pageNum = index + 1;
-                  return _MushafPageWidget(
-                    pageNumber: pageNum,
-                    themeData: themeData,
-                  );
-                },
-              ),
+            MushafPageView(
+              controller: _pageController,
+              themeData: themeData,
+              onPageSettled: (pageNum) {
+                ref.read(mushafCurrentPageProvider.notifier).state = pageNum;
+                setState(() => _sliderPreview = null);
+                // Save reading position only after page settle.
+                _saveReadingProgress(pageNum);
+                _persistPreferences(lastPage: pageNum);
+              },
+              onAyahAction: _markAyahAction,
+              onVerseTap: (verse) => _showAyahActions(verse, themeData),
             ),
 
-            // Top controls (App Bar)
-            if (showControls)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: _MushafTopBar(
-                  pageNumber: currentPage,
-                  themeData: themeData,
-                  onBack: () => Navigator.pop(context),
-                  onTheme: () => _showThemeSelector(context, ref),
-                ),
-              ),
-
-            // Bottom controls (Page indicator + quick jump)
-            if (showControls)
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: _MushafBottomBar(
-                  currentPage: currentPage,
-                  themeData: themeData,
-                  onJump: (page) {
-                    _pageController.jumpToPage(page - 1);
-                  },
-                ),
-              ),
+            // Chrome auto-hides as one unit; the canvas reserves its zones.
+            MushafControlsOverlay(
+              visible: showControls,
+              currentPage: (_sliderPreview ?? currentPage.toDouble())
+                  .round()
+                  .clamp(1, vc.kTotalPages),
+              themeData: themeData,
+              onBack: () => Navigator.pop(context),
+              onTheme: () => _showThemeSelector(context, ref),
+              onPreview: (page) =>
+                  setState(() => _sliderPreview = page.toDouble()),
+              onSettle: (page) {
+                final target = vc.clampPage(page);
+                setState(() => _sliderPreview = null);
+                _pageController.jumpToPage(target - 1);
+              },
+            ),
           ],
         ),
       ),
@@ -203,8 +186,11 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
   }
 
   Future<void> _saveReadingProgress(int page) async {
+    final generation = ++_saveGeneration;
     try {
       final verses = await ref.read(quranPageProvider(page).future);
+      // Drop obsolete writes: an older save cannot overwrite a later page.
+      if (generation != _saveGeneration || !mounted) return;
       if (verses.isEmpty) return;
       final first = verses.first;
       final surah = first.surahNumber;
@@ -212,8 +198,11 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
 
       // Statistics/home card reads the app_statistics box.
       await StatisticsService.recordVerseRead(surah, ayah);
+      if (generation != _saveGeneration || !mounted) return;
       // Quran page "continue reading" reads the reading_progress box.
-      await ref.read(quranRepositoryProvider).saveReadingProgress(
+      await ref
+          .read(quranRepositoryProvider)
+          .saveReadingProgress(
             surahNumber: surah,
             verseNumber: ayah,
             page: page,
@@ -237,7 +226,12 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
             color: MushafThemeData.themes[currentTheme]!.borderColor,
           ),
         ),
-        padding: EdgeInsets.fromLTRB(24, 16, 24, MediaQuery.of(context).padding.bottom + 24),
+        padding: EdgeInsets.fromLTRB(
+          24,
+          16,
+          24,
+          MediaQuery.of(context).padding.bottom + 24,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -245,7 +239,8 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: MushafThemeData.themes[currentTheme]!.textColor.withValues(alpha: 0.2),
+                color: MushafThemeData.themes[currentTheme]!.textColor
+                    .withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -259,54 +254,81 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
               ),
             ),
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            // Wrap so five skins (incl. high-contrast) fit narrow screens.
+            Wrap(
+              alignment: WrapAlignment.spaceEvenly,
+              spacing: 8,
+              runSpacing: 12,
               children: MushafTheme.values.map((theme) {
                 final data = MushafThemeData.themes[theme]!;
                 final isSelected = theme == currentTheme;
-                return GestureDetector(
-                  onTap: () {
-                    ref.read(mushafThemeProvider.notifier).state = theme;
-                    Navigator.pop(context);
-                  },
-                  child: Column(
-                    children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: data.backgroundColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isSelected ? data.headerColor : data.borderColor,
-                            width: isSelected ? 3 : 1,
-                          ),
-                          boxShadow: isSelected ? [
-                            BoxShadow(
-                              color: data.headerColor.withValues(alpha: 0.3),
-                              blurRadius: 8,
+                return Semantics(
+                  button: true,
+                  selected: isSelected,
+                  label: data.localizedLabel(context),
+                  child: GestureDetector(
+                    onTap: () {
+                      ref.read(mushafThemeProvider.notifier).state = theme;
+                      _persistPreferences();
+                      Navigator.pop(context);
+                    },
+                    child: Column(
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: data.backgroundColor,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? data.headerColor
+                                  : data.borderColor,
+                              width: isSelected ? 3 : 1,
                             ),
-                          ] : null,
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: data.headerColor.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                      blurRadius: 8,
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: isSelected
+                              ? Icon(
+                                  Icons.check_rounded,
+                                  color: data.textColor,
+                                  size: 24,
+                                )
+                              : null,
                         ),
-                        child: isSelected
-                            ? Icon(Icons.check_rounded, color: data.textColor, size: 24)
-                            : null,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        data.label,
-                        style: GoogleFonts.cairo(
-                          fontSize: 12,
-                          color: MushafThemeData.themes[currentTheme]!.textColor,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        const SizedBox(height: 8),
+                        Text(
+                          data.localizedLabel(context),
+                          style: GoogleFonts.cairo(
+                            fontSize: 12,
+                            color:
+                                MushafThemeData.themes[currentTheme]!.textColor,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               }).toList(),
             ),
+            const SizedBox(height: 16),
+            // Approved discrete zoom levels + reset (QUR-03).
+            MushafZoomControls(
+              themeData: MushafThemeData.themes[currentTheme]!,
+            ),
           ],
         ),
       ),
@@ -314,889 +336,44 @@ class _QuranMushafPageState extends ConsumerState<QuranMushafPage> {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SINGLE MUSHAF PAGE (Continuous RichText)
-// ═══════════════════════════════════════════════════════════════════════════
-
-class _MushafPageWidget extends ConsumerWidget {
-
-  const _MushafPageWidget({
-    required this.pageNumber,
+/// One horizontal PageView only (QUR-03): each child is a complete fixed
+/// page canvas, never a scroll view nested inside another. Arabic locale
+/// page direction is fixed RTL and covered by widget tests.
+class MushafPageView extends StatelessWidget {
+  const MushafPageView({
+    required this.controller,
     required this.themeData,
-  });
-  final int pageNumber;
-  final MushafThemeData themeData;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final versesAsync = ref.watch(quranPageProvider(pageNumber));
-
-    return versesAsync.when(
-      data: (verses) {
-        if (verses.isEmpty) {
-          return Center(
-            child: Text(
-              AppLocalizations.of(context).mushafEmpty,
-              style: TextStyle(color: themeData.textColor),
-            ),
-          );
-        }
-
-        // Build text spans for continuous flow
-        final surahStartsOnPage = _detectSurahStarts(verses);
-        final juz = verses.first.juz;
-        final firstSurahName = verses.first.surahName ?? '';
-
-        return SafeArea(
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-              // Page header
-              _PageHeader(
-                surahName: firstSurahName,
-                juz: juz,
-                pageNumber: pageNumber,
-                themeData: themeData,
-              ),
-              const SizedBox(height: 12),
-
-              // Continuous text body
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: _buildContinuousText(context, verses, surahStartsOnPage),
-                  ),
-                ),
-              ),
-
-              // Page number footer
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  '$pageNumber',
-                  style: GoogleFonts.cairo(
-                    fontSize: 13,
-                    color: themeData.verseMarkerColor.withValues(alpha: 0.6),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-      loading: () => Center(
-        child: CircularProgressIndicator(
-          color: themeData.verseMarkerColor,
-          strokeWidth: 2,
-        ),
-      ),
-      error: (e, _) => Center(
-        child: Text(
-          AppLocalizations.of(context).mushafError(e.toString()),
-          style: TextStyle(color: themeData.textColor),
-        ),
-      ),
-    );
-  }
-
-  /// Detect which verses start a new surah on this page
-  Set<int> _detectSurahStarts(List<Verse> verses) {
-    final starts = <int>{};
-    int? lastSurah;
-    for (var i = 0; i < verses.length; i++) {
-      if (lastSurah != null && verses[i].surahNumber != lastSurah) {
-        starts.add(i);
-      }
-      if (i == 0 && verses[i].numberInSurah == 1) {
-        starts.add(0);
-      }
-      lastSurah = verses[i].surahNumber;
-    }
-    return starts;
-  }
-
-  Widget _buildContinuousText(BuildContext context, List<Verse> verses, Set<int> surahStarts) {
-    final children = <Widget>[];
-
-    var i = 0;
-    while (i < verses.length) {
-      // Check if a new surah starts here
-      if (surahStarts.contains(i)) {
-        final verse = verses[i];
-        // Add Surah header (Bismillah card)
-        children.add(_SurahStartBanner(
-          surahName: verse.surahName ??
-              AppLocalizations.of(context).surahFallback(verse.surahNumber),
-          surahNumber: verse.surahNumber,
-          themeData: themeData,
-        ),);
-      }
-
-      // Collect all consecutive verses from the same surah segment
-      final segmentStart = i;
-      final currentSurah = verses[i].surahNumber;
-      while (i < verses.length && verses[i].surahNumber == currentSurah &&
-             !(i != segmentStart && surahStarts.contains(i))) {
-        i++;
-      }
-
-      // Build RichText for this segment
-      final segmentVerses = verses.sublist(segmentStart, i);
-      children.add(_ContinuousVerseBlock(
-        verses: segmentVerses,
-        themeData: themeData,
-        onVerseTap: (verse) => _showAyahActions(context, verse, themeData),
-      ),);
-    }
-
-    return Column(children: children);
-  }
-
-  /// Show Ayah Actions bottom sheet with Tafsir preview
-  static void _showAyahActions(BuildContext context, Verse verse, MushafThemeData themeData) {
-    HapticFeedback.mediumImpact();
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _AyahActionSheet(
-        verse: verse,
-        themeData: themeData,
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// WIDGETS
-// ═══════════════════════════════════════════════════════════════════════════
-
-class _PageHeader extends StatelessWidget {
-
-  const _PageHeader({
-    required this.surahName,
-    required this.juz,
-    required this.pageNumber,
-    required this.themeData,
-  });
-  final String surahName;
-  final int juz;
-  final int pageNumber;
-  final MushafThemeData themeData;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: themeData.headerColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            AppLocalizations.of(context).mushafJuz(juz),
-            style: GoogleFonts.cairo(
-              fontSize: 12,
-              color: themeData.headerTextColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          Text(
-            surahName,
-            style: GoogleFonts.cairo(
-              fontSize: 13,
-              color: themeData.headerTextColor,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SurahStartBanner extends StatelessWidget {
-
-  const _SurahStartBanner({
-    required this.surahName,
-    required this.surahNumber,
-    required this.themeData,
-  });
-  final String surahName;
-  final int surahNumber;
-  final MushafThemeData themeData;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 16),
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-      decoration: BoxDecoration(
-        border: Border.all(color: themeData.borderColor, width: 1.5),
-        borderRadius: BorderRadius.circular(12),
-        color: themeData.headerColor.withValues(alpha: 0.06),
-      ),
-      child: Column(
-        children: [
-          Text(
-            surahName,
-            style: GoogleFonts.amiri(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: themeData.textColor,
-            ),
-          ),
-          if (surahNumber != 1 && surahNumber != 9)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
-                style: GoogleFonts.amiri(
-                  fontSize: 20,
-                  color: themeData.textColor.withValues(alpha: 0.8),
-                  height: 1.6,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ContinuousVerseBlock extends StatefulWidget {
-
-  const _ContinuousVerseBlock({
-    required this.verses,
-    required this.themeData,
+    required this.onPageSettled,
+    this.onAyahAction,
     this.onVerseTap,
+    super.key,
   });
-  final List<Verse> verses;
+  final PageController controller;
   final MushafThemeData themeData;
+
+  /// Fired once per settled page (persistence happens here, not on drag).
+  final ValueChanged<int> onPageSettled;
+  final VoidCallback? onAyahAction;
   final ValueChanged<Verse>? onVerseTap;
 
   @override
-  State<_ContinuousVerseBlock> createState() => _ContinuousVerseBlockState();
-}
-
-class _ContinuousVerseBlockState extends State<_ContinuousVerseBlock> {
-  final List<TapGestureRecognizer> _recognizers = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _buildRecognizers();
-  }
-
-  @override
-  void didUpdateWidget(covariant _ContinuousVerseBlock oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.verses != widget.verses) {
-      _disposeRecognizers();
-      _buildRecognizers();
-    }
-  }
-
-  void _buildRecognizers() {
-    for (final verse in widget.verses) {
-      final rec = TapGestureRecognizer()
-        ..onTap = () => widget.onVerseTap?.call(verse);
-      _recognizers.add(rec);
-    }
-  }
-
-  void _disposeRecognizers() {
-    for (final r in _recognizers) {
-      r.dispose();
-    }
-    _recognizers.clear();
-  }
-
-  @override
-  void dispose() {
-    _disposeRecognizers();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final spans = <InlineSpan>[];
-
-    for (var idx = 0; idx < widget.verses.length; idx++) {
-      final verse = widget.verses[idx];
-      // Verse text (tappable)
-      spans
-        ..add(TextSpan(
-          text: verse.textUthmani,
-          style: GoogleFonts.amiri(
-            fontSize: 24,
-            height: 2.2,
-            color: widget.themeData.textColor,
-            fontWeight: FontWeight.w500,
-          ),
-          recognizer: _recognizers[idx],
-        ),)
-
-        // Verse number marker ﴿١﴾ (also tappable)
-        ..add(TextSpan(
-          text: ' \uFD3F${_toArabicNumeral(verse.numberInSurah)}\uFD3E ',
-          style: GoogleFonts.amiri(
-            fontSize: 16,
-            color: widget.themeData.verseMarkerColor,
-            fontWeight: FontWeight.bold,
-          ),
-          recognizer: _recognizers[idx],
-        ),);
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Text.rich(
-        TextSpan(children: spans),
-        textAlign: TextAlign.justify,
-        textDirection: TextDirection.rtl,
-      ),
-    );
-  }
-
-  String _toArabicNumeral(int number) {
-    const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-    return number.toString().split('').map((d) => arabicDigits[int.parse(d)]).join();
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// TOP BAR
-// ═══════════════════════════════════════════════════════════════════════════
-
-class _MushafTopBar extends StatelessWidget {
-
-  const _MushafTopBar({
-    required this.pageNumber,
-    required this.themeData,
-    required this.onBack,
-    required this.onTheme,
-  });
-  final int pageNumber;
-  final MushafThemeData themeData;
-  final VoidCallback onBack;
-  final VoidCallback onTheme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(8, MediaQuery.of(context).padding.top + 4, 8, 8),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            themeData.backgroundColor,
-            themeData.backgroundColor.withValues(alpha: 0),
-          ],
-        ),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: Transform.flip(flipX: true, child: Icon(Icons.arrow_back_rounded, color: themeData.textColor)),
-            onPressed: onBack,
-          ),
-          const Spacer(),
-          IconButton(
-            icon: Icon(Icons.palette_rounded, color: themeData.textColor),
-            tooltip: AppLocalizations.of(context).mushafAppearanceTooltip,
-            onPressed: onTheme,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// BOTTOM BAR
-// ═══════════════════════════════════════════════════════════════════════════
-
-class _MushafBottomBar extends StatelessWidget {
-
-  const _MushafBottomBar({
-    required this.currentPage,
-    required this.themeData,
-    required this.onJump,
-  });
-  final int currentPage;
-  final MushafThemeData themeData;
-  final ValueChanged<int> onJump;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(context).padding.bottom + 12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-          colors: [
-            themeData.backgroundColor,
-            themeData.backgroundColor.withValues(alpha: 0),
-          ],
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Page slider
-          Directionality(
-            textDirection: TextDirection.ltr,
-            child: SliderTheme(
-              data: SliderThemeData(
-                activeTrackColor: themeData.headerColor,
-                inactiveTrackColor: themeData.borderColor,
-                thumbColor: themeData.headerColor,
-                overlayColor: themeData.headerColor.withValues(alpha: 0.2),
-                trackHeight: 3,
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-              ),
-              child: Slider(
-                value: currentPage.toDouble(),
-                min: 1,
-                max: 604,
-                onChanged: (v) => onJump(v.round()),
-              ),
-            ),
-          ),
-          Text(
-            AppLocalizations.of(context).mushafPageIndicator(currentPage),
-            style: GoogleFonts.cairo(
-              fontSize: 12,
-              color: themeData.textColor.withValues(alpha: 0.6),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// AYAH ACTION SHEET (Tap-to-Tafsir)
-// ═══════════════════════════════════════════════════════════════════════════
-
-class _AyahActionSheet extends StatefulWidget {
-
-  const _AyahActionSheet({
-    required this.verse,
-    required this.themeData,
-  });
-  final Verse verse;
-  final MushafThemeData themeData;
-
-  @override
-  State<_AyahActionSheet> createState() => _AyahActionSheetState();
-}
-
-class _AyahActionSheetState extends State<_AyahActionSheet> {
-  TafsirEntry? _tafsirEntry;
-  bool _loadingTafsir = true;
-  bool _tafsirExpanded = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTafsir();
-  }
-
-  Future<void> _loadTafsir() async {
-    final entry = await TafsirDataSource.getAyahTafsir(
-      surah: widget.verse.surahNumber,
-      ayah: widget.verse.numberInSurah,
-    );
-    if (mounted) {
-      setState(() {
-        _tafsirEntry = entry;
-        _loadingTafsir = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final td = widget.themeData;
-    final verse = widget.verse;
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.75,
-      ),
-      decoration: BoxDecoration(
-        color: td.backgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border.all(color: td.borderColor),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(24, 12, 24, bottomPadding + 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Drag handle
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: td.textColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Surah + Ayah label
-            Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  color: td.headerColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  l10n.mushafAyahLabel(
-                    verse.surahName ??
-                        l10n.surahFallback(verse.surahNumber),
-                    verse.numberInSurah,
-                  ),
-                  style: GoogleFonts.cairo(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: td.headerColor,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Ayah text in large Uthmani script
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: td.headerColor.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: td.borderColor.withValues(alpha: 0.5)),
-              ),
-              child: Text(
-                verse.textUthmani,
-                style: GoogleFonts.amiri(
-                  fontSize: 26,
-                  height: 2,
-                  color: td.textColor,
-                  fontWeight: FontWeight.w500,
-                ),
-                textAlign: TextAlign.center,
-                textDirection: TextDirection.rtl,
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Quick action buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _ActionButton(
-                  icon: Icons.copy_rounded,
-                  label: l10n.mushafCopy,
-                  color: td.headerColor,
-                  bgColor: td.headerColor.withValues(alpha: 0.1),
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: verse.textUthmani));
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(l10n.verseCopied),
-                        backgroundColor: td.headerColor,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                _ActionButton(
-                  icon: Icons.bookmark_add_rounded,
-                  label: l10n.mushafSave,
-                  color: const Color(0xFFE8A838),
-                  bgColor: const Color(0xFFE8A838).withValues(alpha: 0.1),
-                  onTap: () async {
-                    await TafsirDataSource.addBookmark(
-                      surah: verse.surahNumber,
-                      ayah: verse.numberInSurah,
-                    );
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(l10n.mushafSaved),
-                          backgroundColor: const Color(0xFFE8A838),
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                ),
-                _ActionButton(
-                  icon: Icons.share_rounded,
-                  label: l10n.verseShare,
-                  color: const Color(0xFF5C6BC0),
-                  bgColor: const Color(0xFF5C6BC0).withValues(alpha: 0.1),
-                  onTap: () {
-                    final shareText = l10n.mushafShareTemplate(
-                      verse.textUthmani,
-                      verse.surahName ??
-                          l10n.surahFallback(verse.surahNumber),
-                      verse.numberInSurah,
-                    );
-                    Clipboard.setData(ClipboardData(text: shareText));
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(l10n.mushafShareCopied),
-                        backgroundColor: const Color(0xFF5C6BC0),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // ── Tafsir Preview ──
-            Container(
-              decoration: BoxDecoration(
-                color: td.backgroundColor,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: td.borderColor),
-              ),
-              child: Column(
-                children: [
-                  // Tafsir header
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: td.headerColor.withValues(alpha: 0.08),
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(15),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.menu_book_rounded, size: 18, color: td.headerColor),
-                        const SizedBox(width: 8),
-                        Text(
-                          l10n.mushafTafsirTitle,
-                          style: GoogleFonts.cairo(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: td.headerColor,
-                          ),
-                        ),
-                        const Spacer(),
-                        if (_tafsirEntry != null)
-                          GestureDetector(
-                            onTap: () => setState(() => _tafsirExpanded = !_tafsirExpanded),
-                            child: Icon(
-                              _tafsirExpanded
-                                  ? Icons.expand_less_rounded
-                                  : Icons.expand_more_rounded,
-                              color: td.headerColor,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-
-                  // Tafsir body
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: _loadingTafsir
-                        ? Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: Center(
-                              child: SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: td.verseMarkerColor,
-                                ),
-                              ),
-                            ),
-                          )
-                        : _tafsirEntry == null
-                            ? Text(
-                                l10n.mushafTafsirMissing,
-                                style: GoogleFonts.cairo(
-                                  fontSize: 14,
-                                  color: td.textColor.withValues(alpha: 0.5),
-                                ),
-                                textAlign: TextAlign.center,
-                              )
-                            : Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(
-                                    _tafsirExpanded
-                                        ? _tafsirEntry!.text
-                                        : _truncate(_tafsirEntry!.text, 200),
-                                    style: GoogleFonts.cairo(
-                                      fontSize: 15,
-                                      height: 1.9,
-                                      color: td.textColor.withValues(alpha: 0.85),
-                                    ),
-                                    textDirection: TextDirection.rtl,
-                                  ),
-                                  if (!_tafsirExpanded && _tafsirEntry!.text.length > 200) ...[
-                                    const SizedBox(height: 8),
-                                    GestureDetector(
-                                      onTap: () => setState(() => _tafsirExpanded = true),
-                                      child: Text(
-                                        l10n.mushafReadMore,
-                                        style: GoogleFonts.cairo(
-                                          fontSize: 13,
-                                          color: td.headerColor,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textDirection: TextDirection.rtl,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Open full Tafsir page button
-            Material(
-              color: td.headerColor,
-              borderRadius: BorderRadius.circular(14),
-              elevation: 2,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Navigate to the dedicated TafsirPage for this surah+ayah
-                  Navigator.of(context).push(
-                    FadeThroughPageRoute<void>(
-                      page: TafsirReaderPage(
-                        surahNumber: verse.surahNumber,
-                        ayahNumber: verse.numberInSurah,
-                        surahName: verse.surahName ?? '',
-                      ),
-                    ),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.auto_stories_rounded, color: Colors.white, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.mushafOpenFull,
-                        style: GoogleFonts.cairo(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _truncate(String text, int maxLength) {
-    if (text.length <= maxLength) return text;
-    return '${text.substring(0, maxLength)}...';
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// ACTION BUTTON (circular icon + label)
-// ═══════════════════════════════════════════════════════════════════════════
-
-class _ActionButton extends StatelessWidget {
-
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.bgColor,
-    required this.onTap,
-  });
-  final IconData icon;
-  final String label;
-  final Color color;
-  final Color bgColor;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: bgColor,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: GoogleFonts.cairo(
-              fontSize: 12,
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+    // RTL swipe turns pages like an Arabic book.
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: PageView.builder(
+        controller: controller,
+        itemCount: vc.kTotalPages,
+        onPageChanged: (index) => onPageSettled(index + 1),
+        itemBuilder: (context, index) {
+          final pageNum = index + 1;
+          return MushafPageCanvas(
+            pageNumber: pageNum,
+            themeData: themeData,
+            onAyahAction: onAyahAction,
+            onVerseTap: onVerseTap,
+          );
+        },
       ),
     );
   }

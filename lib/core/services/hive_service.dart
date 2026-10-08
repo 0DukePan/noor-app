@@ -18,7 +18,10 @@ class HiveService {
   static const String _settingsBox = HiveBoxes.settings;
   static const String _qadaBox = HiveBoxes.qada;
 
-  /// Initialize all Hive boxes
+  /// Initialize all Hive boxes.
+  ///
+  /// Single documented Hive init owner (APP-04): every other service opens
+  /// its own boxes but never calls `Hive.initFlutter` again.
   static Future<void> initialize() async {
     await Hive.initFlutter();
 
@@ -41,9 +44,12 @@ class HiveService {
   // QURAN STORAGE
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static Box<Map<dynamic, dynamic>> get surahsBox => Hive.box<Map<dynamic, dynamic>>(_surahsBox);
-  static Box<Map<dynamic, dynamic>> get versesBox => Hive.box<Map<dynamic, dynamic>>(_versesBox);
-  static Box<Map<dynamic, dynamic>> get tafsirBox => Hive.box<Map<dynamic, dynamic>>(_tafsirBox);
+  static Box<Map<dynamic, dynamic>> get surahsBox =>
+      Hive.box<Map<dynamic, dynamic>>(_surahsBox);
+  static Box<Map<dynamic, dynamic>> get versesBox =>
+      Hive.box<Map<dynamic, dynamic>>(_versesBox);
+  static Box<Map<dynamic, dynamic>> get tafsirBox =>
+      Hive.box<Map<dynamic, dynamic>>(_tafsirBox);
 
   /// Cache all surahs
   static Future<void> cacheSurahs(List<Map<String, dynamic>> surahs) async {
@@ -61,7 +67,10 @@ class HiveService {
   }
 
   /// Cache verses for a surah
-  static Future<void> cacheVerses(int surahNumber, List<Map<String, dynamic>> verses) async {
+  static Future<void> cacheVerses(
+    int surahNumber,
+    List<Map<String, dynamic>> verses,
+  ) async {
     await versesBox.put(surahNumber.toString(), {'verses': verses});
   }
 
@@ -69,17 +78,26 @@ class HiveService {
   static List<Map<String, dynamic>>? getCachedVerses(int surahNumber) {
     final data = versesBox.get(surahNumber.toString());
     if (data == null) return null;
-    return (data['verses'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    return (data['verses'] as List)
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .toList();
   }
 
   /// Cache tafsir
-  static Future<void> cacheTafsir(int surahNumber, int verseNumber, Map<String, dynamic> tafsir) async {
+  static Future<void> cacheTafsir(
+    int surahNumber,
+    int verseNumber,
+    Map<String, dynamic> tafsir,
+  ) async {
     final key = '$surahNumber:$verseNumber';
     await tafsirBox.put(key, tafsir);
   }
 
   /// Get cached tafsir
-  static Map<String, dynamic>? getCachedTafsir(int surahNumber, int verseNumber) {
+  static Map<String, dynamic>? getCachedTafsir(
+    int surahNumber,
+    int verseNumber,
+  ) {
     final key = '$surahNumber:$verseNumber';
     final data = tafsirBox.get(key);
     return data != null ? Map<String, dynamic>.from(data) : null;
@@ -89,10 +107,14 @@ class HiveService {
   // HADITH STORAGE
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static Box<Map<dynamic, dynamic>> get hadithsBox => Hive.box<Map<dynamic, dynamic>>(_hadithsBox);
+  static Box<Map<dynamic, dynamic>> get hadithsBox =>
+      Hive.box<Map<dynamic, dynamic>>(_hadithsBox);
 
   /// Cache hadiths by category
-  static Future<void> cacheHadiths(String categoryId, List<Map<String, dynamic>> hadiths) async {
+  static Future<void> cacheHadiths(
+    String categoryId,
+    List<Map<String, dynamic>> hadiths,
+  ) async {
     await hadithsBox.put(categoryId, {'hadiths': hadiths});
   }
 
@@ -100,17 +122,23 @@ class HiveService {
   static List<Map<String, dynamic>>? getCachedHadiths(String categoryId) {
     final data = hadithsBox.get(categoryId);
     if (data == null) return null;
-    return (data['hadiths'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    return (data['hadiths'] as List)
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .toList();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // ADHKAR STORAGE
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static Box<Map<dynamic, dynamic>> get adhkarBox => Hive.box<Map<dynamic, dynamic>>(_adhkarBox);
+  static Box<Map<dynamic, dynamic>> get adhkarBox =>
+      Hive.box<Map<dynamic, dynamic>>(_adhkarBox);
 
   /// Cache adhkar by category
-  static Future<void> cacheAdhkar(String category, List<Map<String, dynamic>> adhkar) async {
+  static Future<void> cacheAdhkar(
+    String category,
+    List<Map<String, dynamic>> adhkar,
+  ) async {
     await adhkarBox.put(category, {'adhkar': adhkar});
   }
 
@@ -118,18 +146,25 @@ class HiveService {
   static List<Map<String, dynamic>>? getCachedAdhkar(String category) {
     final data = adhkarBox.get(category);
     if (data == null) return null;
-    return (data['adhkar'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    return (data['adhkar'] as List)
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .toList();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // USER DATA STORAGE
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static Box<Map<dynamic, dynamic>> get progressBox => Hive.box<Map<dynamic, dynamic>>(_progressBox);
-  static Box<Map<dynamic, dynamic>> get bookmarksBox => Hive.box<Map<dynamic, dynamic>>(_bookmarksBox);
-  static Box<Map<dynamic, dynamic>> get tadabburBox => Hive.box<Map<dynamic, dynamic>>(_tadabburBox);
-  static Box<Map<dynamic, dynamic>> get settingsBox => Hive.box<Map<dynamic, dynamic>>(_settingsBox);
-  static Box<Map<dynamic, dynamic>> get qadaBox => Hive.box<Map<dynamic, dynamic>>(_qadaBox);
+  static Box<Map<dynamic, dynamic>> get progressBox =>
+      Hive.box<Map<dynamic, dynamic>>(_progressBox);
+  static Box<Map<dynamic, dynamic>> get bookmarksBox =>
+      Hive.box<Map<dynamic, dynamic>>(_bookmarksBox);
+  static Box<Map<dynamic, dynamic>> get tadabburBox =>
+      Hive.box<Map<dynamic, dynamic>>(_tadabburBox);
+  static Box<Map<dynamic, dynamic>> get settingsBox =>
+      Hive.box<Map<dynamic, dynamic>>(_settingsBox);
+  static Box<Map<dynamic, dynamic>> get qadaBox =>
+      Hive.box<Map<dynamic, dynamic>>(_qadaBox);
 
   /// Save reading progress
   static Future<void> saveReadingProgress(Map<String, dynamic> progress) async {
@@ -174,12 +209,16 @@ class HiveService {
 
   /// Save tadabbur (encrypted note)
   static Future<void> saveTadabbur(Map<String, dynamic> tadabbur) async {
-    final key = '${tadabbur['surahNumber']}:${tadabbur['verseNumber']}:${tadabbur['id']}';
+    final key =
+        '${tadabbur['surahNumber']}:${tadabbur['verseNumber']}:${tadabbur['id']}';
     await tadabburBox.put(key, tadabbur);
   }
 
   /// Get tadabbur for verse
-  static List<Map<String, dynamic>> getTadabburForVerse(int surahNumber, int verseNumber) {
+  static List<Map<String, dynamic>> getTadabburForVerse(
+    int surahNumber,
+    int verseNumber,
+  ) {
     final prefix = '$surahNumber:$verseNumber:';
     return tadabburBox.keys
         .where((k) => k.toString().startsWith(prefix))

@@ -37,6 +37,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get appTagline => 'تطبيق إسلامي شامل يخدم بيئة تعبدية رقمية';
 
   @override
+  String get commonBack => 'رجوع';
+
+  @override
   String get commonRetry => 'إعادة المحاولة';
 
   @override
@@ -658,6 +661,106 @@ class AppLocalizationsAr extends AppLocalizations {
   String mushafAyahLabel(String name, int ayah) {
     return '$name ﴿$ayah﴾';
   }
+
+  @override
+  String get mushafRetry => 'إعادة المحاولة';
+
+  @override
+  String mushafPageSemantics(int page, String surah, int juz) {
+    return 'صفحة $page من 604، $surah، الجزء $juz';
+  }
+
+  @override
+  String get mushafThemeClassic => 'كلاسيكي';
+
+  @override
+  String get mushafThemeWhite => 'أبيض';
+
+  @override
+  String get mushafThemeDark => 'داكن';
+
+  @override
+  String get mushafThemeNight => 'ليلي';
+
+  @override
+  String get mushafThemeContrast => 'تباين عالٍ';
+
+  @override
+  String get mushafZoomIn => 'تكبير خط المصحف';
+
+  @override
+  String get mushafZoomOut => 'تصغير خط المصحف';
+
+  @override
+  String get mushafZoomReset => 'إعادة ضبط حجم الخط';
+
+  @override
+  String get mushafControlsShown => 'إظهار عناصر التحكم';
+
+  @override
+  String get mushafControlsHidden => 'إخفاء عناصر التحكم';
+
+  @override
+  String mushafDiagnosticId(String id) {
+    return 'الرمز التشخيصي: $id';
+  }
+
+  @override
+  String get routeInvalidTitle => 'رابط غير صالح';
+
+  @override
+  String routeInvalidBody(String reason) {
+    return 'تعذّر فتح هذا الموضع ($reason). تم إعادتك إلى موضع آمن.';
+  }
+
+  @override
+  String routeInvalidValue(String value) {
+    return 'القيمة: $value';
+  }
+
+  @override
+  String get routeInvalidBack => 'عودة آمنة';
+
+  @override
+  String get audioErrorOffline =>
+      'لا يوجد اتصال. تحقق من الشبكة أو استمع لآية مخزّنة وحاول مجدداً.';
+
+  @override
+  String get audioErrorInvalid =>
+      'تعذّر تحميل هذه الآية. تحقق من الموضع وحاول مجدداً.';
+
+  @override
+  String get audioErrorUnknown => 'تعذّر تشغيل الصوت. حاول مجدداً.';
+
+  @override
+  String get audioRetry => 'إعادة المحاولة';
+
+  @override
+  String get audioEndOfQuran => 'نهاية المصحف';
+
+  @override
+  String get audioEndOfSurah => 'نهاية السورة';
+
+  @override
+  String get tafsirStateUnavailable =>
+      'لا يوجد تفسير لهذه الآية في المصدر المحدد';
+
+  @override
+  String get tafsirStateSourceDisabled => 'هذا المصدر غير مضمّن في هذه النسخة';
+
+  @override
+  String get tafsirStateStorageFailure =>
+      'تعذّر فتح مكتبة التفسير على الجهاز. أعد المحاولة.';
+
+  @override
+  String get tafsirStateCorrupt =>
+      'مكتبة التفسير تالفة. أعد التحقق من الحزمة وحاول مجدداً.';
+
+  @override
+  String get tafsirRetry => 'إعادة المحاولة';
+
+  @override
+  String get tafsirOpenFull => 'فتح التفسير الكامل';
 
   @override
   String mushafShareTemplate(String verse, String surah, int ayah) {

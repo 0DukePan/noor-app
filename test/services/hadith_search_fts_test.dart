@@ -28,10 +28,9 @@ void main() {
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('noor_fts_test');
-    db = await HadithDatabase.openWithBooks(
-      ['nawawi40'],
-      directory: tempDir.path,
-    );
+    db = await HadithDatabase.openWithBooks([
+      'nawawi40',
+    ], directory: tempDir.path);
   });
 
   tearDown(() async {
@@ -42,36 +41,45 @@ void main() {
   });
 
   group('HadithDatabase.search (FTS5)', () {
-    test('returns hadiths that actually contain the query (rowid alignment)',
-        () async {
-      // A distinctive word that must appear in nawawi40.
-      final results = await HadithDatabase.search('الصلاة', db: db, limit: 20);
-      expect(results, isNotEmpty, reason: 'FTS search should hit hadiths');
-      final norm = HadithDatabase.normalizeForSearch('الصلاة');
-      for (final r in results) {
-        final text = r['arabic_norm'] as String? ?? '';
-        expect(
-          text,
-          contains(norm),
-          reason: 'returned hadith must actually match the query '
-              '(guards against FTS/content rowid misalignment)',
+    test(
+      'returns hadiths that actually contain the query (rowid alignment)',
+      () async {
+        // A distinctive word that must appear in nawawi40.
+        final results = await HadithDatabase.search(
+          'الصلاة',
+          db: db,
+          limit: 20,
         );
-      }
-    });
+        expect(results, isNotEmpty, reason: 'FTS search should hit hadiths');
+        final norm = HadithDatabase.normalizeForSearch('الصلاة');
+        for (final r in results) {
+          final text = r['arabic_norm'] as String? ?? '';
+          expect(
+            text,
+            contains(norm),
+            reason:
+                'returned hadith must actually match the query '
+                '(guards against FTS/content rowid misalignment)',
+          );
+        }
+      },
+    );
 
-    test('searches with or without diacritics via the normalized column',
-        () async {
-      // Diacritized query.
-      final diacritized = await HadithDatabase.search(
-        'صَلَاة',
-        db: db,
-        limit: 10,
-      );
-      // Un-diacritized query.
-      final plain = await HadithDatabase.search('صلاة', db: db, limit: 10);
-      expect(diacritized, isNotEmpty);
-      expect(plain, isNotEmpty);
-    });
+    test(
+      'searches with or without diacritics via the normalized column',
+      () async {
+        // Diacritized query.
+        final diacritized = await HadithDatabase.search(
+          'صَلَاة',
+          db: db,
+          limit: 10,
+        );
+        // Un-diacritized query.
+        final plain = await HadithDatabase.search('صلاة', db: db, limit: 10);
+        expect(diacritized, isNotEmpty);
+        expect(plain, isNotEmpty);
+      },
+    );
 
     test('scoping by collectionId returns only that book', () async {
       final results = await HadithDatabase.search(
@@ -100,8 +108,7 @@ void main() {
       expect(await HadithDatabase.search('   ', db: db), isEmpty);
     });
 
-    test('FTS special characters fall back to LIKE without crashing',
-        () async {
+    test('FTS special characters fall back to LIKE without crashing', () async {
       // These are invalid FTS5 MATCH syntax; search must not throw.
       final results = await HadithDatabase.search('"-"', db: db, limit: 5);
       expect(results, isA<List<Map<String, dynamic>>>());
@@ -120,9 +127,32 @@ void main() {
   });
 
   group('HadithDatabase detail API', () {
+    test(
+      'a search hit always opens the same indexed record (Phase 7.5)',
+      () async {
+        final hits = await HadithDatabase.search('الصلاة', db: db, limit: 10);
+        expect(hits, isNotEmpty);
+        for (final hit in hits.take(5)) {
+          final collection = hit['collection_id'] as String;
+          final id = hit['id'] as int;
+          final detail = await HadithDatabase.getHadithById(
+            collection,
+            id,
+            db: db,
+          );
+          expect(detail, isNotNull, reason: 'hit $collection/$id');
+          expect(detail!['arabic'], hit['arabic']);
+          expect(detail['id_in_book'], hit['id_in_book']);
+          expect(detail['collection_id'], collection);
+        }
+      },
+    );
+
     test('getHadiths paginates ordered by id_in_book', () async {
-      final page1 =
-          await HadithDatabase.getHadiths(collectionId: 'nawawi40', db: db);
+      final page1 = await HadithDatabase.getHadiths(
+        collectionId: 'nawawi40',
+        db: db,
+      );
       expect(page1, isNotEmpty);
       final page2 = await HadithDatabase.getHadiths(
         collectionId: 'nawawi40',
@@ -135,11 +165,12 @@ void main() {
     });
 
     test('getHadithById returns the same row as getHadiths', () async {
-      final rows =
-          await HadithDatabase.getHadiths(collectionId: 'nawawi40', db: db);
+      final rows = await HadithDatabase.getHadiths(
+        collectionId: 'nawawi40',
+        db: db,
+      );
       final id = rows.first['id'] as int;
-      final byId =
-          await HadithDatabase.getHadithById('nawawi40', id, db: db);
+      final byId = await HadithDatabase.getHadithById('nawawi40', id, db: db);
       expect(byId, isNotNull);
       expect(byId!['id'], id);
       expect(byId['id_in_book'], rows.first['id_in_book']);
@@ -154,12 +185,16 @@ void main() {
     });
 
     test('getChapterHadithCounts is consistent with getHadiths', () async {
-      final counts =
-          await HadithDatabase.getChapterHadithCounts('nawawi40', db: db);
+      final counts = await HadithDatabase.getChapterHadithCounts(
+        'nawawi40',
+        db: db,
+      );
       expect(counts, isNotEmpty);
       final total = counts.values.fold<int>(0, (a, b) => a + b);
-      final all =
-          await HadithDatabase.getHadiths(collectionId: 'nawawi40', db: db);
+      final all = await HadithDatabase.getHadiths(
+        collectionId: 'nawawi40',
+        db: db,
+      );
       expect(
         total,
         all.length,
@@ -168,8 +203,7 @@ void main() {
     });
 
     test('searchByNarrator filters hadiths by the narrator field', () async {
-      final byNarrator =
-          await HadithDatabase.searchByNarrator('Imam', db: db);
+      final byNarrator = await HadithDatabase.searchByNarrator('Imam', db: db);
       expect(byNarrator, isA<List<Map<String, dynamic>>>());
       for (final r in byNarrator) {
         final narrator = (r['english_narrator'] as String? ?? '').toLowerCase();
@@ -187,78 +221,87 @@ void main() {
         .where((t) => t.isNotEmpty)
         .toList();
 
-    test('FTS hits are exactly the content rows containing the query token',
-        () async {
-      const query = 'الصلاة';
-      final ftsHits = await HadithDatabase.search(query, db: db);
-      expect(
-        ftsHits,
-        isNotEmpty,
-        reason: 'precondition: the FTS path must hit, not the LIKE fallback',
-      );
-
-      final norm = HadithDatabase.normalizeForSearch(query);
-      final expected = <String>{};
-      final all = await db
-          .query('hadiths', columns: ['collection_id', 'id_in_book', 'arabic_norm']);
-      for (final row in all) {
-        if (tokens(row['arabic_norm'] as String? ?? '').contains(norm)) {
-          expected.add('${row['collection_id']}:${row['id_in_book']}');
-        }
-      }
-      expect(expected, isNotEmpty);
-
-      final actual =
-          ftsHits.map((r) => '${r['collection_id']}:${r['id_in_book']}').toSet();
-      expect(
-        actual,
-        expected,
-        reason: 'the FTS rowid JOIN must return exactly the documents whose '
-            'normalized text contains the query token — a shifted, duplicated '
-            'or stale index (the documented "FTS never aligned with content" '
-            'bug class) breaks this identity even when counts still match',
-      );
-    });
-
-    test('every raw FTS rowid resolves to a real content row containing the term',
-        () async {
-      const query = 'الصلاة';
-      final ftsRowids = await db.rawQuery(
-        'SELECT rowid FROM hadiths_fts WHERE hadiths_fts MATCH ?',
-        [query],
-      );
-      expect(ftsRowids, isNotEmpty);
-      final norm = HadithDatabase.normalizeForSearch(query);
-      for (final fts in ftsRowids) {
-        final rowid = (fts['rowid'] as int?)!;
-        final content = await db.query(
-          'hadiths',
-          columns: ['rowid', 'arabic_norm'],
-          where: 'rowid = ?',
-          whereArgs: [rowid],
-        );
+    test(
+      'FTS hits are exactly the content rows containing the query token',
+      () async {
+        const query = 'الصلاة';
+        final ftsHits = await HadithDatabase.search(query, db: db);
         expect(
-          content,
+          ftsHits,
           isNotEmpty,
-          reason: 'FTS rowid $rowid has no content row — a phantom index entry',
+          reason: 'precondition: the FTS path must hit, not the LIKE fallback',
         );
-        expect(
-          tokens(content.first['arabic_norm'] as String? ?? ''),
-          contains(norm),
-        );
-      }
-    });
 
-    test('INSERT OR REPLACE without rebuildFts leaves the index stale', () async {
-      // External-content FTS has no triggers: replacing a row deletes the old
-      // rowid and inserts at a NEW rowid, silently desynchronizing the index
-      // until rebuildFts runs. This locks in the importer's rebuild contract.
-      final original = (await db.query('hadiths', limit: 1)).first;
-      const uniqueTerm = 'توافقاختبارنور';
-      final normTerm = HadithDatabase.normalizeForSearch(uniqueTerm);
-      await db.insert(
-        'hadiths',
-        {
+        final norm = HadithDatabase.normalizeForSearch(query);
+        final expected = <String>{};
+        final all = await db.query(
+          'hadiths',
+          columns: ['collection_id', 'id_in_book', 'arabic_norm'],
+        );
+        for (final row in all) {
+          if (tokens(row['arabic_norm'] as String? ?? '').contains(norm)) {
+            expected.add('${row['collection_id']}:${row['id_in_book']}');
+          }
+        }
+        expect(expected, isNotEmpty);
+
+        final actual = ftsHits
+            .map((r) => '${r['collection_id']}:${r['id_in_book']}')
+            .toSet();
+        expect(
+          actual,
+          expected,
+          reason:
+              'the FTS rowid JOIN must return exactly the documents whose '
+              'normalized text contains the query token — a shifted, duplicated '
+              'or stale index (the documented "FTS never aligned with content" '
+              'bug class) breaks this identity even when counts still match',
+        );
+      },
+    );
+
+    test(
+      'every raw FTS rowid resolves to a real content row containing the term',
+      () async {
+        const query = 'الصلاة';
+        final ftsRowids = await db.rawQuery(
+          'SELECT rowid FROM hadiths_fts WHERE hadiths_fts MATCH ?',
+          [query],
+        );
+        expect(ftsRowids, isNotEmpty);
+        final norm = HadithDatabase.normalizeForSearch(query);
+        for (final fts in ftsRowids) {
+          final rowid = (fts['rowid'] as int?)!;
+          final content = await db.query(
+            'hadiths',
+            columns: ['rowid', 'arabic_norm'],
+            where: 'rowid = ?',
+            whereArgs: [rowid],
+          );
+          expect(
+            content,
+            isNotEmpty,
+            reason:
+                'FTS rowid $rowid has no content row — a phantom index entry',
+          );
+          expect(
+            tokens(content.first['arabic_norm'] as String? ?? ''),
+            contains(norm),
+          );
+        }
+      },
+    );
+
+    test(
+      'INSERT OR REPLACE without rebuildFts leaves the index stale',
+      () async {
+        // External-content FTS has no triggers: replacing a row deletes the old
+        // rowid and inserts at a NEW rowid, silently desynchronizing the index
+        // until rebuildFts runs. This locks in the importer's rebuild contract.
+        final original = (await db.query('hadiths', limit: 1)).first;
+        const uniqueTerm = 'توافقاختبارنور';
+        final normTerm = HadithDatabase.normalizeForSearch(uniqueTerm);
+        await db.insert('hadiths', {
           'id': original['id'],
           'id_in_book': original['id_in_book'],
           'collection_id': original['collection_id'],
@@ -267,62 +310,66 @@ void main() {
           'arabic_norm': '$normTerm نص اختبار',
           'english_narrator': original['english_narrator'],
           'english_text': original['english_text'],
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
 
-      // Stale index: the new content is invisible to FTS until a rebuild.
-      final beforeRebuild = await db.rawQuery(
-        'SELECT rowid FROM hadiths_fts WHERE hadiths_fts MATCH ?',
-        [uniqueTerm],
-      );
-      expect(
-        beforeRebuild,
-        isEmpty,
-        reason: 'content changed without rebuildFts must NOT appear in the '
-            'index (guards the "every writer ends with rebuildFts" contract)',
-      );
-
-      await HadithDbImporter.rebuildFts(db);
-
-      final afterRebuild = await db.rawQuery(
-        'SELECT rowid FROM hadiths_fts WHERE hadiths_fts MATCH ?',
-        [uniqueTerm],
-      );
-      expect(afterRebuild, hasLength(1));
-      final joined = await db.query(
-        'hadiths',
-        columns: ['id', 'collection_id', 'arabic_norm'],
-        where: 'rowid = ?',
-        whereArgs: [afterRebuild.first['rowid']],
-      );
-      expect(joined, hasLength(1));
-      expect(
-        tokens(joined.first['arabic_norm'] as String? ?? ''),
-        contains(normTerm),
-      );
-      expect(joined.first['id'], original['id']);
-      expect(joined.first['collection_id'], original['collection_id']);
-    });
-
-    test('an FTS search hit resolves through the id-based detail API', () async {
-      final hits = await HadithDatabase.search('الصلاة', db: db, limit: 5);
-      expect(hits, isNotEmpty);
-      for (final hit in hits) {
-        final detail = await HadithDatabase.getHadithById(
-          hit['collection_id'] as String,
-          hit['id'] as int,
-          db: db,
+        // Stale index: the new content is invisible to FTS until a rebuild.
+        final beforeRebuild = await db.rawQuery(
+          'SELECT rowid FROM hadiths_fts WHERE hadiths_fts MATCH ?',
+          [uniqueTerm],
         );
         expect(
-          detail,
-          isNotNull,
-          reason: 'every FTS hit must resolve via getHadithById (the reader '
-              'detail path used by the search pages)',
+          beforeRebuild,
+          isEmpty,
+          reason:
+              'content changed without rebuildFts must NOT appear in the '
+              'index (guards the "every writer ends with rebuildFts" contract)',
         );
-        expect(detail!['id_in_book'], hit['id_in_book']);
-        expect(detail['arabic'], hit['arabic']);
-      }
-    });
+
+        await HadithDbImporter.rebuildFts(db);
+
+        final afterRebuild = await db.rawQuery(
+          'SELECT rowid FROM hadiths_fts WHERE hadiths_fts MATCH ?',
+          [uniqueTerm],
+        );
+        expect(afterRebuild, hasLength(1));
+        final joined = await db.query(
+          'hadiths',
+          columns: ['id', 'collection_id', 'arabic_norm'],
+          where: 'rowid = ?',
+          whereArgs: [afterRebuild.first['rowid']],
+        );
+        expect(joined, hasLength(1));
+        expect(
+          tokens(joined.first['arabic_norm'] as String? ?? ''),
+          contains(normTerm),
+        );
+        expect(joined.first['id'], original['id']);
+        expect(joined.first['collection_id'], original['collection_id']);
+      },
+    );
+
+    test(
+      'an FTS search hit resolves through the id-based detail API',
+      () async {
+        final hits = await HadithDatabase.search('الصلاة', db: db, limit: 5);
+        expect(hits, isNotEmpty);
+        for (final hit in hits) {
+          final detail = await HadithDatabase.getHadithById(
+            hit['collection_id'] as String,
+            hit['id'] as int,
+            db: db,
+          );
+          expect(
+            detail,
+            isNotNull,
+            reason:
+                'every FTS hit must resolve via getHadithById (the reader '
+                'detail path used by the search pages)',
+          );
+          expect(detail!['id_in_book'], hit['id_in_book']);
+          expect(detail['arabic'], hit['arabic']);
+        }
+      },
+    );
   });
 }

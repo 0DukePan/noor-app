@@ -1,14 +1,17 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../../core/data/data_sources/tafsir_database.dart';
 import '../../../../core/models/tafsir_models.dart';
 import '../../../../core/services/tafsir_data_source.dart';
+import '../../../../core/widgets/tafsir_state_view.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 
 /// 📖 TafsirInlineView - عرض التفسير المختصر تحت الآية
 class TafsirInlineView extends StatefulWidget {
-
   const TafsirInlineView({
-    required this.surah, required this.ayah, super.key,
+    required this.surah,
+    required this.ayah,
+    super.key,
     this.source = TafsirSourceId.muyassar,
     this.initiallyExpanded = false,
     this.onExpand,
@@ -29,7 +32,7 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
-  
+
   bool _isExpanded = false;
   bool _isLoading = true;
   TafsirEntry? _tafsir;
@@ -44,11 +47,11 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
       vsync: this,
     );
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
-    
+
     if (_isExpanded) {
       _controller.value = 1.0;
     }
-    
+
     _loadTafsir();
   }
 
@@ -74,23 +77,15 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
         ayah: widget.ayah,
         source: widget.source,
       );
-      
+
       if (mounted) {
         setState(() {
           _tafsir = tafsir;
           _isLoading = false;
         });
-        
-        // Record reading
-        if (tafsir != null) {
-          unawaited(
-            TafsirDataSource.recordReading(
-              surah: widget.surah,
-              ayah: widget.ayah,
-              source: widget.source,
-            ),
-          );
-        }
+
+        // TAF-05: passive preload is NOT a read. History is recorded only
+        // on the explicit reading action below (_toggle expansion).
       }
     } on Exception {
       if (mounted) {
@@ -106,10 +101,21 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
     setState(() {
       _isExpanded = !_isExpanded;
     });
-    
+
     if (_isExpanded) {
       _controller.forward();
       widget.onExpand?.call();
+      // TAF-05: a "read" is the explicit expansion action (content is now
+      // visible to the user), deduplicated inside recordReading by key.
+      if (_tafsir != null) {
+        unawaited(
+          TafsirDataSource.recordReading(
+            surah: widget.surah,
+            ayah: widget.ayah,
+            source: widget.source,
+          ),
+        );
+      }
     } else {
       _controller.reverse();
     }
@@ -125,7 +131,7 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final settings = TafsirDataSource.getSettings();
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -175,10 +181,12 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
                     IconButton(
                       icon: Icon(
                         TafsirDataSource.isBookmarked(
-                          surah: widget.surah,
-                          ayah: widget.ayah,
-                          source: widget.source,
-                        ) ? Icons.bookmark : Icons.bookmark_border,
+                              surah: widget.surah,
+                              ayah: widget.ayah,
+                              source: widget.source,
+                            )
+                            ? Icons.bookmark
+                            : Icons.bookmark_border,
                         size: 20,
                       ),
                       onPressed: () async {
@@ -225,7 +233,7 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
               ),
             ),
           ),
-          
+
           // Expandable content
           SizeTransition(
             sizeFactor: _animation,
@@ -236,82 +244,100 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
     );
   }
 
-  Widget _buildContent(ThemeData theme, TafsirDisplaySettings settings) {
+  /// Shared view contract (TAF-02): loading, content, truthful empty, and
+  /// failure-with-retry render identically on every Tafsir surface. The
+  /// excerpt body below is this variant's `content`.
+  TafsirViewState _viewState() {
+    if (_isLoading) return const TafsirViewLoading();
     if (_error != null) {
-      return Padding(
-        padding: const EdgeInsets.all(16),
-        child: Text(
-          _error!,
-          style: TextStyle(color: theme.colorScheme.error),
-          textAlign: TextAlign.center,
-        ),
-      );
+      return const TafsirViewFailure(TafsirAvailability.storageFailure);
     }
-
-    if (_tafsir == null) {
-      return Padding(
-        padding: const EdgeInsets.all(16),
-        child: Text(
-          AppLocalizations.of(context).tfwNoAyahTafsir,
-          textAlign: TextAlign.center,
-        ),
-      );
+    if (TafsirDatabase.isServingEmptyFallback) {
+      return const TafsirViewFailure(TafsirAvailability.storageFailure);
     }
+    final tafsir = _tafsir;
+    if (tafsir == null) {
+      return const TafsirViewEmpty(TafsirAvailability.rowMissing);
+    }
+    return TafsirViewContent(tafsir);
+  }
 
+  Widget _buildContent(ThemeData theme, TafsirDisplaySettings settings) {
+    final l10n = AppLocalizations.of(context);
+    // One loading indicator per surface (TAF-02): the header row already
+    // spins while loading, so the collapsed (zero-size) content stays empty
+    // until expansion makes it visible.
+    if (_isLoading && !_isExpanded) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Divider(height: 1),
-          const SizedBox(height: 12),
-          
-          // Tafsir text
-          SelectableText(
-            _tafsir!.text,
-            style: TextStyle(
-              fontSize: settings.fontSize,
-              height: 1.8,
-              fontFamily: 'Amiri',
-            ),
-            textAlign: TextAlign.justify,
-            textDirection: TextDirection.rtl,
-          ),
-          
-          const SizedBox(height: 12),
-          
-          // Actions
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              // Full screen button
-              TextButton.icon(
-                onPressed: () {
-                  widget.onFullScreen?.call();
-                  _showFullScreen(context);
-                },
-                icon: const Icon(Icons.fullscreen, size: 18),
-                label: Text(AppLocalizations.of(context).tfwFullView),
-                style: TextButton.styleFrom(
-                  // Compact density renders 40 dp; keep the tap target at 48.
-                  minimumSize: const Size(0, 48),
-                ),
-              ),
-              
-              // Compare button
-              TextButton.icon(
-                onPressed: () => _showCompare(context),
-                icon: const Icon(Icons.compare_arrows, size: 18),
-                label: Text(AppLocalizations.of(context).tfwCompare),
-                style: TextButton.styleFrom(
-                  // Compact density renders 40 dp; keep the tap target at 48.
-                  minimumSize: const Size(0, 48),
-                ),
-              ),
-            ],
-          ),
-        ],
+      child: TafsirStateView(
+        state: _viewState(),
+        contentBuilder: (entry) => _excerptBody(theme, settings, entry),
+        onRetry: _loadTafsir,
+        emptyText: l10n.tfwNoAyahTafsir,
+        failureText: l10n.tafsirStateStorageFailure,
+        retryText: l10n.tafsirRetry,
+        accentColor: theme.colorScheme.primary,
       ),
+    );
+  }
+
+  Widget _excerptBody(
+    ThemeData theme,
+    TafsirDisplaySettings settings,
+    TafsirEntry entry,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Divider(height: 1),
+        const SizedBox(height: 12),
+
+        // Tafsir text
+        SelectableText(
+          entry.text,
+          style: TextStyle(
+            fontSize: settings.fontSize,
+            height: 1.8,
+            fontFamily: 'Amiri',
+          ),
+          textAlign: TextAlign.justify,
+          textDirection: TextDirection.rtl,
+        ),
+
+        const SizedBox(height: 12),
+
+        // Actions
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            // Full screen button
+            TextButton.icon(
+              onPressed: () {
+                widget.onFullScreen?.call();
+                _showFullScreen(context);
+              },
+              icon: const Icon(Icons.fullscreen, size: 18),
+              label: Text(AppLocalizations.of(context).tfwFullView),
+              style: TextButton.styleFrom(
+                // Compact density renders 40 dp; keep the tap target at 48.
+                minimumSize: const Size(0, 48),
+              ),
+            ),
+
+            // Compare button
+            TextButton.icon(
+              onPressed: () => _showCompare(context),
+              icon: const Icon(Icons.compare_arrows, size: 18),
+              label: Text(AppLocalizations.of(context).tfwCompare),
+              style: TextButton.styleFrom(
+                // Compact density renders 40 dp; keep the tap target at 48.
+                minimumSize: const Size(0, 48),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -332,19 +358,19 @@ class _TafsirInlineViewState extends State<TafsirInlineView>
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => TafsirCompareSheet(
-        surah: widget.surah,
-        ayah: widget.ayah,
-      ),
+      builder: (_) =>
+          TafsirCompareSheet(surah: widget.surah, ayah: widget.ayah),
     );
   }
 }
 
 /// 📖 TafsirFullScreenPage - صفحة التفسير الكاملة
 class TafsirFullScreenPage extends StatefulWidget {
-
   const TafsirFullScreenPage({
-    required this.surah, required this.ayah, required this.source, super.key,
+    required this.surah,
+    required this.ayah,
+    required this.source,
+    super.key,
   });
   final int surah;
   final int ayah;
@@ -370,12 +396,12 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
 
   Future<void> _loadSurahTafsir() async {
     setState(() => _isLoading = true);
-    
+
     final tafsir = await TafsirDataSource.getSurahTafsir(
       surah: widget.surah,
       source: _currentSource,
     );
-    
+
     if (mounted) {
       setState(() {
         _surahTafsir = tafsir;
@@ -400,21 +426,28 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
               setState(() => _currentSource = source);
               _loadSurahTafsir();
             },
-            itemBuilder: (_) => TafsirSource.all.map((s) => PopupMenuItem(
-              value: s.id,
-              child: Row(
-                children: [
-                  if (s.id == _currentSource)
-                    Icon(Icons.check, size: 18, color: theme.colorScheme.primary),
-                  if (s.id != _currentSource)
-                    const SizedBox(width: 18),
-                  const SizedBox(width: 8),
-                  Text(s.arabicName),
-                ],
-              ),
-            ),).toList(),
+            itemBuilder: (_) => TafsirSource.all
+                .map(
+                  (s) => PopupMenuItem(
+                    value: s.id,
+                    child: Row(
+                      children: [
+                        if (s.id == _currentSource)
+                          Icon(
+                            Icons.check,
+                            size: 18,
+                            color: theme.colorScheme.primary,
+                          ),
+                        if (s.id != _currentSource) const SizedBox(width: 18),
+                        const SizedBox(width: 8),
+                        Text(s.arabicName),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
           ),
-          
+
           // Font size
           IconButton(
             icon: const Icon(Icons.text_fields),
@@ -425,55 +458,57 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _surahTafsir == null
-              ? Center(child: Text(AppLocalizations.of(context).tfwNoTafsir))
-              : PageView.builder(
-                  controller: _pageController,
-                  itemCount: _surahTafsir!.length,
-                  itemBuilder: (context, index) {
-                    final entry = _surahTafsir!.entries[index];
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Verse indicator
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              AppLocalizations.of(context).tafsirAyahBadge(entry.ayah),
-                              style: TextStyle(
-                                color: theme.colorScheme.onPrimaryContainer,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
+          ? Center(child: Text(AppLocalizations.of(context).tfwNoTafsir))
+          : PageView.builder(
+              controller: _pageController,
+              itemCount: _surahTafsir!.length,
+              itemBuilder: (context, index) {
+                final entry = _surahTafsir!.entries[index];
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Verse indicator
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          AppLocalizations.of(
+                            context,
+                          ).tafsirAyahBadge(entry.ayah),
+                          style: TextStyle(
+                            color: theme.colorScheme.onPrimaryContainer,
+                            fontWeight: FontWeight.bold,
                           ),
-                          
-                          const SizedBox(height: 24),
-                          
-                          // Tafsir text
-                          SelectableText(
-                            entry.text,
-                            style: TextStyle(
-                              fontSize: settings.fontSize + 2,
-                              height: 2,
-                              fontFamily: 'Amiri',
-                            ),
-                            textAlign: TextAlign.justify,
-                            textDirection: TextDirection.rtl,
-                          ),
-                        ],
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                    );
-                  },
-                ),
+
+                      const SizedBox(height: 24),
+
+                      // Tafsir text
+                      SelectableText(
+                        entry.text,
+                        style: TextStyle(
+                          fontSize: settings.fontSize + 2,
+                          height: 2,
+                          fontFamily: 'Amiri',
+                        ),
+                        textAlign: TextAlign.justify,
+                        textDirection: TextDirection.rtl,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
       bottomNavigationBar: _surahTafsir != null
           ? Container(
               padding: const EdgeInsets.all(16),
@@ -525,7 +560,7 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
 
   void _showFontSizeDialog(BuildContext context) {
     var settings = TafsirDataSource.getSettings();
-    
+
     showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -580,9 +615,10 @@ class _TafsirFullScreenPageState extends State<TafsirFullScreenPage> {
 
 /// 📖 TafsirCompareSheet - مقارنة التفاسير
 class TafsirCompareSheet extends StatefulWidget {
-
   const TafsirCompareSheet({
-    required this.surah, required this.ayah, super.key,
+    required this.surah,
+    required this.ayah,
+    super.key,
   });
   final int surah;
   final int ayah;
@@ -596,7 +632,7 @@ class _TafsirCompareSheetState extends State<TafsirCompareSheet> {
     TafsirSourceId.muyassar,
     TafsirSourceId.saadi,
   ];
-  
+
   Map<TafsirSourceId, TafsirEntry> _tafsirs = {};
   bool _isLoading = true;
 
@@ -608,13 +644,13 @@ class _TafsirCompareSheetState extends State<TafsirCompareSheet> {
 
   Future<void> _loadTafsirs() async {
     setState(() => _isLoading = true);
-    
+
     final tafsirs = await TafsirDataSource.getCompareTafsir(
       surah: widget.surah,
       ayah: widget.ayah,
       sources: _selectedSources,
     );
-    
+
     if (mounted) {
       setState(() {
         _tafsirs = tafsirs;
@@ -645,7 +681,7 @@ class _TafsirCompareSheetState extends State<TafsirCompareSheet> {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          
+
           // Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -665,7 +701,7 @@ class _TafsirCompareSheetState extends State<TafsirCompareSheet> {
               ],
             ),
           ),
-          
+
           // Source chips
           Container(
             height: 50,
@@ -695,9 +731,9 @@ class _TafsirCompareSheetState extends State<TafsirCompareSheet> {
               }).toList(),
             ),
           ),
-          
+
           const Divider(),
-          
+
           // Content
           Expanded(
             child: _isLoading
@@ -711,7 +747,7 @@ class _TafsirCompareSheetState extends State<TafsirCompareSheet> {
                       final sourceId = _selectedSources[index];
                       final source = TafsirSource.get(sourceId);
                       final entry = _tafsirs[sourceId];
-                      
+
                       return Card(
                         child: Padding(
                           padding: const EdgeInsets.all(16),
@@ -729,31 +765,35 @@ class _TafsirCompareSheetState extends State<TafsirCompareSheet> {
                                   const SizedBox(width: 8),
                                   Text(
                                     source.arabicName,
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      color: theme.colorScheme.primary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          color: theme.colorScheme.primary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                   ),
                                 ],
                               ),
-                              
+
                               const SizedBox(height: 12),
-                              
+
                               // Tafsir text
-                              if (entry != null) SelectableText(
-                                      entry.text,
-                                      style: TextStyle(
-                                        fontSize: settings.fontSize,
-                                        height: 1.8,
-                                        fontFamily: 'Amiri',
-                                      ),
-                                      textDirection: TextDirection.rtl,
-                                    ) else Text(
-                                      AppLocalizations.of(context).tfwNoTafsir,
-                                      style: TextStyle(
-                                        color: theme.colorScheme.error,
-                                      ),
-                                    ),
+                              if (entry != null)
+                                SelectableText(
+                                  entry.text,
+                                  style: TextStyle(
+                                    fontSize: settings.fontSize,
+                                    height: 1.8,
+                                    fontFamily: 'Amiri',
+                                  ),
+                                  textDirection: TextDirection.rtl,
+                                )
+                              else
+                                Text(
+                                  AppLocalizations.of(context).tfwNoTafsir,
+                                  style: TextStyle(
+                                    color: theme.colorScheme.error,
+                                  ),
+                                ),
                             ],
                           ),
                         ),
@@ -769,9 +809,10 @@ class _TafsirCompareSheetState extends State<TafsirCompareSheet> {
 
 /// 📖 TafsirBottomSheet - عرض التفسير السفلي
 class TafsirBottomSheet extends StatelessWidget {
-
   const TafsirBottomSheet({
-    required this.surah, required this.ayah, super.key,
+    required this.surah,
+    required this.ayah,
+    super.key,
     this.source = TafsirSourceId.muyassar,
   });
   final int surah;
@@ -791,11 +832,8 @@ class TafsirBottomSheet extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => TafsirBottomSheet(
-        surah: surah,
-        ayah: ayah,
-        source: source,
-      ),
+      builder: (_) =>
+          TafsirBottomSheet(surah: surah, ayah: ayah, source: source),
     );
   }
 
@@ -817,9 +855,12 @@ class TafsirBottomSheet extends StatelessWidget {
 }
 
 class TafsirSheetContent extends StatefulWidget {
-
   const TafsirSheetContent({
-    required this.surah, required this.ayah, required this.source, required this.scrollController, super.key,
+    required this.surah,
+    required this.ayah,
+    required this.source,
+    required this.scrollController,
+    super.key,
   });
   final int surah;
   final int ayah;
@@ -844,13 +885,13 @@ class _TafsirSheetContentState extends State<TafsirSheetContent> {
 
   Future<void> _loadTafsir() async {
     setState(() => _isLoading = true);
-    
+
     final tafsir = await TafsirDataSource.getAyahTafsir(
       surah: widget.surah,
       ayah: widget.ayah,
       source: _currentSource,
     );
-    
+
     if (mounted) {
       setState(() {
         _tafsir = tafsir;
@@ -876,7 +917,7 @@ class _TafsirSheetContentState extends State<TafsirSheetContent> {
             borderRadius: BorderRadius.circular(2),
           ),
         ),
-        
+
         // Header
         Padding(
           padding: const EdgeInsets.all(16),
@@ -895,13 +936,15 @@ class _TafsirSheetContentState extends State<TafsirSheetContent> {
                       ),
                     ),
                     Text(
-                      AppLocalizations.of(context).tfwSheetRef(widget.surah, widget.ayah),
+                      AppLocalizations.of(
+                        context,
+                      ).tfwSheetRef(widget.surah, widget.ayah),
                       style: theme.textTheme.bodySmall,
                     ),
                   ],
                 ),
               ),
-              
+
               // Source selector
               PopupMenuButton<TafsirSourceId>(
                 icon: const Icon(Icons.swap_horiz),
@@ -909,37 +952,39 @@ class _TafsirSheetContentState extends State<TafsirSheetContent> {
                   setState(() => _currentSource = source);
                   _loadTafsir();
                 },
-                itemBuilder: (_) => TafsirSource.all.map((s) => PopupMenuItem(
-                  value: s.id,
-                  child: Text(s.arabicName),
-                ),).toList(),
+                itemBuilder: (_) => TafsirSource.all
+                    .map(
+                      (s) =>
+                          PopupMenuItem(value: s.id, child: Text(s.arabicName)),
+                    )
+                    .toList(),
               ),
             ],
           ),
         ),
-        
+
         const Divider(height: 1),
-        
+
         // Content
         Expanded(
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _tafsir == null
-                  ? Center(child: Text(AppLocalizations.of(context).tfwNoTafsir))
-                  : SingleChildScrollView(
-                      controller: widget.scrollController,
-                      padding: const EdgeInsets.all(20),
-                      child: SelectableText(
-                        _tafsir!.text,
-                        style: TextStyle(
-                          fontSize: settings.fontSize,
-                          height: 2,
-                          fontFamily: 'Amiri',
-                        ),
-                        textAlign: TextAlign.justify,
-                        textDirection: TextDirection.rtl,
-                      ),
+              ? Center(child: Text(AppLocalizations.of(context).tfwNoTafsir))
+              : SingleChildScrollView(
+                  controller: widget.scrollController,
+                  padding: const EdgeInsets.all(20),
+                  child: SelectableText(
+                    _tafsir!.text,
+                    style: TextStyle(
+                      fontSize: settings.fontSize,
+                      height: 2,
+                      fontFamily: 'Amiri',
                     ),
+                    textAlign: TextAlign.justify,
+                    textDirection: TextDirection.rtl,
+                  ),
+                ),
         ),
       ],
     );

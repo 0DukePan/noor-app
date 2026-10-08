@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -57,7 +57,9 @@ class QuranPage extends ConsumerWidget {
                         child: Icon(
                           Icons.menu_book_rounded,
                           size: 180,
-                          color: NoorDesignSystem.emeraldGreen.withValues(alpha: 0.05),
+                          color: NoorDesignSystem.emeraldGreen.withValues(
+                            alpha: 0.05,
+                          ),
                         ),
                       ),
                       Column(
@@ -68,24 +70,32 @@ class QuranPage extends ConsumerWidget {
                             style: NoorDesignSystem.textTheme.displayMedium,
                           ),
                           const SizedBox(height: 8),
-                          ref.watch(surahsProvider).when(
-                            data: (surahs) => Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: NoorDesignSystem.shadowSmall,
-                              ),
-                              child: Text(
-                                l10n.quranSurahCount(surahs.length),
-                                style: NoorDesignSystem.textTheme.labelMedium?.copyWith(
-                                  color: NoorDesignSystem.deepTeal,
+                          ref
+                              .watch(surahsProvider)
+                              .when(
+                                data: (surahs) => Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: NoorDesignSystem.shadowSmall,
+                                  ),
+                                  child: Text(
+                                    l10n.quranSurahCount(surahs.length),
+                                    style: NoorDesignSystem
+                                        .textTheme
+                                        .labelMedium
+                                        ?.copyWith(
+                                          color: NoorDesignSystem.deepTeal,
+                                        ),
+                                  ),
                                 ),
+                                loading: () => const SizedBox.shrink(),
+                                error: (_, __) => const SizedBox.shrink(),
                               ),
-                            ),
-                            loading: () => const SizedBox.shrink(),
-                            error: (_, __) => const SizedBox.shrink(),
-                          ),
                         ],
                       ),
                     ],
@@ -121,18 +131,26 @@ class QuranPage extends ConsumerWidget {
           // ── Last Read Position (safe .when access) ──
           ...lastReadAsync.when(
             data: (pos) {
-              if (pos == null || searchQuery.isNotEmpty) return [const SliverToBoxAdapter(child: SizedBox.shrink())];
+              if (pos == null || searchQuery.isNotEmpty)
+                return [const SliverToBoxAdapter(child: SizedBox.shrink())];
               return [
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
                     child: Material(
                       color: NoorDesignSystem.emeraldGreen,
                       borderRadius: BorderRadius.circular(16),
                       elevation: 4,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(16),
-                        onTap: () => context.push('/quran/surah/${pos['surah']}'),
+                        // QUR-09: restore the exact saved ayah context instead
+                        // of silently discarding it at the surah start.
+                        onTap: () => context.push(
+                          '/quran/surah/${pos['surah']}?ayah=${pos['verse']}',
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Row(
@@ -144,7 +162,10 @@ class QuranPage extends ConsumerWidget {
                                 children: [
                                   Text(
                                     l10n.quranContinue,
-                                    style: GoogleFonts.cairo(color: Colors.white70, fontSize: 12),
+                                    style: GoogleFonts.cairo(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                   Text(
                                     l10n.quranSurahNumber('${pos['surah']}'),
@@ -157,7 +178,11 @@ class QuranPage extends ConsumerWidget {
                                 ],
                               ),
                               const Spacer(),
-                              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white70, size: 16),
+                              const Icon(
+                                Icons.arrow_back_ios_new_rounded,
+                                color: Colors.white70,
+                                size: 16,
+                              ),
                             ],
                           ),
                         ),
@@ -168,7 +193,9 @@ class QuranPage extends ConsumerWidget {
               ];
             },
             loading: () => [const SliverToBoxAdapter(child: SizedBox.shrink())],
-            error: (_, __) => [const SliverToBoxAdapter(child: SizedBox.shrink())],
+            error: (_, __) => [
+              const SliverToBoxAdapter(child: SizedBox.shrink()),
+            ],
           ),
 
           // ── Surahs List (from filteredSurahsProvider) ──
@@ -183,14 +210,15 @@ class QuranPage extends ConsumerWidget {
                         Icon(
                           Icons.search_off_rounded,
                           size: 80,
-                          color: NoorDesignSystem.textSecondary.withValues(alpha: 0.5),
+                          color: NoorDesignSystem.textSecondary.withValues(
+                            alpha: 0.5,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           l10n.quranNoResults,
-                          style: NoorDesignSystem.textTheme.titleMedium?.copyWith(
-                            color: NoorDesignSystem.textSecondary,
-                          ),
+                          style: NoorDesignSystem.textTheme.titleMedium
+                              ?.copyWith(color: NoorDesignSystem.textSecondary),
                         ),
                       ],
                     ),
@@ -199,26 +227,26 @@ class QuranPage extends ConsumerWidget {
               }
 
               return SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
                 sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final surah = filteredSurahs[index];
-                      return _SurahListTile(
-                        number: surah.number,
-                        nameArabic: surah.nameArabic,
-                        nameEnglish: surah.nameEnglish,
-                        versesCount: surah.versesCount,
-                        revelationType: surah.revelationType,
-                        searchQuery: searchQuery,
-                        onTap: () {
-                          HapticFeedback.lightImpact();
-                          context.push('/quran/surah/${surah.number}');
-                        },
-                      );
-                    },
-                    childCount: filteredSurahs.length,
-                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final surah = filteredSurahs[index];
+                    return _SurahListTile(
+                      number: surah.number,
+                      nameArabic: surah.nameArabic,
+                      nameEnglish: surah.nameEnglish,
+                      versesCount: surah.versesCount,
+                      revelationType: surah.revelationType,
+                      searchQuery: searchQuery,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        context.push('/quran/surah/${surah.number}');
+                      },
+                    );
+                  }, childCount: filteredSurahs.length),
                 ),
               );
             },
@@ -291,7 +319,6 @@ class QuranPage extends ConsumerWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _FilterBarDelegate extends SliverPersistentHeaderDelegate {
-
   _FilterBarDelegate({
     required this.selectedFilter,
     required this.onFilterChanged,
@@ -300,7 +327,11 @@ class _FilterBarDelegate extends SliverPersistentHeaderDelegate {
   final ValueChanged<String> onFilterChanged;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Container(
       color: NoorDesignSystem.creamWhite,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -328,15 +359,21 @@ class _FilterBarDelegate extends SliverPersistentHeaderDelegate {
     );
   }
 
-  @override double get maxExtent => 50;
-  @override double get minExtent => 50;
-  @override bool shouldRebuild(covariant _FilterBarDelegate old) =>
+  @override
+  double get maxExtent => 50;
+  @override
+  double get minExtent => 50;
+  @override
+  bool shouldRebuild(covariant _FilterBarDelegate old) =>
       selectedFilter != old.selectedFilter;
 }
 
 class _FilterChip extends StatelessWidget {
-
-  const _FilterChip({required this.label, required this.isSelected, required this.onTap});
+  const _FilterChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
@@ -352,7 +389,9 @@ class _FilterChip extends StatelessWidget {
           color: isSelected ? NoorDesignSystem.primaryGreen : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? NoorDesignSystem.primaryGreen : NoorDesignSystem.primaryGreen.withValues(alpha: 0.2),
+            color: isSelected
+                ? NoorDesignSystem.primaryGreen
+                : NoorDesignSystem.primaryGreen.withValues(alpha: 0.2),
           ),
           boxShadow: isSelected ? NoorDesignSystem.shadowSmall : null,
         ),
@@ -374,7 +413,6 @@ class _FilterChip extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _SearchBar extends ConsumerStatefulWidget {
-
   const _SearchBar({required this.onChanged});
   final ValueChanged<String> onChanged;
 
@@ -411,7 +449,10 @@ class _SearchBarState extends ConsumerState<_SearchBar> {
             color: NoorDesignSystem.textSecondary.withValues(alpha: 0.5),
             fontSize: 16,
           ),
-          prefixIcon: const Icon(Icons.search_rounded, color: NoorDesignSystem.deepTeal),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: NoorDesignSystem.deepTeal,
+          ),
           suffixIcon: _controller.text.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear_rounded),
@@ -425,7 +466,10 @@ class _SearchBarState extends ConsumerState<_SearchBar> {
           border: InputBorder.none,
           focusedBorder: InputBorder.none,
           enabledBorder: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
         ),
       ),
     );
@@ -437,7 +481,6 @@ class _SearchBarState extends ConsumerState<_SearchBar> {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _SurahListTile extends StatelessWidget {
-
   const _SurahListTile({
     required this.number,
     required this.nameArabic,
@@ -508,15 +551,28 @@ class _SurahListTile extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Text(AppLocalizations.of(context).quranAyahCount(versesCount), style: NoorDesignSystem.textTheme.bodySmall),
-                          const SizedBox(width: 4),
-                          Text('•', style: NoorDesignSystem.textTheme.bodySmall),
+                          Text(
+                            AppLocalizations.of(
+                              context,
+                            ).quranAyahCount(versesCount),
+                            style: NoorDesignSystem.textTheme.bodySmall,
+                          ),
                           const SizedBox(width: 4),
                           Text(
-                            isMakki ? AppLocalizations.of(context).quranMeccan : AppLocalizations.of(context).quranMedinan,
-                            style: NoorDesignSystem.textTheme.bodySmall?.copyWith(
-                              color: isMakki ? NoorDesignSystem.goldAccent : NoorDesignSystem.deepTeal,
-                            ),
+                            '•',
+                            style: NoorDesignSystem.textTheme.bodySmall,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            isMakki
+                                ? AppLocalizations.of(context).quranMeccan
+                                : AppLocalizations.of(context).quranMedinan,
+                            style: NoorDesignSystem.textTheme.bodySmall
+                                ?.copyWith(
+                                  color: isMakki
+                                      ? NoorDesignSystem.goldAccent
+                                      : NoorDesignSystem.deepTeal,
+                                ),
                           ),
                         ],
                       ),
@@ -525,7 +581,11 @@ class _SurahListTile extends StatelessWidget {
                 ),
 
                 const SizedBox(width: 16),
-                const Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: NoorDesignSystem.textSecondary),
+                const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  size: 16,
+                  color: NoorDesignSystem.textSecondary,
+                ),
               ],
             ),
           ),
@@ -540,7 +600,9 @@ class _SurahListTile extends StatelessWidget {
       return Text(
         name,
         style: GoogleFonts.amiri(
-          fontSize: 20, fontWeight: FontWeight.bold, height: 1.2,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          height: 1.2,
           color: NoorDesignSystem.textPrimary,
         ),
         textDirection: TextDirection.rtl,
@@ -555,7 +617,9 @@ class _SurahListTile extends StatelessWidget {
       return Text(
         name,
         style: GoogleFonts.amiri(
-          fontSize: 20, fontWeight: FontWeight.bold, height: 1.2,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          height: 1.2,
           color: NoorDesignSystem.textPrimary,
         ),
         textDirection: TextDirection.rtl,
@@ -571,7 +635,9 @@ class _SurahListTile extends StatelessWidget {
       textDirection: TextDirection.rtl,
       text: TextSpan(
         style: GoogleFonts.amiri(
-          fontSize: 20, fontWeight: FontWeight.bold, height: 1.2,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          height: 1.2,
           color: NoorDesignSystem.textPrimary,
         ),
         children: [
@@ -579,7 +645,9 @@ class _SurahListTile extends StatelessWidget {
           TextSpan(
             text: match,
             style: TextStyle(
-              backgroundColor: NoorDesignSystem.emeraldGreen.withValues(alpha: 0.2),
+              backgroundColor: NoorDesignSystem.emeraldGreen.withValues(
+                alpha: 0.2,
+              ),
               color: NoorDesignSystem.emeraldGreen,
             ),
           ),
@@ -654,7 +722,6 @@ class _ShimmerSurahTile extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _ErrorWidget extends StatelessWidget {
-
   const _ErrorWidget({required this.error, required this.onRetry});
   final String error;
   final VoidCallback onRetry;
@@ -665,11 +732,22 @@ class _ErrorWidget extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline_rounded, size: 64, color: NoorTheme.hadithMawdu),
+          const Icon(
+            Icons.error_outline_rounded,
+            size: 64,
+            color: NoorTheme.hadithMawdu,
+          ),
           const SizedBox(height: 16),
-          Text(AppLocalizations.of(context).quranError, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            AppLocalizations.of(context).quranError,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
-          Text(error, style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
+          Text(
+            error,
+            style: Theme.of(context).textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: onRetry,

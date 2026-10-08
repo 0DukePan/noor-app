@@ -3,15 +3,14 @@ library;
 
 /// مصدر التفسير
 enum TafsirSourceId {
-  muyassar,   // التفسير الميسر
-  ibnKathir,  // تفسير ابن كثير
-  saadi,      // تفسير السعدي
-  tabari,     // تفسير الطبري
+  muyassar, // التفسير الميسر
+  ibnKathir, // تفسير ابن كثير
+  saadi, // تفسير السعدي
+  tabari, // تفسير الطبري
 }
 
 /// معلومات مصدر التفسير
 class TafsirSource {
-
   const TafsirSource({
     required this.id,
     required this.arabicName,
@@ -65,7 +64,6 @@ class TafsirSource {
 
 /// تفسير آية واحدة
 class TafsirEntry {
-
   const TafsirEntry({
     required this.surah,
     required this.ayah,
@@ -95,7 +93,7 @@ class TafsirEntry {
 
   /// المفتاح الفريد
   String get key => '${source.name}:$surah:$ayah';
-  
+
   /// معرف الآية
   String get verseId => '$surah:$ayah';
 
@@ -118,9 +116,122 @@ class TafsirEntry {
   );
 }
 
+/// Truthful data-availability state for one Tafsir lookup (TAF-01).
+///
+/// A DB copy/open failure is not "no Tafsir for this ayah": each reason maps
+/// to a distinct localized UI string with safe retry/recovery.
+enum TafsirAvailability {
+  /// Entry found and readable.
+  available,
+
+  /// Source exists but holds no row for this ayah.
+  rowMissing,
+
+  /// Requested source is not bundled in this build by product design.
+  sourceDisabled,
+
+  /// Bundled corpus failed to copy/open (storage, permissions, missing asset).
+  storageFailure,
+
+  /// Opened corpus is structurally wrong (schema/empty/corrupt).
+  corrupt,
+}
+
+/// Resolve the availability for a lookup outcome.
+TafsirAvailability resolveTafsirAvailability({
+  required Object? entry,
+  required bool sourceBundled,
+  required bool servingEmptyFallback,
+  required bool corrupt,
+  required Object? error,
+}) {
+  if (error != null) return TafsirAvailability.storageFailure;
+  if (!sourceBundled) return TafsirAvailability.sourceDisabled;
+  if (corrupt) return TafsirAvailability.corrupt;
+  if (servingEmptyFallback) return TafsirAvailability.storageFailure;
+  if (entry == null) return TafsirAvailability.rowMissing;
+  return TafsirAvailability.available;
+}
+
+/// One Tafsir view contract (TAF-02).
+///
+/// The preview sheet, inline excerpt, full reader, and comparison view are
+/// variants of this state — never competing readers with divergent loading,
+/// empty, error, and retry behavior.
+sealed class TafsirViewState {
+  const TafsirViewState();
+}
+
+/// Content is being fetched.
+class TafsirViewLoading extends TafsirViewState {
+  const TafsirViewLoading();
+}
+
+/// One entry is ready to render.
+class TafsirViewContent extends TafsirViewState {
+  const TafsirViewContent(this.entry);
+  final TafsirEntry entry;
+}
+
+/// No content by design: missing row or product-disabled source.
+class TafsirViewEmpty extends TafsirViewState {
+  const TafsirViewEmpty(this.availability);
+
+  /// Either [TafsirAvailability.rowMissing] or
+  /// [TafsirAvailability.sourceDisabled].
+  final TafsirAvailability availability;
+}
+
+/// Recoverable failure: storage/copy/open or corruption, with safe retry.
+class TafsirViewFailure extends TafsirViewState {
+  const TafsirViewFailure(this.availability);
+
+  /// Either [TafsirAvailability.storageFailure] or
+  /// [TafsirAvailability.corrupt].
+  final TafsirAvailability availability;
+}
+
+/// Maps a lookup outcome onto the shared view contract. An entry that
+/// arrives with a non-available status (or vice versa) degrades to the
+/// truthful state instead of crashing.
+TafsirViewState tafsirViewStateFor({
+  required TafsirEntry? entry,
+  required TafsirAvailability availability,
+}) {
+  switch (availability) {
+    case TafsirAvailability.available:
+      if (entry != null) return TafsirViewContent(entry);
+      return const TafsirViewEmpty(TafsirAvailability.rowMissing);
+    case TafsirAvailability.rowMissing:
+    case TafsirAvailability.sourceDisabled:
+      return TafsirViewEmpty(availability);
+    case TafsirAvailability.storageFailure:
+    case TafsirAvailability.corrupt:
+      return TafsirViewFailure(availability);
+  }
+}
+
+/// Parses a source name (e.g. from `TafsirLocation.source` or a `?source=`
+/// query) into a known source, defaulting to Muyassar for unknown values so
+/// a malformed query can never break the reader.
+TafsirSourceId tafsirSourceIdFromName(String? raw) {
+  switch ((raw ?? '').trim().toLowerCase()) {
+    case 'saadi':
+      return TafsirSourceId.saadi;
+    case 'tabari':
+      return TafsirSourceId.tabari;
+    case 'ibnkathir':
+    case 'ibn_kathir':
+    case 'ibn-kathir':
+      return TafsirSourceId.ibnKathir;
+    case 'muyassar':
+    default:
+      return TafsirSourceId.muyassar;
+  }
+}
+
 /// تفسير سورة كاملة
 class SurahTafsir {
-
   const SurahTafsir({
     required this.surah,
     required this.source,
@@ -133,11 +244,18 @@ class SurahTafsir {
   ) {
     final ayahs = json['ayahs'] as List;
     final surah = ayahs.isNotEmpty ? (ayahs.first as Map)['surah'] as int : 0;
-    
+
     return SurahTafsir(
       surah: surah,
       source: source,
-      entries: ayahs.map((a) => TafsirEntry.fromJson(Map<String, dynamic>.from(a as Map), source)).toList(),
+      entries: ayahs
+          .map(
+            (a) => TafsirEntry.fromJson(
+              Map<String, dynamic>.from(a as Map),
+              source,
+            ),
+          )
+          .toList(),
     );
   }
   final int surah;
@@ -158,7 +276,6 @@ class SurahTafsir {
 
 /// مرجع في التفسير
 class TafsirReference {
-
   const TafsirReference({
     required this.type,
     required this.text,
@@ -173,15 +290,14 @@ class TafsirReference {
 
 /// نوع المرجع
 enum TafsirReferenceType {
-  hadith,       // حديث
-  verse,        // آية أخرى
-  sababNuzul,   // سبب نزول
-  linguisitic,  // تفسير لغوي
+  hadith, // حديث
+  verse, // آية أخرى
+  sababNuzul, // سبب نزول
+  linguisitic, // تفسير لغوي
 }
 
 /// إعدادات عرض التفسير
 class TafsirDisplaySettings {
-
   const TafsirDisplaySettings({
     this.primarySource = TafsirSourceId.muyassar,
     this.compareSources = const [],
@@ -214,14 +330,13 @@ class TafsirDisplaySettings {
 
 /// وضع العرض
 enum TafsirDisplayMode {
-  inline,       // تحت الآية مباشرة
-  bottomSheet,  // شاشة سفلية
-  fullScreen,   // شاشة كاملة
+  inline, // تحت الآية مباشرة
+  bottomSheet, // شاشة سفلية
+  fullScreen, // شاشة كاملة
 }
 
 /// علامة تفسير محفوظة
 class TafsirBookmark {
-
   const TafsirBookmark({
     required this.surah,
     required this.ayah,
@@ -261,7 +376,6 @@ class TafsirBookmark {
 
 /// سجل قراءة التفسير
 class TafsirReadingHistory {
-
   const TafsirReadingHistory({
     required this.surah,
     required this.ayah,
@@ -291,24 +405,18 @@ class TafsirReadingHistory {
 /// ═══════════════════════════════════════════════════════════════════════════
 
 /// لون التظليل
-enum HighlightColor {
-  yellow,
-  green,
-  blue,
-  pink,
-  orange,
-}
+enum HighlightColor { yellow, green, blue, pink, orange }
 
 /// تظليل نص في التفسير
 class TafsirHighlight {
-
   const TafsirHighlight({
     required this.id,
     required this.surah,
     required this.ayah,
     required this.source,
     required this.highlightedText,
-    required this.createdAt, this.color = HighlightColor.yellow,
+    required this.createdAt,
+    this.color = HighlightColor.yellow,
   });
 
   factory TafsirHighlight.fromJson(Map<String, dynamic> json) {
@@ -351,7 +459,6 @@ class TafsirHighlight {
 
 /// ملاحظة تدبر مرتبطة بالتفسير
 class TafsirAnnotation {
-
   const TafsirAnnotation({
     required this.id,
     required this.surah,

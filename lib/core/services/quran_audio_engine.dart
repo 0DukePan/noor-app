@@ -11,6 +11,7 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../domain/entities/surah_names.dart';
+import '../utils/verse_counts.dart' as vc;
 import 'hive_box_registry.dart';
 
 /// 🔊 محرك الصوت الاحترافي - Professional Quran Audio Engine
@@ -40,6 +41,17 @@ class QuranAudioEngine {
 
   static final _playStateController = StreamController<PlayState>.broadcast();
   static Stream<PlayState> get playStateStream => _playStateController.stream;
+
+  /// Typed playback failures (AUD-03). Playback never fails only in logs:
+  /// every caught failure is also emitted here for visible UI + safe retry.
+  static final _playbackErrorController =
+      StreamController<PlaybackFailure>.broadcast();
+  static Stream<PlaybackFailure> get playbackErrorStream =>
+      _playbackErrorController.stream;
+
+  /// Last emitted failure, for synchronous UI reads in sheets.
+  static PlaybackFailure? _lastFailure;
+  static PlaybackFailure? get lastFailure => _lastFailure;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // INITIALIZATION
@@ -220,12 +232,19 @@ class QuranAudioEngine {
   // PLAYBACK CONTROL
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// تشغيل آية
-  static Future<void> playAyah({
+  /// تشغيل آية — validated typed intent (AUD-01).
+  ///
+  /// Emits a [PlaybackFailure] on invalid identity or player error so the
+  /// action sheet can show pending/playing/error state with one safe retry.
+  static Future<bool> playAyah({
     required int surah,
     required int ayah,
     String? reciter,
   }) async {
+    if (!vc.isValidAyah(surah, ayah)) {
+      _emitFailure(PlaybackFailure.invalidLocation(surah: surah, ayah: ayah));
+      return false;
+    }
     _currentSurah = surah;
     _currentAyah = ayah;
     if (reciter != null) _currentReciter = reciter;
@@ -244,17 +263,50 @@ class QuranAudioEngine {
       if (savedPosition != null && savedPosition.inSeconds > 3) {
         await _player.seek(savedPosition);
       }
+      _lastFailure = null;
+      return true;
     } on Exception catch (e) {
       debugPrint('Error playing audio: $e');
+      _emitFailure(
+        PlaybackFailure.unknown(surah: surah, ayah: ayah, detail: e.toString()),
+      );
+      return false;
     }
   }
 
-  /// تشغيل السورة من البداية
-  static Future<void> playSurah({
+  static void _emitFailure(PlaybackFailure failure) {
+    _lastFailure = failure;
+    if (!_playbackErrorController.isClosed) {
+      _playbackErrorController.add(failure);
+    }
+  }
+
+  /// Safe retry for the last failure (AUD-03): replays the failed identity
+  /// when it is still a valid (surah, ayah) pair.
+  static Future<bool> retryLastFailure() async {
+    final failure = _lastFailure;
+    if (failure == null) return false;
+    if (!vc.isValidAyah(failure.surah, failure.ayah)) return false;
+    return playAyah(surah: failure.surah, ayah: failure.ayah);
+  }
+
+  /// تشغيل السورة من آية محددة (AUD-01): passes the validated start ayah
+  /// through instead of silently restarting at 1.
+  static Future<bool> playSurah({
     required int surah,
+    int startAyah = 1,
     String? reciter,
   }) async {
-    await playAyah(surah: surah, ayah: 1, reciter: reciter);
+    return playAyah(surah: surah, ayah: startAyah, reciter: reciter);
+  }
+
+  /// Typed selected-verse intent used by per-ayah actions.
+  static Future<bool> playVerse({
+    required int surah,
+    required int ayah,
+    String? reciter,
+  }) async {
+    return playAyah(surah: surah, ayah: ayah, reciter: reciter);
   }
 
   /// تشغيل/إيقاف
@@ -282,16 +334,56 @@ class QuranAudioEngine {
     _currentAyahController.add(0);
   }
 
-  /// الآية السابقة
-  static Future<void> previousAyah() async {
+  /// الآية السابقة — bounded by verse-count map, never below 1.
+  static Future<bool> previousAyah() async {
     if (_currentAyah > 1) {
-      await playAyah(surah: _currentSurah, ayah: _currentAyah - 1);
+      return playAyah(surah: _currentSurah, ayah: _currentAyah - 1);
     }
+    if (_currentSurah > 1) {
+      final prevCount = vc.verseCountForSurah(_currentSurah - 1);
+      if (prevCount > 0) {
+        return playAyah(surah: _currentSurah - 1, ayah: prevCount);
+      }
+    }
+    return false;
   }
 
-  /// الآية التالية
-  static Future<void> nextAyah() async {
-    await playAyah(surah: _currentSurah, ayah: _currentAyah + 1);
+  /// الآية التالية — bounded; at surah end advances per queue policy.
+  static Future<bool> nextAyah() async {
+    final next = nextAyahIdentity(
+      surah: _currentSurah,
+      ayah: _currentAyah,
+      mode: repeatMode,
+    );
+    if (next == null) return false;
+    return playAyah(surah: next.$1, ayah: next.$2);
+  }
+
+  /// Pure next-identity computation (AUD-02): uses the approved verse-count
+  /// map for all advance operations. Returns null when playback must stop
+  /// (end of surah in [RepeatMode.none], end of Qur'an always).
+  /// Exposed for boundary tests across all 114 surahs.
+  @visibleForTesting
+  static (int, int)? nextAyahIdentity({
+    required int surah,
+    required int ayah,
+    required RepeatMode mode,
+  }) {
+    if (!vc.isValidAyah(surah, ayah)) return null;
+    final count = vc.verseCountForSurah(surah);
+    switch (mode) {
+      case RepeatMode.ayah:
+        return (surah, ayah);
+      case RepeatMode.surah:
+        if (ayah < count) return (surah, ayah + 1);
+        // Surah loop: restart the same surah.
+        return (surah, 1);
+      case RepeatMode.none:
+        if (ayah < count) return (surah, ayah + 1);
+        // Stop at surah end; never construct an out-of-range identity and
+        // never mislabel the next surah's recording as the current one.
+        return null;
+    }
   }
 
   /// التقديم/الترجيع
@@ -315,6 +407,9 @@ class QuranAudioEngine {
   static Future<AudioSource> _getAudioSource(int surah, int ayah) async {
     final reciterInfo = currentReciterInfo;
     final verseNumber = _getAbsoluteVerseNumber(surah, ayah);
+    if (verseNumber < 1) {
+      throw StateError('Invalid ayah identity ($surah:$ayah)');
+    }
 
     // Check local cache first
     final localPath = await _getLocalPath(surah, ayah);
@@ -322,10 +417,7 @@ class QuranAudioEngine {
 
     if (localFile.existsSync()) {
       debugPrint('Playing from cache: $localPath');
-      return AudioSource.file(
-        localPath,
-        tag: _createMediaItem(surah, ayah),
-      );
+      return AudioSource.file(localPath, tag: _createMediaItem(surah, ayah));
     }
 
     // Stream from network
@@ -335,10 +427,7 @@ class QuranAudioEngine {
     // Start background download for caching
     unawaited(_downloadForCache(surah, ayah, url));
 
-    return AudioSource.uri(
-      Uri.parse(url),
-      tag: _createMediaItem(surah, ayah),
-    );
+    return AudioSource.uri(Uri.parse(url), tag: _createMediaItem(surah, ayah));
   }
 
   /// تحميل للتخزين المؤقت (في الخلفية)
@@ -369,7 +458,10 @@ class QuranAudioEngine {
 
   /// تحديث فهرس الكاش
   static Future<void> _updateCacheIndex(
-      int surah, int ayah, String path,) async {
+    int surah,
+    int ayah,
+    String path,
+  ) async {
     final key = '$_currentReciter:$surah:$ayah';
     await _cacheBox?.put(key, {
       'path': path,
@@ -379,20 +471,27 @@ class QuranAudioEngine {
     });
   }
 
-  /// تنظيف الكاش القديم (بعد 7 أيام)
+  /// تنظيف الكاش القديم (بعد 7 أيام) — async I/O off the UI isolate path.
   static Future<void> cleanOldCache() async {
     final now = DateTime.now();
     final keysToRemove = <String>[];
 
     _cacheBox?.toMap().forEach((key, value) {
       if (value is Map) {
-        final timestamp =
-            DateTime.tryParse((value['timestamp'] ?? '') as String);
+        final timestamp = DateTime.tryParse(
+          (value['timestamp'] ?? '') as String,
+        );
         if (timestamp != null && now.difference(timestamp).inDays > 7) {
-          // Delete file
+          // Delete file async; best-effort so a locked file never blocks.
           final path = value['path'];
           if (path != null) {
-            File(path as String).deleteSync();
+            unawaited(() async {
+              try {
+                await File(path as String).delete();
+              } on Object {
+                // Locked or already gone — cache index entry is still removed.
+              }
+            }());
           }
           keysToRemove.add(key as String);
         }
@@ -478,11 +577,7 @@ class QuranAudioEngine {
     final info = await getLastPosition();
     if (info == null) return;
 
-    await playAyah(
-      surah: info.surah,
-      ayah: info.ayah,
-      reciter: info.reciter,
-    );
+    await playAyah(surah: info.surah, ayah: info.ayah, reciter: info.reciter);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -492,14 +587,29 @@ class QuranAudioEngine {
   static void _onAyahComplete() {
     switch (repeatMode) {
       case RepeatMode.ayah:
-        // Repeat same ayah
+        // Repeat same ayah.
         playAyah(surah: _currentSurah, ayah: _currentAyah);
       case RepeatMode.surah:
-        // Next ayah or restart surah
-        nextAyah();
+        // Next ayah, or restart the surah at its final ayah (AUD-02).
+        final next = nextAyahIdentity(
+          surah: _currentSurah,
+          ayah: _currentAyah,
+          mode: RepeatMode.surah,
+        );
+        if (next != null) {
+          playAyah(surah: next.$1, ayah: next.$2);
+        }
       case RepeatMode.none:
-        // Auto-advance to next ayah
-        nextAyah();
+        // Auto-advance within the surah; stop at its final ayah — never
+        // request the next absolute recording with a stale label.
+        final next = nextAyahIdentity(
+          surah: _currentSurah,
+          ayah: _currentAyah,
+          mode: RepeatMode.none,
+        );
+        if (next != null) {
+          playAyah(surah: next.$1, ayah: next.$2);
+        }
     }
   }
 
@@ -507,131 +617,9 @@ class QuranAudioEngine {
   // HELPERS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// رقم الآية المطلق (1-6236)
+  /// رقم الآية المطلق (1-6236) — single canonical table via verse_counts.
   static int _getAbsoluteVerseNumber(int surah, int ayah) {
-    // Verse counts per surah
-    const verseCounts = [
-      7,
-      286,
-      200,
-      176,
-      120,
-      165,
-      206,
-      75,
-      129,
-      109,
-      123,
-      111,
-      43,
-      52,
-      99,
-      128,
-      111,
-      110,
-      98,
-      135,
-      112,
-      78,
-      118,
-      64,
-      77,
-      227,
-      93,
-      88,
-      69,
-      60,
-      34,
-      30,
-      73,
-      54,
-      45,
-      83,
-      182,
-      88,
-      75,
-      85,
-      54,
-      53,
-      89,
-      59,
-      37,
-      35,
-      38,
-      29,
-      18,
-      45,
-      60,
-      49,
-      62,
-      55,
-      78,
-      96,
-      29,
-      22,
-      24,
-      13,
-      14,
-      11,
-      11,
-      18,
-      12,
-      12,
-      30,
-      52,
-      52,
-      44,
-      28,
-      28,
-      20,
-      56,
-      40,
-      31,
-      50,
-      40,
-      46,
-      42,
-      29,
-      19,
-      36,
-      25,
-      22,
-      17,
-      19,
-      26,
-      30,
-      20,
-      15,
-      21,
-      11,
-      8,
-      8,
-      19,
-      5,
-      8,
-      8,
-      11,
-      11,
-      8,
-      3,
-      9,
-      5,
-      4,
-      7,
-      3,
-      6,
-      3,
-      5,
-      4,
-      5,
-      6,
-    ];
-
-    var absoluteNumber = 0;
-    for (var i = 0; i < surah - 1; i++) {
-      absoluteNumber += verseCounts[i];
-    }
-    return absoluteNumber + ayah;
+    return absoluteVerseNumber(surah, ayah);
   }
 
   /// إنشاء MediaItem للإشعارات
@@ -646,10 +634,10 @@ class QuranAudioEngine {
 
   static String _getSurahName(int surah) => surahName(surah);
 
-  /// رقم الآية المطلق — مُكشوف للاختبارات (نفس حساب [_getAbsoluteVerseNumber]).
+  /// رقم الآية المطلق — مُكشوف للاختبارات (نفس حساب [absoluteVerseNumber]).
   @visibleForTesting
   static int absoluteVerseNumber(int surah, int ayah) =>
-      _getAbsoluteVerseNumber(surah, ayah);
+      vc.absoluteVerseNumber(surah, ayah);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // GETTERS
@@ -718,10 +706,7 @@ extension RepeatModeInfo on RepeatMode {
 
 /// حالة التشغيل
 class PlayState {
-  const PlayState({
-    required this.isPlaying,
-    required this.processingState,
-  });
+  const PlayState({required this.isPlaying, required this.processingState});
   final bool isPlaying;
   final ProcessingState processingState;
 
@@ -730,6 +715,54 @@ class PlayState {
       processingState == ProcessingState.buffering;
   bool get isCompleted => processingState == ProcessingState.completed;
 }
+
+/// Typed playback failure (AUD-03): surfaced in UI with safe retry,
+/// never only in debug logs.
+class PlaybackFailure {
+  const PlaybackFailure._({
+    required this.surah,
+    required this.ayah,
+    required this.kind,
+    this.detail,
+  });
+
+  factory PlaybackFailure.invalidLocation({
+    required int surah,
+    required int ayah,
+  }) => PlaybackFailure._(
+    surah: surah,
+    ayah: ayah,
+    kind: PlaybackFailureKind.invalidLocation,
+  );
+
+  factory PlaybackFailure.offline({
+    required int surah,
+    required int ayah,
+    String? detail,
+  }) => PlaybackFailure._(
+    surah: surah,
+    ayah: ayah,
+    kind: PlaybackFailureKind.offline,
+    detail: detail,
+  );
+
+  factory PlaybackFailure.unknown({
+    required int surah,
+    required int ayah,
+    String? detail,
+  }) => PlaybackFailure._(
+    surah: surah,
+    ayah: ayah,
+    kind: PlaybackFailureKind.unknown,
+    detail: detail,
+  );
+  final int surah;
+  final int ayah;
+  final PlaybackFailureKind kind;
+  final String? detail;
+}
+
+enum PlaybackFailureKind { invalidLocation, offline, unknown }
 
 /// معلومات الاستئناف
 class ResumeInfo {

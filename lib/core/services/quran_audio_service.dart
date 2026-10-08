@@ -19,22 +19,24 @@ class QuranAudioService {
 
   // Available reciters (built from the engine's catalog)
   static List<Reciter> get reciters => QuranAudioEngine.reciters.values
-      .map((r) => Reciter(
-            id: r.id,
-            nameArabic: r.arabicName,
-            nameEnglish: r.englishName,
-          ),)
+      .map(
+        (r) => Reciter(
+          id: r.id,
+          nameArabic: r.arabicName,
+          nameEnglish: r.englishName,
+        ),
+      )
       .toList();
 
   // Streams
-  static Stream<Duration?> get durationStream => QuranAudioEngine.durationStream;
+  static Stream<Duration?> get durationStream =>
+      QuranAudioEngine.durationStream;
   static Stream<Duration> get positionStream => QuranAudioEngine.positionStream;
   static Stream<bool> get playingStream =>
       QuranAudioEngine.playStateStream.map((s) => s.isPlaying);
-  static Stream<PlayerState> get playerStateStream =>
-      QuranAudioEngine.playStateStream.map(
-        (s) => PlayerState(s.isPlaying, s.processingState),
-      );
+  static Stream<PlayerState> get playerStateStream => QuranAudioEngine
+      .playStateStream
+      .map((s) => PlayerState(s.isPlaying, s.processingState));
 
   /// Initialize audio service (delegates to the engine).
   static Future<void> init() => QuranAudioEngine.init();
@@ -47,15 +49,18 @@ class QuranAudioService {
   static Future<void> playVerse({
     required int surahNumber,
     required int verseNumber,
-  }) =>
-      QuranAudioEngine.playAyah(surah: surahNumber, ayah: verseNumber);
+  }) => QuranAudioEngine.playAyah(surah: surahNumber, ayah: verseNumber);
 
   /// Play entire surah from specific verse (auto-advances via the engine)
-  static Future<void> playSurah({
+  /// (AUD-01): the selected ayah is passed through as the start identity.
+  static Future<bool> playSurah({
     required int surahNumber,
     int startVerse = 1,
-  }) =>
-      QuranAudioEngine.playAyah(surah: surahNumber, ayah: startVerse);
+    int? startAyah,
+  }) => QuranAudioEngine.playAyah(
+    surah: surahNumber,
+    ayah: startAyah ?? startVerse,
+  );
 
   /// Pause playback
   static Future<void> pause() => QuranAudioEngine.pause();
@@ -95,7 +100,6 @@ class QuranAudioService {
 
 /// Reciter model
 class Reciter {
-
   Reciter({
     required this.id,
     required this.nameArabic,

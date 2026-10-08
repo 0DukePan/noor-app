@@ -174,6 +174,23 @@ flutter build ipa --release         # آب ستور
 | `tools/check_exclusions.py` | بقاء استثناءات التغطية صغيرة ومبرَّرة |
 | `tools/check_arb_parity.py` | عدم انحراف العربية عن الإنجليزية |
 | `flutter test integration_test` | إقلاع التطبيق الحقيقي: استيراد القاعدة، التهيئة، التبويبات الخمسة |
+| `npm run test:e2e` | اختبارات شاملة لتدفق المصحف على نسخة الويب (نفس الكود): الإقلاع، صفحة المصحف، والرابط العميق |
+
+## الاختبارات الشاملة
+
+إضافة لاختبارات الويدجت، تقود ملفات `tests/*.e2e.ts` التطبيق الحقيقي في
+المتصفح: تخطّي التهيئة، مكتبة القرآن ← قارئ المصحف، ورابط عميق ينجو من
+التهيئة إلى صفحته. حتمية بالكامل — دون أي نموذج ذكاء اصطناعي.
+
+المتطلبات: Node.js 22.22.3+ وnpm. ابنِ نسخة الويب أولاً، ثم:
+
+```bash
+flutter build web --release
+npm install
+npm run test:e2e
+```
+
+التفاصيل في [`e2e/notes.md`](e2e/notes.md).
 
 ## التوثيق
 
@@ -188,6 +205,9 @@ flutter build ipa --release         # آب ستور
 | [docs/coverage-exclusions.md](docs/coverage-exclusions.md) | كل سطر مستثنى من التغطية وسببه |
 | [docs/scholarly-review.md](docs/scholarly-review.md) | حالة المراجعة العلمية وبصمات التجميد |
 | [docs/qa-checklist.md](docs/qa-checklist.md) | فحص الجهاز قبل الإصدار |
+| [docs/remediation-ledger.md](docs/remediation-ledger.md) | سجل الأدلة لكل خلل (إصلاح المصحف) |
+| [docs/content-decision-record.md](docs/content-decision-record.md) | قرارات مصدر القرآن والبسملة والخط |
+| [docs/interaction-catalogue.md](docs/interaction-catalogue.md) | كل إجراء في الواجهة مع مالكه ونتيجته ودليله |
 | [docs/store-checklist.md](docs/store-checklist.md) | متطلبات النشر في المتاجر |
 | [docs/media/README.md](docs/media/README.md) | كيف يُولَّد العرض المتحرك أو يُستبدل |
 

@@ -34,7 +34,30 @@ abstract class QuranRepository {
 
   /// Get last reading position
   Future<Either<Failure, ({int surahNumber, int verseNumber, int page})>>
-      getLastReadingPosition();
+  getLastReadingPosition();
+
+  /// Idempotent Qur'an bookmark (QUR-12): adding the same ayah twice stores
+  /// exactly one row and never touches last-reading progress.
+  Future<Either<Failure, void>> addBookmark({
+    required int surahNumber,
+    required int verseNumber,
+  });
+
+  /// Remove a Qur'an bookmark; missing rows are a no-op success.
+  Future<Either<Failure, void>> removeBookmark({
+    required int surahNumber,
+    required int verseNumber,
+  });
+
+  /// True when the ayah is bookmarked.
+  Future<Either<Failure, bool>> isBookmarked({
+    required int surahNumber,
+    required int verseNumber,
+  });
+
+  /// All Qur'an bookmarks, newest last.
+  Future<Either<Failure, List<({int surahNumber, int verseNumber})>>>
+  getBookmarks();
 
   /// Search in Quran
   Future<Either<Failure, List<Verse>>> searchQuran(String query);

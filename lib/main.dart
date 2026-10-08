@@ -5,14 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hijri/hijri_calendar.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'core/data/data_sources/hadith_database.dart';
-import 'core/router/app_router.dart';
-import 'core/services/hadith_user_data_service.dart';
+import 'core/router/app_router.dart';import 'core/services/hadith_user_data_service.dart';
 import 'core/services/narrator_database_service.dart';
 import 'core/services/services.dart';
 import 'core/theme/design_system.dart';
@@ -22,6 +22,18 @@ import 'core/widgets/noor_error_widget.dart';
 import 'l10n/generated/app_localizations.dart';
 
 Future<void> main() async {
+  // Web deep links + shareable reader URLs: path-style locations and URL
+  // reflection for pushes (framework default leaves pushes out of the URL).
+  // Web-only; mobile builds are untouched.
+  if (kIsWeb) {
+    usePathUrlStrategy();
+    GoRouter.optionURLReflectsImperativeAPIs = true;
+    // Cold boots evaluate the gate against '/' before the browser deep URL
+    // is parsed (proven by e2e boot logs), which would silently drop the
+    // target. Uri.base is already correct here, so stash it directly.
+    stashInitialDeepLink(Uri.base);
+  }
+
   WidgetsFlutterBinding.ensureInitialized();
   HijriCalendar.setLocal('ar');
 
@@ -58,27 +70,21 @@ Future<void> main() async {
       (options) {
         options
           ..dsn = sentryDsn
-          ..tracesSampleRate = 0.0 // No performance tracking
-          ..attachScreenshot = false // Privacy: no screenshots
+          ..tracesSampleRate =
+              0.0 // No performance tracking
+          ..attachScreenshot =
+              false // Privacy: no screenshots
           ..sendDefaultPii = false; // Privacy: no personal data
       },
       appRunner: () {
         // Sentry owns the error handlers from here on; add only the fallback UI.
         installErrorWidgetBuilder();
-        runApp(
-          const ProviderScope(
-            child: NoorApp(),
-          ),
-        );
+        runApp(const ProviderScope(child: NoorApp()));
       },
     );
   } else {
     // No Sentry DSN → run directly (avoids zone mismatch on web)
-    runApp(
-      const ProviderScope(
-        child: NoorApp(),
-      ),
-    );
+    runApp(const ProviderScope(child: NoorApp()));
   }
 }
 
@@ -90,7 +96,8 @@ Future<void> main() async {
 /// longer run as 30+ sequential awaits blocking the first frame.
 Future<void> _initializeServices() async {
   // 1. Local storage first (hard dependency for everything below).
-  await Hive.initFlutter();
+  // APP-04: HiveService.initialize is the single documented Hive init owner
+  // (it calls Hive.initFlutter internally); no second init here.
   await HiveService.initialize();
   await HadithUserDataService.init();
 

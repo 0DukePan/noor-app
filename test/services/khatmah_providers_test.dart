@@ -100,4 +100,40 @@ void main() {
     expect(second.state!.name, 'مستمرة');
     expect(second.state!.currentPage, 20);
   });
+
+  test('migrates a legacy khatmah_box row once, keeping the backup', () async {
+    final legacy = await Hive.openBox<dynamic>('khatmah_box');
+    await legacy.put('active_khatmah', {
+      'id': 'legacy-1',
+      'name': 'legacy plan',
+      'startDate': DateTime(2026, 1, 1).toIso8601String(),
+      'targetEndDate': null,
+      'currentSurah': 2,
+      'currentVerse': 255,
+      'currentPage': 42,
+      'progressPercentage': 0.07,
+    });
+
+    final notifier = KhatmahNotifier();
+    await notifier.ready;
+    expect(notifier.state, isNotNull);
+    expect(notifier.state!.name, 'legacy plan');
+    expect(notifier.state!.currentSurah, 2);
+    expect(notifier.state!.currentVerse, 255);
+    expect(notifier.state!.currentPage, 42);
+
+    // Registry box owns the row now; the legacy box stays as backup.
+    final current = Hive.box<dynamic>('khatmah_plans');
+    expect(current.get('active_khatmah'), isNotNull);
+    expect(Hive.box<dynamic>('khatmah_box').get('active_khatmah'), isNotNull);
+  });
+
+  test('corrupt legacy rows are skipped, never fatal', () async {
+    final legacy = await Hive.openBox<dynamic>('khatmah_box');
+    await legacy.put('active_khatmah', {'startDate': 'not-a-date'});
+
+    final notifier = KhatmahNotifier();
+    await notifier.ready;
+    expect(notifier.state, isNull);
+  });
 }

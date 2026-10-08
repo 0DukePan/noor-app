@@ -1,5 +1,8 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
+import '../../../../core/services/hive_box_registry.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SURAH REFERENCE DATA — ALL 114 surahs with Mushaf Madina page numbers
@@ -130,7 +133,9 @@ String surahName(int number) {
 /// Get surahs that fall within a page range (uses full 114 surah data)
 String _surahsInRange(int fromPage, int toPage) {
   final sorted = _surahPages.entries
-      .where((e) => e.value.startPage >= fromPage && e.value.startPage <= toPage)
+      .where(
+        (e) => e.value.startPage >= fromPage && e.value.startPage <= toPage,
+      )
       .map((e) => e.value.name)
       .toList();
   if (sorted.isEmpty) return '';
@@ -146,7 +151,6 @@ String _surahsInRange(int fromPage, int toPage) {
 const int kQuranTotalPages = 604;
 
 class Khatmah {
-
   const Khatmah({
     required this.id,
     required this.name,
@@ -158,18 +162,35 @@ class Khatmah {
     this.progressPercentage = 0.0,
   });
 
+  /// Corrupt rows return null (skipped with a local non-telemetry
+  /// diagnostic) instead of throwing — a corrupt Hive value must produce a
+  /// safe fallback, never a failed provider load.
+  static Khatmah? tryFromMap(Map<dynamic, dynamic> map) {
+    try {
+      return Khatmah.fromMap(map);
+    } on Object {
+      return null;
+    }
+  }
+
   factory Khatmah.fromMap(Map<dynamic, dynamic> map) {
+    final startDate = DateTime.tryParse((map['startDate'] as String?) ?? '');
+    if (startDate == null) {
+      throw const FormatException('Khatmah.startDate is corrupt');
+    }
+    final targetRaw = map['targetEndDate'];
     return Khatmah(
       id: map['id'] as String,
       name: map['name'] as String,
-      startDate: DateTime.parse(map['startDate'] as String),
-      targetEndDate: map['targetEndDate'] != null
-          ? DateTime.parse(map['targetEndDate'] as String)
+      startDate: startDate,
+      targetEndDate: targetRaw != null
+          ? DateTime.tryParse(targetRaw as String)
           : null,
       currentSurah: map['currentSurah'] as int? ?? 1,
       currentVerse: map['currentVerse'] as int? ?? 1,
       currentPage: map['currentPage'] as int? ?? 1,
-      progressPercentage: (map['progressPercentage'] as num?)?.toDouble() ?? 0.0,
+      progressPercentage:
+          (map['progressPercentage'] as num?)?.toDouble() ?? 0.0,
     );
   }
   final String id;
@@ -231,7 +252,6 @@ class Khatmah {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class ReadingDay {
-
   const ReadingDay({
     required this.dayLabel,
     required this.surahRange,
@@ -253,15 +273,20 @@ List<ReadingDay> generateSchedule(Khatmah khatmah) {
 
   for (var i = 0; i < 3; i++) {
     final fromPage = khatmah.currentPage + (pagesPerDay * i);
-    final toPage = (khatmah.currentPage + (pagesPerDay * (i + 1)) - 1).clamp(1, 604);
+    final toPage = (khatmah.currentPage + (pagesPerDay * (i + 1)) - 1).clamp(
+      1,
+      604,
+    );
     if (fromPage > 604) break;
 
-    result.add(ReadingDay(
-      dayLabel: labels[i],
-      surahRange: _surahsInRange(fromPage, toPage),
-      pageRange: '$fromPage - $toPage',
-      isToday: i == 0,
-    ),);
+    result.add(
+      ReadingDay(
+        dayLabel: labels[i],
+        surahRange: _surahsInRange(fromPage, toPage),
+        pageRange: '$fromPage - $toPage',
+        isToday: i == 0,
+      ),
+    );
   }
   return result;
 }
@@ -271,17 +296,30 @@ List<ReadingDay> generateSchedule(Khatmah khatmah) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class CompletedKhatmah {
-
   const CompletedKhatmah({
     required this.name,
     required this.completedDate,
     required this.durationDays,
   });
 
+  static CompletedKhatmah? tryFromMap(Map<dynamic, dynamic> map) {
+    try {
+      return CompletedKhatmah.fromMap(map);
+    } on Object {
+      return null;
+    }
+  }
+
   factory CompletedKhatmah.fromMap(Map<dynamic, dynamic> map) {
+    final completedDate = DateTime.tryParse(
+      (map['completedDate'] as String?) ?? '',
+    );
+    if (completedDate == null) {
+      throw const FormatException('CompletedKhatmah.completedDate is corrupt');
+    }
     return CompletedKhatmah(
       name: map['name'] as String,
-      completedDate: DateTime.parse(map['completedDate'] as String),
+      completedDate: completedDate,
       durationDays: map['durationDays'] as int,
     );
   }
@@ -301,7 +339,6 @@ class CompletedKhatmah {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class KhatmahNotifier extends StateNotifier<Khatmah?> {
-
   KhatmahNotifier() : super(null) {
     ready = _loadFromHive();
   }
@@ -309,19 +346,53 @@ class KhatmahNotifier extends StateNotifier<Khatmah?> {
   /// Completes when the initial Hive load has finished. Callers (and tests)
   /// can await this instead of racing the unawaited constructor load.
   late final Future<void> ready;
-  static const _boxName = 'khatmah_box';
+
+  /// Registry-owned box name (was a drifted literal `'khatmah_box'`).
+  static const _boxName = HiveBoxes.khatmah;
   static const _activeKey = 'active_khatmah';
   static const _completedKey = 'completed_khatmahs';
   static const _todayPagesKey = 'today_pages';
   static const _todayDateKey = 'today_date';
 
-  /// ✅ Cached Hive box — opened once, reused everywhere
+  /// ✅ Cached Hive box — opened once, reused everywhere.
+  /// One-time reversible migration from the pre-registry literal
+  /// `'khatmah_box'`: valid rows move once; the legacy box is left on disk
+  /// as a backup and never written again.
   Box<dynamic>? _box;
+  bool _migrationChecked = false;
 
   /// ✅ Single box instance — no repeated openBox() calls
   Future<Box<dynamic>> _getBox() async {
     _box ??= await Hive.openBox<dynamic>(_boxName);
+    if (!_migrationChecked) {
+      _migrationChecked = true;
+      await _migrateLegacyBox(_box!);
+    }
     return _box!;
+  }
+
+  static const _legacyBoxName = 'khatmah_box';
+
+  Future<void> _migrateLegacyBox(Box<dynamic> box) async {
+    try {
+      if (box.containsKey(_activeKey)) return;
+      if (!await Hive.boxExists(_legacyBoxName)) return;
+      final legacy = await Hive.openBox<dynamic>(_legacyBoxName);
+      // The legacy box stays open as a readable backup; it is never
+      // written again, so closing it would only break backup access.
+      var moved = 0;
+      for (final key in legacy.keys) {
+        if (!box.containsKey(key)) {
+          await box.put(key, legacy.get(key));
+          moved++;
+        }
+      }
+      if (moved > 0) {
+        debugPrint('Khatmah: migrated $moved row(s) from legacy box.');
+      }
+    } on Object catch (e) {
+      debugPrint('Khatmah: legacy migration skipped ($e).');
+    }
   }
 
   Future<void> _loadFromHive() async {
@@ -329,7 +400,16 @@ class KhatmahNotifier extends StateNotifier<Khatmah?> {
       final box = await _getBox();
       final data = box.get(_activeKey);
       if (data != null) {
-        state = Khatmah.fromMap(Map<dynamic, dynamic>.from(data as Map));
+        // Corrupt rows are skipped (safe fallback + local diagnostic);
+        // valid rows load normally.
+        final loaded = Khatmah.tryFromMap(
+          Map<dynamic, dynamic>.from(data as Map),
+        );
+        if (loaded != null) {
+          state = loaded;
+        } else {
+          debugPrint('Khatmah: skipped corrupt active row.');
+        }
       }
     } on Object catch (e) {
       // Narrow by effect: only Hive lifecycle errors (HiveError, an Error
@@ -356,10 +436,7 @@ class KhatmahNotifier extends StateNotifier<Khatmah?> {
   }
 
   /// Start a new Khatmah
-  Future<void> startNew({
-    required String name,
-    DateTime? targetEndDate,
-  }) async {
+  Future<void> startNew({required String name, DateTime? targetEndDate}) async {
     state = Khatmah(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: name.isEmpty ? 'ختمتي' : name,
@@ -397,7 +474,8 @@ class KhatmahNotifier extends StateNotifier<Khatmah?> {
       currentSurah: surah,
       currentVerse: verse,
       currentPage: page,
-      progressPercentage: (page - 1) / 603.0, // ✅ Precise: page 1=0%, page 604=100%
+      progressPercentage:
+          (page - 1) / 603.0, // ✅ Precise: page 1=0%, page 604=100%
     );
     await _saveToHive();
   }
@@ -413,19 +491,32 @@ class KhatmahNotifier extends StateNotifier<Khatmah?> {
       durationDays: DateTime.now().difference(state!.startDate).inDays,
     );
 
-    final existing = (box.get(_completedKey, defaultValue: <dynamic>[]) as List<dynamic>)
-      ..add(completed.toMap());
+    final existing =
+        (box.get(_completedKey, defaultValue: <dynamic>[]) as List<dynamic>)
+          ..add(completed.toMap());
     await box.put(_completedKey, existing);
     state = null;
     await _saveToHive();
     await _resetTodayPages();
   }
 
-  /// Get completed khatmah history
+  /// Get completed khatmah history — corrupt rows are skipped, never fatal.
   Future<List<CompletedKhatmah>> getCompletedHistory() async {
     final box = await _getBox();
-    final data = box.get(_completedKey, defaultValue: <dynamic>[]) as List<dynamic>;
-    return data.map((e) => CompletedKhatmah.fromMap(Map<dynamic, dynamic>.from(e as Map))).toList();
+    final data =
+        box.get(_completedKey, defaultValue: <dynamic>[]) as List<dynamic>;
+    final out = <CompletedKhatmah>[];
+    for (final e in data) {
+      final loaded = CompletedKhatmah.tryFromMap(
+        Map<dynamic, dynamic>.from(e as Map),
+      );
+      if (loaded != null) {
+        out.add(loaded);
+      } else {
+        debugPrint('Khatmah: skipped corrupt history row.');
+      }
+    }
+    return out;
   }
 
   /// Get pages read today — ✅ timezone-safe date normalization
@@ -475,7 +566,9 @@ final todayPagesReadProvider = FutureProvider<int>((ref) async {
 });
 
 /// Completed khatmah history
-final completedKhatmahsProvider = FutureProvider<List<CompletedKhatmah>>((ref) async {
+final completedKhatmahsProvider = FutureProvider<List<CompletedKhatmah>>((
+  ref,
+) async {
   ref.watch(khatmahProvider);
   final notifier = ref.read(khatmahProvider.notifier);
   return notifier.getCompletedHistory();

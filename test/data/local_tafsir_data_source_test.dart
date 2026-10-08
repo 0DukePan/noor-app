@@ -10,7 +10,7 @@ import '../test_utils/tafsir_test_db.dart';
 /// runtime in the reader.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  late Directory tempDir;
+  Directory? tempDir;
 
   setUpAll(() async {
     tempDir = await setUpTafsirTestDb();

@@ -2,13 +2,13 @@ import 'package:dartz/dartz.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../../core/domain/policies/offline_policy.dart';
+import '../../../../core/services/hive_box_registry.dart';
 import '../../domain/entities/quran_entities.dart';
 import '../../domain/repositories/quran_repository.dart';
 import '../datasources/quran_datasources.dart';
 
 /// تنفيذ مستودع القرآن - Quran Repository Implementation
 class QuranRepositoryImpl implements QuranRepository {
-
   QuranRepositoryImpl({
     required this.localDataSource,
     required this.remoteDataSource,
@@ -69,7 +69,10 @@ class QuranRepositoryImpl implements QuranRepository {
   }) async {
     try {
       // Try local first
-      final localTafsir = await localDataSource.getTafsir(surahNumber, verseNumber);
+      final localTafsir = await localDataSource.getTafsir(
+        surahNumber,
+        verseNumber,
+      );
       if (localTafsir != null) {
         return Right(localTafsir);
       }
@@ -96,17 +99,39 @@ class QuranRepositoryImpl implements QuranRepository {
     required int verseNumber,
   }) async {
     try {
-      final localCause = await localDataSource.getRevelationCause(surahNumber, verseNumber);
+      final localCause = await localDataSource.getRevelationCause(
+        surahNumber,
+        verseNumber,
+      );
       if (localCause != null) {
         return Right(localCause);
       }
 
-      final remoteCause = await remoteDataSource.fetchRevelationCause(surahNumber, verseNumber);
+      final remoteCause = await remoteDataSource.fetchRevelationCause(
+        surahNumber,
+        verseNumber,
+      );
       return Right(remoteCause);
     } on Exception {
       return const Right(null); // Revelation cause is optional
     }
   }
+
+  Future<Box<dynamic>> _progressBox() async {
+    if (Hive.isBoxOpen(HiveBoxes.readingProgress)) {
+      return Hive.box<dynamic>(HiveBoxes.readingProgress);
+    }
+    return Hive.openBox<dynamic>(HiveBoxes.readingProgress);
+  }
+
+  Future<Box<dynamic>> _bookmarkBox() async {
+    if (Hive.isBoxOpen(HiveBoxes.bookmarks)) {
+      return Hive.box<dynamic>(HiveBoxes.bookmarks);
+    }
+    return Hive.openBox<dynamic>(HiveBoxes.bookmarks);
+  }
+
+  static String _bookmarkKey(int surah, int ayah) => 'quran:$surah:$ayah';
 
   @override
   Future<Either<Failure, void>> saveReadingProgress({
@@ -115,7 +140,7 @@ class QuranRepositoryImpl implements QuranRepository {
     required int page,
   }) async {
     try {
-      final box = await Hive.openBox<dynamic>('reading_progress');
+      final box = await _progressBox();
       await box.put('last_position', {
         'surah_number': surahNumber,
         'verse_number': verseNumber,
@@ -130,9 +155,9 @@ class QuranRepositoryImpl implements QuranRepository {
 
   @override
   Future<Either<Failure, ({int surahNumber, int verseNumber, int page})>>
-      getLastReadingPosition() async {
+  getLastReadingPosition() async {
     try {
-      final box = await Hive.openBox<dynamic>('reading_progress');
+      final box = await _progressBox();
       final data = box.get('last_position') as Map<dynamic, dynamic>?;
       if (data == null) {
         return const Right((surahNumber: 1, verseNumber: 1, page: 1));
@@ -141,9 +166,78 @@ class QuranRepositoryImpl implements QuranRepository {
         surahNumber: data['surah_number'] as int,
         verseNumber: data['verse_number'] as int,
         page: data['page'] as int,
-      ),);
+      ));
     } on Exception {
       return const Right((surahNumber: 1, verseNumber: 1, page: 1));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> addBookmark({
+    required int surahNumber,
+    required int verseNumber,
+  }) async {
+    try {
+      final box = await _bookmarkBox();
+      // Idempotent: the same key overwrites itself; no duplicate rows.
+      await box.put(_bookmarkKey(surahNumber, verseNumber), {
+        'type': 'quran',
+        'surah': surahNumber,
+        'ayah': verseNumber,
+        'createdAt': DateTime.now().toIso8601String(),
+      });
+      return const Right(null);
+    } on Exception catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> removeBookmark({
+    required int surahNumber,
+    required int verseNumber,
+  }) async {
+    try {
+      final box = await _bookmarkBox();
+      await box.delete(_bookmarkKey(surahNumber, verseNumber));
+      return const Right(null);
+    } on Exception catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isBookmarked({
+    required int surahNumber,
+    required int verseNumber,
+  }) async {
+    try {
+      final box = await _bookmarkBox();
+      return Right(box.containsKey(_bookmarkKey(surahNumber, verseNumber)));
+    } on Exception catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<({int surahNumber, int verseNumber})>>>
+  getBookmarks() async {
+    try {
+      final box = await _bookmarkBox();
+      final out = <({int surahNumber, int verseNumber})>[];
+      for (final value in box.values) {
+        final map = value is Map
+            ? Map<String, dynamic>.from(value)
+            : <String, dynamic>{};
+        if (map['type'] != 'quran') continue;
+        final surah = map['surah'] as int?;
+        final ayah = map['ayah'] as int?;
+        if (surah == null || ayah == null) continue;
+        out.add((surahNumber: surah, verseNumber: ayah));
+      }
+      return Right(out);
+    } on Exception catch (e) {
+      return Left(CacheFailure(e.toString()));
     }
   }
 

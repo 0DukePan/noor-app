@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -49,9 +50,35 @@ class LastReadData {
 // PROVIDERS
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Provider to fetch all essential data for the Home screen
+/// Provider to fetch all essential data for the Home screen.
+///
+/// Never fails: any unexpected failure (unopened boxes, plugin Errors on a
+/// new platform, corrupt rows) degrades to Makkah prayer times with empty
+/// extras instead of blanking the dashboard. Indispensable sections carry
+/// their own fallbacks; this is the last-resort net.
 final homeDataProvider = FutureProvider<HomeData>((ref) async {
   ref.keepAlive();
+  try {
+    return await _loadHomeData();
+  } on Object catch (e) {
+    debugPrint('homeDataProvider degraded: $e');
+    return HomeData(
+      prayerTimes: PrayerTimeEngine.calculate(
+        latitude: 21.4225,
+        longitude: 39.8262,
+        date: DateTime.now(),
+        method: CalculationMethod.ummAlQura,
+        utcOffset: DateTime.now().timeZoneOffset.inMinutes / 60,
+      ),
+      cityName: 'مكة المكرمة',
+      hadithOfDay: null,
+      adhkarStats: AdhkarDataSource.getTodayStats(),
+      lastRead: null,
+    );
+  }
+});
+
+Future<HomeData> _loadHomeData() async {
   // 1. Geography & Prayer Times
   final locationResult = await LocationTrustEngine.getTrustedLocation(
     timeout: const Duration(seconds: 5),
@@ -107,7 +134,7 @@ final homeDataProvider = FutureProvider<HomeData>((ref) async {
     adhkarStats: adhkarStats,
     lastRead: lastRead,
   );
-});
+}
 
 /// Stream for current time (updates every 30 seconds)
 final currentTimeProvider = StreamProvider<DateTime>((ref) {
@@ -189,7 +216,10 @@ Future<Map<String, dynamic>?> _getDailyHadith() async {
       await box.put('daily_hadith_date', today);
     }
     return newHadith;
-  } on Exception {
-    return HadithDataSource.getRandomHadith();
+  } on Object {
+    // Garnish must never blank the dashboard: SQLite has no web backend and
+    // native opens can fail outside Exception (plugin Errors). The UI hides
+    // a null hadith.
+    return null;
   }
 }

@@ -51,18 +51,34 @@ class FakeQuranRepository implements QuranRepository {
     required int surahNumber,
     required int verseNumber,
     String? tafsirSource,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
   @override
   Future<Either<Failure, RevelationCause?>> getRevelationCause({
     required int surahNumber,
     required int verseNumber,
-  }) async =>
-      const Right(null);
+  }) async => const Right(null);
   @override
   Future<Either<Failure, ({int page, int surahNumber, int verseNumber})>>
-      getLastReadingPosition() async =>
-          const Right((surahNumber: 1, verseNumber: 1, page: 1));
+  getLastReadingPosition() async =>
+      const Right((surahNumber: 1, verseNumber: 1, page: 1));
+  @override
+  Future<Either<Failure, void>> addBookmark({
+    required int surahNumber,
+    required int verseNumber,
+  }) async => const Right(null);
+  @override
+  Future<Either<Failure, void>> removeBookmark({
+    required int surahNumber,
+    required int verseNumber,
+  }) async => const Right(null);
+  @override
+  Future<Either<Failure, bool>> isBookmarked({
+    required int surahNumber,
+    required int verseNumber,
+  }) async => const Right(false);
+  @override
+  Future<Either<Failure, List<({int surahNumber, int verseNumber})>>>
+  getBookmarks() async => const Right([]);
   @override
   Future<Either<Failure, List<Verse>>> searchQuran(String query) async =>
       const Right([]);
@@ -79,9 +95,9 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      SystemChannels.platform,
-      (call) async => null,
-    );
+          SystemChannels.platform,
+          (call) async => null,
+        );
   });
 
   tearDown(() {
@@ -129,8 +145,9 @@ void main() {
     expect(find.byTooltip('المظهر'), findsOneWidget);
   });
 
-  testWidgets('theme sheet opens; dark skin renders via provider',
-      (tester) async {
+  testWidgets('theme sheet opens; dark skin renders via provider', (
+    tester,
+  ) async {
     await pumpMushaf(tester);
     await tester.tap(find.byTooltip('المظهر'));
     await tester.pump(const Duration(milliseconds: 1200));
@@ -144,8 +161,7 @@ void main() {
         overrides: [
           quranPageProvider.overrideWith((ref, page) async => _verses),
           quranRepositoryProvider.overrideWithValue(fakeRepo),
-          mushafThemeProvider
-              .overrideWith((ref) => MushafTheme.midnightBlack),
+          mushafThemeProvider.overrideWith((ref) => MushafTheme.midnightBlack),
         ],
         child: const MaterialApp(
           locale: Locale('ar'),
@@ -157,11 +173,43 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 300));
     final scaffold = tester.widget<Scaffold>(find.byType(Scaffold).first);
-    expect(scaffold.backgroundColor, const Color(0xFF0D0D0D));
+    expect(scaffold.backgroundColor, const Color(0xFF141416));
   });
 
   testWidgets('empty verses render without crashing', (tester) async {
     await pumpMushaf(tester, verses: const []);
     expect(find.byType(QuranMushafPage), findsOneWidget);
+  });
+
+  testWidgets('page error shows a retry pane without raw exceptions', (
+    tester,
+  ) async {
+    var fail = true;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          quranPageProvider.overrideWith((ref, page) async {
+            if (fail) throw Exception('boom');
+            return _verses;
+          }),
+          quranRepositoryProvider.overrideWithValue(fakeRepo),
+        ],
+        child: const MaterialApp(
+          locale: Locale('ar'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: QuranMushafPage(),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    // Localized retry affordance, diagnostic ID, no raw exception text.
+    expect(find.byKey(const Key('mushafRetryButton')), findsOneWidget);
+    expect(find.textContaining('boom'), findsNothing);
+
+    fail = false;
+    await tester.tap(find.byKey(const Key('mushafRetryButton')));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.textContaining('الْعَالَمِينَ'), findsWidgets);
   });
 }

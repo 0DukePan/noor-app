@@ -44,14 +44,10 @@ Future<void> _pumpUntil(
 
 Future<void> _tapTab(WidgetTester tester, IconData icon) async {
   final size = tester.getSize(find.byType(Scaffold).first);
-  final navIcon = find.byIcon(icon).evaluate().firstWhere(
-    (element) {
-      final rect = tester.getRect(
-        find.byElementPredicate((el) => el == element),
-      );
-      return rect.top > size.height * 0.8;
-    },
-  );
+  final navIcon = find.byIcon(icon).evaluate().firstWhere((element) {
+    final rect = tester.getRect(find.byElementPredicate((el) => el == element));
+    return rect.top > size.height * 0.8;
+  });
   await tester.tapAt(
     tester.getCenter(find.byElementPredicate((el) => el == navIcon)),
   );
@@ -61,101 +57,169 @@ Future<void> _tapTab(WidgetTester tester, IconData icon) async {
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('app boots and all five main tabs render', (tester) async {
-    // Boot the real app (service init runs in real async time).
-    unawaited(app.main());
-    await tester.pump();
-    await _pumpUntil(tester, find.byType(Scaffold), timeout: _bootTimeout);
-    await tester.pump(const Duration(seconds: 2));
+  testWidgets(
+    'app boots and all five main tabs render',
+    (tester) async {
+      // Boot the real app (service init runs in real async time).
+      unawaited(app.main());
+      await tester.pump();
+      await _pumpUntil(tester, find.byType(Scaffold), timeout: _bootTimeout);
+      await tester.pump(const Duration(seconds: 2));
 
-    // First launch: the one-time hadith import gate, then onboarding.
-    // (Boot may skip onboarding entirely on a re-run device.)
-    await _pumpUntil(
-      tester,
-      find.byWidgetPredicate((widget) {
-        if (widget is! Text) return false;
-        final text = widget.data;
-        return text == 'أهلاً بك في نور' || text == 'الرئيسية';
-      }),
-      timeout: _bootTimeout,
-    );
+      // First launch: the one-time hadith import gate, then onboarding.
+      // (Boot may skip onboarding entirely on a re-run device.)
+      await _pumpUntil(
+        tester,
+        find.byWidgetPredicate((widget) {
+          if (widget is! Text) return false;
+          final text = widget.data;
+          return text == 'أهلاً بك في نور' || text == 'الرئيسية';
+        }),
+        timeout: _bootTimeout,
+      );
 
-    if (find.text('أهلاً بك في نور').evaluate().isNotEmpty) {
-      await tester.tap(find.text('تخطي'));
+      if (find.text('أهلاً بك في نور').evaluate().isNotEmpty) {
+        await tester.tap(find.text('تخطي'));
+        await _pumpUntil(tester, find.text('الرئيسية'));
+      }
+
+      // Home tab is selected by default.
+      expect(find.text('الرئيسية'), findsOneWidget);
+
+      // Quran tab.
+      await _tapTab(tester, _tabIcons[1]);
+      await _pumpUntil(tester, find.text('القرآن'));
+      await _pumpUntil(tester, find.text('القرآن الكريم'));
+
+      // Hadith tab (book library header).
+      await _tapTab(tester, _tabIcons[2]);
+      await _pumpUntil(tester, find.text('الحديث'));
+      await _pumpUntil(tester, find.text('الكتب والمجاميع'));
+
+      // Adhkar tab (category cards).
+      await _tapTab(tester, _tabIcons[3]);
+      await _pumpUntil(tester, find.text('الأذكار'));
+      await _pumpUntil(tester, find.text('أذكار الصباح'));
+
+      // Tools tab (tool grid).
+      await _tapTab(tester, _tabIcons[4]);
+      await _pumpUntil(tester, find.text('الأدوات'));
+      await _pumpUntil(tester, find.text('مواقيت الصلاة'));
+
+      // Back to home.
+      await _tapTab(tester, _tabIcons[0]);
       await _pumpUntil(tester, find.text('الرئيسية'));
-    }
 
-    // Home tab is selected by default.
-    expect(find.text('الرئيسية'), findsOneWidget);
+      // No unhandled exceptions during the whole run.
+      expect(tester.takeException(), isNull);
+    },
+    timeout: const Timeout(Duration(minutes: 12)),
+  );
 
-    // Quran tab.
-    await _tapTab(tester, _tabIcons[1]);
-    await _pumpUntil(tester, find.text('القرآن'));
-    await _pumpUntil(tester, find.text('القرآن الكريم'));
+  testWidgets(
+    'startup benchmark: measures cold-start to interactive',
+    (tester) async {
+      // Fresh boot (no prior service state in this process run): time from
+      // app.main() until the home shell is interactive. The first frame is the
+      // biggest chunk; the DB copy / import happens before onboarding on a
+      // first launch. Assertions are generous emulator-safe ceilings — the
+      // printed numbers feed the performance ledger (docs/performance.md).
+      final clock = Stopwatch()..start();
+      unawaited(app.main());
+      await tester.pump();
+      await _pumpUntil(tester, find.byType(Scaffold), timeout: _bootTimeout);
+      final firstFrame = clock.elapsedMilliseconds;
+      // The timing output is the performance ledger input (docs/performance.md).
+      // ignore: avoid_print
+      print('STARTUP first-frame: ${firstFrame}ms');
 
-    // Hadith tab (book library header).
-    await _tapTab(tester, _tabIcons[2]);
-    await _pumpUntil(tester, find.text('الحديث'));
-    await _pumpUntil(tester, find.text('الكتب والمجاميع'));
+      await _pumpUntil(
+        tester,
+        find.byWidgetPredicate((widget) {
+          if (widget is! Text) return false;
+          final text = widget.data;
+          return text == 'أهلاً بك في نور' || text == 'الرئيسية';
+        }),
+        timeout: _bootTimeout,
+      );
+      final interactive = clock.elapsedMilliseconds;
+      // The timing output is the performance ledger input (docs/performance.md).
+      // ignore: avoid_print
+      print('STARTUP interactive: ${interactive}ms');
 
-    // Adhkar tab (category cards).
-    await _tapTab(tester, _tabIcons[3]);
-    await _pumpUntil(tester, find.text('الأذكار'));
-    await _pumpUntil(tester, find.text('أذكار الصباح'));
+      if (find.text('أهلاً بك في نور').evaluate().isNotEmpty) {
+        await tester.tap(find.text('تخطي'));
+        await _pumpUntil(tester, find.text('الرئيسية'));
+      }
 
-    // Tools tab (tool grid).
-    await _tapTab(tester, _tabIcons[4]);
-    await _pumpUntil(tester, find.text('الأدوات'));
-    await _pumpUntil(tester, find.text('مواقيت الصلاة'));
+      expect(find.text('الرئيسية'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      // Ceilings: emulator cold boot + first-launch DB copy. Mid-range devices
+      // should land far below; a slow CI emulator is still allowed to pass.
+      expect(firstFrame, lessThan(120000));
+      expect(interactive, lessThan(180000));
+    },
+    timeout: const Timeout(Duration(minutes: 12)),
+  );
 
-    // Back to home.
-    await _tapTab(tester, _tabIcons[0]);
-    await _pumpUntil(tester, find.text('الرئيسية'));
+  testWidgets(
+    'quran reader flows: mushaf paging, surah, back stack',
+    (tester) async {
+      // Catalogue critical rows QUR-04/QUR-09 on a real device build:
+      // Mushaf opens at page 1, paging changes the settled page, the back
+      // stack returns to the Quran library, and a surah opens its verses.
+      unawaited(app.main());
+      await tester.pump();
+      await _pumpUntil(tester, find.byType(Scaffold), timeout: _bootTimeout);
+      await _pumpUntil(
+        tester,
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Text &&
+              (widget.data == 'أهلاً بك في نور' || widget.data == 'الرئيسية'),
+        ),
+        timeout: _bootTimeout,
+      );
+      if (find.text('أهلاً بك في نور').evaluate().isNotEmpty) {
+        await tester.tap(find.text('تخطي'));
+        await _pumpUntil(tester, find.text('الرئيسية'));
+      }
 
-    // No unhandled exceptions during the whole run.
-    expect(tester.takeException(), isNull);
-  }, timeout: const Timeout(Duration(minutes: 12)),);
+      // Quran library.
+      await _tapTab(tester, _tabIcons[1]);
+      await _pumpUntil(tester, find.text('القرآن الكريم'));
 
-  testWidgets('startup benchmark: measures cold-start to interactive',
-      (tester) async {
-    // Fresh boot (no prior service state in this process run): time from
-    // app.main() until the home shell is interactive. The first frame is the
-    // biggest chunk; the DB copy / import happens before onboarding on a
-    // first launch. Assertions are generous emulator-safe ceilings — the
-    // printed numbers feed the performance ledger (docs/performance.md).
-    final clock = Stopwatch()..start();
-    unawaited(app.main());
-    await tester.pump();
-    await _pumpUntil(tester, find.byType(Scaffold), timeout: _bootTimeout);
-    final firstFrame = clock.elapsedMilliseconds;
-    // The timing output is the performance ledger input (docs/performance.md).
-    // ignore: avoid_print
-    print('STARTUP first-frame: ${firstFrame}ms');
+      // Mushaf reader via the library FAB.
+      await _pumpUntil(tester, find.text('المصحف'));
+      await tester.tap(find.text('المصحف').first);
+      await _pumpUntil(tester, find.text('صفحة 1 / 604'));
 
-    await _pumpUntil(
-      tester,
-      find.byWidgetPredicate((widget) {
-        if (widget is! Text) return false;
-        final text = widget.data;
-        return text == 'أهلاً بك في نور' || text == 'الرئيسية';
-      }),
-      timeout: _bootTimeout,
-    );
-    final interactive = clock.elapsedMilliseconds;
-    // The timing output is the performance ledger input (docs/performance.md).
-    // ignore: avoid_print
-    print('STARTUP interactive: ${interactive}ms');
+      // Page turn: a horizontal fling settles on a different page.
+      await tester.fling(find.byType(PageView), const Offset(-400, 0), 800);
+      await tester.pumpAndSettle();
+      await _pumpUntil(
+        tester,
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Text &&
+              widget.data != null &&
+              widget.data!.startsWith('صفحة ') &&
+              widget.data != 'صفحة 1 / 604',
+        ),
+      );
 
-    if (find.text('أهلاً بك في نور').evaluate().isNotEmpty) {
-      await tester.tap(find.text('تخطي'));
-      await _pumpUntil(tester, find.text('الرئيسية'));
-    }
+      // Back returns to the Quran library (stable back stack).
+      await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+      await tester.pumpAndSettle();
+      await _pumpUntil(tester, find.text('القرآن الكريم'));
 
-    expect(find.text('الرئيسية'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-    // Ceilings: emulator cold boot + first-launch DB copy. Mid-range devices
-    // should land far below; a slow CI emulator is still allowed to pass.
-    expect(firstFrame, lessThan(120000));
-    expect(interactive, lessThan(180000));
-  }, timeout: const Timeout(Duration(minutes: 12)),);
+      // Surah study reader opens its verses (Al-Fatihah first tile).
+      await _pumpUntil(tester, find.text('الفاتحة'));
+      await tester.tap(find.text('الفاتحة').first);
+      await _pumpUntil(tester, find.textContaining('الْعَالَمِينَ'));
+
+      expect(tester.takeException(), isNull);
+    },
+    timeout: const Timeout(Duration(minutes: 12)),
+  );
 }

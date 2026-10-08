@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/domain/entities/surah_names.dart';
@@ -6,54 +6,89 @@ import '../../../../core/models/tafsir_models.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/tafsir_data_source.dart';
 import '../../../../core/theme/tafsir_theme.dart';
+import '../../../../features/quran/domain/entities/quran_location.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 
 /// 📖 TafsirPage - صفحة التفسير الرئيسية
 class TafsirPage extends StatefulWidget {
-
   const TafsirPage({
     super.key,
     this.initialSurah,
     this.initialAyah,
+    this.location,
   });
   final int? initialSurah;
   final int? initialAyah;
+
+  /// Validated entry intent (TAF-02/TAF-03): when present, surah, ayah, and
+  /// source come from here; the legacy params remain as fallback.
+  final TafsirLocation? location;
 
   @override
   State<TafsirPage> createState() => _TafsirPageState();
 }
 
-class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateMixin {
+class _TafsirPageState extends State<TafsirPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
+
   int _currentSurah = 1;
   TafsirSourceId _currentSource = TafsirSourceId.muyassar;
   SurahTafsir? _surahTafsir;
   bool _isLoading = true;
+
+  /// Exact ayah to scroll to + highlight after content is ready (TAF-03).
+  /// Cleared when the user picks another surah/source.
+  int? _targetAyah;
+  final Map<int, GlobalKey> _ayahKeys = {};
 
   @override
   void initState() {
     super.initState();
     AnalyticsService.record('tafsir_opened');
     _tabController = TabController(length: 3, vsync: this);
-    _currentSurah = widget.initialSurah ?? 1;
+    final location = widget.location;
+    _currentSurah = location?.surah ?? widget.initialSurah ?? 1;
+    _targetAyah = location?.ayah ?? widget.initialAyah;
+    if (location != null) {
+      _currentSource = tafsirSourceIdFromName(location.source);
+    }
     _loadTafsir();
   }
 
   Future<void> _loadTafsir() async {
     setState(() => _isLoading = true);
-    
+
     final tafsir = await TafsirDataSource.getSurahTafsir(
       surah: _currentSurah,
       source: _currentSource,
     );
-    
+
     if (mounted) {
       setState(() {
         _surahTafsir = tafsir;
         _isLoading = false;
       });
+      _revealTargetAyah();
     }
+  }
+
+  /// Scroll to and visually identify the exact saved/search-result ayah
+  /// after content is ready (TAF-03). No-op when no target was requested.
+  void _revealTargetAyah() {
+    final target = _targetAyah;
+    if (target == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final keyContext = _ayahKeys[target]?.currentContext;
+      if (keyContext != null) {
+        Scrollable.ensureVisible(
+          keyContext,
+          duration: const Duration(milliseconds: 450),
+          alignment: 0.2,
+        );
+      }
+    });
   }
 
   @override
@@ -70,24 +105,34 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
             icon: const Icon(Icons.menu_book),
             tooltip: l10n.tafsirPickTooltip,
             onSelected: (source) {
-              setState(() => _currentSource = source);
+              setState(() {
+                _currentSource = source;
+                _targetAyah = null;
+              });
               _loadTafsir();
             },
-            itemBuilder: (_) => TafsirSource.all.map((s) => PopupMenuItem(
-              value: s.id,
-              child: Row(
-                children: [
-                  if (s.id == _currentSource)
-                    Icon(Icons.check, size: 18, color: theme.colorScheme.primary),
-                  if (s.id != _currentSource)
-                    const SizedBox(width: 18),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(s.arabicName)),
-                ],
-              ),
-            ),).toList(),
+            itemBuilder: (_) => TafsirSource.all
+                .map(
+                  (s) => PopupMenuItem(
+                    value: s.id,
+                    child: Row(
+                      children: [
+                        if (s.id == _currentSource)
+                          Icon(
+                            Icons.check,
+                            size: 18,
+                            color: theme.colorScheme.primary,
+                          ),
+                        if (s.id != _currentSource) const SizedBox(width: 18),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(s.arabicName)),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
           ),
-          
+
           // Search
           IconButton(
             icon: const Icon(Icons.search),
@@ -98,7 +143,10 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
           controller: _tabController,
           tabs: [
             Tab(text: l10n.quranTafsir, icon: const Icon(Icons.book)),
-            Tab(text: l10n.tafsirTabBookmarks, icon: const Icon(Icons.bookmark)),
+            Tab(
+              text: l10n.tafsirTabBookmarks,
+              icon: const Icon(Icons.bookmark),
+            ),
             Tab(text: l10n.tafsirTabHistory, icon: const Icon(Icons.history)),
           ],
         ),
@@ -108,10 +156,10 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
         children: [
           // Tab 1: Tafsir
           _buildTafsirTab(theme),
-          
+
           // Tab 2: Bookmarks
           _buildBookmarksTab(theme),
-          
+
           // Tab 3: History
           _buildHistoryTab(theme),
         ],
@@ -146,26 +194,40 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
                     initialValue: _currentSurah,
                     decoration: InputDecoration(
                       labelText: l10n.tafsirSurahLabel,
-                      labelStyle: TafsirTheme.sourceStyle(brightness: brightness),
+                      labelStyle: TafsirTheme.sourceStyle(
+                        brightness: brightness,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: theme.colorScheme.outline.withValues(alpha: 0.2),),
+                          color: theme.colorScheme.outline.withValues(
+                            alpha: 0.2,
+                          ),
+                        ),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12,
+                        horizontal: 16,
+                        vertical: 12,
                       ),
                       filled: true,
                       fillColor: TafsirTheme.readingBackground(brightness),
                     ),
-                    items: List.generate(114, (i) => DropdownMenuItem(
-                      value: i + 1,
-                      child: Text('${i + 1}. ${kSurahNames[i]}',
-                        style: GoogleFonts.cairo(fontSize: 14),),
-                    ),),
+                    items: List.generate(
+                      114,
+                      (i) => DropdownMenuItem(
+                        value: i + 1,
+                        child: Text(
+                          '${i + 1}. ${kSurahNames[i]}',
+                          style: GoogleFonts.cairo(fontSize: 14),
+                        ),
+                      ),
+                    ),
                     onChanged: (value) {
                       if (value != null) {
-                        setState(() => _currentSurah = value);
+                        setState(() {
+                          _currentSurah = value;
+                          _targetAyah = null;
+                        });
                         _loadTafsir();
                       }
                     },
@@ -182,26 +244,38 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
               ],
             ),
           ),
-          
+
           // Tafsir content — reading surface
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _surahTafsir == null
-                    ? Center(child: Text(l10n.tafsirNoTafsir,
-                        style: TafsirTheme.sourceStyle(brightness: brightness),),)
-                    : ListView.separated(
-                        padding: const EdgeInsets.all(20),
-                        itemCount: _surahTafsir!.length,
-                        separatorBuilder: (_, __) => const ArabesqueDivider(),
-                        itemBuilder: (context, index) {
-                          final entry = _surahTafsir!.entries[index];
-                          return _TafsirCard(
-                            entry: entry,
-                            onBookmark: () => setState(() {}),
-                          );
-                        },
-                      ),
+                ? Center(
+                    child: Text(
+                      l10n.tafsirNoTafsir,
+                      style: TafsirTheme.sourceStyle(brightness: brightness),
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.all(20),
+                    itemCount: _surahTafsir!.length,
+                    separatorBuilder: (_, __) => const ArabesqueDivider(),
+                    itemBuilder: (context, index) {
+                      final entry = _surahTafsir!.entries[index];
+                      final key = _ayahKeys.putIfAbsent(
+                        entry.ayah,
+                        () => GlobalKey(),
+                      );
+                      return Container(
+                        key: key,
+                        child: _TafsirCard(
+                          entry: entry,
+                          highlighted: entry.ayah == _targetAyah,
+                          onBookmark: () => setState(() {}),
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -211,7 +285,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
   Widget _buildBookmarksTab(ThemeData theme) {
     final l10n = AppLocalizations.of(context);
     final bookmarks = TafsirDataSource.getAllBookmarks();
-    
+
     if (bookmarks.isEmpty) {
       return Center(
         child: Column(
@@ -233,7 +307,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
         ),
       );
     }
-    
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: bookmarks.length,
@@ -241,10 +315,13 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
         final bookmark = bookmarks[index];
         return Card(
           child: ListTile(
-            leading: CircleAvatar(
-              child: Text('${bookmark.ayah}'),
+            leading: CircleAvatar(child: Text('${bookmark.ayah}')),
+            title: Text(
+              l10n.tafsirBookmarkRef(
+                kSurahNames[bookmark.surah - 1],
+                bookmark.ayah,
+              ),
             ),
-            title: Text(l10n.tafsirBookmarkRef(kSurahNames[bookmark.surah - 1], bookmark.ayah)),
             subtitle: Text(TafsirSource.get(bookmark.source).arabicName),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline),
@@ -274,17 +351,13 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
   Widget _buildHistoryTab(ThemeData theme) {
     final l10n = AppLocalizations.of(context);
     final history = TafsirDataSource.getRecentHistory();
-    
+
     if (history.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.history,
-              size: 64,
-              color: theme.colorScheme.outline,
-            ),
+            Icon(Icons.history, size: 64, color: theme.colorScheme.outline),
             const SizedBox(height: 16),
             Text(
               l10n.tafsirNoHistory,
@@ -296,7 +369,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
         ),
       );
     }
-    
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: history.length,
@@ -304,10 +377,10 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
         final item = history[index];
         return Card(
           child: ListTile(
-            leading: CircleAvatar(
-              child: Text('${item.ayah}'),
+            leading: CircleAvatar(child: Text('${item.ayah}')),
+            title: Text(
+              l10n.tafsirBookmarkRef(kSurahNames[item.surah - 1], item.ayah),
             ),
-            title: Text(l10n.tafsirBookmarkRef(kSurahNames[item.surah - 1], item.ayah)),
             subtitle: Text(
               '${TafsirSource.get(item.source).arabicName} • ${_formatDate(item.lastRead)}',
             ),
@@ -330,7 +403,7 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
     final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
     final diff = now.difference(date);
-    
+
     if (diff.inMinutes < 60) return l10n.tafsirMinutesAgo(diff.inMinutes);
     if (diff.inHours < 24) return l10n.tafsirHoursAgo(diff.inHours);
     if (diff.inDays < 7) return l10n.tafsirDaysAgo(diff.inDays);
@@ -356,13 +429,16 @@ class _TafsirPageState extends State<TafsirPage> with SingleTickerProviderStateM
 
 /// بطاقة التفسير — Premium scholar-grade card
 class _TafsirCard extends StatelessWidget {
-
   const _TafsirCard({
     required this.entry,
     required this.onBookmark,
+    this.highlighted = false,
   });
   final TafsirEntry entry;
   final VoidCallback onBookmark;
+
+  /// Exact-entry highlight for bookmark/history/search entry (TAF-03).
+  final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
@@ -381,10 +457,16 @@ class _TafsirCard extends StatelessWidget {
         color: TafsirTheme.cardBackground(brightness),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.08),),
+          color: highlighted
+              ? theme.colorScheme.primary
+              : theme.colorScheme.outline.withValues(alpha: 0.08),
+          width: highlighted ? 2 : 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: brightness == Brightness.light ? 0.03 : 0.1),
+            color: Colors.black.withValues(
+              alpha: brightness == Brightness.light ? 0.03 : 0.1,
+            ),
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
@@ -399,9 +481,14 @@ class _TafsirCard extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
-                    color: TafsirTheme.ayahColor(brightness).withValues(alpha: 0.12),
+                    color: TafsirTheme.ayahColor(
+                      brightness,
+                    ).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -416,7 +503,9 @@ class _TafsirCard extends StatelessWidget {
                 const Spacer(),
                 IconButton(
                   icon: Icon(
-                    isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                    isBookmarked
+                        ? Icons.bookmark_rounded
+                        : Icons.bookmark_border_rounded,
                     color: isBookmarked
                         ? TafsirTheme.ayahColor(brightness)
                         : theme.colorScheme.outline.withValues(alpha: 0.5),
@@ -468,11 +557,11 @@ class _TafsirCard extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
-  
-  _TafsirSearchDelegate(this.source, String searchLabel) : super(
-    searchFieldLabel: searchLabel,
-    textInputAction: TextInputAction.search,
-  );
+  _TafsirSearchDelegate(this.source, String searchLabel)
+    : super(
+        searchFieldLabel: searchLabel,
+        textInputAction: TextInputAction.search,
+      );
   final TafsirSourceId source;
 
   // ── Thematic Topics (Mawdu'at) ──
@@ -511,7 +600,10 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
   @override
   Widget buildLeading(BuildContext context) {
     return IconButton(
-      icon: Transform.flip(flipX: true, child: const Icon(Icons.arrow_back_rounded)),
+      icon: Transform.flip(
+        flipX: true,
+        child: const Icon(Icons.arrow_back_rounded),
+      ),
       onPressed: () => close(context, null),
     );
   }
@@ -523,26 +615,34 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
     }
 
     return FutureBuilder<List<TafsirEntry>>(
-      future: TafsirDataSource.search(query: query.trim(), source: source, limit: 100),
+      future: TafsirDataSource.search(
+        query: query.trim(),
+        source: source,
+        limit: 100,
+      ),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         final results = snapshot.data ?? [];
         if (results.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.search_off_rounded, size: 64, color: Theme.of(context).colorScheme.outline),
+                Icon(
+                  Icons.search_off_rounded,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.outline,
+                ),
                 const SizedBox(height: 16),
                 Text(AppLocalizations.of(context).tafsirNoSearchResults),
               ],
             ),
           );
         }
-        
+
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: results.length,
@@ -565,7 +665,7 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
       // Live quick search preview
       return buildResults(context);
     }
-    
+
     // Show thematic topics when query is empty
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -574,7 +674,11 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
         children: [
           Row(
             children: [
-              Icon(Icons.category_rounded, size: 20, color: Theme.of(context).colorScheme.primary),
+              Icon(
+                Icons.category_rounded,
+                size: 20,
+                color: Theme.of(context).colorScheme.primary,
+              ),
               const SizedBox(width: 8),
               Text(
                 AppLocalizations.of(context).tafsirTopicsTitle,
@@ -593,10 +697,20 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
             children: _topics.map((topic) {
               return ActionChip(
                 elevation: 0,
-                backgroundColor: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.4),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                avatar: Text(topic['icon']!, style: const TextStyle(fontSize: 14)),
-                label: Text(topic['title']!, style: const TextStyle(fontWeight: FontWeight.w600)),
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.secondaryContainer.withValues(alpha: 0.4),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                avatar: Text(
+                  topic['icon']!,
+                  style: const TextStyle(fontSize: 14),
+                ),
+                label: Text(
+                  topic['title']!,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
                 onPressed: () {
                   query = topic['title']!;
                   showResults(context);
@@ -607,7 +721,10 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
           const SizedBox(height: 32),
           Text(
             AppLocalizations.of(context).tafsirTipsTitle,
-            style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.outline),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.outline,
+            ),
           ),
           const SizedBox(height: 8),
           _buildTip(context, AppLocalizations.of(context).tafsirTipRoot),
@@ -623,9 +740,21 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.lightbulb_outline, size: 16, color: Theme.of(context).colorScheme.primary),
+          Icon(
+            Icons.lightbulb_outline,
+            size: 16,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           const SizedBox(width: 8),
-          Expanded(child: Text(text, style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.outline))),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 13,
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -634,7 +763,6 @@ class _TafsirSearchDelegate extends SearchDelegate<TafsirEntry?> {
 
 // ── Search Result Card with Highlighting ──
 class _SearchResultCard extends StatelessWidget {
-
   const _SearchResultCard({
     required this.entry,
     required this.query,
@@ -647,19 +775,24 @@ class _SearchResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     // Find snippet around query
     final lowerText = entry.text.toLowerCase();
     final lowerQuery = query.toLowerCase();
     final idx = lowerText.indexOf(lowerQuery);
-    
+
     var snippet = entry.text;
     if (idx != -1) {
       final start = (idx - 60).clamp(0, entry.text.length);
       final end = (idx + query.length + 80).clamp(0, entry.text.length);
-      snippet = (start > 0 ? '...' : '') + entry.text.substring(start, end) + (end < entry.text.length ? '...' : '');
+      snippet =
+          (start > 0 ? '...' : '') +
+          entry.text.substring(start, end) +
+          (end < entry.text.length ? '...' : '');
     } else {
-      snippet = entry.text.length > 150 ? '${entry.text.substring(0, 150)}...' : entry.text;
+      snippet = entry.text.length > 150
+          ? '${entry.text.substring(0, 150)}...'
+          : entry.text;
     }
 
     return Card(
@@ -667,7 +800,9 @@ class _SearchResultCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.1)),
+        side: BorderSide(
+          color: theme.colorScheme.outline.withValues(alpha: 0.1),
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -678,13 +813,20 @@ class _SearchResultCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
+                  color: theme.colorScheme.primaryContainer.withValues(
+                    alpha: 0.4,
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  AppLocalizations.of(context).tafsirResultRef(entry.surah, entry.ayah),
+                  AppLocalizations.of(
+                    context,
+                  ).tafsirResultRef(entry.surah, entry.ayah),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -716,20 +858,29 @@ class _SearchResultCard extends StatelessWidget {
     var start = 0;
     for (final match in matches) {
       if (match.start > start) {
-        spans.add(TextSpan(text: text.substring(start, match.start), style: _normStyle(theme)));
+        spans.add(
+          TextSpan(
+            text: text.substring(start, match.start),
+            style: _normStyle(theme),
+          ),
+        );
       }
-      spans.add(TextSpan(
-        text: text.substring(match.start, match.end),
-        style: _normStyle(theme).copyWith(
-          backgroundColor: theme.colorScheme.tertiary.withValues(alpha: 0.2),
-          color: theme.colorScheme.tertiary,
-          fontWeight: FontWeight.bold,
+      spans.add(
+        TextSpan(
+          text: text.substring(match.start, match.end),
+          style: _normStyle(theme).copyWith(
+            backgroundColor: theme.colorScheme.tertiary.withValues(alpha: 0.2),
+            color: theme.colorScheme.tertiary,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-      ),);
+      );
       start = match.end;
     }
     if (start < text.length) {
-      spans.add(TextSpan(text: text.substring(start), style: _normStyle(theme)));
+      spans.add(
+        TextSpan(text: text.substring(start), style: _normStyle(theme)),
+      );
     }
     return TextSpan(children: spans);
   }

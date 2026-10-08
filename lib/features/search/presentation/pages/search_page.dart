@@ -51,7 +51,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? NoorDesignSystem.bgDark : NoorDesignSystem.creamWhite,
+      backgroundColor: isDark
+          ? NoorDesignSystem.bgDark
+          : NoorDesignSystem.creamWhite,
       appBar: AppBar(
         title: TextField(
           controller: _controller,
@@ -59,7 +61,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           textDirection: TextDirection.rtl,
           decoration: InputDecoration(
             hintText: l10n.searchHintUnified,
-            hintStyle: TextStyle(color: NoorDesignSystem.textSecondary.withValues(alpha: 0.5)),
+            hintStyle: TextStyle(
+              color: NoorDesignSystem.textSecondary.withValues(alpha: 0.5),
+            ),
             border: InputBorder.none,
           ),
           style: GoogleFonts.cairo(
@@ -75,21 +79,21 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       body: searchState.when(
         data: (results) {
           if (results.isEmpty && _controller.text.isNotEmpty) {
-             return Center(child: Text(l10n.quranNoResults));
+            return Center(child: Text(l10n.quranNoResults));
           }
           if (results.isEmpty) {
-             return Center(
-               child: Column(
-                 mainAxisAlignment: MainAxisAlignment.center,
-                 children: [
-                   const Icon(Icons.search, size: 64, color: Colors.black12),
-                   const SizedBox(height: 16),
-                   Text(l10n.searchPrompt),
-                 ],
-               ),
-             );
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.search, size: 64, color: Colors.black12),
+                  const SizedBox(height: 16),
+                  Text(l10n.searchPrompt),
+                ],
+              ),
+            );
           }
-          
+
           return ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: results.length,
@@ -101,13 +105,16 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(child: Text(AppLocalizations.of(context).mushafError(e.toString()))),
+        error: (e, s) => Center(
+          child: Text(AppLocalizations.of(context).mushafError(e.toString())),
+        ),
       ),
     );
   }
 }
 
-class _SearchResultCard extends StatelessWidget { // SearchResult
+class _SearchResultCard extends StatelessWidget {
+  // SearchResult
 
   const _SearchResultCard({required this.result});
   final SearchResult result;
@@ -123,17 +130,20 @@ class _SearchResultCard extends StatelessWidget { // SearchResult
     final badgeColor = isQuran
         ? NoorDesignSystem.emeraldGreen
         : isHadith
-            ? NoorDesignSystem.goldAccent
-            : NoorDesignSystem.deepTeal;
+        ? NoorDesignSystem.goldAccent
+        : NoorDesignSystem.deepTeal;
     final badgeLabel = isQuran
         ? l10n.quranTitle
         : isHadith
-            ? l10n.searchBadgeHadith
-            : l10n.searchBadgeAdhkar;
+        ? l10n.searchBadgeHadith
+        : l10n.searchBadgeAdhkar;
 
     String? reference;
     if (isQuran) {
-      reference = l10n.searchQuranRef('${metadata['surah']}', '${metadata['verse']}');
+      reference = l10n.searchQuranRef(
+        '${metadata['surah']}',
+        '${metadata['verse']}',
+      );
     } else if (isHadith) {
       reference = hadithBookName(metadata['book']?.toString() ?? '');
     }
@@ -156,7 +166,10 @@ class _SearchResultCard extends StatelessWidget { // SearchResult
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: badgeColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
@@ -183,10 +196,7 @@ class _SearchResultCard extends StatelessWidget { // SearchResult
                 result.text,
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.amiri(
-                  fontSize: 18,
-                  height: 1.6,
-                ),
+                style: GoogleFonts.amiri(fontSize: 18, height: 1.6),
                 textDirection: TextDirection.rtl,
               ),
             ],
@@ -200,7 +210,11 @@ class _SearchResultCard extends StatelessWidget { // SearchResult
     final metadata = result.metadata;
 
     if (result.source == 'quran') {
-      unawaited(context.push('/quran/surah/${metadata['surah']}'));
+      // QUR-11: route to the exact matched ayah with highlight, keeping a
+      // stable back path to the query/results list via push.
+      final surah = metadata['surah'];
+      final verse = metadata['verse'];
+      unawaited(context.push('/quran/surah/$surah?ayah=$verse'));
       return;
     }
 

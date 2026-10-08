@@ -33,6 +33,10 @@
     "description": "Explains the one-time first-launch database import."
   },
   "appTagline": "A comprehensive Islamic app serving as a digital worship environment",
+  "commonBack": "Back",
+  "@commonBack": {
+    "description": "Generic back button tooltip."
+  },
   "commonRetry": "Retry",
   "@commonRetry": {
     "description": "Generic retry button label used on error states."
@@ -902,6 +906,82 @@
       }
     }
   },
+  "mushafRetry": "Retry",
+  "@mushafRetry": {
+    "description": "Retry button on the Mushaf error pane."
+  },
+  "mushafPageSemantics": "Page {page} of 604, {surah}, Juz {juz}",
+  "@mushafPageSemantics": {
+    "description": "Semantic label for a Mushaf page.",
+    "placeholders": {
+      "page": {"type": "int"},
+      "surah": {"type": "String"},
+      "juz": {"type": "int"}
+    }
+  },
+  "mushafThemeClassic": "Classic",
+  "@mushafThemeClassic": {"description": "Classic Mushaf theme label."},
+  "mushafThemeWhite": "White",
+  "@mushafThemeWhite": {"description": "White Mushaf theme label."},
+  "mushafThemeDark": "Dark",
+  "@mushafThemeDark": {"description": "Dark Mushaf theme label."},
+  "mushafThemeNight": "Night",
+  "@mushafThemeNight": {"description": "Night Mushaf theme label."},
+  "mushafThemeContrast": "High contrast",
+  "@mushafThemeContrast": {"description": "High-contrast Mushaf theme label."},
+  "mushafZoomIn": "Increase Mushaf font size",
+  "@mushafZoomIn": {"description": "Zoom-in control for Quran text."},
+  "mushafZoomOut": "Decrease Mushaf font size",
+  "@mushafZoomOut": {"description": "Zoom-out control for Quran text."},
+  "mushafZoomReset": "Reset font size",
+  "@mushafZoomReset": {"description": "Reset Quran font size."},
+  "mushafControlsShown": "Show controls",
+  "@mushafControlsShown": {"description": "Controls-visible semantics."},
+  "mushafControlsHidden": "Hide controls",
+  "@mushafControlsHidden": {"description": "Controls-hidden semantics."},
+  "mushafDiagnosticId": "Diagnostic ID: {id}",
+  "@mushafDiagnosticId": {
+    "description": "Non-sensitive diagnostic ID for page failures.",
+    "placeholders": {"id": {"type": "String"}}
+  },
+  "routeInvalidTitle": "Invalid link",
+  "@routeInvalidTitle": {"description": "Recovery screen title."},
+  "routeInvalidBody": "This location ({reason}) could not be opened. You were returned to a safe location.",
+  "@routeInvalidBody": {
+    "description": "Recovery screen body.",
+    "placeholders": {"reason": {"type": "String"}}
+  },
+  "routeInvalidValue": "Value: {value}",
+  "@routeInvalidValue": {
+    "description": "Offending route value.",
+    "placeholders": {"value": {"type": "String"}}
+  },
+  "routeInvalidBack": "Back to safety",
+  "@routeInvalidBack": {"description": "Recovery back button."},
+  "audioErrorOffline": "No connection. Check the network or play a cached verse and retry.",
+  "@audioErrorOffline": {"description": "Offline playback error."},
+  "audioErrorInvalid": "This verse could not be loaded. Check the location and retry.",
+  "@audioErrorInvalid": {"description": "Invalid ayah playback error."},
+  "audioErrorUnknown": "Audio could not be played. Please retry.",
+  "@audioErrorUnknown": {"description": "Generic playback error."},
+  "audioRetry": "Retry",
+  "@audioRetry": {"description": "Audio retry button."},
+  "audioEndOfQuran": "End of Mushaf",
+  "@audioEndOfQuran": {"description": "End-of-Quran announcement."},
+  "audioEndOfSurah": "End of surah",
+  "@audioEndOfSurah": {"description": "End-of-surah announcement."},
+  "tafsirStateUnavailable": "No tafsir for this verse in the selected source",
+  "@tafsirStateUnavailable": {"description": "Missing-row tafsir state."},
+  "tafsirStateSourceDisabled": "This source is not bundled in this build",
+  "@tafsirStateSourceDisabled": {"description": "Disabled-source tafsir state."},
+  "tafsirStateStorageFailure": "The tafsir library could not be opened on this device. Please retry.",
+  "@tafsirStateStorageFailure": {"description": "Storage-failure tafsir state."},
+  "tafsirStateCorrupt": "The tafsir library is corrupt. Re-verify the bundle and retry.",
+  "@tafsirStateCorrupt": {"description": "Corrupt-DB tafsir state."},
+  "tafsirRetry": "Retry",
+  "@tafsirRetry": {"description": "Tafsir retry button."},
+  "tafsirOpenFull": "Open full tafsir",
+  "@tafsirOpenFull": {"description": "Open full tafsir button."},
   "mushafShareTemplate": "{verse} — Holy Quran (surah {surah}, verse {ayah})",
   "@mushafShareTemplate": {
     "description": "Verse share text.",

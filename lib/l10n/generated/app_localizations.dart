@@ -152,6 +152,12 @@ abstract class AppLocalizations {
   /// **'A comprehensive Islamic app serving as a digital worship environment'**
   String get appTagline;
 
+  /// Generic back button tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get commonBack;
+
   /// Generic retry button label used on error states.
   ///
   /// In en, this message translates to:
@@ -1297,6 +1303,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} ({ayah})'**
   String mushafAyahLabel(String name, int ayah);
+
+  /// Retry button on the Mushaf error pane.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get mushafRetry;
+
+  /// Semantic label for a Mushaf page.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page} of 604, {surah}, Juz {juz}'**
+  String mushafPageSemantics(int page, String surah, int juz);
+
+  /// Classic Mushaf theme label.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic'**
+  String get mushafThemeClassic;
+
+  /// White Mushaf theme label.
+  ///
+  /// In en, this message translates to:
+  /// **'White'**
+  String get mushafThemeWhite;
+
+  /// Dark Mushaf theme label.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get mushafThemeDark;
+
+  /// Night Mushaf theme label.
+  ///
+  /// In en, this message translates to:
+  /// **'Night'**
+  String get mushafThemeNight;
+
+  /// High-contrast Mushaf theme label.
+  ///
+  /// In en, this message translates to:
+  /// **'High contrast'**
+  String get mushafThemeContrast;
+
+  /// Zoom-in control for Quran text.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase Mushaf font size'**
+  String get mushafZoomIn;
+
+  /// Zoom-out control for Quran text.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease Mushaf font size'**
+  String get mushafZoomOut;
+
+  /// Reset Quran font size.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset font size'**
+  String get mushafZoomReset;
+
+  /// Controls-visible semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Show controls'**
+  String get mushafControlsShown;
+
+  /// Controls-hidden semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide controls'**
+  String get mushafControlsHidden;
+
+  /// Non-sensitive diagnostic ID for page failures.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostic ID: {id}'**
+  String mushafDiagnosticId(String id);
+
+  /// Recovery screen title.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid link'**
+  String get routeInvalidTitle;
+
+  /// Recovery screen body.
+  ///
+  /// In en, this message translates to:
+  /// **'This location ({reason}) could not be opened. You were returned to a safe location.'**
+  String routeInvalidBody(String reason);
+
+  /// Offending route value.
+  ///
+  /// In en, this message translates to:
+  /// **'Value: {value}'**
+  String routeInvalidValue(String value);
+
+  /// Recovery back button.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to safety'**
+  String get routeInvalidBack;
+
+  /// Offline playback error.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection. Check the network or play a cached verse and retry.'**
+  String get audioErrorOffline;
+
+  /// Invalid ayah playback error.
+  ///
+  /// In en, this message translates to:
+  /// **'This verse could not be loaded. Check the location and retry.'**
+  String get audioErrorInvalid;
+
+  /// Generic playback error.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio could not be played. Please retry.'**
+  String get audioErrorUnknown;
+
+  /// Audio retry button.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get audioRetry;
+
+  /// End-of-Quran announcement.
+  ///
+  /// In en, this message translates to:
+  /// **'End of Mushaf'**
+  String get audioEndOfQuran;
+
+  /// End-of-surah announcement.
+  ///
+  /// In en, this message translates to:
+  /// **'End of surah'**
+  String get audioEndOfSurah;
+
+  /// Missing-row tafsir state.
+  ///
+  /// In en, this message translates to:
+  /// **'No tafsir for this verse in the selected source'**
+  String get tafsirStateUnavailable;
+
+  /// Disabled-source tafsir state.
+  ///
+  /// In en, this message translates to:
+  /// **'This source is not bundled in this build'**
+  String get tafsirStateSourceDisabled;
+
+  /// Storage-failure tafsir state.
+  ///
+  /// In en, this message translates to:
+  /// **'The tafsir library could not be opened on this device. Please retry.'**
+  String get tafsirStateStorageFailure;
+
+  /// Corrupt-DB tafsir state.
+  ///
+  /// In en, this message translates to:
+  /// **'The tafsir library is corrupt. Re-verify the bundle and retry.'**
+  String get tafsirStateCorrupt;
+
+  /// Tafsir retry button.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get tafsirRetry;
+
+  /// Open full tafsir button.
+  ///
+  /// In en, this message translates to:
+  /// **'Open full tafsir'**
+  String get tafsirOpenFull;
 
   /// Verse share text.
   ///

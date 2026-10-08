@@ -44,11 +44,11 @@ class AdhkarTimerService {
   /// Start daily refresh at midnight
   static void _startDailyRefresh() {
     _refreshTimer?.cancel();
-    
+
     final now = DateTime.now();
     final nextMidnight = DateTime(now.year, now.month, now.day + 1, 0, 5);
     final duration = nextMidnight.difference(now);
-    
+
     _refreshTimer = Timer(duration, () async {
       await _refreshPrayerTimes();
       _startDailyRefresh();
@@ -63,16 +63,16 @@ class AdhkarTimerService {
   static bool get isMorningAdhkarAvailable {
     if (_todayPrayerTimes == null) return false;
     final now = DateTime.now();
-    return now.isAfter(_todayPrayerTimes!.fajr) && 
-           now.isBefore(_todayPrayerTimes!.sunrise);
+    return now.isAfter(_todayPrayerTimes!.fajr) &&
+        now.isBefore(_todayPrayerTimes!.sunrise);
   }
 
   /// أذكار المساء متاحة من العصر إلى المغرب
   static bool get isEveningAdhkarAvailable {
     if (_todayPrayerTimes == null) return false;
     final now = DateTime.now();
-    return now.isAfter(_todayPrayerTimes!.asr) && 
-           now.isBefore(_todayPrayerTimes!.maghrib);
+    return now.isAfter(_todayPrayerTimes!.asr) &&
+        now.isBefore(_todayPrayerTimes!.maghrib);
   }
 
   /// أذكار بعد الصلاة متاحة لـ 30 دقيقة بعد كل صلاة
@@ -80,7 +80,7 @@ class AdhkarTimerService {
     if (_todayPrayerTimes == null) return false;
     final now = DateTime.now();
     const postPrayerDuration = Duration(minutes: 30);
-    
+
     final prayers = [
       _todayPrayerTimes!.fajr,
       _todayPrayerTimes!.dhuhr,
@@ -88,7 +88,7 @@ class AdhkarTimerService {
       _todayPrayerTimes!.maghrib,
       _todayPrayerTimes!.isha,
     ];
-    
+
     for (final prayer in prayers) {
       if (now.isAfter(prayer) && now.isBefore(prayer.add(postPrayerDuration))) {
         return true;
@@ -135,7 +135,7 @@ class AdhkarTimerService {
   static Duration? getRemainingTime(AdhkarType type) {
     if (_todayPrayerTimes == null) return null;
     final now = DateTime.now();
-    
+
     switch (type) {
       case AdhkarType.morning:
         if (isMorningAdhkarAvailable) {
@@ -172,7 +172,7 @@ class AdhkarTimerService {
   static DateTime? getNextStartTime(AdhkarType type) {
     if (_todayPrayerTimes == null) return null;
     final now = DateTime.now();
-    
+
     switch (type) {
       case AdhkarType.morning:
         if (now.isBefore(_todayPrayerTimes!.fajr)) {
@@ -180,14 +180,14 @@ class AdhkarTimerService {
         }
         // Tomorrow's fajr
         return _todayPrayerTimes!.fajr.add(const Duration(days: 1));
-        
+
       case AdhkarType.evening:
         if (now.isBefore(_todayPrayerTimes!.asr)) {
           return _todayPrayerTimes!.asr;
         }
         // Tomorrow's asr
         return _todayPrayerTimes!.asr.add(const Duration(days: 1));
-        
+
       case AdhkarType.afterPrayer:
       case AdhkarType.sleep:
       case AdhkarType.wakeUp:
@@ -204,14 +204,14 @@ class AdhkarTimerService {
   static PrayerType? getCurrentPrayer() {
     if (_todayPrayerTimes == null) return null;
     final now = DateTime.now();
-    
+
     // Check if we're in a prayer window (15 minutes after adhan)
     const prayerWindow = Duration(minutes: 15);
-    
+
     if (now.isAfter(_todayPrayerTimes!.isha)) {
       return PrayerType.isha;
     }
-    if (now.isAfter(_todayPrayerTimes!.maghrib) && 
+    if (now.isAfter(_todayPrayerTimes!.maghrib) &&
         now.isBefore(_todayPrayerTimes!.maghrib.add(prayerWindow))) {
       return PrayerType.maghrib;
     }
@@ -230,22 +230,33 @@ class AdhkarTimerService {
     if (now.isAfter(_todayPrayerTimes!.fajr)) {
       return PrayerType.fajr;
     }
-    
+
     return null;
   }
 
   /// Get next prayer
+  /// Get next prayer, rolling over to tomorrow's Fajr after Isha.
+  ///
+  /// The single-day table has no tomorrow row; the type-level rollover keeps
+  /// the answer truthful ("the next prayer is Fajr") instead of null, and
+  /// [getTimeUntilNextPrayer] adds a day so countdowns stay non-negative.
   static PrayerType? getNextPrayer() {
-    return _todayPrayerTimes?.getNextPrayer();
+    if (_todayPrayerTimes == null) return null;
+    return _todayPrayerTimes!.getNextPrayer() ?? PrayerType.fajr;
   }
 
-  /// Get time until next prayer
+  /// Get time until next prayer (never negative: post-Isha rolls into
+  /// tomorrow's Fajr).
   static Duration? getTimeUntilNextPrayer() {
     final nextPrayer = getNextPrayer();
     if (nextPrayer == null || _todayPrayerTimes == null) return null;
-    
-    final prayerTime = _todayPrayerTimes!.getTime(nextPrayer);
-    return prayerTime.difference(DateTime.now());
+
+    var prayerTime = _todayPrayerTimes!.getTime(nextPrayer);
+    final now = DateTime.now();
+    if (prayerTime.isBefore(now)) {
+      prayerTime = prayerTime.add(const Duration(days: 1));
+    }
+    return prayerTime.difference(now);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -259,35 +270,47 @@ class AdhkarTimerService {
 
 /// Adhkar types
 enum AdhkarType {
-  morning,    // أذكار الصباح
-  evening,    // أذكار المساء
+  morning, // أذكار الصباح
+  evening, // أذكار المساء
   afterPrayer, // أذكار بعد الصلاة
-  sleep,      // أذكار النوم
-  wakeUp,     // أذكار الاستيقاظ
-  general,    // أذكار عامة
+  sleep, // أذكار النوم
+  wakeUp, // أذكار الاستيقاظ
+  general, // أذكار عامة
 }
 
 /// Extension for adhkar type
 extension AdhkarTypeExtension on AdhkarType {
   String get arabicName {
     switch (this) {
-      case AdhkarType.morning: return 'أذكار الصباح';
-      case AdhkarType.evening: return 'أذكار المساء';
-      case AdhkarType.afterPrayer: return 'أذكار بعد الصلاة';
-      case AdhkarType.sleep: return 'أذكار النوم';
-      case AdhkarType.wakeUp: return 'أذكار الاستيقاظ';
-      case AdhkarType.general: return 'أذكار متنوعة';
+      case AdhkarType.morning:
+        return 'أذكار الصباح';
+      case AdhkarType.evening:
+        return 'أذكار المساء';
+      case AdhkarType.afterPrayer:
+        return 'أذكار بعد الصلاة';
+      case AdhkarType.sleep:
+        return 'أذكار النوم';
+      case AdhkarType.wakeUp:
+        return 'أذكار الاستيقاظ';
+      case AdhkarType.general:
+        return 'أذكار متنوعة';
     }
   }
-  
+
   String get timeDescription {
     switch (this) {
-      case AdhkarType.morning: return 'من الفجر إلى الشروق';
-      case AdhkarType.evening: return 'من العصر إلى المغرب';
-      case AdhkarType.afterPrayer: return 'بعد كل صلاة';
-      case AdhkarType.sleep: return 'قبل النوم';
-      case AdhkarType.wakeUp: return 'عند الاستيقاظ';
-      case AdhkarType.general: return 'في أي وقت';
+      case AdhkarType.morning:
+        return 'من الفجر إلى الشروق';
+      case AdhkarType.evening:
+        return 'من العصر إلى المغرب';
+      case AdhkarType.afterPrayer:
+        return 'بعد كل صلاة';
+      case AdhkarType.sleep:
+        return 'قبل النوم';
+      case AdhkarType.wakeUp:
+        return 'عند الاستيقاظ';
+      case AdhkarType.general:
+        return 'في أي وقت';
     }
   }
 }

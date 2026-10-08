@@ -34,6 +34,25 @@
       "review_ref": "docs/scholarly-review.md rows 1 and 13"
     },
     {
+      "id": "mushaf-tokens",
+      "title": "Deterministic Mushaf page-token asset derived from the quran-text set",
+      "sha256": {
+        "assets/quran/mushaf_tokens.json": "1b1ecb1e9f8fb1fa8f6703fec6c4339c4b85217605c425b4cc946c6490144a6b"
+      },
+      "checksum_files": [
+        {
+          "path": "assets/quran/mushaf_tokens.sha256",
+          "covers": ["assets/quran/mushaf_tokens.json"]
+        }
+      ],
+      "source": "derived deterministically in-repo from the quran-text set by tool/generate_mushaf_tokens.dart plus lib/features/quran/data/mushaf_token_codec.dart; no new upstream text",
+      "license": "same-as-source; upstream Quran text licence still unrecorded (see quran-text set)",
+      "retrieved_at": "2026-10-06",
+      "review_status": "pending",
+      "review_ref": "docs/scholarly-review.md rows 1 and 13; token report (basmala/anomaly counts) inside the artifact",
+      "reproducible": true
+    },
+    {
       "id": "tafsir-db",
       "title": "Four classical tafsir sources (Muyassar, As-Saadi, At-Tabari, Ibn Kathir)",
       "sha256": {

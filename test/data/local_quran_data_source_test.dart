@@ -52,4 +52,40 @@ void main() {
     expect(await dataSource.getRevelationCause(1, 1), isNull);
     await dataSource.cacheQuranData([]);
   });
+
+  test('token path serves pages and prefetches neighbours', () async {
+    final page300 = await dataSource.getVersesByPage(300);
+    expect(page300, isNotEmpty);
+    expect(page300.every((v) => v.page == 300), isTrue);
+    final cached = LocalQuranDataSourceImpl.debugCachedPages();
+    expect(cached, contains(300));
+    // Neighbour prefetch window: immediate neighbours resolve from cache.
+    expect(cached, contains(299));
+    expect(cached, contains(301));
+    // Cache stays bounded while sweeping the whole corpus.
+    for (var page = 1; page <= 604; page += 60) {
+      final verses = await dataSource.getVersesByPage(page);
+      expect(verses, isNotEmpty, reason: 'page $page');
+    }
+    expect(
+      LocalQuranDataSourceImpl.debugCachedPages().length,
+      lessThanOrEqualTo(25),
+    );
+  });
+
+  test('token-built page matches legacy page-map identities', () async {
+    for (final page in [1, 2, 100, 300, 604]) {
+      final verses = await dataSource.getVersesByPage(page);
+      expect(verses, isNotEmpty, reason: 'page $page');
+      for (final verse in verses) {
+        expect(verse.surahNumber, inInclusiveRange(1, 114));
+        expect(verse.numberInSurah, greaterThanOrEqualTo(1));
+        expect(verse.textUthmani.trim(), isNotEmpty);
+      }
+    }
+    // Page 1 holds exactly Al-Fatihah's seven ayahs.
+    final page1 = await dataSource.getVersesByPage(1);
+    expect(page1, hasLength(7));
+    expect(page1.every((v) => v.surahNumber == 1), isTrue);
+  });
 }

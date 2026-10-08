@@ -8,7 +8,6 @@ import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/home_provider.dart';
 
 class ContinueReadingCard extends StatelessWidget {
-
   const ContinueReadingCard({super.key, this.lastRead});
   final LastReadData? lastRead;
 
@@ -22,7 +21,9 @@ class ContinueReadingCard extends StatelessWidget {
       onTap: () {
         HapticFeedback.selectionClick();
         if (lastRead != null) {
-          context.go('/quran/surah/${lastRead!.surah}');
+          // QUR-09: the card displays the saved ayah, so navigation must
+          // restore it — never drop it at the surah start.
+          context.go('/quran/surah/${lastRead!.surah}?ayah=${lastRead!.ayah}');
         } else {
           context.go('/quran');
         }
@@ -33,7 +34,9 @@ class ContinueReadingCard extends StatelessWidget {
           color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(NoorDesignSystem.radiusMedium),
           border: Border.all(
-            color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.05),
+            color: isDark
+                ? Colors.white12
+                : Colors.black.withValues(alpha: 0.05),
           ),
           boxShadow: NoorDesignSystem.shadowSmall,
         ),
@@ -54,7 +57,7 @@ class ContinueReadingCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 16),
-            
+
             // Text info
             Expanded(
               child: Column(
@@ -64,7 +67,9 @@ class ContinueReadingCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        lastRead != null ? lastRead!.surahName : l10n.continueStart,
+                        lastRead != null
+                            ? lastRead!.surahName
+                            : l10n.continueStart,
                         style: GoogleFonts.cairo(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -88,7 +93,9 @@ class ContinueReadingCard extends StatelessWidget {
                       l10n.continueAyah(lastRead!.ayah),
                       style: GoogleFonts.cairo(
                         fontSize: 13,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
                       ),
                     )
                   else
@@ -96,7 +103,9 @@ class ContinueReadingCard extends StatelessWidget {
                       l10n.continueGo,
                       style: GoogleFonts.cairo(
                         fontSize: 13,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
                       ),
                     ),
                 ],

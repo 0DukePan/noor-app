@@ -193,6 +193,27 @@ Every push runs the same gates locally and in CI (`.github/workflows/ci.yml`):
 | OSV-Scanner over `pubspec.lock` | dependencies have no known vulnerabilities |
 | `tools/generate_sbom.py` | a CycloneDX SBOM for every run (uploaded artifact) |
 | `flutter test integration_test` (emulator) | the real app boots with wifi/data disabled: DB import, onboarding, all five tabs |
+| `npm run test:e2e` ([`.github/workflows/e2e.yml`](.github/workflows/e2e.yml)) | end-to-end Mushaf flows against the web release build (same app code): boot, reader page 1, cold deep link |
+
+## End-to-end tests
+
+Beyond widget tests, `tests/*.e2e.ts` drive the real compiled app in a
+browser: onboarding skip, Quran library → Mushaf reader (page indicator and
+URL prove the exact settled page), and a cold deep link surviving onboarding
+onto its exact page. Fully deterministic — no model calls.
+
+Prerequisites: Node.js 22.22.3+ and npm. First build the web bundle, then:
+
+```bash
+flutter build web --release
+npm install
+npm run test:e2e
+```
+
+The runner serves `build/web` itself (`e2e/serve-web.cjs`), so rebuild the
+bundle after app changes. Details, the Flutter-web semantics technique, and
+the deferred mobile-engine path (blocked on two upstream agent-device Windows
+bugs, with report refs) live in [`e2e/notes.md`](e2e/notes.md).
 
 ## Documentation
 
@@ -212,6 +233,11 @@ Every push runs the same gates locally and in CI (`.github/workflows/ci.yml`):
 | [docs/data-model.md](docs/data-model.md) | SQLite schemas, Hive boxes, bundled JSON |
 | [docs/adr/](docs/adr/README.md) | Architecture decision records (why Flutter, SQLite, Hive, Riverpod, …) |
 | [docs/qa-checklist.md](docs/qa-checklist.md) | The on-device pass before a release |
+| [docs/remediation-ledger.md](docs/remediation-ledger.md) | Finding-by-finding evidence ledger (Mushaf remediation) |
+| [docs/content-decision-record.md](docs/content-decision-record.md) | Quran source, basmala, typography and token decisions |
+| [docs/interaction-catalogue.md](docs/interaction-catalogue.md) | Every reachable UI action with owner, outcome and evidence |
+| [docs/qa-device-matrix.md](docs/qa-device-matrix.md) | Required device lanes and what is still unverified |
+| [docs/privacy-permissions-audit.md](docs/privacy-permissions-audit.md) | Permission-to-feature audit against the privacy claims |
 | [docs/store-checklist.md](docs/store-checklist.md) | Store submission requirements |
 | [SECURITY.md](SECURITY.md) | Threat model, permissions, dependency scanning, reporting |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Dev setup, the gate list, conventions, content rules |

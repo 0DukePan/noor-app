@@ -190,20 +190,11 @@ void main() {
           date: DateTime(2026, 3, 15),
           method: CalculationMethod.ummAlQura,
           utcOffset: 3,
-          adjustments: const PrayerAdjustments(
-            fajr: 5,
-            dhuhr: -3,
-          ),
+          adjustments: const PrayerAdjustments(fajr: 5, dhuhr: -3),
         );
 
-        expect(
-          adjusted.fajr.difference(base.fajr).inMinutes,
-          equals(5),
-        );
-        expect(
-          adjusted.dhuhr.difference(base.dhuhr).inMinutes,
-          equals(-3),
-        );
+        expect(adjusted.fajr.difference(base.fajr).inMinutes, equals(5));
+        expect(adjusted.dhuhr.difference(base.dhuhr).inMinutes, equals(-3));
       });
     });
 
@@ -345,7 +336,11 @@ void main() {
         // but never by days.
         for (final prayer in PrayerType.values) {
           expect(
-            times.getTime(prayer).difference(DateTime(2026, 12, 21)).inHours.abs(),
+            times
+                .getTime(prayer)
+                .difference(DateTime(2026, 12, 21))
+                .inHours
+                .abs(),
             lessThanOrEqualTo(24),
           );
         }
@@ -394,6 +389,74 @@ void main() {
         final dhuhrToAsr = times.asr.difference(times.dhuhr).inMinutes;
         expect(dhuhrToAsr, greaterThan(0));
         expect(dhuhrToAsr, lessThan(6 * 60));
+      });
+
+      test('polar day and polar night return valid times without throwing', () {
+        for (final date in [DateTime(2026, 6, 21), DateTime(2026, 12, 21)]) {
+          final times = PrayerTimeEngine.calculate(
+            latitude: 69.6492,
+            longitude: 18.9553,
+            date: date,
+            method: CalculationMethod.muslimWorldLeague,
+            utcOffset: 1,
+          );
+          expect(times.fajr, isNotNull);
+          expect(times.sunrise, isNotNull);
+          expect(times.dhuhr, isNotNull);
+          expect(times.asr, isNotNull);
+          expect(times.maghrib, isNotNull);
+          expect(times.isha, isNotNull);
+        }
+      });
+
+      test('DST spring-forward keeps valid ordered times', () {
+        // New York springs forward on 2026-03-08 (EST→EDT).
+        PrayerTimes? before;
+        PrayerTimes? after;
+        expect(() {
+          before = PrayerTimeEngine.calculate(
+            latitude: 40.7128,
+            longitude: -74.0060,
+            date: DateTime(2026, 3, 7),
+            method: CalculationMethod.northAmerica,
+            utcOffset: -5,
+          );
+          after = PrayerTimeEngine.calculate(
+            latitude: 40.7128,
+            longitude: -74.0060,
+            date: DateTime(2026, 3, 9),
+            method: CalculationMethod.northAmerica,
+            utcOffset: -4,
+          );
+        }, returnsNormally);
+        for (final times in [before!, after!]) {
+          expect(times.fajr.isBefore(times.sunrise), isTrue);
+          expect(times.sunrise.isBefore(times.dhuhr), isTrue);
+          expect(times.dhuhr.isBefore(times.asr), isTrue);
+          expect(times.asr.isBefore(times.maghrib), isTrue);
+          expect(times.maghrib.isBefore(times.isha), isTrue);
+        }
+      });
+
+      test('date-line east and leap day stay valid', () {
+        final auckland = PrayerTimeEngine.calculate(
+          latitude: -36.8485,
+          longitude: 174.7633,
+          date: DateTime(2026, 1, 15),
+          method: CalculationMethod.muslimWorldLeague,
+          utcOffset: 13,
+        );
+        expect(auckland.fajr.isBefore(auckland.isha), isTrue);
+
+        final leap = PrayerTimeEngine.calculate(
+          latitude: 21.4225,
+          longitude: 39.8262,
+          date: DateTime(2024, 2, 29),
+          method: CalculationMethod.ummAlQura,
+          utcOffset: 3,
+        );
+        expect(leap.date.day, 29);
+        expect(leap.fajr.isBefore(leap.isha), isTrue);
       });
     });
 
